@@ -19,10 +19,10 @@ const historyApiFallback = require('connect-history-api-fallback');
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
 // SASS
-const sass = require('gulp-sass')(require('sass'));
+const sassProc = require('gulp-sass')(require('sass'));
 
 // Critical CSS
-const critical = require('critical');
+const criticalPlugin = require('critical');
 
 // Image Processing
 // We need path for the task to work when detecting extesions
@@ -32,139 +32,156 @@ const path = require('path');
 const squoosh = require('gulp-libsquoosh');
 
 // Utilities
-const del = require('rimraf');
+const del = require('del');
 // Act only on newer files
 const newer = require('gulp-newer');
 
 // MARKDOWN AND PLUGINS
 // Testing Markdown configuration and whether this will be enough
-const markdown = require('gulp-markdown-it')('commonmark');
+const markdownPlugin = require('gulp-markdown-it');
 
 // load the plugins
-const abbr = require("markdown-it-abbr");
-const anc = require("markdown-it-anchor");
-const attrs = require("markdown-it-attrs");
-const embed = require("markdown-it-block-embed");
-const fn = require("markdown-it-footnote");
-const figs = require("markdown-it-implicit-figures");
-const kbd = require("markdown-it-kbd");
-const prism = require("markdown-it-prism");
-const toc = require("markdown-it-table-of-contents");
-const list = require("markdown-it-task-lists");
+// const abbr = require("markdown-it-abbr");
+// const anc = require("markdown-it-anchor");
+// const attrs = require("markdown-it-attrs");
+// const embed = require("markdown-it-block-embed");
+// const fn = require("markdown-it-footnote");
+// const figs = require("markdown-it-implicit-figures");
+// const kbd = require("markdown-it-kbd");
+// const prism = require("markdown-it-prism");
+// const toc = require("markdown-it-table-of-contents");
+// const list = require("markdown-it-task-lists");
 
 // explicitly require eslint
-const eslint = require('gulp-eslint');
+const eslintPlugin = require('gulp-eslint');
+
+// ------------
+// HTML & Markdown
+// ------------
 
 /**
  * @name markdown
  * @description converts markdown to HTML using gulp-markdown-it and a set of plugins.
+ * @return {void}
  *
  * The idea is to eventually generate two Markdown files:
- *
  * * One that works in WordPress
  * * One standalone Markdown that will work with a set of extension and will be easy to convert to HTML
  *
  */
-gulp.task('markdown', () => {
+function markdown() {
   const config = {
     options: {
+      preset: 'commonmark',
       html: true,
       xhtmlOut: true,
       linkify: true,
       typographer: true,
     },
   };
-
   return gulp
     .src('src/md-content/*.md')
-    .pipe(markdown(config)
-      .use(abbr) // Doesn't require special configuration
-      .use(anc, {
-        permalink: true,
-      })
-      .use(attrs) // Doesn't require special configuration
-      .use(embed, {
-        containerClassName: 'video',
-      })
-      .use(fn) // Doesn't require special configuration
-      .use(figs, {
-        dataType: false,
-        figcaption: true,
-        tabindex: true,
-        link: false,
-      })
-      .use(kbd) // Doesn't require special configuration
-      .use(prism)
-      // Include h1, h2 and h3 elements in the TOC
-      .use(toc, {
-        includeLevel: [1, 2, 3],
-      })
-      .use(list)
-      .use(dl)
-      .use(admonition),
-    )
+    .pipe(markdownPlugin(config))
     .pipe(gulp.dest('src/html-content/'));
-});
+};
 
-gulp.task('build-template', gulp.series('markdown'), () => {
+/**
+ * @name buildTemplate
+ * @description Builds the full HTML templates from the markdown generated fragments
+ * @param {string} done
+ * @return {void}
+ */
+function buildTemplate(done) {
   gulp.src('./src/html-content/*.html')
     .pipe($.wrap({
       src: './src/templates/template.html',
     }))
-    .pipe(gulp.dest('./src/'));
-});
+    .pipe(gulp.dest('./dist'));
+    done();
+};
 
-// Tasks  for working with paged media content
-gulp.task('build-pm-template', () => {
+// ------------
+// Paged Media and PDF
+// ------------
+
+/**
+ * @name buildPMTemplate
+ * @description Builds HTML files to use with PrinceXMML later
+ * @param {String} done
+ * @return {void}
+ */
+function buildPMTemplate(done) {
   gulp.src('./src/html-content/*.html')
     .pipe($.wrap({
       src: './src/templates/template-pm.html',
     }))
     .pipe(gulp.dest('./src/pm-content'));
-});
+  done();
+};
 
-gulp.task('build-pdf', gulp.series('build-pm-template'), () => {
+/**
+ * @name buildPDF
+ * @description Builds the PDF from the HTML using PrinceXML
+ * @return {void}
+ */
+function buildPDF() {
+  const options = {
+    continueOnError: false, // default = false, true means don't emit error event
+    pipeStdout: false, // default = false, true means stdout is written to file.contents
+  };
+  const reportOptions = {
+    err: true, // default = true, false means don't write err
+    stderr: true, // default = true, false means don't write stderr
+    stdout: true, // default = true, false means don't write stdout
+  };
   return gulp.src('./src/pm-content/*.html')
     .pipe(newer('src/pdf/'))
-    .pipe($.exec('prince --verbose --input=html --javascript --style ./src/css/article-styles.css <%= file.path %> '))
-    .pipe($.exec.reporter());
-});
+    .pipe($.exec((file) => `prince --verbose --input=html --javascript --style ./src/css/article-style.css ${file.path}`, options))
+    // .pipe($.exec('prince --verbose --input=html --javascript --style ./src/css/article-styles.css <%= file.path %>'))
+    .pipe($.exec.reporter(reportOptions));
+};
 
-gulp.task('copy-pdf', () => {
+/**
+ * @name copyPDF
+ * @description Copies the PDF to the build folder
+ * @param {string} done
+ * @return {void}
+ *
+ */
+function copyPDF(done) {
   gulp.src('src/pm-content/*.pdf', {
     dot: true,
+    base: '.',
   })
-    .pipe(gulp.dest('src/pdf'))
+    .pipe(gulp.dest('dist/pdf'))
     .pipe($.size({
       pretty: true,
       title: 'copy',
     }));
-});
+  done();
+};
 
-// SCSS conversion and CSS processing
+// ------------
+// SASS & CSS
+// ------------
+
 /**
  * @name sass
  * @description SASS conversion task to produce development css with expanded syntax.
  *
  * We run this task agains Dart SASS, not lib SASS.
  *
+ * @return {void}
  * @see {@link http://sass-lang.com|SASS}
  * @see {@link http://sass-compatibility.github.io/|SASS Feature Compatibility}
  */
-gulp.task('sass', () => {
-  return gulp.src('src/scss/**/*.{scss,sass}')
+function sass() {
+  return gulp.src('src/sass/**/*.{scss,sass}')
   .pipe($.sourcemaps.init())
-  .pipe(sass.sync({
-    outputStyle: 'expanded',
-  })
-    .on('error', sass.logError))
+  .pipe(sassProc.sync({outputStyle: 'expanded'}))
   .pipe($.sourcemaps.write('./maps'))
-  .pipe(gulp.dest('dist/css'))
-  .pipe($.size({
-    pretty: true,
-    title: 'SASS',
-  }));
-});
+  .pipe(gulp.dest('src/css'));
+};
 
 /**
  * @name processCSS
@@ -172,10 +189,11 @@ gulp.task('sass', () => {
  * @description Run autoprefixer and cleanCSS on the CSS files under src/css
  *
  * Moved from gulp-autoprefixer to postcss. It may open other options in the future like cssnano to compress the files
+ * @return {void}
  *
  * @see {@link https://github.com/postcss/autoprefixer|autoprefixer}
  */
-gulp.task('processCSS', () => {
+function processCSS() {
   // What processors/plugins to use with PostCSS
   const PROCESSORS = [
     autoprefixer({
@@ -187,21 +205,16 @@ gulp.task('processCSS', () => {
     .pipe($.sourcemaps.init())
     .pipe(postcss(PROCESSORS))
     .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('src/css'))
-    .pipe($.size({
-      pretty: true,
-      title:
-        'processCSS',
-    }));
-});
+    .pipe(gulp.dest('./dist/css'));
+};
 
 /**
  * @name uncss
  * @description Taking a css and an html file, UNCSS will strip all CSS selectors not used in the page
- *
+ * @return {void}
  * @see {@link https://github.com/giakki/uncss|uncss}
  */
-gulp.task('uncss', () => {
+function uncss() {
   return gulp.src('src/css/**/*.css')
     .pipe($.concat('main.css'))
     .pipe($.uncss({
@@ -212,12 +225,16 @@ gulp.task('uncss', () => {
       pretty: true,
       title: 'Uncss',
     }));
-});
+};
 
-// Generate & Inline Critical-path CSS
-gulp.task('critical', () => {
+/**
+ * @name critical
+ * @description calculates and extracts the critical path CSS from the given file
+ * @return {void}
+ */
+function critical() {
   return gulp.src('src/*.html')
-    .pipe(critical({
+    .pipe(criticalPlugin({
       base: 'src/',
       inline: true,
       css: ['src/css/main.css'],
@@ -240,68 +257,80 @@ gulp.task('critical', () => {
       title: 'Critical',
     }))
     .pipe(gulp.dest('dist'));
-});
+};
+
+// ------------
+// Javascript Tasks
+// ------------
 
 /**
  * @name babel
  * @description Transpiles ES6 to ES5 using Babel. As Node and browsers support more of the spec natively this will move to supporting ES2016 and later transpilation
- *
- * It requires the `babel`, `babel-preset-es2015`, `babel-preset-es2016` and `babel-preset-es2017` plugins
+ * @return {void}
+ * It requires the `@babel/preset-modules` plugin
  *
  * @see {@link http://babeljs.io/|Babel}
  * @see {@link http://babeljs.io/docs/learn-es2015/|Learn ES2015}
  * @see {@link http://www.ecma-international.org/ecma-262/6.0/|ECMAScript 2015 specification}
  */
-gulp.task('babel', () => {
-  return gulp.src('src/es6/**/*.js')
+function babel() {
+  return gulp.src('src/js/**/*.js')
     .pipe($.sourcemaps.init())
     .pipe($.babel({
-      presets: ['es2015', 'es2016', 'es2017'],
+      presets: [
+        "@babel/preset-modules",
+      ],
     }))
     .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('src/js/'))
+    .pipe(gulp.dest('./dist/scripts'))
     .pipe($.size({
       pretty: true,
       title: 'Babel',
     }));
-});
+};
 
 /**
  * @name eslint
  * @description Runs eslint on all javascript files
+ * @return {void}
  */
-gulp.task('eslint', () => {
+function eslint() {
   return gulp.src([
     'scr/scripts/**/*.js',
   ])
-    .pipe(eslint())
-    .pipe(eslint.format())
-    .pipe(eslint.failAfterError());
-});
+    .pipe(eslintPlugin())
+    .pipe(eslintPlugin.format('checkstyle'))
+    .pipe(eslintPlugin.failAfterError());
+};
 
 /**
  * @name jsdoc
  * @description runs jsdoc on the gulpfile and README.md to genereate documentation using the Docdash theme
- *
+ * @return {void}
  * @see {@link https://example.com/|gulp-jsdoc3}
  * @see {@link http://clenemt.github.io/docdash/|DocDash}
  * @see {@link https://github.com/clenemt/docdash|DocDash GitHub}
  * @see {@link https://github.com/jsdoc3/jsdoc|JSDOC}
  */
-gulp.task('jsdoc', () => {
+function jsdoc() {
   const config = require('./jsdocConfig.json');
   return gulp.src(['README.md', 'gulpfile.js'])
     .pipe($.jsdoc3(config));
-});
+};
+
+// ------------
+// Image Manipulation Tasks
+// ------------
 
 /**
- * @name image:resize
+ * @name imageResize
  * @description Resize images to the specified dimensions
+ * @return {void}
  *
  * @see {@link https://www.npmjs.com/package/gulp-libsquoosh|gulp-libsquoosh}
  * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
 */
-gulp.task('image:resize', () => {
+function imageResize() {
   return gulp.src('src/original-images/**/*.{jpg, jpeg, png, webp}')
   .pipe(
     squoosh((src) => ({
@@ -316,20 +345,21 @@ gulp.task('image:resize', () => {
     })),
   )
   .pipe(gulp.dest('src/original-images/'));
-});
+};
 
 /**
- * @name image:compress
+ * @name imageCompress
  * @description Squoosh all images in the src/originals folder using gulp-libsquoosh
+ * @return {void}
  *
  * @see {@link https://www.npmjs.com/package/gulp-libsquoosh|gulp-libsquoosh}
  * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
 */
-gulp.task('image:compress', gulp.series('image:resize'), () => {
+function imageCompress() {
   return gulp.src(['src/original-images/**/*.{png,jpg,webp}'])
       .pipe(
           squoosh((src) => {
-            console.log(src);
+            // console.log(src);
             const extname = path.extname(src.path);
             let options = {
               encodeOptions: squoosh.DefaultEncodeOptions[extname],
@@ -362,37 +392,31 @@ gulp.task('image:compress', gulp.series('image:resize'), () => {
           }),
       )
       .pipe(gulp.dest('dist/images'));
-});
+};
+
+// ------------
+// Utilities
+// ------------
 
 /**
- * @name CopyAssets
- * @description Copies assets into the distribution directory.
+ * @name copyFonts
+ * @description Copies fonts into the distribution directory.
+ * @return {void}
+ *
  */
-gulp.task('copyAssets', () => {
+function copyFonts() {
   return gulp.src([
-    'src/**/*',
-    '!src/paged-media/',
-    '!src/es6',
-    '!src/scss',
-    '!src/test',
-    '!src/bower_components',
-    '!src/cache-config.json',
-    '!**/.DS_Store', // Mac specific directory we don't want to copy over
-  ], {
-    dot: true,
-  }).pipe(gulp.dest('dist'))
-    .pipe($.size({
-      pretty: true,
-      title: 'copy',
-    }));
-});
+    './src/fonts/*',
+  ]).pipe(gulp.dest('dist/fonts'));
+};
 
 /**
  * @name clean
  * @description deletes specified files
+ * @return {void}
  */
-gulp.task('clean', () => {
-  return del.sync([
+function clean() {
+  return del([
     'dist/',
     '.tmp',
     'src/html-content',
@@ -400,9 +424,18 @@ gulp.task('clean', () => {
     'src/pm-content',
     'src/pdf',
   ]);
-});
+};
 
-gulp.task('serve', () => {
+// ------------
+// Development Server
+// ------------
+
+/**
+ * @name serve
+ * @description Serves the files from the dist directory
+ * @return {void}
+ */
+function serve() {
   browserSync({
     port: 2509,
     notify: false,
@@ -424,36 +457,71 @@ gulp.task('serve', () => {
       middleware: [historyApiFallback()],
     },
   });
-});
+};
 
-// COMBINED TASKS
+// ------------
+// Compound Tasks
+// ------------
 
-/**
- * @name imageWorkflow
- * @description Combines tasks for image processing
-*/
-gulp.task('imageWorkflow', gulp.series('image:compress'));
+const pdfBuild = gulp.series(
+  markdown,
+  buildPMTemplate,
+  buildPDF,
+  copyPDF,
+);
 
-/**
- * @name prep
- * @description runs all prep tasks
-*/
-gulp.task('prep', () => {
-  gulp.series(gulp.series('copyAssets', 'copyFonts'));
-});
+const htmlBuild = gulp.series(
+  markdown,
+  buildTemplate,
+);
 
-/**
- * @name pdf-build
- * @description creates PDF by running markdown inserting fragment into template, running it through Princexml and copying it to the PDF directory
- */
-gulp.task('pdf-build', () => {
-  gulp.series('markdown', 'build-pm-template', 'build-pdf', 'copy-pdf');
-});
+const fullCSS = gulp.series(
+  sass,
+  processCSS,
+);
 
-/**
- * @name default
- * @description uses clean, processCSS, build-template, imagemin and copyAssets to build the HTML content from Markdown source
- */
-gulp.task('default', () => {
-  gulp.series('processCSS', 'build-template', 'imagemin', 'copyAssets');
-});
+const fullImages = gulp.series(
+  imageResize,
+  imageCompress,
+);
+
+// ------------
+// Default Task Definition
+// ------------
+const defaultTask = gulp.series(
+  clean,
+  htmlBuild,
+  fullCSS,
+  imageCompress,
+  babel,
+  copyFonts,
+);
+
+// ------------
+// Exports
+// ------------
+exports.markdown = markdown;
+exports.buildHTML = buildTemplate;
+exports.buildPM = buildPMTemplate;
+exports.buildPDF = buildPDF;
+exports.copyPDF = copyPDF;
+exports.sass = sass;
+exports.processCSS = processCSS;
+exports.uncss = uncss;
+exports.critical = critical;
+exports.babel = babel;
+exports.eslint = eslint;
+exports.jsdoc = jsdoc;
+exports.imageResize = imageResize;
+exports.imageCompress = imageCompress;
+exports.clean = clean;
+exports.serve = serve;
+exports.copyFonts = copyFonts;
+// Compound Tasks
+exports.pdf = pdfBuild;
+exports.html = htmlBuild;
+exports.css = fullCSS;
+exports.images = fullImages;
+// Default
+exports.default = defaultTask;
+
