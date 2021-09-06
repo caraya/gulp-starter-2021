@@ -1,0 +1,44 @@
+/// Handles font ligatures for different browsers. Since different browsers have adopted different ways to handle the attribute we have to make it a mixin.
+/// @access public
+@mixin font-ligature {
+  // optional: for older browsers
+  text-rendering: optimizeLegibility;
+  // for iOS and Safari 6
+  -webkit-font-variant-ligatures: common-ligatures;
+  // for up-to-date browsers, including IE10 and Opera 21
+  font-variant-ligatures: common-ligatures;
+}
+
+/// We also need to handle font kerning different for different browsers.
+/// @access public
+@mixin font-kerning {
+  // optional: for older browsers
+  text-rendering: optimizeLegibility;
+  // pre-Firefox 14+
+  -moz-font-feature-settings: "kern=1";
+  -webkit-font-feature-settings: "kern";
+  // Firefox 14+
+  -moz-font-feature-settings: "kern";
+  // standard */
+  font-feature-settings: "kern";
+  // Safari 7+, Firefox 24+, Chrome 33(?)+, Opera 21+*/
+  font-kerning: normal;
+}
+
+@mixin font-declaration($font-family,  $font-file-name, $weight:normal, $style:normal) {
+  @font-face {
+    font-family: '#{$font-family}';
+    src: url('#{$font-file-name}.eot');
+    src: url('#{$font-file-name}.eot?#iefix') format('embedded-opentype'),
+    url('#{$font-file-name}.woff2') format('woff2'),
+    url('#{$font-file-name}.woff') format('woff'),
+    url('#{$font-file-name}.ttf') format('truetype'),
+      // working with myFonts requires the svg file to be formated like below
+      // otherwise it will not work
+      //       url('#{$font-file-name}.svg#wf') format('svg');
+    url('#{$font-file-name}.svg##{$font-family}') format('svg');
+    font-weight: $weight;
+    font-style: $style;
+
+  }
+}

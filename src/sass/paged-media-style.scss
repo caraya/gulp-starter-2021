@@ -1,0 +1,313 @@
+/*
+Paged Media CSS stylesheet
+Author: Carlos Araya
+License: MIT (http://caraya.mit-license.org)
+
+This stylesheets sets up a printed stylesheet with a basic set of parameters.
+It is meant as a starting point for printed media work.
+
+For more information, see: http://alistapart.com/article/building-books-with-css3
+For another example, see: https://github.com/oreillymedia/HTMLBook/blob/master/stylesheets/pdf/pdf.css;
+For the W3C specification: http://www.w3.org/TR/css3-page/
+Antenna House Formatter Onine Manual: http://antennahouse.com/XSLsample/help/V62/AHFormatterV62.en.pdf
+Prince XML User Guide: http://www.princexml.com/doc/9.0/
+*/
+
+html {
+  font-size: 12pt;
+}
+
+/* Default Page Definition*/
+@page {
+  size: 8.5in 11in;
+  margin: 0.5in 1in;
+  counter-reset: footnote;
+  @footnote {
+    border-top: 1px solid black;
+    padding-top: 6pt;
+    counter-increment: footnote;
+    float: bottom;
+    column-span: all;
+    height: auto;
+    }
+  }
+
+// CMYK COLOR SCHEME FOR BOOK
+
+body[data-type='book'] {
+  color: cmyk(0%,0%,100%,100%);
+  color: rgba(0, 0, 0, 1);
+  hyphens: auto;
+}
+
+/* PAGE COUNTERS */
+body[data-type='book'] > div[data-type='part']:first-of-type,
+body[data-type='book'] > section[data-type='chapter']:first-of-type { counter-reset: page; }
+body[data-type='book'] > section[data-type='chapter'] + div[data-type='part'] { counter-reset: none }
+
+// MATCH THE PARTS OF OUR BOOK FILE TO EACH OF OUR PAGES DEFINED LATER
+
+/* Title Page*/
+section[data-type='titlepage'] { page: titlepage }
+
+/* Copyright page */
+section[data-type='copyright'] { page: copyright }
+
+/* Dedication */
+section[data-type='dedication'] {
+  page: dedication;
+  page-break-before: always;
+  page-break-after: always;
+}
+
+/* TOC */
+section[data-type='toc'] {
+  page: toc;
+  page-break-before: always;
+}
+/* Leader for toc page */
+section[data-type='toc'] nav ol li a:after {
+  content: leader(dotted) ' ' target-counter(attr(href, url), page);
+}
+
+/* Foreword  */
+section[data-type='foreword'] { page: foreword }
+
+/* Preface*/
+section[data-type='preface'] { page: preface }
+
+/* Part */
+div[data-type='part'] { page: part }
+
+/* Chapter */
+section[data-type='chapter'] {
+  page: chapter;
+  page-break-before: always;
+}
+
+/* Appendix */
+section[data-type='appendix'] {
+  page: appendix;
+  page-break-before: always;
+}
+
+/* Glossary*/
+section[data-type='glossary'] { page: glossary }
+
+/* Bibliography */
+section[data-type='bibliography'] { page: bibliography }
+
+/* Index */
+section[data-type='index'] { page: index }
+
+/* Colophon */
+section[data-type='colophon'] { page: colophon }
+
+
+/* Comon Front Mater Page Numbering in lowercase ROMAN numerals*/
+@page toc:right {
+  @bottom-right-corner { content: counter(page, lower-roman) }
+  @bottom-left-corner { content: normal }
+}
+
+@page toc:left  {
+  @bottom-left-corner { content: counter(page, lower-roman) }
+  @bottom-right-corner { content: normal }
+}
+
+
+@page foreword:right {
+  @bottom-center { content: counter(page, lower-roman) }
+  @bottom-left-corner { content: normal }
+}
+
+@page foreword:left  {
+  @bottom-left-corner { content: counter(page, lower-roman) }
+  @bottom-right-corner { content: normal }
+}
+
+
+@page preface:right {
+  @bottom-center {content: counter(page, lower-roman)}
+  @bottom-right-corner { content: normal }
+  @bottom-left-corner { content: normal }
+}
+
+@page preface:left  {
+  @bottom-center {content: counter(page, lower-roman)}
+  @bottom-right-corner { content: normal }
+  @bottom-left-corner { content: normal }
+}
+
+/* Common Content Page Numbering  in Arabic numerals 1... 199 */
+@page titlepage{ /* Need this to clean up page numbers in titlepage in Prince*/
+  margin-top: 18em;
+  @bottom-right-corner { content: normal }
+  @bottom-left-corner { content: normal }
+}
+
+@page dedication { /* Need this to clean up page numbers in titlepage in Prince*/
+  page-break-before: always;
+  margin-top: 18em;
+  @bottom-right-corner { content: normal }
+  @bottom-left-corner { content: normal }
+
+}
+
+
+@page chapter {
+  @bottom-center {
+    vertical-align: middle;
+    text-align: center;
+    content: element(heading);
+  }
+}
+
+@page chapter:blank { /* Need this to clean up page numbers in titlepage in Prince*/
+  @top-center { content: "This page is intentionally left blank" }
+  @bottom-left-corner { content: normal;}
+  @bottom-right-corner {content:normal;}
+}
+
+@page chapter:right  {
+  @bottom-right-corner { content: counter(page) }
+  @bottom-left-corner { content: normal }
+}
+
+@page chapter:left {
+  @bottom-left-corner { content: counter(page) }
+  @bottom-right-corner { content: normal }
+}
+
+@page appendix:right  {
+  @bottom-right-corner { content: counter(page) }
+  @bottom-left-corner { content: normal }
+}
+
+@page appendix:left {
+  @bottom-left-corner { content: counter(page) }
+  @bottom-right-corner { content: normal }
+}
+
+@page glossary:right {
+  @bottom-right-corner { content: counter(page) }
+  @bottom-left-corner { content: normal }
+}
+
+@page glossary:left {
+  @bottom-left-corner { content: counter(page) }
+  @bottom-right-corner { content: normal }
+}
+
+@page bibliography:right  {
+  @bottom-right-corner { content: counter(page) }
+  @bottom-left-corner { content: normal }
+}
+
+@page bibliography:left {
+  @bottom-left-corner { content: counter(page) }
+  @bottom-right-corner { content: normal }
+}
+
+@page index:right  {
+  @bottom-right-corner { content: counter(page) }
+  @bottom-left-corner { content: normal }
+}
+
+@page index:left {
+  @bottom-left-corner { content: counter(page) }
+  @bottom-right-corner { content: normal }
+}
+
+p.rh {
+  position: running(heading);
+  text-align: center;
+  font-style: italic;
+}
+
+/* Footnotes */
+span.footnote {
+  float: footnote;
+  display: prince-footnote;
+}
+
+::footnote-marker {
+  content: counter(footnote) '. ';
+  list-style-position: inside;
+}
+
+::footnote-call {
+  content: counter(footnote);
+  vertical-align: super;
+  font-size: 65%;
+}
+
+/* XReferences */
+a.xref[href]::after {
+    content: ' [See page ' target-counter(attr(href), page) ']'
+}
+
+/* PDF BOOKMARKS */
+section[data-type='chapter'] h1 {
+  -ah-bookmark-level: 1;
+  -ah-bookmark-state: open;
+  -ah-bookmark-label: content();
+  prince-bookmark-level: 1;
+  prince-bookmark-state: open;
+  prince-bookmark-label: content();
+}
+
+section[data-type='chapter'] h2 {
+  -ah-bookmark-level: 2;
+  -ah-bookmark-state: open;
+  -ah-bookmark-label: content();
+  prince-bookmark-level: 2;
+  prince-bookmark-state: open;
+  prince-bookmark-label: content();
+}
+
+section[data-type='chapter'] h3 {
+  -ah-bookmark-level: 3;
+  -ah-bookmark-state: open;
+  -ah-bookmark-label: content();
+  prince-bookmark-level: 3;
+  prince-bookmark-state: open;
+  prince-bookmark-label: content();
+}
+
+section[data-type='chapter'] h4 {
+  -ah-bookmark-level: 4;
+  prince-bookmark-level: 4;
+}
+
+section[data-type='chapter'] h5 {
+  -ah-bookmark-level: 5;
+  prince-bookmark-level: 5;
+}
+
+section[data-type='chapter'] h6 {
+  -ah-bookmark-level: 6;
+  prince-bookmark-level: 6;
+}
+
+// Builds figures with different alignments
+figure {
+  counter-increment: figure-count;
+  prince-image-resolution: auto;
+  width: 100%;
+
+  img {
+    float: left;
+    prince-image-resolution: auto;
+    width: 100%;
+  }
+
+  figcaption {
+    font-size: .75rem;
+    font-color: rgb(51, 51, 51);
+  }
+
+  figcaption::before {
+    content: 'Figure ' counter(figure-count) ': ';
+  }
+}
