@@ -11,8 +11,8 @@ const $ = require('gulp-load-plugins')({
   lazy: true,
 });
 // Static Web Server stuff
-const browserSync = require('browser-sync');
-// const reload = browserSync.reload;
+const browsersync = require('browser-sync').create();
+// const reload = browsersync.reload;
 const historyApiFallback = require('connect-history-api-fallback');
 
 // postcss
@@ -22,7 +22,7 @@ const autoprefixer = require('autoprefixer');
 const sassProc = require('gulp-sass')(require('sass'));
 
 // Critical CSS
-const criticalPlugin = require('critical');
+const criticalPlugin = require('critical').stream;
 
 // Image Processing
 // We need path for the task to work when detecting extesions
@@ -136,8 +136,7 @@ function buildPDF() {
   };
   return gulp.src('./src/pm-content/*.html')
     .pipe(newer('src/pdf/'))
-    .pipe($.exec((file) => `prince --verbose --input=html --javascript --style ./src/css/article-style.css ${file.path}`, options))
-    // .pipe($.exec('prince --verbose --input=html --javascript --style ./src/css/article-styles.css <%= file.path %>'))
+    .pipe($.exec((file) => `prince --verbose --input=html --javascript --style src/css/article-styles.css ${file.path}`, options))
     .pipe($.exec.reporter(reportOptions));
 };
 
@@ -151,7 +150,7 @@ function buildPDF() {
 function copyPDF(done) {
   gulp.src('src/pm-content/*.pdf', {
     dot: true,
-    base: '.',
+    base: 'src/pm-content',
   })
     .pipe(gulp.dest('dist/pdf'))
     .pipe($.size({
@@ -196,9 +195,7 @@ function sass() {
 function processCSS() {
   // What processors/plugins to use with PostCSS
   const PROCESSORS = [
-    autoprefixer({
-      browsers: ['last 3 versions'],
-    }),
+    autoprefixer(),
   ];
   return gulp
     .src('src/css/**/*.css')
@@ -331,7 +328,7 @@ function jsdoc() {
  * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
 */
 function imageResize() {
-  return gulp.src('src/original-images/**/*.{jpg, jpeg, png, webp}')
+  return gulp.src('src/original-images/**/*.{jpg, jpeg, png, webp, avif}')
   .pipe(
     squoosh((src) => ({
       preprocessOptions: {
@@ -411,6 +408,47 @@ function copyFonts() {
 };
 
 /**
+ * @name copyCSS
+ * @description Copies third-party CSS into the distribution directory.
+ * @return {void}
+ */
+function copyCSS() {
+  return gulp.src([
+    "./src/css/normalize.css",
+    "./src/css/prism.css",
+    "./src/css/image-load.css",
+    "./src/css/video-load.css",
+  ]).pipe(gulp.dest('dist/css'));
+}
+
+/**
+ * @name copyLocalJS
+ * @description copies third-party JS into distribution directory
+ * @return {void}
+ */
+function copyLocalJS() {
+  return gulp.src([
+    "./src/scripts/lazy-load.js",
+    "./src/scripts/load-fonts.js",
+    "./src/scripts/lazy-load-video.js",
+  ]).pipe(gulp.dest('dist/scripts'));
+}
+
+/**
+ * @name copyVendorJS
+ * @description copies third-party JS into distribution directory
+ * @return {void}
+ */
+ function copyVendorJS() {
+  return gulp.src([
+    "./src/scripts/vendor/clipboard.min.js",
+    "./src/scripts/vendor/fontfaceobserver.js",
+    "./src/scripts/vendor/prism.js",
+  ])
+  .pipe(gulp.dest('dist/scripts/vendor'));
+}
+
+/**
  * @name clean
  * @description deletes specified files
  * @return {void}
@@ -419,10 +457,10 @@ function clean() {
   return del([
     'dist/',
     '.tmp',
-    'src/html-content',
+    'src/html-content/*.html',
     'src/*.html',
-    'src/pm-content',
-    'src/pdf',
+    'src/pm-content/*',
+    'src/pdf/*.pdf',
   ]);
 };
 
@@ -436,7 +474,7 @@ function clean() {
  * @return {void}
  */
 function serve() {
-  browserSync({
+  browsersync.init({
     port: 2509,
     notify: false,
     logPrefix: 'ATHENA',
@@ -448,12 +486,8 @@ function serve() {
         },
       },
     },
-    // Run as an https by uncommenting 'https: true'
-    // Note: this uses an unsigned certificate which on first access
-    //       will present a certificate warning in the browser.
-    // https: true,
     server: {
-      baseDir: ['.tmp', 'src'],
+      baseDir: ['./dist'],
       middleware: [historyApiFallback()],
     },
   });
@@ -478,11 +512,25 @@ const htmlBuild = gulp.series(
 const fullCSS = gulp.series(
   sass,
   processCSS,
+  copyCSS,
 );
 
-const fullImages = gulp.series(
+const processJS = gulp.series(
+  babel,
+  copyLocalJS,
+  copyVendorJS,
+);
+
+const processImages = gulp.series(
   imageResize,
   imageCompress,
+);
+
+const copyAll = gulp.parallel(
+  copyFonts,
+  copyCSS,
+  copyLocalJS,
+  copyVendorJS,
 );
 
 // ------------
@@ -494,34 +542,47 @@ const defaultTask = gulp.series(
   fullCSS,
   imageCompress,
   babel,
-  copyFonts,
+  copyAll,
 );
 
 // ------------
 // Exports
 // ------------
+// HTML TASKS
 exports.markdown = markdown;
 exports.buildHTML = buildTemplate;
+// PDF TASKS
 exports.buildPM = buildPMTemplate;
 exports.buildPDF = buildPDF;
 exports.copyPDF = copyPDF;
+// CSS TASKS
 exports.sass = sass;
 exports.processCSS = processCSS;
+exports.copyCSS = copyCSS;
 exports.uncss = uncss;
 exports.critical = critical;
+// JAVASCRIPT TASKS
 exports.babel = babel;
 exports.eslint = eslint;
 exports.jsdoc = jsdoc;
+exports.copyLocalJS = copyLocalJS;
+exports.copyVendorJS = copyVendorJS;
+exports.copyJS = gulp.series(copyLocalJS, copyVendorJS);
+// IMAGE TASKS
 exports.imageResize = imageResize;
 exports.imageCompress = imageCompress;
+// UTILITY TASKS
 exports.clean = clean;
 exports.serve = serve;
 exports.copyFonts = copyFonts;
+// Copy Everything that is not put in dist by a task
+exports.copyAll = copyAll;
 // Compound Tasks
 exports.pdf = pdfBuild;
 exports.html = htmlBuild;
+exports.js = processJS;
+exports.images = processImages;
 exports.css = fullCSS;
-exports.images = fullImages;
 // Default
 exports.default = defaultTask;
 

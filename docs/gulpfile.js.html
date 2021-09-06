@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#babel">babel</a></li><li><a href="global.html#buildPDF">buildPDF</a></li><li><a href="global.html#buildPMTemplate">buildPMTemplate</a></li><li><a href="global.html#buildTemplate">buildTemplate</a></li><li><a href="global.html#clean">clean</a></li><li><a href="global.html#CopyAssets">CopyAssets</a></li><li><a href="global.html#copyPDF">copyPDF</a></li><li><a href="global.html#critical">critical</a></li><li><a href="global.html#eslint">eslint</a></li><li><a href="global.html#imageCompress">imageCompress</a></li><li><a href="global.html#imageResize">imageResize</a></li><li><a href="global.html#jsdoc">jsdoc</a></li><li><a href="global.html#markdown">markdown</a></li><li><a href="global.html#processCSS">processCSS</a></li><li><a href="global.html#sass">sass</a></li><li><a href="global.html#serve">serve</a></li><li><a href="global.html#uncss">uncss</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#babel">babel</a></li><li><a href="global.html#buildPDF">buildPDF</a></li><li><a href="global.html#buildPMTemplate">buildPMTemplate</a></li><li><a href="global.html#buildTemplate">buildTemplate</a></li><li><a href="global.html#clean">clean</a></li><li><a href="global.html#copyPDF">copyPDF</a></li><li><a href="global.html#critical">critical</a></li><li><a href="global.html#eslint">eslint</a></li><li><a href="global.html#jsdoc">jsdoc</a></li><li><a href="global.html#markdown">markdown</a></li><li><a href="global.html#processCSS">processCSS</a></li><li><a href="global.html#sass">sass</a></li><li><a href="global.html#uncss">uncss</a></li></ul>
 </nav>
 
 <div id="main">
@@ -66,7 +66,7 @@ const autoprefixer = require('autoprefixer');
 const sassProc = require('gulp-sass')(require('sass'));
 
 // Critical CSS
-const criticalPlugin = require('critical');
+const criticalPlugin = require('critical').stream;
 
 // Image Processing
 // We need path for the task to work when detecting extesions
@@ -132,14 +132,16 @@ function markdown() {
 /**
  * @name buildTemplate
  * @description Builds the full HTML templates from the markdown generated fragments
+ * @param {string} done
  * @return {void}
  */
-function buildTemplate() {
+function buildTemplate(done) {
   gulp.src('./src/html-content/*.html')
     .pipe($.wrap({
       src: './src/templates/template.html',
     }))
-    .pipe(gulp.dest('./src/'));
+    .pipe(gulp.dest('./dist'));
+    done();
 };
 
 // ------------
@@ -193,7 +195,7 @@ function buildPDF() {
 function copyPDF(done) {
   gulp.src('src/pm-content/*.pdf', {
     dot: true,
-    base: '.',
+    base: 'src/pm-content',
   })
     .pipe(gulp.dest('dist/pdf'))
     .pipe($.size({
@@ -218,18 +220,11 @@ function copyPDF(done) {
  * @see {@link http://sass-compatibility.github.io/|SASS Feature Compatibility}
  */
 function sass() {
-  return gulp.src('src/scss/**/*.{scss,sass}')
+  return gulp.src('src/sass/**/*.{scss,sass}')
   .pipe($.sourcemaps.init())
-  .pipe(sassProc.sync({
-    outputStyle: 'expanded',
-  })
-    .on('error', sass.logError))
+  .pipe(sassProc.sync({outputStyle: 'expanded'}))
   .pipe($.sourcemaps.write('./maps'))
-  .pipe(gulp.dest('dist/css'))
-  .pipe($.size({
-    pretty: true,
-    title: 'SASS',
-  }));
+  .pipe(gulp.dest('src/css'));
 };
 
 /**
@@ -245,21 +240,14 @@ function sass() {
 function processCSS() {
   // What processors/plugins to use with PostCSS
   const PROCESSORS = [
-    autoprefixer({
-      browsers: ['last 3 versions'],
-    }),
+    autoprefixer(),
   ];
   return gulp
     .src('src/css/**/*.css')
     .pipe($.sourcemaps.init())
     .pipe(postcss(PROCESSORS))
     .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('src/css'))
-    .pipe($.size({
-      pretty: true,
-      title:
-        'processCSS',
-    }));
+    .pipe(gulp.dest('./dist/css'));
 };
 
 /**
@@ -336,7 +324,7 @@ function babel() {
       ],
     }))
     .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('src/js/'))
+    .pipe(gulp.dest('./dist/scripts'))
     .pipe($.size({
       pretty: true,
       title: 'Babel',
@@ -353,8 +341,8 @@ function eslint() {
     'scr/scripts/**/*.js',
   ])
     .pipe(eslintPlugin())
-    .pipe(eslint.format())
-    .pipe(eslint.failAfterError());
+    .pipe(eslintPlugin.format('checkstyle'))
+    .pipe(eslintPlugin.failAfterError());
 };
 
 /**
@@ -372,110 +360,97 @@ function jsdoc() {
     .pipe($.jsdoc3(config));
 };
 
-// ------------
-// Image Manipulation Tasks
-// ------------
+// // ------------
+// // Image Manipulation Tasks
+// // ------------
 
-/**
- * @name imageResize
- * @description Resize images to the specified dimensions
- * @return {void}
- *
- * @see {@link https://www.npmjs.com/package/gulp-libsquoosh|gulp-libsquoosh}
- * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
-*/
-function imageResize() {
-  return gulp.src('src/original-images/**/*.{jpg, jpeg, png, webp}')
-  .pipe(
-    squoosh((src) => ({
-      preprocessOptions: {
-        resize: {
-          enabled: true,
-          // Using only the width will preserve aspect ratio
-          width: Math.round(src.width / 2),
-          // height: Math.round(src.height / 2),
-        },
-      },
-    })),
-  )
-  .pipe(gulp.dest('src/original-images/'));
-};
+// /**
+//  * @name imageResize
+//  * @description Resize images to the specified dimensions
+//  * @return {void}
+//  *
+//  * @see {@link https://www.npmjs.com/package/gulp-libsquoosh|gulp-libsquoosh}
+//  * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
+// */
+// function imageResize() {
+//   return gulp.src('src/original-images/**/*.{jpg, jpeg, png, webp}')
+//   .pipe(
+//     squoosh((src) => ({
+//       preprocessOptions: {
+//         resize: {
+//           enabled: true,
+//           // Using only the width will preserve aspect ratio
+//           width: Math.round(src.width / 2),
+//           // height: Math.round(src.height / 2),
+//         },
+//       },
+//     })),
+//   )
+//   .pipe(gulp.dest('src/original-images/'));
+// };
 
-/**
- * @name imageCompress
- * @description Squoosh all images in the src/originals folder using gulp-libsquoosh
- * @return {void}
- *
- * @see {@link https://www.npmjs.com/package/gulp-libsquoosh|gulp-libsquoosh}
- * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
-*/
-function imageCompress() {
-  return gulp.src(['src/original-images/**/*.{png,jpg,webp}'])
-      .pipe(
-          squoosh((src) => {
-            console.log(src);
-            const extname = path.extname(src.path);
-            let options = {
-              encodeOptions: squoosh.DefaultEncodeOptions[extname],
-            };
+// /**
+//  * @name imageCompress
+//  * @description Squoosh all images in the src/originals folder using gulp-libsquoosh
+//  * @return {void}
+//  *
+//  * @see {@link https://www.npmjs.com/package/gulp-libsquoosh|gulp-libsquoosh}
+//  * @see {@link https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh|libsquoosh}
+// */
+// function imageCompress() {
+//   return gulp.src(['src/original-images/**/*.{png,jpg,webp}'])
+//       .pipe(
+//           squoosh((src) => {
+//             // console.log(src);
+//             const extname = path.extname(src.path);
+//             let options = {
+//               encodeOptions: squoosh.DefaultEncodeOptions[extname],
+//             };
 
-            if (extname === '.jpg') {
-              options = {
-                encodeOptions: {
-                  jxl: {},
-                  mozjpeg: {},
-                },
-              };
-            }
+//             if (extname === '.jpg') {
+//               options = {
+//                 encodeOptions: {
+//                   jxl: {},
+//                   mozjpeg: {},
+//                 },
+//               };
+//             }
 
-            if (extname === '.png') {
-              options = {
-                encodeOptions: {
-                  avif: {},
-                },
-                preprocessOptions: {
-                  quant: {
-                    enabled: true,
-                    numColors: 16,
-                  },
-                },
-              };
-            }
+//             if (extname === '.png') {
+//               options = {
+//                 encodeOptions: {
+//                   avif: {},
+//                 },
+//                 preprocessOptions: {
+//                   quant: {
+//                     enabled: true,
+//                     numColors: 16,
+//                   },
+//                 },
+//               };
+//             }
 
-            return options;
-          }),
-      )
-      .pipe(gulp.dest('dist/images'));
-};
+//             return options;
+//           }),
+//       )
+//       .pipe(gulp.dest('dist/images'));
+// };
 
-// ------------
-// Utilities
-// ------------
+// // ------------
+// // Utilities
+// // ------------
 
-/**
- * @name CopyAssets
- * @description Copies assets into the distribution directory.
- * @return {void}
- */
-function copyAssets() {
-  return gulp.src([
-    'src/**/*',
-    '!src/paged-media/',
-    '!src/es6',
-    '!src/scss',
-    '!src/test',
-    '!src/bower_components',
-    '!src/cache-config.json',
-    '!**/.DS_Store', // Mac specific directory we don't want to copy over
-  ], {
-    dot: true,
-    base: '.',
-  }).pipe(gulp.dest('dist'))
-    .pipe($.size({
-      pretty: true,
-      title: 'copy',
-    }));
-};
+// /**
+//  * @name copyFonts
+//  * @description Copies fonts into the distribution directory.
+//  * @return {void}
+//  *
+//  */
+// function copyFonts() {
+//   return gulp.src([
+//     './src/fonts/*',
+//   ]).pipe(gulp.dest('dist/fonts'));
+// };
 
 /**
  * @name clean
@@ -493,97 +468,111 @@ function clean() {
   ]);
 };
 
-// ------------
-// Development Server
-// ------------
-
-/**
- * @name serve
- * @description Serves the files from the dist directory
- * @return {void}
- */
-function serve() {
-  browserSync({
-    port: 2509,
-    notify: false,
-    logPrefix: 'ATHENA',
-    snippetOptions: {
-      rule: {
-        match: "&lt;span id='browser-sync-binding'>&lt;/span>",
-        fn: function(snippet) {
-          return snippet;
-        },
-      },
-    },
-    // Run as an https by uncommenting 'https: true'
-    // Note: this uses an unsigned certificate which on first access
-    //       will present a certificate warning in the browser.
-    // https: true,
-    server: {
-      baseDir: ['.tmp', 'src'],
-      middleware: [historyApiFallback()],
-    },
-  });
-};
-
-// ------------
-// Compound Tasks
-// ------------
-
-const pdfBuild = gulp.series(
-  markdown,
-  buildPMTemplate,
-  buildPDF,
-  copyPDF,
-);
-
-const htmlBuild = gulp.series(
-  markdown,
-  buildTemplate,
-);
-
-const fullCSS = gulp.series(
-  sass,
-  processCSS,
-);
-
-const fullImages = gulp.series(
-  imageResize,
-  imageCompress,
-);
+// // ------------
+// // Development Server
+// // ------------
 
 // /**
-//  * @name def ault
-//  * @description uses clean, processCSS, build-template, imagemin and copyAssets to build the HTML content from Markdown source
+//  * @name serve
+//  * @description Serves the files from the dist directory
+//  * @return {void}
 //  */
-// gulp.task('default', () => {
-//   gulp.series('processCSS', 'build-template', 'imagemin', 'copyAssets');
-// });
+// function serve() {
+//   browserSync({
+//     port: 2509,
+//     notify: false,
+//     logPrefix: 'ATHENA',
+//     snippetOptions: {
+//       rule: {
+//         match: "&lt;span id='browser-sync-binding'>&lt;/span>",
+//         fn: function(snippet) {
+//           return snippet;
+//         },
+//       },
+//     },
+//     // Run as an https by uncommenting 'https: true'
+//     // Note: this uses an unsigned certificate which on first access
+//     //       will present a certificate warning in the browser.
+//     // https: true,
+//     server: {
+//       baseDir: ['.tmp', 'src'],
+//       middleware: [historyApiFallback()],
+//     },
+//   });
+// };
+
+// // ------------
+// // Compound Tasks
+// // ------------
+
+// const pdfBuild = gulp.series(
+//   markdown,
+//   buildPMTemplate,
+//   buildPDF,
+//   copyPDF,
+// );
+
+// const htmlBuild = gulp.series(
+//   markdown,
+//   buildTemplate,
+// );
+
+// const fullCSS = gulp.series(
+//   sass,
+//   processCSS,
+// );
+
+// const fullImages = gulp.series(
+//   imageResize,
+//   imageCompress,
+// );
+
+// // ------------
+// // Default Task Definition
+// // ------------
+// const defaultTask = gulp.series(
+//   clean,
+//   htmlBuild,
+//   fullCSS,
+//   imageCompress,
+//   babel,
+//   copyFonts,
+// );
 
 // ------------
 // Exports
 // ------------
+// HTML TASKS
 exports.markdown = markdown;
 exports.buildHTML = buildTemplate;
+// PDF TASKS
 exports.buildPM = buildPMTemplate;
 exports.buildPDF = buildPDF;
 exports.copyPDF = copyPDF;
+// CSS TASKS
 exports.sass = sass;
 exports.processCSS = processCSS;
 exports.uncss = uncss;
 exports.critical = critical;
+// JAVASCRIPT TASKS
 exports.babel = babel;
 exports.eslint = eslint;
 exports.jsdoc = jsdoc;
-exports.imageResize = imageResize;
-exports.imageCompress = imageCompress;
-exports.copyAssets = copyAssets;
+// IMAGE TASKS
+// exports.imageResize = imageResize;
+// exports.imageCompress = imageCompress;
+// UTILITY TASKS
 exports.clean = clean;
-exports.serve = serve;
-exports.pdf = pdfBuild;
-exports.html = htmlBuild;
-exports.css = fullCSS;
-exports.images = fullImages;
+// exports.serve = serve;
+// exports.copyFonts = copyFonts;
+// // Compound Tasks
+// exports.pdf = pdfBuild;
+// exports.html = htmlBuild;
+// exports.css = fullCSS;
+// exports.images = fullImages;
+// // Default
+// exports.default = defaultTask;
+
 </code></pre>
         </article>
     </section>
@@ -598,7 +587,7 @@ exports.images = fullImages;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Fri Aug 20 2021 21:24:26 GMT-0700 (Pacific Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Sun Sep 05 2021 12:01:52 GMT-0700 (Pacific Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
