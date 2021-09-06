@@ -1,0 +1,16 @@
+# Plugin Development Annotated Bibliography
+
+* [Your First WordPress Plugin: Simple Optimization](https://code.tutsplus.com/articles/your-first-wordpress-plugin-simple-optimization--net-11869)
+* [An Introduction to WordPress Plugin Development](https://www.sitepoint.com/an-introduction-to-wordpress-plugin-development/)
+* [A Real World Example of WordPress Plugin Development](https://www.sitepoint.com/real-world-example-wordpress-plugin-development/)
+* [An Introduction to WordPress Plugin Development](https://wpbuffs.com/wordpress-plugin-development/)
+* [Plugin Handbook](https://developer.wordpress.org/plugins/)
+* [PHP Object Oriented Programming (OOPs) concept Tutorial with Example](https://www.guru99.com/object-oriented-programming.html)
+* [Your First WordPress Plugin: Simple Optimization](https://code.tutsplus.com/articles/your-first-wordpress-plugin-simple-optimization--net-11869)
+* [An Introduction to WordPress Plugin Development](https://wpbuffs.com/wordpress-plugin-development/)
+* [Create WordPress Plugins with OOP Techniques](https://code.tutsplus.com/articles/create-wordpress-plugins-with-oop-techniques--net-20153)
+* [WordPress Plugin, the OOP Way](https://www.ndevr.io/blog/wordpress-plugin-oop-way/)
+* [Autoloader and WordPress: the truth behind it](https://www.ndevr.io/blog/autoloader-and-wordpress/)
+* [How To Create Wordpress Meta Boxes](https://www.smashingmagazine.com/2011/10/create-custom-post-meta-boxes-wordpress/)
+* [WordPress Meta Boxes: a Comprehensive Developer’s Guide](https://themefoundation.com/wordpress-meta-boxes-guide/)
+  * [Github repo for example plugin](https://github.com/themefoundation/custom-meta-box-template)

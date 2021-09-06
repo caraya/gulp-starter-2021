@@ -1,0 +1,86 @@
+# links and stuff to check
+
+- amplitude media player
+  - [https://521dimensions.com/open-source/amplitudejs](https://521dimensions.com/open-source/amplitudejs)
+- CSS containment and will change event
+  - [https://dev.opera.com/articles/css-will-change-property/](https://dev.opera.com/articles/css-will-change-property/)
+  - [https://developers.google.com/web/updates/2016/06/css-containment](https://developers.google.com/web/updates/2016/06/css-containment)
+- CSS in JS
+  - [https://medium.com/seek-blog/a-unified-styling-language-d0c208de2660](https://medium.com/seek-blog/a-unified-styling-language-d0c208de2660)
+- alligator.io
+  - [https://alligator.io/js/sets-introduction/](https://alligator.io/js/sets-introduction/)
+  - [https://alligator.io/js/speed-up-scroll-events/](https://alligator.io/js/speed-up-scroll-events/)
+  - [https://alligator.io/js/default-function-parameters/](https://alligator.io/js/default-function-parameters/)
+  - [https://alligator.io/js/json-parse-stringify/](https://alligator.io/js/json-parse-stringify/)
+  - [https://alligator.io/js/lazy-loading-scripts/](https://alligator.io/js/lazy-loading-scripts/)
+  - [https://alligator.io/js/object-array-destructuring-es2015/](https://alligator.io/js/object-array-destructuring-es2015/)
+- ponyfoo
+  - https://ponyfoo.com/articles/es6-generators-in-depth
+  - https://ponyfoo.com/articles/iterators-as-generators
+  - https://ponyfoo.com/articles/content-security-policy-in-express-apps
+  - https://ponyfoo.com/articles/javascript-asynchronous-iteration-proposal
+  - https://ponyfoo.com/articles/backgroundsync
+- Empathy in design
+  - [A Closer Look At Personas: What They Are And How They Work (Part 1)](https://www.smashingmagazine.com/2014/08/a-closer-look-at-personas-part-1/)
+  - [A Closer Look At Personas: A Guide To Developing The Right Ones (Part 2)](https://www.smashingmagazine.com/2014/08/a-closer-look-at-personas-part-2/)
+  - [Informing Your Empathy for More Human Designs and Communities](https://www.linkedin.com/pulse/informing-your-empathy-more-human-designs-communities-morten)
+  - [Why Empathy is the Secret Sauce for Good Software Development]
+  - [http://thenewstack.io/empathy-secret-sauce-good-software-development/]()
+  - [EMPATHY IS THE NEW KILLER APP](http://joshlinkner.com/2013/empathy-is-the-new-killer-app/)
+  - [No Flex Zone: Empathy Driven Development](https://medium.com/@duretti/no-flex-zone-empathy-driven-development-aebf4d8cf7cf#.xjt2gy7gp)
+  - [Why You Must Use Empathy Effectively in UX Design](http://www.webdesignerdepot.com/2014/10/why-you-must-use-empathy-effectively-in-ux-design/)
+  - [USER EMPATHY IN WEB DESIGN](http://shortiedesigns.com/2016/01/user-empathy-in-web-design/)
+  - [Empathy: an essential skill in Software Development](http://codingwithempathy.com/2016/05/03/empathy-an-essential-skill-in-software-development/)
+  - [Why empathy is a crucial skill for web designers](https://econsultancy.com/blog/63473-why-empathy-is-a-crucial-skill-for-web-designers/)
+  - [Building websites and empathy my experience as a frontend design apprentice](https://seesparkbox.com/foundry/building_websites_and_empathy_my_experience_as_a_frontend_design_apprentice)
+  - [8 Ways To Become A More Empathic Designer](http://uxmastery.com/8-ways-to-become-a-more-empathic-designer/)
+  - [Speed up your development process by coding with empathy](http://www.creativebloq.com/web-design/speed-your-development-process-coding-empathy-111518098)
+  - [Developing empathy](https://alistapart.com/blog/post/developing-empathy)
+  - [Practicing Empathy in Product Design](https://medium.com/write-like-a-human/practicing-empathy-in-product-design-a17f0a4ffe55)
+- Playing with maps
+  - [https://txpub.usgs.gov/dss/search_api/2.1/doc/](https://txpub.usgs.gov/dss/search_api/2.1/doc/)
+  - [http://leafletjs.com/](http://leafletjs.com/)
+- Ten things you should know about Javascript
+  - [https://benmccormick.org/2017/07/19/ten-things-javascript/](https://benmccormick.org/2017/07/19/ten-things-javascript/)
+  - [http://leafletjs.com/](http://leafletjs.com/)
+- D3 V4
+  - [Basic map with d3 v4](http://bl.ocks.org/rveciana/a2a1c21ca1c71cd3ec116cc911e5fce9)
+  - [Basic Map Functions](https://bl.ocks.org/HarryStevens/1c07d73efaf074de05e63a33431eb80a)
+  - [Template for resizaable map in d3v4](https://gist.github.com/arm5077/20fbe24b2d31c9d01f434bde9bd198ac)
+- PWAs
+  - [https://medium.com/samsung-internet-dev/a-beginners-guide-to-making-progressive-web-apps-beb56224948e](https://medium.com/samsung-internet-dev/a-beginners-guide-to-making-progressive-web-apps-beb56224948e)
+  - [Your Site—Any Site—Should Be a PWA](https://www.aaron-gustafson.com/notebook/your-site-should-be-a-pwa/)
+  - [A Beginner’s Guide to Progressive Web Apps & the Frontend Web](https://hackernoon.com/a-beginners-guide-to-progressive-web-apps-the-frontend-web-424b6d697e35)
+  -
+- Others
+  - [https://ghost.org/developers/](https://ghost.org/developers/)
+  - [http://flimshaw.github.io/Valiant360/](http://flimshaw.github.io/Valiant360/)
+  - [https://naver.github.io/billboard.js/](https://naver.github.io/billboard.js/)
+  - [https://gka.github.io/chroma.js](https://gka.github.io/chroma.js)
+  - [https://www.smashingmagazine.com/2017/05/long-scrolling/](https://www.smashingmagazine.com/2017/05/long-scrolling/)
+  - [https://www.sitepoint.com/8-fresh-design-tools-and-resources-for-2017/](https://www.sitepoint.com/8-fresh-design-tools-and-resources-for-2017/)
+  - [https://codeburst.io/how-to-test-javascript-with-mocha-the-basics-80132324752e](https://codeburst.io/how-to-test-javascript-with-mocha-the-basics-80132324752e)
+  - [https://drafts.fxtf.org/css-masking-1/](https://drafts.fxtf.org/css-masking-1/)
+  - [https://hacks.mozilla.org/2017/06/css-shapes-clipping-and-masking/](https://hacks.mozilla.org/2017/06/css-shapes-clipping-and-masking/)
+  - [https://medium.com/@Pinterest_Engineering/introducing-bonsai-an-open-source-webpack-analyzer-6bdfe22f8984](https://medium.com/@Pinterest_Engineering/introducing-bonsai-an-open-source-webpack-analyzer-6bdfe22f8984)
+  - [https://accessibility.blog.gov.uk/2016/09/02/dos-and-donts-on-designing-for-accessibility/](https://accessibility.blog.gov.uk/2016/09/02/dos-and-donts-on-designing-for-accessibility/)
+  - [https://posteritati.com/](https://posteritati.com/)
+  - [https://github.com/dexteryy/spellbook-of-modern-webdev](https://github.com/dexteryy/spellbook-of-modern-webdev)
+  - [Using viewport units to scale fixed layouts](https://hackernoon.com/using-viewport-units-to-scale-fixed-layouts-869638bb91f9)
+  - [5 CSS Properties That You Probably Don’t Know](http://developer.telerik.com/topics/web-development/5-css-properties-probably-still-dont-know/?utm_source=frontendfocus&utm_medium=email)
+  - [Advanced SCSS](https://gist.github.com/jareware/4738651?utm_source=frontendfocus)
+  - [Simple WebRTC video/voice and data channels](https://github.com/feross/simple-peer)
+  - [Deepstream Hub](https://deepstreamhub.com/)
+  - [WebRTC Full Mesh](https://deepstreamhub.com/tutorials/protocols/webrtc-full-mesh/)
+  - [EMPATHY IS THE NEW KILLER APP](http://joshlinkner.com/2013/empathy-is-the-new-killer-app/)
+  - [Jul 12 I Am Graphics And So Can You :: Part 1 :: Intro](https://www.fasterthan.life/blog/2017/7/11/i-am-graphics-and-so-can-you-part-1)
+  - [The language of programming](https://temochka.com/blog/posts/2017/06/28/the-language-of-programming.html)
+  - [Choosing a frontend framework in 2017](https://medium.com/this-dot-labs/building-modern-web-applications-in-2017-791d2ef2e341)
+  - [Is it really safe to start using CSS Grid Layout?](https://www.rachelandrew.co.uk/archives/2017/07/04/is-it-really-safe-to-start-using-css-grid-layout/?utm_source=frontendfocus&utm_medium=email)
+- Mutation Observers
+  - [Three Real-World Uses for Mutation Observer](https://eager.io/blog/three-real-world-use-cases-for-mutation-observer/)
+  - [Detect DOM changes with Mutation Observers](https://developers.google.com/web/updates/2012/02/Detect-DOM-changes-with-Mutation-Observers)
+  - [Detect, Undo And Redo DOM Changes With Mutation Observers](https://addyosmani.com/blog/mutation-observers/)
+  - [MutationObserver API](https://davidwalsh.name/mutationobserver-api)
+  - [DOM MutationObserver – reacting to DOM changes without killing browser performance](https://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/)
+  -

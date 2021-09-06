@@ -1,0 +1,81 @@
+# Chile: Question about the the past, present and future
+
+I'll start with clarifications:
+
+**I haven't lived in Chile since 1994** and have only been back to Chile once since I left.
+
+The material I have to base my opinion and analysis on are biased by whatever judgment and political opinion the author makes or has. I have tried as much as possible to separate the authors' opinions from facts. **I may not always succeed in doing so or want to do it**.
+
+Quotes may be in English or Spanish depending on the source. I'm too lazy to translate the quotoes in Spanish to English.
+
+## Some necessary background
+
+I think there's a little baseline we need to have before a lot of these things will make sense.
+
+Chile as it lives right now is a product of the Pinochet dictatorship that lasted froom 1973 until 1990.
+
+Part of the problem is that, in 1980, Pinochet's government proposed and people approved a new constitution that has remained in effect for the last 39 years and it has some deep structural issues with the consitution, as written, that protected Pinochet after he left power and has had some modest level of reform since its adoption.
+
+Items like designated and perpetual senators were meant to protect Pinoochet and members of the outgoing Junta since, as members of the senate, could not be prosecuted without consent of Congress. These types of senators were removed from the text of the constitution in 2006.
+
+Other items were addressed in ancillary laws enacted alongside the constitution that are what, in my opinion, caused the whole problem.
+
+The fact that Chile was heading down to a crisis was known and it's not new. The main reasons why people went on the street are the same reasons why they hit the streets in 2011 and they've become more and moore serious over the years.
+
+### Retirement
+
+In order to understand
+
+> On November 4, 1980, under the leadership of José Piñera, Secretary of Labor and Pensions under Augusto Pinochet with the collaboration of his team of Chicago Boys, the PAYGO pension system was changed to a capital funded system run by investment funds.[2] José Piñera had the idea of privatizing the pension system for the first time when reading the book Capitalism and Freedom from Milton Friedman[3] There have been implemented several (private) pension funds the so-called Administradoras de Fondos de Pensiones (AFPs). For all citizens who are legally defined as workers, employers must pay a proportion of the earnings to a pension fund. Workers who had already paid in the old system, got an option to continue to pay into the old system. But the statutory minimum contribution to the new private pension funds was set 11% lower than the contributions to the old pension system, therefore most workers changed to the new pension system.[2]
+>
+> Chilean military that implemented the new AFP system excluded themselves from it keeping obtaining their pensions from the Caja de Previsión de la Defensa Nacional.[4] The pensions of the military are substantially higher than those of the rest of Chileans, being most often similar to the income they have during active service.[4] However, differently from what a regular, society-wide, PAYGO system would operate, military pensions go to a small section of the population and are financed by all of the taxpayers in the country[5].
+>
+> From Wikipedia entry [Pensions in Chile](https://en.wikipedia.org/wiki/Pensions_in_Chile)
+
+### Healthcare
+
+> Chile was one of the first Latin American countries introducing health care for the middle class funded through mandatory deductions from the salary, as in the Bismarckian welfare state. In the 1950s it introduced a national health care system, headed by the agency Fondo Nacional de Salud (FONASA). During the last decade of the military dictatorship a two tier system developed as people could opt out and buy private health insurance from private insurance companies called Instituciones de Salud Previsional (ISAPREs) for care by private providers at private clinics and private hospitals, which cost up to twice as much.
+> From Wikipedia entry [Healthcare in Chile](https://en.wikipedia.org/wiki/Healthcare_in_Chile)
+
+
+> The major political and social problems affecting health status and the performance of the health services are: a) a population in which 23.2% (1996) is poor, and 5.8% indigent; b) the concentration of 40% of the population in the Metropolitan Region; c) the weakness of the health services network; d) inadequate coordination among public and private service providers.
+>
+> From [Profile of the Health Service System: Chile](https://www.who.int/ageing/projects/intra/phase_one/alc_intra1_cp_chile.pdf)
+
+### Education
+
+Protest about education are what brought people like Camila Vallejo into the national consiousness. The fact that the issues still remains and that some of the principal actors are now part of the governing bodies makes me wonder why nothing has changed or changed enough and what will it take for systemic change to actually happen in Chile.
+
+> La brecha entre los resultados SIMCE 2012 de los colegios municipales y particulares pagados no ha disminuido y los resultados de aprendizaje son similares al 2010. (…) A esa brecha hay que agregar que la mayoría de los estudiantes continúan sin lograr los aprendizajes que se espera: en lectura, en Cuarto Básico, el 60% no alcanza el nivel adecuado; en matemática, no lo logra el 75%
+>
+> [Educación: la crisis que nos está esperando](https://ciperchile.cl/2013/05/02/educacion-la-crisis-que-nos-esta-esperando/)
+
+> El nudo de la crisis del sistema de educación en Chile  &ndash; que pasó del debate en las instituciones a la calle entre junio y noviembre de 2011, mediante una movilización de los estudiantes secundarios y universitarios apoyada por el gremio de los profesores y un amplia proporción de la opinión  pública &ndash; es la contradicción entre la percepción mayoritaria de que debe ser un instrumento de inserción y movilidad social y estar a disposición de todos, y el hecho que, a pesar del sustancial aumento del gasto público en educación desde 1990, el acceso a sus beneficios sigue siendo fundamentalmente desigual según los niveles de ingresos de las familias. La alta proporción del gasto educacional privado es una de las principales características del esquema educacional vigente en Chile, en contraste con la mayoría de los países de la OCDE y de América Latina. Y es probablemente el detonante principal de una protesta social que ha hecho emerger una nueva demanda a favor del reforzamiento de la educación pública o sin fines de lucro.
+>
+> From: [La Crisis de la Educación Chilena](http://www.revistas.usach.cl/ojs/index.php/politicas/article/view/993/943) (Revista Políticas Públicas. Vol. 5 Núm. 1 (2012))
+
+### The Transantiago debacle
+
+> ¿Qué es lo que falló en el Transantiago? ¿La forma o la aplicación? Esas han sido las dos preguntas que han sostenido el debate en la búsqueda de un responsable durante ya más de 10 años. El cuestionado sistema de transporte, que fue ideado durante el Gobierno de Lagos e implementado en el primer periodo de Michelle Bachelet, sigue presentando fallas a pesar de las grandes modificaciones que se le han ido realizando en todos estos años.
+>
+> Precisamente, en el año 2006 Ricardo Lagos señaló que “una responsabilidad es el diseño, que todas las autoridades aplauden y dicen que está muy bien, pero la forma en que se implementó o si se implementó antes de tiempo, a mí escúsenme, no me corresponde”, echándole la culpa a la administración Bachelet por el entonces ya caótico y recién estrenado Transantiago.
+>
+> From [¿Quién es el responsable del Transantiago? Una polémica que se arrastra hace más de una década](https://www.publimetro.cl/cl/nacional/2016/11/24/responsable-transantiago-polemica-que-se-arrastra-mas-decada.html)
+
+## Polarization: The Haves vs The Have Nots
+
+
+## (Some) Sources and References
+
+* [Chile's elites aren't listening to the protestors](https://www.cnn.com/2019/11/04/opinions/chiles-elites-arent-listening-to-the-protestors-garratt/index.html)
+* [Ministro de Hacienda: “No toda desigualdad es injusta, no toda desigualdad es mala”](https://www.eldesconcierto.cl/2019/11/03/ministro-de-hacienda-no-toda-desigualdad-es-injusta-no-toda-desigualdad-es-mala/)
+* [El enigma chileno](https://www.latercera.com/la-tercera-domingo/noticia/columna-mario-vargas-llosa-enigma-chileno/886086/)
+* [Why Are So Many Chileans Protesting?](https://www.bloomberg.com/opinion/articles/2019-10-29/chile-protests-what-are-they-about-exactly)
+* [The protests in Chile aren’t about 30 pesos. They’re about 30 years of failure](https://www.washingtonpost.com/opinions/2019/10/23/protests-chile-arent-about-pesos-theyre-about-years-failure/)
+* [Chile will never make progress under Pinochet's constitution](https://www.washingtonpost.com/opinions/2019/10/29/chile-will-never-make-progress-under-pinochets-constitution/)
+* [Why Chileans Are Still Protesting Despite Reform Promises](https://foreignpolicy.com/2019/10/23/chile-protests-economic-inequality-reforms/)
+* [From Hong Kong to Chile, 2019 is the year of the street protester. But why?](https://www.washingtonpost.com/opinions/global-opinions/from-hong-kong-to-chile-2019-is-the-year-of-the-street-protester-but-why/2019/10/27/9f79f4c6-f667-11e9-8cf0-4cc99f74d127_story.html)
+* [Violencia, derechos humanos y la salvación de la república](https://ciperchile.cl/2019/11/26/violencia-derechos-humanos-y-la-salvacion-de-la-republica/)
+* [¿Quién es el responsable del Transantiago? Una polémica que se arrastra hace más de una década](https://www.publimetro.cl/cl/nacional/2016/11/24/responsable-transantiago-polemica-que-se-arrastra-mas-decada.html)
+* [Exigen el cierre de la Clínica Davila por condicionar atención a pago previo](http://lanacion.cl/2019/12/01/exigen-cierre-de-clinica-davila-por-condicionar-atencion-a-pago-previo/)
+

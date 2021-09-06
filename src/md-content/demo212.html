@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+
+<demo-element></demo-element>
+
+<demo-element width="800" height="1200">
+  <h1 slot="my-title">Jumping over hoops</h1>
+  <p slot="my-text">Or maybe not</p>
+</demo-element>
+
+<script>
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    .card: {
+      border: 1px solid red
+      margin: 2em;
+      padding: 1em;
+    }
+
+    h2 {
+      font-size: 3rem;
+    }
+  </style>
+  <div class="card">
+    <h1>what's up, Doc?</h1>
+    <p>I should have taken a left in Albuquerque</p>
+  </div>
+`;
+
+class DemoElement extends HTMLElement {
+  static get observedAttributes() {
+    return ['height', 'width'];
+  }
+
+  get height() {
+    return this.getAttribute('height');
+  }
+
+  set height(newValue) {
+    this.setAttribute('height', newValue);
+  }
+
+  get width() {
+    return this.getAttribute('width');
+  }
+
+  set width(newValue) {
+    this.setAttribute('width', newValue);
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log('Custom demo-element attributes changed.');
+    console.log(`${name} changed from ${oldValue} to ${newValue}`);
+  }
+}
+</script>
+</body>
+</html>

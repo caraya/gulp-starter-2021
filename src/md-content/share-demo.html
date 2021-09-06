@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sample Web Share Page</title>
+  <style>
+    body {
+      margin: 2em;
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1>Sample Web Share page</h1>
+
+  <p>If you like this, please <a class="twitter-share-button share" href="https://twitter.com/intent/tweet?text=Hello%20world">Share it</a> and let me know what you think on Twitter.</p>
+
+  <script>
+    const myLinks = document.querySelectorAll('.share');
+    const shareLinks = [...myLinks];
+    
+    shareLinks.forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        if (typeof navigator.share !== 'undefined') {
+          event.preventDefault();
+          const canonicalElement = document.querySelector('link[rel=canonical]');
+          if (canonicalElement !== undefined) {
+            const url = canonicalElement.href;
+          } else {
+            const url = window.location.href;
+          }
+          const pageTitle = document.querySelector('.post-title').textContent;
+          navigator.share({
+              title: pageTitle,
+              url: url
+            })
+            .then(function () {
+              console.log("Share success!");
+            })
+            .catch(function () {
+              console.log("Share failure!");
+            });
+        } else {
+          // No web share API...
+        }
+      });
+    });
+
+  </script>
+</body>
+
+</html>

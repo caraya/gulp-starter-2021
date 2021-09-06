@@ -1,0 +1,4 @@
+# The Gathering
+
+Wherever they are, whoever they are, the players get a mysterious message that brings them to their current location, a non-descript bar in the city of Haven, a small community near the the capital of
+

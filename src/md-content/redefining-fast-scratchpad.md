@@ -1,0 +1,23 @@
+
+In 2015 Paul Irish and Paul Lewis from Google, proposed the RAIL performance model.
+
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/image/upload/v1593120957/publishing-project.rivendellweb.net/rail-response-animation-idle-load.png' alt='The four components of the rail model'>
+  <figcaption>The four components of the rail model. Taken from <a href="https://www.smashingmagazine.com/2015/10/rail-user-centric-model-performance/">Smashing Magazine</a></figcaption>
+</figure>
+
+
+
+The performance picture has changed in the last 5 years, now Google is pushing a set of [Core Web Vitals](https://web.dev/vitals/) as a way to create a single set of signals we can use to
+
+<ul>
+<li><strong><a href="https://web.dev/lcp/">Largest Contentful Paint (LCP)</a></strong>: measures <em>loading</em> performance.
+To provide a good user experience, LCP should occur within <strong>2.5 seconds</strong> of
+when the page first starts loading.</li>
+<li><strong><a href="https://web.dev/fid/">First Input Delay (FID)</a></strong>: measures <em>interactivity</em>. To provide a
+good user experience, pages should have a FID of less than <strong>100
+milliseconds</strong>.</li>
+<li><strong><a href="https://web.dev/cls/">Cumulative Layout Shift (CLS)</a></strong>: measures <em>visual stability</em>. To
+provide a good user experience, pages should maintain a CLS of less than
+<strong>0.1.</strong></li>
+</ul>
