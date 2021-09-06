@@ -30,7 +30,7 @@ These are some things that I consider necessary for front-end developers to be f
   <dd>It allows you to login to another host remotely. This is necessary only if you need direct access to your server's shell to run configurations and modify the server in some way. </dd>
 
   <dt>HTTP / HTTPS</dt>
-  <dd>The HTTP protocol is the backbone of the web. Different developers need different levels of understanding of HTTPS and how they work. We also need too be aware of the </dd>
+  <dd>The HTTP protocol is the backbone of the web. Different developers need different levels of understanding of HTTPS and how they work. See Ilya Grigorik's <a href="https://hpbn.co/">High Performance Browser Networking</a> for a good primer on the subject</dd>
 
   <dt>Basic Terminal Usage</dt>
   <dd>Learn how to use the native terminal available to your Macintosh or Linux operating system</dd>
@@ -65,3 +65,5 @@ I'm not saying "don't use frameworks at all" but "use frameworks wisely" and opt
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 # Whatever you choose, use it well
+
+I don't really care

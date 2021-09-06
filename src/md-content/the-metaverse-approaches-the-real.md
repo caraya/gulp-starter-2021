@@ -1,5 +1,7 @@
 # The metaverse approaches the real
 
+* Older virtual communities
+  * [Habitat](http://habitatchronicles.com/)
 * [Revisting Unnumbered Sparks](https://publishing-project.rivendellweb.net/revisiting-unnumbered-sparks/)
 * Digital Storytelling
   * [Digital Storytelling](https://publishing-project.rivendellweb.net/digital-storytelling/)

@@ -1,11 +1,8 @@
 # Working with design systems
 
-
-
-* https://fractal.build/
+* [Fractal](https://fractal.build/)
 * Examples of design systems
-  * http://bits.24ways.org/
-  * http://fractal.clearleft.com/
-  * https://patterns.boston.gov/index.html
-  * https://kanbasu.liip.ch/
-  * https://style.eurostar.com/
+  * [24 Ways](http://bits.24ways.org/)
+  * [Clearleft](http://fractal.clearleft.com/)
+  * [Boston.gov](https://patterns.boston.gov/index.html)
+  * [Eurostar GLU](https://style.eurostar.com/)

@@ -1,2 +1,1 @@
-# Creating and unning a technology glossary
-
+# Creating and running a technology glossary

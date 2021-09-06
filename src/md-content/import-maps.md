@@ -79,7 +79,7 @@ The order of the scripts does matter. In any other order the scripts will not wo
 
 The second isssue is that not all packages in NPM are available as ESModules.
 
-Tools like Snowpack can help deal with this. In its simplest use Snowpack ***“re-installs your dependencies as single JS files to a new web_modules/ directory”***.
+Tools like Snowpack can help deal with this. In its simplest use Snowpack ***“re-installs your dependencies as single JS files to a new web_modules/ directory”*** to be used with import commands.
 
 You can either run Snopwack manually in your directory:
 
@@ -95,20 +95,19 @@ or run it as an NPM script:
 }
 ```
 
-Snowpack will generate a `web_modules` directories that you've specified as dependencies in your package.json and an import map file that you can use to import the modules.
+Snowpack will generate a `web_modules` directories that you've specified as dependencies in your `package.json` and an import map file that you can use to import the modules.
 
-If you need to use packages that are not defined as dependencies in your project you can define them as part of your package.json definition
+If you need to use packages that are not defined as dependencies in your project's `package.json` you can define them as part of your `package.json` definition
 
 ```json
 "snowpack": {
   "dependencies": [
-    "three/examples/jsm/controls/OrbitControls.js",
-    "canvas-context",
+    "file1",
+    "file2",
     "core-js",
-    "tweakpane",
-    "es-module-shims",
-    "simplex-noise",
-    "three"
+    "module1",
+    "module2",
+    "moodule3"
   ]
 }
 ```

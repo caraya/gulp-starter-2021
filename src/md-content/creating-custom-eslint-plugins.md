@@ -18,7 +18,7 @@ npm init --yes
 
 This will prefill the `package.json` file with information from your Git settings. You can always edit it later.
 
-The next step is to write the rules that you want to use and how to handle them (error or warning).
+The next step is to write the rules that you want to use and how to handle them (error or warning) in your default entry point, in this case, `index.js`.
 
 All the rules are wrapped in a `rules` object that lives `module.exports`, this way you can export multiple rules.
 

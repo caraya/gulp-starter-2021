@@ -44,6 +44,8 @@ It's terryfing to think how much and in how many different ways we've changed an
 
 In accepting these differences I'm also accepting that nothing I knew there remains the same, or at all. It's also learning about the changes and how to adapt to them... if that's not a frightening thought, I don't know what is.
 
+It's also accepting that Europe and other places in the US I've never been to are easier for me to be in than Chile is. In those other places I don't have to fake that I'm a tourist because I am one. In Chile I have to fake it because I'm not a tourist, at least people won't see me as one. But maybe that's what I need to be to get some objectivity on what I see there.
+
 ## Mom
 
 I guess it's because I lived with her exclusively until she moved to the US in 1990 that I got a lot of my mom's behavior patterns.
@@ -60,4 +62,6 @@ I guess it's because I lived with her exclusively until she moved to the US in 1
 >
 > Evan McAuley &mdash; Infinite
 
-## 4 recent songs
+There's something that dawned on me that I should have learned decades ago. Growing up in Chile, I tried to attach myself to a certain group, the weed smokers, the late night partiers, the "bad kids". I could never lie worth a damn so they'd push me away so I wouldn't know what they were doing and I wouldn't have to lie about it if someone outside the group asked me.
+
+At the time I was dumb so I backed away from that crowd without really understanding why I did. It wasn't until a few weeks ago (and 30+ years later) that I finally understood why I did it. I care about people and I won't change... it's who I am and if you don't like it then screw you.
