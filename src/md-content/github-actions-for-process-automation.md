@@ -110,4 +110,8 @@ The action is simple. It tells the action what packages to use via the `uses` at
 
 ## Conclusion
 
-As far as actions go, this project is a very simple one.
+As far as actions go, this project is a very simple one. I like that it requires no changes to the existing code in the repository, if we want to update the way we build the HTML documents or if we want to add more features, all we have to do is add them to the gulp build file and add any third-party installation to the actios YAML file.
+
+That said this particular project has soe warnings attached to it.
+
+The first one is that it might timeout when compressing images with Squoosh. When first developing the Gulp build process I thought it would only be used on my laptop where I was OK with taking several minutes to complete. Using Github actions I'm not certain if it's a good idea and whether it will timeout on the assigned runner. So far it hasn't but the more images we add, the longer it'll take.
