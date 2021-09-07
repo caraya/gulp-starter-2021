@@ -1,0 +1,288 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Mavo</h1>
+<p><a href="https://mavo.io/">Mavo</a> is an extension to HTML created by Lea Verou as part of her work at MIT CSAIL. It caught my attention because it’s a minimal setup system that does all of the heavy lifting for you (as we’lll see when we look at how it works) and it can do fairly sophisticated projects.</p>
+<p>To test Mavo I will use it to create a project listing for a portfolio. It will test Mavo’s storage capabilities, how to create multiple entries in a single application and Mavo scripting features built into the platform.</p>
+<h2>What it is</h2>
+<p>Mavo adds attributes to HTML that describe Web applications that manage, store, and transform data.</p>
+<p>You can store data in the cloud, locally, or not at all by just changing an HTML attribute</p>
+<p>With Mavo you can edit data right in the website, with an intuitive, auto-generated, customizable interface. No more wrestling with CMSes and servers!</p>
+<p>There’s a lot more you can do. Check the <a href="http://mavo.io/docs/">documentation</a> and <a href="http://mavo.io/demos/">demos</a> to get a feel for what Mavo is and what it can do.</p>
+<h2>How it works</h2>
+<p>To go indepth into Mavo we’ll look at a full blown Mavo application and break it down as needed to explain Mavo concepts and ideaas… The portfolio app, taken from the <a href="https://mavo.io/demos/">Mavo Demos</a></p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;title&gt;Artist Portfolio&lt;/title&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://dev.mavo.io/dist/mavo.css&quot;&gt;
+&lt;script src=&quot;https://dev.mavo.io/dist/mavo.js&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+
+&lt;/head&gt;
+</code></pre>
+<p>To start create an empty HTML document and insert the following code in the <code>head</code> element:</p>
+<pre><code class="language-html">&lt;script src=&quot;https://get.mavo.io/mavo.js&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://get.mavo.io/mavo.css&quot;&gt;
+</code></pre>
+<p>This will get the latest stable version of Mavo. If you want to get an uncompressed verion, a ES5 version for older browsers or a specific version (other than the latest) head to <a href="https://mavo.io/get/">get Mavo</a> select from the options given and copy the code that will appear.</p>
+<figure>
+  <img src='images/get-mavo.png' alt=''>
+  <figcaption>Questions to answer and links to appropriate Mavo resources download</figcaption>
+</figure>
+<p>This will load Mavo but won’t do anything with it… yet.</p>
+<p>To start using Mavo add the following attributes to the root element of the Mavo application: <code>mv-app=&quot;name-here&quot;</code> <code>mv-storage=&quot;https://github.com/username/repo/&quot;</code>. If you’ve worked with Angular or Vuew in the past this should look familiar.</p>
+<pre><code class="language-html">&lt;body mv-app=&quot;portfolio&quot; mv-storage=&quot;https://github.com/mavoweb/data/portfolio&quot;&gt;
+</code></pre>
+<p>These two attributes tell Mavo that this is a Mavo application with the given name and to use the indicated Github repository for data storage. OF course you should have write access to the repository to save data there. If you don’t you’ll generate a Pull Request for the Repo owner with the changes you suggest.</p>
+<p>We continue writing HTML for the header.</p>
+<pre><code class="language-html">&lt;header&gt;
+  &lt;h1&gt;&lt;a href=&quot;http://julesmuck.com&quot;&gt;
+  &lt;img src=&quot;http://julesmuck.com/wp-content/uploads/2016/04/mucklogoBLCK.png&quot;
+    alt=&quot;Jules Muck&quot;
+    class=&quot;logo&quot; /&gt;
+  &lt;/a&gt;&lt;/h1&gt;
+&lt;/header&gt;
+</code></pre>
+<p>Then we move to the individual paintings that are part of the portfolio. This is where the mavo magic happens.</p>
+<p><code>property</code> names elements that will be saved, edited, or used in expressions. This is how we tell Mavo that this is an element we want to work with.</p>
+<p><code>typeof</code> is what we use to tell Mavo the actual value off the element. It’s not just an attribute or its text content, but the union of the values of the properties inside it. We can use it to force an element to be a group, or to declare the type of the group (e.g. typeof=“Person”) for richer semantic value</p>
+<p><code>mv-multiple</code> makes the element repeatable.</p>
+<p><code>mv-attribute</code> overrides the defaults for which attribute holds the data for this element. For no attribute (element content), specify “none”.</p>
+<p><code>mv-default</code> gives the default value for the property. If you  provide no value then the content becomes the default.</p>
+<pre><code class="language-html">&lt;div&gt;
+    &lt;a property=&quot;painting&quot; typeof=&quot;Painting&quot; mv-multiple mv-attribute=&quot;none&quot;&gt;
+        &lt;img property=&quot;image&quot; /&gt;
+        &lt;p property=&quot;name&quot; mv-default=&quot;[readable(to(filename(image), '.'))]&quot;&gt;&lt;/p&gt;
+    &lt;/a&gt;
+&lt;/div&gt;
+</code></pre>
+<p>Then we add the rest of the HTML content including the closing <code>body</code> and <code>html</code> tags.</p>
+<pre><code class="language-html">&lt;footer&gt;All art belongs to the awesome &lt;a href=&quot;http://julesmuck.com&quot;&gt;Jules Muck&lt;/a&gt;, used
+  here with permission.&lt;/footer&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>That’s it… this is a fully-working Mavo application that will store its data on the Github repository you indicated in the root element of the application.</p>
+<h2>Projects project</h2>
+<p>So now that we got an idea of how Mavo works let’s see how well it works for our own projects.</p>
+<p>I have a list of projects at different stages of completion that I would like to use Mavo, in its default configuration to create a list of project in different stages of completion.</p>
+<p>The structure of the data is like this:</p>
+<ul>
+<li>Name of the project</li>
+<li>Description</li>
+<li>Date Started</li>
+<li>Date Ended (if applicable)</li>
+<li>Type of project. One of
+<ul>
+<li>Code</li>
+<li>Writing</li>
+<li>Research Report</li>
+<li>Mixed</li>
+<li>Other</li>
+</ul>
+</li>
+<li>Stage of the project. One of
+<ul>
+<li>Idea</li>
+<li>Draft</li>
+<li>In Development</li>
+<li>Completed</li>
+<li>Published</li>
+</ul>
+</li>
+<li>URLs
+<ul>
+<li>Writing</li>
+<li>Code</li>
+<li>Other</li>
+</ul>
+</li>
+<li>Additional Notes</li>
+</ul>
+<p>The project had some baffling aspects (that I’m still working on understanding) and some very easy parts of the code. The full code is shown below, broken by sections to make sure that I cover some of the more baffling aspects of it.</p>
+<p>The opening is similar to the example we used in the last section. I compiled Mavo from source to make sure I had the latest version instead of depending on the version hosted by the CDN.</p>
+<p>I’ve also downloaded a plugin to use Markdown in the text areas. I’ll come back to this because it was one of the areas that bit me when working on this project.</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+      content=&quot;width=device-width,
+      initial-scale=1&quot;&gt;
+    &lt;script src=&quot;scripts/mavo.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;scripts/mavo-markdown.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;styles/mavo.css&quot;&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;styles/main.css&quot;&gt;
+  &lt;/head&gt;
+</code></pre>
+<p>As normal we give the app a name and a location for storage.</p>
+<pre><code class="language-html">  &lt;body mv-app=&quot;portfolio&quot;
+    mv-storage=&quot;https://github.com/caraya/mavodata/data&quot;&gt;
+</code></pre>
+<p>In the following sections we begin defining the layout and data structure for the application using the structure we defined earlier.</p>
+<p>Project name and description are self-explainatory.</p>
+<p>In Project Chronology we use a few tricks to save typing. For the <code>Date Started</code> field, I’m assuming that if you didn’t enter the starting date then the date is today. To represent this date we use some MavoScript to do so.</p>
+<p>MavoScript is Mavo’s expression language. More details at <a href="http://mavo.io/docs/mavoscript">http://mavo.io/docs/mavoscript</a>. To generate the date in a human readable format we use <code>$now</code> (number of seconds since 1/1/1970) and <code>date()</code> to generate the date itself.</p>
+<p>If you don’t enter a date for <code>dateEnded</code> I’m assuming that the project is still in progress.</p>
+<p>Under <strong>Project Description</strong> came the first surprise. The original version of the code used <code>textarea</code> elements to hold the text to edit but, to my surprise, the plugins did not work. They only worked when I changed the elements to <code>div</code>.</p>
+<pre><code class="language-html">    &lt;div class=&quot;projects&quot;&gt;
+      &lt;section typeof=&quot;Project&quot;
+        mv-multiple
+        class=&quot;project-card&quot;&gt;
+
+        &lt;h2 property=&quot;name&quot;
+          mv-default=&quot;Default Project Name&quot;&gt;&lt;/h2&gt;
+
+        &lt;fieldset&gt;
+          &lt;legend&gt;Project Description&lt;/legend&gt;
+          &lt;div property=&quot;description&quot;
+            mv-default=&quot;Project Description&quot;
+            class=&quot;markdown&quot;&gt;&lt;/div&gt;
+        &lt;/fieldset&gt;
+
+        &lt;fieldset&gt;
+          &lt;legend&gt;Project Chronology&lt;/legend&gt;
+          &lt;label for=&quot;dateStarted&quot;&gt;Date Started&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;dateStarted&quot;
+            name=&quot;dateStarted&quot; value=&quot;&quot;
+            mv-default=[date($now)]
+            property=&quot;Date Started&quot;&gt;
+
+          &lt;label for=&quot;dateEnded&quot;&gt;Date Ended&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;dateEnded&quot;
+            name=&quot;dateEnded&quot;
+            value=&quot;&quot;
+            mv-default=&quot;In Progress&quot;
+            property=&quot;Date Ended&quot;&gt;
+        &lt;/fieldset&gt;
+</code></pre>
+<p>This is where I got stuck for a while until I looked to a similar example (the <a href="http://mavo.io/demos/talks/">talks demo</a> in the demo section of the Mavo website). Looking at other people’s code helps, really :-)</p>
+<pre><code class="language-html">        &lt;fieldset&gt;
+          &lt;legend&gt;Project Status&lt;/legend&gt;
+            &lt;select property=&quot;status&quot;&gt;
+              &lt;option selected&gt;Idea&lt;/option&gt;
+              &lt;option&gt;Draft&lt;/option&gt;
+              &lt;option&gt;In Development&lt;/option&gt;
+              &lt;option&gt;Completed&lt;/option&gt;
+              &lt;option&gt;Published&lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/fieldset&gt;
+
+        &lt;fieldset&gt;
+          &lt;legend&gt;Project Type&lt;/legend&gt;
+            &lt;select property=&quot;type&quot;&gt;
+              &lt;option selected&gt;Code&lt;/option&gt;
+              &lt;option&gt;Writing&lt;/option&gt;
+              &lt;option&gt;Research Report&lt;/option&gt;
+              &lt;option&gt;Mixed&lt;/option&gt;
+              &lt;option&gt;Other&lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/fieldset&gt;
+</code></pre>
+<p>In most other versions of this project I’ve created nested structures for the URLs. With Mavo that was not necessary. The JSON structure is flat so I can save myself from having to do, or ask Mavo to do, weird acrobatics to get the JSON the way I want it.</p>
+<pre><code class="language-html">        &lt;fieldset class=&quot;links&quot;&gt;
+          &lt;legend&gt;Links&lt;/legend&gt;
+
+          &lt;label for=&quot;codeURL&quot;&gt;Code&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;codeURL&quot; name=&quot;codeURL&quot;
+            value=&quot;&quot; mv-default=&quot;N/A&quot; property=&quot;Code URL&quot;&gt;
+
+          &lt;label for=&quot;writeupURL&quot;&gt;Writeup URL&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;writeupURL&quot; name=&quot;writeupURL&quot;
+            value=&quot;&quot; mv-default=&quot;N/A&quot; property=&quot;Writeup URL&quot;&gt;
+
+          &lt;label for=&quot;otherURL&quot;&gt;Other URL&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;otherURL&quot; name=&quot;otherURL&quot;
+            value=&quot;&quot; mv-default=&quot;N/A&quot; property=&quot;Other URL&quot;&gt;
+        &lt;/fieldset&gt;
+</code></pre>
+<p>Project Notes is the last item in each individual project card before we close the page.</p>
+<pre><code class="language-html">        &lt;fieldset&gt;
+          &lt;legend&gt;Project Notes&lt;/legend&gt;
+          &lt;div property=&quot;notes&quot;
+            mv-default=&quot;Project Notes&quot;
+            class=&quot;Markdown&quot;&gt;&lt;/div&gt;
+        &lt;/fieldset&gt;
+
+      &lt;/section&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>I used some CSS to make the cards responsive using Flexbox. We also make some items flex horizontally to increase readability but, as you can see below, there is not that much CSS to use to tweak the Mavo-enhanced code to look the way I want it to.</p>
+<pre><code class="language-css">.projects {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+}
+
+.project-card {
+  margin: 2em;
+  padding: 1em;
+  border: 1px solid navy;
+  border-radius: 10px;
+}
+
+label {
+  font-weight: 700;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+}
+
+.links input {
+  width: 100%;
+  margin-bottom: 1em;
+}
+</code></pre>
+<h2>Conclusions And What’s Next</h2>
+<figure>
+  <img src='images/mavo-projects.png' alt='Mavo Projects Current Version'>
+  <figcaption>Mavo Projects Current Version</figcaption>
+</figure>
+<p>I love Mavo.</p>
+<p>Once you figure it out and learn to play by its rules it becomes second nature to create fully editable content without having to worry about configuring and customizing a CMS or having to learn a whole new syntax to create your content and structure.</p>
+<p>It’s not perfect, no tool is.  While it’s true that you don’t have to learn a whole new interface to build your aps, you still have to learn the additional attributes that Mavo uses… but it’s still a more gentle learning curve.</p>
+<p>There are some aspects that I’m still trying to figure out that will go into a future iteration of the project. Some of the things I’m looking at after MVP:</p>
+<ul>
+<li>Pagination: Because there are many cards in the page, it would be nice to show them 6 at a time and then have a pagination system to move between the pages</li>
+<li>Moving the backend to Firebase using a <a href="https://plugins.mavo.io/plugin/firebase">plugin</a></li>
+<li>Test the application for accessibility</li>
+<li>Hide URLs without a value… N/A works for now but it doesn’t convery the fact that if we don’t have a value then the link shouldn’t be there</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

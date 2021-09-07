@@ -1,0 +1,92 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Working with Feature Policies in client-side Javascript</h1>
+<div class="message warning">
+<h2> Note:</h2>
+<p>The <code>Feature-Policy</code> header has been renamed to <code>Permissions-Policy</code> and browsers will soon start implementing the change.</p>
+<p>&nbsp;</p>
+<p>The <code>document.featurePolicy</code> Javascript object will also change to <code>document.permissionsPolicy</code>.
+</div>
+<p>The Feature Policies Javascript API allows our client-side code to query for what features are available and what is restricted by Feature Policies.</p>
+<p>The Javascript API <strong>doesn’t replace the Feature-Policy header or the allow attribute of an iframe</strong>. You sill need to set the header before this will work, or it will work with the default values.</p>
+<p>The downside is that the current version of feature/permissions policy <strong>doesn’t support setting the policies in a meta tag, only in a header or the allow attribute of an iframe</strong>. This makes the usage more complicated because we need to convince the server administrator (if we’re not it) to implement them or add the header to our application’s server code if we’re creating our own.</p>
+<p>We’ll use the following Apache configuration. The configuration:</p>
+<ul>
+<li>Allows geolocation from the same origin and from <code>example.com</code></li>
+<li>Allows <code>camera</code> and <code>microphone</code> from the same origin</li>
+<li>Forbids access to <code>usb</code>, <code>document.domain</code> and <code>document.write</code>, even from the same origin</li>
+</ul>
+<pre><code class="language-apache">&lt;Location /&gt;
+  Header setifempty Feature-Policy
+    geolocation 'self' 'https://example/.com/;
+    camera 'self';
+    microphone 'self';
+    usb 'none';
+    document-domain 'none';
+    clipboard-write 'self';
+&lt;/Location&gt;
+</code></pre>
+<p>We can query the <code>featurePolicy</code> object in Javascript to conditionally run code only if the feature is supported and allowed by the policy.</p>
+<p>The following example will run geolocation code if the browser supports the feature and it’s allowed by the feature policy</p>
+<pre><code class="language-js">if ((&quot;geolocation&quot; in navigator) &amp;&amp;     
+    (document.featurePolicy.allowsFeature('geolocation'))) {
+  console.log('Geolocation supported and allowed');
+} else {
+  console.log('Geolocation not supported or not allowed');
+}
+</code></pre>
+<p>While this example will test if the <code>navigator.clipboard.writeText</code> is supported and is allowed by the feature policy and run the code.</p>
+<pre><code class="language-js">if((navigator.clipboard.writeText) &amp;&amp;
+   (document.featurePolicy.allowsFeature('clipboard-write'))) {
+  console.log('Feature is allowed');
+} else {
+  console.log('Feature not allowed');
+}
+</code></pre>
+<h2>Features of the JS API</h2>
+<p>The feature policy JS API in Chrome (since Chrome 74) provides the following methods:</p>
+<h2>List of feature policies allowed by the page</h2>
+<pre><code class="language-js">document.featurePolicy.allowedFeatures();
+// → list of features supported
+</code></pre>
+<p>**Check if a specific feature is supported##</p>
+<pre><code class="language-js">document.featurePolicy.allowsFeature('geolocation');
+</code></pre>
+<h2>Check if a feature is available for a specific domain</h2>
+<pre><code class="language-js">document.featurePolicy.allowsFeature('geolocation', 'https://another-example.com/');
+</code></pre>
+<h2>List of available feature policies allowed in the browser, regardless of whether they are in force</h2>
+<pre><code class="language-js">document.featurePolicy.features();
+</code></pre>
+<h2>List origins (used throughout the page) that are allowed to use a given feature</h2>
+<pre><code class="language-js">document.featurePolicy.getAllowlistForFeature('geolocation');
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

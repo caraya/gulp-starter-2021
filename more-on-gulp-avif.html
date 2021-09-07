@@ -1,0 +1,115 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Gulp and avif, part 2</h1>
+<p>Using the default encoder and settings, as described in <a href="https://publishing-project.rivendellweb.net/compressing-avif-images-with-gulp/">Compressing AVIF images with Gulp</a>, got the task running and produced the result we wanted: AVIF images that were smaller than the source image in either JPG or PNG format.</p>
+<p>This post will start from there and explore some further considerations on using <code>avifenc</code> to create images for the web.</p>
+<p>Unlike the previous post, the tasks here will try to mirror the following CLI commands.</p>
+<pre><code class="language-bash"># Default AOM encoder
+avifenc --codec aom \
+--min 40 --max 40 \
+--jobs 4 \
+--speed 10 \
+--output squosh3.avif \
+images/squosh.png
+</code></pre>
+<p>The first pass of the task looks like this.</p>
+<pre><code class="language-js">gulp.task('avif-aom', function() {
+  const destination = './converted'
+  return gulp.src('./images/*')
+    .pipe(exec((file) =&gt;
+        `avifenc --min 40 --max 40     --jobs 4 --speed 10 \
+         ${file.path} --out ${destination}/${file.path}`
+      ))
+    .pipe(rename({ extname: '.avif'}))
+    .pipe(gulp.dest(`${destination}`))
+});
+</code></pre>
+<p>The task kept crashing on execution but it would allow me to run <code>gulp -T</code> so the error was  in the command I was executing, not Gulp.</p>
+<p>I removed all the parameters to <code>gulp-exec</code> after avifenc and added them back one by one. The <code>--speed</code> parameter is the guilty one. I was able to remove it and leave it working at the default value.</p>
+<p>The final task looks like this:</p>
+<pre><code class="language-js">gulp.task('avif-aom', function() {
+  const destination = './converted'
+  return gulp.src('./images/*')
+    .pipe(exec((file) =&gt;
+        `avifenc --min 40 --max 40 --jobs 4 ${file.path} --out ${destination}/${file.path}`
+      ))
+    .pipe(rename({ extname: '.avif'}))
+    .pipe(gulp.dest(`${destination}`))
+});
+</code></pre>
+<h2>Using a different encoder</h2>
+<p>If you compile it to do so, you can choose different encoders to create AVIF images. We want to replicate the following command line script.</p>
+<pre><code class="language-bash">avifenc -c rav1e \
+--min 40 --max 40 \
+--jobs 4 \
+--speed 10 \
+--output squosh2.avif \
+images/squosh.png
+</code></pre>
+<p>I was expecting that adding the encoder flag (<code>--codec rav1e</code>) would cause the same problem as the <code>avif-aom</code> where the speed parameter would cause the same problem. It did not.</p>
+<pre><code class="language-js">gulp.task('avif-rav1e', function() {
+  const destination = './converted'
+  return gulp.src('./images/*')
+    .pipe(exec((file) =&gt;
+        `avifenc --codec rav1e --min 40 --max 40 --jobs 4 --speed 10 ${file.path}  ${destination}/${file.path}`
+      ))
+    .pipe(rename({ extname: '.rav1e.avif'}))
+    .pipe(gulp.dest(`${destination}`))
+});
+</code></pre>
+<p>This task will take significantly longer than the previous task, even when set up to work at maximum speed.</p>
+<p>The one change I’ll make is remove the speed indication to make sure both tasks run as evenly as possible. The task now looks like this</p>
+<pre><code class="language-js">gulp.task('avif-rav1e', function() {
+  const destination = './converted'
+  return gulp.src('./images/*')
+    .pipe(exec((file) =&gt;
+        `avifenc --codec rav1e --min 40 --max 40 --jobs 4 ${file.path}  ${destination}/${file.path}`
+      ))
+    .pipe(rename({ extname: '.rav1e.avif'}))
+    .pipe(gulp.dest(`${destination}`))
+});
+</code></pre>
+<h2>Comparing the enconders</h2>
+<p>Although I wouldn’t expect a different in file sizes it’s still instructive to compare the two encoders.</p>
+<p>To do this I’ve created a default task that will run both encoders in parallel</p>
+<pre><code class="language-js">gulp.task('default', gulp.series(
+  'avif-aom',
+  'avif-rav1e'
+));
+</code></pre>
+<h2>Further exploration</h2>
+<p>There are a couple more items that I want to research but they are not essential for encoding images. The two that come to mind are:</p>
+<ul>
+<li>Will setting up a range, making <code>--min</code> smaller than <code>--max</code> change the encoding results?</li>
+<li>Will adding more workers reduce encoding time?</li>
+</ul>
+<p>I have the code to test it. Will report in a future post.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

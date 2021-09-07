@@ -1,0 +1,265 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Responsive Images</h1>
+<p>Responsive images seek to answer the following question: <strong><em>How can we incorporate images in responsive layouts that are aappropriate for a device and its resolution without loading unnecessarily large images for mobile devices</em></strong>? It is not always intuitive and it has taken me years to get my head wrapped around the responsive images concepts and how to build the images.</p>
+<p>The idea is that we have images sized for each type of device and we let the browser decide which one is most appropriate for the device, resolution and screen size combination like image below shows.</p>
+<figure>
+  <img src="https://internetingishard.com/html-and-css/responsive-images/responsive-images-overview-890631.png">
+  <figcaption>Different versions of the same image depending on device and resolution. The problem responsive images try to solve</figcaption>
+</figure>
+<p>We’ll discuss a few of the <a href="http://usecases.responsiveimages.org/">use cases</a> for responsive images and ways to autmate the generation of all images (because if we have to do it manually then we’re less likely to do it… :))</p>
+<p>This is not a detailed guide to Responsive Images. If that’s what you’re looking for I’ll refer you to Jason Grigsby <a href="https://cloudfour.com/thinks/responsive-images-101-definitions/">Responsive Images 101</a> series.</p>
+<div clas="message note">
+<p>This post doesn't cover using CSS and background images in responsive layouts. That's a whole different post that requires different tools and different mindset for getting it to work.</p>
+</div>
+<h2>Handling high DPI images</h2>
+<p>The first item that caught my attention is how to deal with high density (also known as Retina images) when adding images to your content.</p>
+<p>The issue with high density images is that higher densities require more pixels to render the image to the quality we want; more pixels make the images larger and larger files take longer to downoload particularly in slower mobile devices (that will not need the larger files).</p>
+<p>We’ll discuss how to create retina images and how to compress images for delivery at the end of the post. For now we’ll concentrate on the how to do it.</p>
+<pre><code class="language-html">&lt;figure&gt;
+&lt;img src='illustration-small.png'
+  height=&quot;240&quot; width=&quot;320&quot;
+  srcset='images/illustration-small.png 1x,
+          images/illustration-big.png 2x,
+          images/illustration-extra-large.png 3x'&gt;
+&lt;/figure&gt;
+</code></pre>
+<p>The idea is that we create two images one at normal density and other encoded at double the density and let the browser decide which one to use based on the display density of the computer we’re using.</p>
+<p>In this case we provide options for standard definition, 2x for Retina images and 3x for very high definition images.</p>
+<h2>Different device widths</h2>
+<p>We handled different display densities. Now we need to handle different display sizes (not density) and how to provide images that are sharp enough but don’t send a ton of unnecessary bytes down the wire to devices that won’t use them.</p>
+<p>The responsive image becomes more complex. In addition to the <code>src</code> attribute we now have <code>srcset</code> and <code>sizes</code>.</p>
+<pre><code class="language-html">&lt;figure&gt;
+&lt;img alt=&quot;Sunset in Santiago&quot;
+  srcset=&quot;santiago-sunset-800.jpg 800w,
+          santiago-sunset-1200.jpg 1200w,
+          santiago-sunset-500.jpg 500w,
+          santiago-sunset-1000.jpg 1000w&quot;
+  sizes=&quot; (min-width: 1066px) 800px,
+          (min-width: 800px) calc(75vw - 137px),
+          (min-width: 530px) calc(100vw - 96px),
+          100vw&quot;
+  src=&quot;santiago-sunset-800.jpg&quot;&gt;
+&lt;/figure&gt;
+</code></pre>
+<p>The <code>srcset</code> attribute associates an image file with a given measurement. This measurement is the actual width of the source file and it has nothing to do with browser sizing or viewport dimensions.</p>
+<p>Shortly after the browser downloads the HTML, it requests CSS and JavaScript but, before the CSS and JavaScript is done loading, the browser starts downloading images.</p>
+<p>Since CSS and JavaScripthave not finished downloading, the browser downliads images without knowing what the layout of the page will be. And without knowing the layout, it doesn’t know what size the image element will be.</p>
+<p>The only thing that the browser does know is the size of the viewport. Once we move past display density descriptors, everything hinges on the size of the viewport.</p>
+<p>The <code>size</code> attribute helps us with image sizing. It tells the browser what size the image will be in relation to the size of the viewport. We also tell the browser how that relationship changes as the size of the viewport changes.</p>
+<p>The attribute is made of two parts: a media condition, a limited type of <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries">media query</a> that represents the viewport width and a length value (either explicit, like 800px) or a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/calc">calc</a> to create values based in the viewport) to tell the browser the actual dimensions of of the image when the media query matches.</p>
+<p>When the browser sees the <code>sizes</code> attribute it’ll take the first one where the media query matches or the default value if none of the other media conditions match.</p>
+<p>With this we’ve taken care of matching images to viewport sizes. Next we’ll look at using images to art direct the look of a site.</p>
+<h2>Art Directing</h2>
+<p>Art directing, in this context, means to control the images based on the viewport dimensions. This is similar to how we control images based on viewport width but it introduced new elements and new attributes for existing elements.</p>
+<p>The primary way to art direct responsive images is to use the <code>picture</code> and <code>source</code> elements. Picture has good <a href="https://caniuse.com/#search=picture">browser support</a> and the source element is support (with different attributes) in video and audio elements.</p>
+<p>The <code>picture</code> element can have one or more <code>source</code> children. We can tailor these to the form factors that we need to support.</p>
+<p>Each <code>source</code> element can have one or more of the following attributes:</p>
+<ul>
+<li><strong>src</strong> — Address of the resource</li>
+<li><strong>type</strong> — Type of embedded resource</li>
+<li><strong>srcset</strong> — Images to use in different situations (e.g. high-resolution displays, small monitors, etc)</li>
+<li><strong>sizes</strong> — Image sizes for different page layouts</li>
+<li><strong>media</strong> — Applicable media</li>
+</ul>
+<p>So we can build the pixel densities and viewport widths usecases inside the individual source elements.</p>
+<pre><code class="language-html">&lt;picture&gt;
+  &lt;source media='(max-width: 400px)'
+          srcset='images/photo-small.jpg'/&gt;
+  &lt;source media='(min-width: 401px)'
+          srcset='images/photo-big.jpg'/&gt;
+  &lt;img src='images/photo-small.jpg'/&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>This is the simplest example possible. When the device viewport is smaller than 400px then use the <code>photo-small</code> image and when it’s larger than 401px then user <code>photo-large</code>. When neither device matches then use the default <code>img</code> element and its <code>src</code> attribute.</p>
+<h3>Getting clever: Using WebP where supported</h3>
+<p>One of the things we can do with <code>source</code> elements is to add different image types and let the browser pick ones that it supports. The combination of <code>type</code> and <code>media</code> attributes gives us a big level of flexibility.</p>
+<pre><code class="language-html">&lt;picture&gt;
+  &lt;source type='image/webp'
+          srcset='images/photo-big.webp'&gt;
+  &lt;source type='image/webp'
+          srcset='images/photo-small.webp'/&gt;
+  &lt;source srcset='images/photo-big.jpg'/&gt;
+  &lt;source srcset='images/photo-tall.jpg'/&gt;
+  &lt;img src='images/photo-small.jpg'/&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>I’ve taken the example from the previous section and modified it to use type instead of media. Because we can use viewport widths <code>srcset</code> and <code>sizes</code> inside each <code>source</code> attribute we get all the flexibility of choosing the type of image we want to work with and the benefits of having multiple images to choose depending on the</p>
+<h2>Generating the (responsive) images to use</h2>
+<p>So far we’ve only discussed how to put responsive images in our pages but we haven’t talked about the 500 gorilla in the room… the number of additional images we need to create to make responsive images happen.</p>
+<p>We’ll discuss two ways of generating the images that we want along with requirements and additional considerations.</p>
+<h2>Bash scripts and Image Magick</h2>
+<p>There are projects where I don’t want to install Gulp and its toolchain to accomplish tasks. In that case I’d rather rely on my package manager and shell scripting to accomplish the goal.</p>
+<p>To get this script running we need to make sure we have installed <a href="https://www.imagemagick.org/">Imagemagick</a> and <a href="http://www.graphicsmagick.org/">Graphicsmagick</a> in our system before proceeding.</p>
+<p>On a Mac, I use Homebrew to install the packages with the following command:</p>
+<pre><code class="language-bash">brew install imagemagick graphicsmagick
+</code></pre>
+<p>In Ubuntu Linux and Windows runnning <a href="https://docs.microsoft.com/en-us/windows/wsl/faq">Windows Subsystem for Linux</a> and the <a href="https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6?activetab=pivot:overviewtab">Ubuntu image</a> I use the following command to install the packages</p>
+<pre><code class="language-bash">sudo apt-get install imagemagick graphicsmagick
+</code></pre>
+<p>Once the packages are installed I use the following script to generate the images</p>
+<pre><code class="language-bash">#!/bin/env bash
+
+INPUT=images/master/*.jpg
+OUTPUT=images/
+Q=75
+
+mkdir -p $OUTPUT/{100,300,800}
+
+for f in $INPUT
+do
+  echo &quot;Processing: $f&quot;
+  fn_ext=$(basename &quot;$f&quot;)
+  fn=&quot;${fn_ext%.*}&quot;
+  convert $f -resize 100x100 -interlace Plane \
+        -quality $Q $OUTPUT/100/$fn.jpg
+  convert $f -resize 100x100 \
+        -define webp:lossless=false \
+        -quality $Q $OUTPUT/100/$fn.webp
+  convert $f -resize 300x300 -interlace Plane \
+        -quality $Q $OUTPUT/300/$fn.jpg
+  convert $f -resize 300x300 \
+        -define webp:lossless=false \
+        -quality $Q $OUTPUT/300/$fn.webp
+  convert $f -resize 800x800 -interlace Plane \
+        -quality $Q $OUTPUT/800/$fn.jpg
+  convert $f -resize 800x800 \
+        -define webp:lossless=false \
+        -quality $Q $OUTPUT/800/$fn.webp
+  done
+</code></pre>
+<p>The scripts looks for images in <code>images/master</code> and for each image that it finds there it performs the following tasks:</p>
+<ul>
+<li>It resizes the image to a square of the corresponding size and generates a jpg image
+<ul>
+<li>It uses a quality of 75</li>
+<li>It interlaces the images to create progressive JPGs</li>
+</ul>
+</li>
+<li>It resizes the image to a square of the corresponding size and generates a Webp image
+<ul>
+<li>The script makes WebP use lossy compression to make the images as small as possible (<code>-define webp:lossless=false</code>)</li>
+</ul>
+</li>
+</ul>
+<p>The script stores the images in subdirectories of <code>images/</code> named after the size we created them with (<code>100</code>, and so on).</p>
+<p>The script has a few areas where it can be improved:</p>
+<ul>
+<li>It matches only JPEG files, not PNG or TIFF</li>
+<li>It makes squares of the images, regardless of the original size. This may not be desirable when we work with responsive images for art direction</li>
+</ul>
+<p>How to change this is left as an exercise for the reader :)</p>
+<h2>Gulp and gulp-responsive</h2>
+<p>The shell script is simple and limited. If you already use Gulp as part of your site’s build process you can include building your progressive images into this build process. I’ve chosen to use <a href="https://gulpjs.com/">Gulp</a> and <a href="https://www.npmjs.com/package/gulp-responsive">gulp-responsive</a>.</p>
+<p>gulp-responsive depends on <a href="https://github.com/lovell/sharp">sharp</a>. Sharp is one of the fastest Node.js modules for resizing JPEG, PNG, WebP and TIFF images.</p>
+<p>If you are using Mac OS then before installing gulp-responsive you should install the <a href="https://github.com/jcupitt/libvips">libvips</a> library. Further information and instructions can be found in the <a href="http://sharp.dimens.io/en/stable/install/">sharp installation guide</a>.</p>
+<p>Once <code>libvips</code> is installed we can install initalize <code>package.json</code> if you haven’t initialized already.</p>
+<pre><code class="language-bash">npm init --yes
+</code></pre>
+<p>Then we can install the packages. I am pinning the version of Gulp at 3.9.1 rather than the current 4.0 version to make sure that it works properly rather than try and figure out why the task is not working in the latest version.</p>
+<p>If you haven’t done so already, install <code>gulp-cli</code> globally:</p>
+<pre><code class="language-bash">npm install --global gulp-cli
+</code></pre>
+<p>Then install the packages for your project:</p>
+<pre><code class="language-bash">npm install --save-dev gulp@3.9.1
+npm install --save-dev gulp-load-plugins
+npm install --save-dev gulp-responsive
+</code></pre>
+<p>The task itself, created as the default task in the example below takes a set of master images and creates three different JPG versions of the image and a single WebP version of the image at the largest size.</p>
+<pre><code class="language-js">const gulp = require('gulp');
+const $ = require('gulp-load-plugins')();
+
+gulp.task('default', function() {
+  return gulp.src('images/master/*.{jpg,png,tiff}')
+      .pipe($.responsive({
+        '*.{jpg,png,tiff}': [{
+          width: 300,
+          rename: {
+            suffix: '-300px',
+            extname: '.jpg',
+          },
+          format: 'jpg',
+        }, {
+          width: 800,
+          rename: {
+            suffix: '-800px',
+            extname: '.jpg',
+          },
+          format: 'jpg'
+        }, {
+          width: 1900,
+          rename: {
+            suffix: '-1900px',
+            extname: '.jpg',
+          },
+          // Do not enlarge the output image if the input image are
+          // already less than the required dimensions.
+          withoutEnlargement: true,
+        }, {
+          // Convert images to the webp format
+          width: 1900,
+          rename: {
+            suffix: '-1900px',
+            extname: '.webp',
+          },
+          format: webp,
+        }],
+      }, {
+        // Global configuration for all images
+        // The output quality for JPEG, WebP and TIFF output formats
+        quality: 80,
+        // Use progressive (interlace) scan for JPEG and PNG output
+        progressive: true,
+        // Strip all metadata
+        withMetadata: false,
+        // Do not emit the error when image is enlarged.
+        errorOnEnlargement: false,
+      }))
+      .pipe(gulp.dest('images/converted'));
+});
+
+</code></pre>
+<p>You can add additional image creation as either JPEG or WebP and you can also tweak the global image settings like the output quality for the images or whether to use interlacing for JPEG or PNG images.</p>
+<p>The ideais to use this template as the starting point for your own work.</p>
+<h2>Summary</h2>
+<p>Responsive images give developers power and flexibility when it comes to the images they use. They also require a lot more work to do properly, as they need more versions of the image to match our needs.</p>
+<p>There are tools that will automate and simplify the process so there’s no technical reason not to push for responsive images on your web projects. Your users will thank you.</p>
+<h2>Links and Resources</h2>
+<ul>
+<li><a href="https://responsiveimages.org/">Responsive Images Community Group</a></li>
+<li><a href="https://timkadlec.com/2013/06/why-we-need-responsive-images/">Why we need responsive images</a></li>
+<li><a href="http://www.stevesouders.com/blog/2013/04/26/i/">I &lt;3 image bytes</a></li>
+<li><a href="https://httparchive.org/reports/state-of-images">HTTPArchive State of Images Report</a></li>
+<li><a href="https://alistapart.com/article/responsive-images">Responsive Images</a></li>
+<li><a href="https://cloudfour.com/thinks/responsive-images-101-definitions">Responsive Images 101, Part 1: Definitions</a></li>
+<li><a href="https://cloudfour.com/thinks/responsive-images-part-10-conclusion/">Responsive Images, Part 10: Conclusion</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

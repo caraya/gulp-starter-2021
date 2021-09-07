@@ -1,0 +1,523 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Improve your web experience</h1>
+<p>One thing we as developers tend to forget is that not all web experiences are equal. One of the positive things I’ve found about AMP is that it reduces the fat of your web content by reducing the number of requests, reducing the ammount of CSS that you can use and, mostly, eliminating Javascript.</p>
+<p>That’s good but I don’t think we need a whole new platform or library to do that. We need to be smarter on how we pack and serve our content. This is not new, some of the tools and tricks we’ll discuss in this section are old (in web terms).</p>
+<h2>Experiences outside the big city</h2>
+<p>The first thing we need to do is decide who our audience is. I don’t mean just figure out where they are coming from (although that’s important) but also figure out what their bandwidth and bandwidth cost is as this may have an effect on how they access the web and whether they will keep your application on their devices or not.</p>
+<p>I love the two parallel views of the next billion users of the web, where they come from and what they can and cannot do with their data.</p>
+<p>Bruce Lawson presents a more user centered view of these next billion users and offers insights of emerging markets and things we can do to make their experiences easier.</p>
+<div class="video">
+<iframe loading="lazy" width="560" height="315" src="https://www.youtube.com/embed/BHO70H9tvqo" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>Tal Oppenheimer presents a more technical view (and Chrome-centered) view of what we can do to improve the experience of your users who are outside the US and other bandwidth rich markets.</p>
+<div class="video">
+<iframe loading="lazy" width="560" height="315" src="https://www.youtube.com/embed/wD3rpdiLMyY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>Some of the biggest takeways for me:</p>
+<ul>
+<li>How much does bandwidth cost for your users?</li>
+<li>What devices are they using to access your app?</li>
+<li>What kind of network are your users on?</li>
+<li>How fast does your application load?</li>
+</ul>
+<p>Answering these questions will help not only users in emerging markets but all your users, improve the overall site’s performance, and give users the perception that this is a fast page.</p>
+<h2>(Real) Performance Test</h2>
+<div class="video">
+<iframe loading="lazy" width="560" height="315" src="https://www.youtube.com/embed/4bZvq3nodf4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>If you’ve read previous posts in this blog you’ve probably seen Alex’s video on why you should test performance on actual devices and why this is important so I’ll spare you the gory details and leave some important points to consider.</p>
+<p>Even if you simulate a network connection, adjust network latency and modify other aspects of the browser’s network connection or use third party tool like Apple’s Network Link Conditioner the connection will not be a real mobile connection.</p>
+<p>Alex goes into a lot of details and in much more depth than I could but the main take away is: <strong>Test your site in an actual device plugged into your laptop and using chrome://inspect oor its equivalent for iOS devices.</strong></p>
+<h2>Server side tools to improve performance</h2>
+<p>There are a few ways that we can help the user save data and improve their web experiences from the server without making any changes to the content and letting the server make the changes or fetch resources for you.</p>
+<h3>Proxy Browsers</h3>
+<p>Opera Mini is a proxy browser that is very popular in emerging markets where bandwidth is expensive and storage may not be as available as we are used to. It takes your request and forwards it to one of a number of Data Centers where they will make the request, download and process assets before sending the processed request back to your device for rendering.</p>
+<p>Chrome in Android and UCBrowser do the same thing using different strategies.</p>
+<p>Chrome uses the <a href="https://www.modpagespeed.com/">PageSpeed Module</a> to process the pages it proxies.</p>
+<p>UCBrowser uses a similar technology but I’m not fully familiar on the details of how it works.</p>
+<p>The fact that these browsers proxy the page you want to access means that highly interactive applications will not work consistently in a proxy browser and some technologies will not work at all.</p>
+<p>But if you pay a large percentage of your monthly salary for internet access, you have to swap memory cards to make sure that all your content is available to you or you expect pages to load faster than they do, then it makes more sense.</p>
+<h2>Configuring the server to preload resources</h2>
+<p>One of the cool things about resource hints is that we can implement them either on the server or the client. In this section we’ll look at implementing them on the server with an example of preloading assets for a single page using Nginx or Apache.</p>
+<p>The idea is as follows:</p>
+<ol>
+<li>When we hit <code>demo.html</code> we add link preload headers to load 3 resources: a stylesheet and two images</li>
+<li>The server will also set cookie</li>
+<li>In subsequent visits the server will check if the cookie exists and it will only load the link preload headers if it <code>does not</code> exist. If it exists it means the resources were already loaded and don’t need to be downloaded again</li>
+</ol>
+<p>This is what the configuration looks like on Nginx. Note that this is the full configuration.</p>
+<pre><code class="language-nginx">server {
+    listen 443 ssl http2 default_server;
+
+    ssl_certificate ssl/certificate.pem;
+    ssl_certificate_key ssl/key.pem;
+
+    root /var/www/html;
+    http2_push_preload on;
+
+    location = /demo.html {
+        add_header Set-Cookie &quot;resloaded=1&quot;;
+        add_header Link $resources;
+    }
+}
+
+map $http_cookie $resources {
+    &quot;~*resloaded=1&quot; &quot;&quot;;
+    default &quot;&lt;/style.css&gt;; as=style; rel=preload,
+    &lt;/image1.jpg&gt;; as=image; rel=preload,
+    &lt;/image2.jpg&gt;; as=style; rel=preload&quot;;
+}
+</code></pre>
+<p>And this is how preloading the resources looks like in an Apache HTTPD configuration. Unlike Nginx this is a partial configuration that does the following:</p>
+<ol>
+<li>Checks if the HTTP2 module is installed</li>
+<li>Checks if a <code>resloaded</code> cookie already exists</li>
+<li>Tests if the file requested is demo.html</li>
+<li>If it does then add the link preload headers</li>
+<li>Adds the <code>resloaded</code> cookie to check for in subsequent visits</li>
+</ol>
+<pre><code class="language-apacheconf">&lt;IfModule http2_module&gt;
+  SetEnvIf Cookie &quot;resloaded=1&quot; resloaded
+  &lt;Files &quot;demo.html&quot;&gt;
+    Header add Link &quot;&lt;/style.css&gt;; as=style; rel=preload,
+  &lt;/image1.jpg&gt;; as=image; rel=preload,
+  &lt;/image2.jpg&gt;; as=style; rel=preload&quot; env=!resloaded
+    Header add Set-Cookie &quot;resloaded=1; Path=/; Secure; HttpOnly&quot; env=!resloaded
+  &lt;/Files&gt;
+&lt;/IfModule&gt;
+</code></pre>
+<p>We can load diffeerent resources based on the page we are working with and we can load resources that are needed by all pages and then additional resources that are specific to a page or set of pages.</p>
+<p>The one problem when working with preload (and any other resource hint) on the server is that we don’t have an easy way to check if the client has already downloadded the file. That’s why we use a session cookie to handle the check, if it exists we’ll skip preloading the resources.</p>
+<h2>The Save-Data header</h2>
+<p>In addition to the tricks we’ve discussed above, we can take advantage of Chrome’s data saver feature and have Chrome send the request to a data compression proxy server that will reduce the size of the requested files by 60% according to Google.</p>
+<p>As of Chrome 49 when the user has enabled the Data Saver feature in Chrome, Chrome will add a save-data HTTP Header with the value ‘on’ to each HTTP Request. The HTTP Header will not be present when the feature is turned off. Use this as a signal of intent from the user that they are conscious of the amount of data that they are using and not that their connection is going through the Data Compression Proxy. We can use this header to write conditional code as we’ll see in the following sections.</p>
+<p>The first step is to add a header on the server side if the user agent (browser) sent the <code>Save-Data</code> header. This is what it looks like for Apache.</p>
+<p>We also tell downstream proxies that data may change based on whether the <code>Save-Data</code> header is present or not.</p>
+<pre><code class="language-apacheconf"># If the browser sent the Save-Data header
+SetEnvIfNoCase ^Save-Data$ &quot;on&quot; data_saver=&quot;on&quot;
+# Unset link
+Header unset Link env=data_saver
+# Tell downstream servers that the response may change
+# Based on the Save-Data header
+Vary: Save-Data
+</code></pre>
+<p>Now that we’ve done the work on the server side we can look at client side code. These examples use PHP because that’s what I’m most familiar with because of my work on Wordpress.</p>
+<p>The first code block does the following:</p>
+<ol>
+<li>Creaate a <code>saveData</code> variable and set it to false by default</li>
+<li>Check the existance of a <code>save_data</code> header and that its value is on</li>
+<li>If both of the conditions in the prior step are true then set the <code>saveData</code> variable to true</li>
+</ol>
+<pre><code class="language-php">// false by default.
+$saveData = false;
+
+// Check if the Save-Data header exists
+// Check if Save-Data is set to a value of &quot;on&quot;.
+if  (isset($_SERVER[&quot;HTTP_SAVE_DATA&quot;]) &amp;&amp;
+    strtolower($_SERVER[&quot;HTTP_SAVE_DATA&quot;]) === &quot;on&quot;) {
+      // Set saveData to true.
+      $saveData = true;
+}
+</code></pre>
+<p>Now that we know whether the <code>Save_Data</code> was enabled in the client we can use it to conditionally do things for people who are in data saver mode. For example, we may want to skip preloading resources for people in data saver mode.</p>
+<p>We create a string with the elements we need to preload a resource, in this case a stylesheet.</p>
+<p>We check if the <code>saveData</code> variable is set to true and, if it is, we append the <code>nopush</code> option to the preload string. The <code>nopush</code> directive will skip preloading the resource.</p>
+<p>We then add a <code>Link</code> header with the value of our <code>preload</code> variable as configured (with or without the <code>nopush</code> directive)</p>
+<pre><code class="language-php">// `preload` like usual...
+$preload = &quot;&lt;/css/styles.css&gt;; rel=preload; as=style&quot;;
+
+if($saveData === true) {
+  // ...but don't push anything if `Save-Data` is detected!
+  $preload .= &quot;; nopush&quot;;
+}
+
+header(&quot;Link: &quot; . $preload);
+</code></pre>
+<p>Another thing we can do is conditionally use responsive images in our pages. In the example below we will load a single image if the <code>saveData</code> variable is true and load a set of responsive images othwerwise.</p>
+<pre><code class="language-php">if ($saveData === true) {
+  // Send a low-resolution version of the image for clients specifying `Save-Data`.
+  ?&gt;&lt;img src=&quot;butterfly-1x.jpg&quot; alt=&quot;A butterfly perched on a flower.&quot;&gt;&lt;?php
+}
+else {
+  // Send the usual assets for everyone else.
+  ?&gt;&lt;img src=&quot;butterfly-1x.jpg&quot; srcset=&quot;butterfly-2x.jpg 2x, butterfly-1x.jpg 1x&quot;
+  alt=&quot;A butterfly perched on a flower.&quot;&gt;&lt;?php
+}
+</code></pre>
+<p>We can also choose whether to load images at all or not. Just like we did with responsive image sets, we can choose to load images when not saving data (the <code>saveData</code> variable is set to false).</p>
+<pre><code class="language-php">&lt;p&gt;This paragraph is essential content.&lt;/p&gt;
+&lt;p&gt;The image below may be humorous, but it
+is not critical to the content.&lt;/p&gt;
+&lt;?php
+if ($saveData === false) {
+  // Only send this image if `Save-Data` has NOT been detected.
+  ?&gt;&lt;img src=&quot;meme.jpg&quot; alt=&quot;One does not simply consume data.&quot;&gt;&lt;?php
+}?&gt;
+</code></pre>
+<p>The last thing I wanted to highlight is a way to conditionally work with fonts and CSS in general.</p>
+<p>The first part is to add a class to the HTML element based on whether <code>saveData</code> is true or false; this example will only add the class if we are saving data.</p>
+<pre><code class="language-php">&lt;html class=&quot;&lt;?php if ($saveData === true): ?&gt;save-data&lt;?php endif; ?&gt;&quot;&gt;
+</code></pre>
+<p>The second part is the reverse of what I do when working with Fontface observer. I use web fonts by default and have a second set of selectors where the user is saving data and we don’t want to force them to load web fonts.</p>
+<pre><code class="language-css">p,
+li {
+  font-family: 'Fira Sans', 'Arial', sans-serif;
+}
+
+.save-data p,
+.save-data li {
+  font-family: 'Arial', sans-serif;
+}
+</code></pre>
+<p>If we’ve decided we want to do the work ourselves to make our content more efficient to download we can opt out of the Data compression proxy. The proxy respects the standard <code>Cache-Control: no-transform</code> directive and will not process resources that use that header.</p>
+<h2>Client side tools to improve performance</h2>
+<p>We’ve looked at a lot of server side tricks to reduce the page load and improve users’ experience when accessing our content. Now we’ll look at client-side client hints and tools to optimize our content.</p>
+<h3>Client side resource hints</h3>
+<p>The basic way to preload a resource is to use the <code>&lt;link&gt;</code> element with three attributes:</p>
+<ul>
+<li><code>rel</code> tells the browser the relationship between the current page and the resourced linked to</li>
+<li><code>href</code> gives the location of the resource to preload</li>
+<li><code>as</code> specifies the type of content being loaded. This is necessary for content prioritization, request matching, application of correct content security policy, and setting of correct Accept request header.</li>
+</ul>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot; href=&quot;late_discovered_thing.js&quot; as=&quot;script&quot;&gt;
+</code></pre>
+<h3>Early loading fonts and the crossorigin attribute</h3>
+<p>Loading fonts is just the same as preloading other types of resources with some additional constraints</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot;
+      href=&quot;font.woff2&quot;
+      as=&quot;font&quot;
+      type=&quot;font/woff2&quot;
+      crossorigin&gt;
+</code></pre>
+<p>You must add a crossorigin attribute when fetching fonts, since they are fetched using anonymous mode CORS. Yes, even if your fonts are on the same origin as the page.</p>
+<p>The type attribute is there to make sure that this resource will only get preloaded on browsers that support that file type. Only Chrome supports preload and it also supports WOFF2, but not all browsers that will support preload in the future may support the specific font type. The same is true for any resource type you’re preloading and which browser support isn’t ubiquitous.</p>
+<h3>Responsive Loading Links</h3>
+<p>Preload links have a media attribute that we can use to conditionally load resources based on a media query condition.</p>
+<p>What’s the use case? Let’s say your site’s large viewport uses an interactive map, but you only show a static map for the smaller viewports.</p>
+<p>You want to load only one of those resources. The only way to do that would be to load them dynamically using Javascript. If you use a script to do this you hide those resources from the preloader, and they may be loaded later than necessary, which can impact your users’ visual experience, and negatively impact your SpeedIndex score.</p>
+<p>Fortunately you can use preload to load them ahead of time, and use its media attribute so that only the required script will be preloaded:</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot;
+      as=&quot;image&quot;
+      href=&quot;map.png&quot;
+      media=&quot;(max-width: 600px)&quot;&gt;
+
+&lt;link rel=&quot;preload&quot;
+      as=&quot;script&quot;
+      href=&quot;map.js&quot;
+      media=&quot;(min-width: 601px)&quot;&gt;
+</code></pre>
+<h3>Resource Hints</h3>
+<p>In addition to preload and server push we can also ask the browser to help by providing hints and instructions on how to interact with resources.</p>
+<p>For this section we’ll discuss</p>
+<ul>
+<li>DNS Prefetching</li>
+<li>Preconnect</li>
+<li>Prefetch</li>
+<li>Prerender</li>
+</ul>
+<h4>DNS prefetch</h4>
+<p>This hint tells the browser that we’ll need assets from a domain so it should resolve the DNS for that domain as quickly as possible. If we know we’ll need assets from <a href="http://example.com">example.com</a> we can write the following in the head of the document:</p>
+<pre><code class="language-html">&lt;link rel=&quot;dns-prefetch&quot; href=&quot;//example.com&quot;&gt;
+</code></pre>
+<p>Then, when we request a file from it, we’ll no longer have to wait for the DNS lookup. This is particularly useful if we’re using code from third parties or resources from social networks where we might be loading a widget from a <code>&lt;/script&gt;&lt;script&gt;</code>.</p>
+<h4>Preconnect</h4>
+<p>Preconnect is a more complete version of DNS prefetch. In addition to resolving the DNS it will also do the TCP handshake and, if necessary, the TLS negotiation. It looks like this:</p>
+<pre><code class="language-html">&lt;link rel=&quot;preconnect&quot; href=&quot;//example.net&quot;&gt;
+</code></pre>
+<h4>Prefetching</h4>
+<p>This is an older version of preload and it works the same way. If you know you’ll be using a given resource you can request it ahead of time using the prefetch hint. For example an image or a script, or anything that’s cacheable by the browser:</p>
+<pre><code class="language-html">&lt;link rel=&quot;prefetch&quot; href=&quot;image.png&quot;&gt;
+</code></pre>
+<p>Unlike DNS prefetching, we’re actually requesting and downloading that asset and storing it in the cache. However, prefetching can be ignored by the browser. For example, a client might abandon the request of a large font file on a slow network. Firefox will only prefetch resources when “the browser is idle”.</p>
+<p>Since we know have the preload API I would recommend using that API (discussed earlier) instead.</p>
+<h4>Prerender</h4>
+<p>Prerender is the nuclear option, since it will load all of the assets for a given document like so:</p>
+<pre><code class="language-html">&lt;link rel=&quot;prerender&quot; href=&quot;http://css-tricks.com&quot;&gt;
+</code></pre>
+<p>Steve Souders wrote a great explanation about this technique:</p>
+<blockquote>
+<p>This is like opening the URL in a hidden tab – all the resources are downloaded, the DOM is created, the page is laid out, the CSS is applied, the JavaScript is executed, etc. If the user navigates to the specified href, then the hidden page is swapped into view making it appear to load instantly. Google Search has had this feature for years under the name Instant Pages. Microsoft recently announced they’re going to similarly use prerender in Bing on IE11.</p>
+</blockquote>
+<p>But beware! You should probably be certain that the user will click that link, otherwise the client will download all of the assets necessary to render the page for no reason at all. It is hard to guess what will be loaded but we can make some fairly educated guesses as to what comes next:</p>
+<ul>
+<li>If the user has done a search with an obvious result, that result page is likely to be loaded next.</li>
+<li>If the user navigated to a login page, the logged-in page is probably coming next.</li>
+<li>If the user is reading a multi-page article or paginated set of results, the page after the current page is likely to be next.</li>
+</ul>
+<h2>Tools to make your content smaller</h2>
+<p>These are some of the tools that I use to make my content slimmer, send less bytes trough the wire and make the bytes I send thought the wire load faster.</p>
+<p>These are not all the tools that you can use to improve your site’s performance. They are the ones I use most frequently. As with many tools, your mileage may vary.</p>
+<div class="message info">
+  <p>All the tool examples use <a href="https://gulpjs.com/">Gulp</a>. For any other systems, you're on your own.</p>
+</div>
+<h3>UNCSS</h3>
+<p><a href="https://github.com/giakki/uncss">UnCSS</a> takes a CSS stylesheet and one or more HTML files and removes all the unused CSS from the stylesheet and writes it back as CSS.</p>
+<p>This is specially useful when working with third party stylesheets and CSS frameworks where you, as the author may not have control over or may have downloaded the full farmework for development and now need to slim it down for production</p>
+<pre><code class="language-javascript">gulp.task('uncss', () =&gt; {
+  return gulp
+    .src('src/css/**/*.css')
+    .pipe($.concat('main.css'))
+    .pipe(
+      $.uncss({
+        html: ['index.html']
+      })
+    )
+    .pipe(gulp.dest('css/main.css'))
+    .pipe(
+      $.size({
+        pretty: true,
+        title: 'Uncss'
+      })
+    );
+});
+</code></pre>
+<h3>Imagemin</h3>
+<p><a href="https://github.com/imagemin/imagemin">Imagemin</a> compresses images in the most popular formats (gif, jpg, png and svg) to produce images better suited for use in the web.</p>
+<p>What I like about Imagemin is that you can configure settings for each image type you’re working with.</p>
+<p>Note that this uses the older implicit syntax for gulp-imagemin. Newer versions require you to be expicit on what format you’re configuring. For the newer syntax check the gulp-imagemin <a href="https://www.npmjs.com/package/gulp-imagemin">README</a>.</p>
+<pre><code class="language-javascript">gulp.task('imagemin', () =&gt; {
+  return gulp
+    .src('src/images/originals/**')
+    .pipe(
+      imagemin({
+        progressive: true,
+        svgoPlugins: [{ removeViewBox: false }, { cleanupIDs: false }],
+        use: [mozjpeg()]
+      })
+    )
+    .pipe(gulp.dest('src/images'))
+    .pipe(
+      $.size({
+        pretty: true,
+        title: 'imagemin'
+      })
+    );
+});
+</code></pre>
+<h3>Critical</h3>
+<p>Critical above the fold CSS and inline it on your page. This will reduce the load speed of your above the fold content. The example task below will take the above the fold content for all the specified screen sizes and will remove duplicate CSS before inlining it on the head of the page.</p>
+<pre><code class="language-javascript">gulp.task('critical', () =&gt; {
+  return gulp
+    .src('src/*.html')
+    .pipe(
+      critical({
+        base: 'src/',
+        inline: true,
+        css: ['src/css/main.css'],
+        minify: true,
+        extract: false,
+        ignore: ['font-face'],
+        dimensions: [
+          {
+            width: 320,
+            height: 480
+          },
+          {
+            width: 768,
+            height: 1024
+          },
+          {
+            width: 1280,
+            height: 960
+          }
+        ]
+      })
+    )
+    .pipe(
+      $.size({
+        pretty: true,
+        title: 'Critical'
+      })
+    )
+    .pipe(gulp.dest('dist'));
+});
+</code></pre>
+<h3>Generate Responsive Images</h3>
+<p>One of the biggest pain points of generating responsive images is that we have to create several versions of each image and then add them to the srcset attribute for each image or figure tag.</p>
+<p><a href="https://www.npmjs.com/package/gulp-responsive">gulp-responsive</a> will help with generating the images, not with writing the HTML. This plugin will let you create as many versions of an image as you need. You can target specific images or, like what I did with this example, target all images in a directory.</p>
+<pre><code class="language-javascript">gulp.task('processImages', () =&gt; {
+  return gulp
+    .src(['src/images/**/*.{jpg,png}', '!src/images/touch/*.png'])
+    .pipe(
+      $.responsive({
+        '*': [
+          {
+            // image-small.jpg is 200 pixels wide
+            width: 200,
+            rename: {
+              suffix: '-small',
+              extname: '.jpg'
+            }
+          },
+          {
+            // image-small@2x.jpg is 400 pixels wide
+            width: 200 * 2,
+            rename: {
+              suffix: '-small@2x',
+              extname: '.jpg'
+            }
+          },
+          {
+            // image-large.jpg is 480 pixels wide
+            width: 480,
+            rename: {
+              suffix: '-large',
+              extname: '.jpg'
+            }
+          },
+          {
+            // image-large@2x.jpg is 960 pixels wide
+            width: 480 * 2,
+            rename: {
+              suffix: '-large@2x',
+              extname: '.jpg'
+            }
+          },
+          {
+            // image-extralarge.jpg is 1280 pixels wide
+            width: 1280,
+            rename: {
+              suffix: '-extralarge',
+              extname: '.jpg'
+            }
+          },
+          {
+            // image-extralarge@2x.jpg is 2560 pixels wide
+            width: 1280 * 2,
+            rename: {
+              suffix: '-extralarge@2x',
+              extname: '.jpg'
+            }
+          },
+          {
+            // image-small.webp is 200 pixels wide
+            width: 200,
+            rename: {
+              suffix: '-small',
+              extname: '.webp'
+            }
+          },
+          {
+            // image-small@2x.webp is 400 pixels wide
+            width: 200 * 2,
+            rename: {
+              suffix: '-small@2x',
+              extname: '.webp'
+            }
+          },
+          {
+            // image-large.webp is 480 pixels wide
+            width: 480,
+            rename: {
+              suffix: '-large',
+              extname: '.webp'
+            }
+          },
+          {
+            // image-large@2x.webp is 960 pixels wide
+            width: 480 * 2,
+            rename: {
+              suffix: '-large@2x',
+              extname: '.webp'
+            }
+          },
+          {
+            // image-extralarge.webp is 1280 pixels wide
+            width: 1280,
+            rename: {
+              suffix: '-extralarge',
+              extname: '.webp'
+            }
+          },
+          {
+            // image-extralarge@2x.webp is 2560 pixels wide
+            width: 1280 * 2,
+            rename: {
+              suffix: '-extralarge@2x',
+              extname: '.webp'
+            }
+          },
+          {
+            // Global configuration for all images
+            // The output quality for JPEG, WebP and TIFF output formats
+            quality: 80,
+            // Use progressive (interlace) scan for JPEG and PNG output
+            progressive: true,
+            // Skip enalrgement warnings
+            skipOnEnlargement: false,
+            // Strip all metadata
+            withMetadata: true
+          }
+        ]
+      }).pipe(gulp.dest('dist/images'))
+    );
+});
+</code></pre>
+<h3>Webpack</h3>
+<p>Webpack (and Rollup and Parcel) are resource bundlers. They will pack together resources to make downloads faster and payloads smaller.</p>
+<p>As I documented in <a href="https://publishing-project.rivendellweb.net/revisiting-webpack/">Revisiting Webpack</a> I don’t take advantage of the full Webpack toolkit since most of the processing happens in Gulp before the resources get to Webpack for bundling and I don’t feel the need to reinvent the wheel every time I want to work in a project. Before you destroy me on comments or Twitter… this doesn’t mean that I won’t use Webpack to its fullest if the teaam or the project warrants it, none of my projects have so far.</p>
+<p>Instead I use Webpack inside Gulp to bundle the resources for my application. I use the same configuration file that I would use for a standalone Webpack-based application but most of the heavy lifting has already been done by the time we get here so we can slim the configuration file to only do Javascript bundling.</p>
+<pre><code class="language-javascript">gulp.task('webpack-bundle', function() {
+  return gulp
+    .src('src/entry.js')
+    .pipe(webpack(require('./webpack.config.js')))
+    .pipe(gulp.dest('dist/'));
+});
+</code></pre>
+<h2>Summary and final considerations</h2>
+<p>I realize that and the amount of work we need to put in improving performance is big and that we won’t always see the results or that the results may be small and people may not notice.</p>
+<p>But people do notice and they will leave your site if it doesn’t load fast enough. According to SOASTA’s post <a href="https://www.soasta.com/blog/google-mobile-web-performance-study/">Google: 53% of mobile users abandon sites that take longer than 3 seconds to load</a></p>
+<blockquote>
+<p>53% of visits to mobile sites are abandoned after 3 seconds. (This corresponds to research we did at SOASTA last year, where we found that <a href="https://www.soasta.com/blog/back-to-school-website-performance-monitoring/.">the sweet spot for mobile load times was 2 seconds</a></p>
+</blockquote>
+<p>Whether you want to or not, performance does affect a site’s number of visitors and, potentially, the company’s bottom line. So please evaluate your site’s performance and improve it where you can.</p>
+<p>Your users and your boss will be thankful. :)</p>
+<h2>Links and Resources</h2>
+<ul>
+<li><a href="https://www.nngroup.com/articles/response-times-3-important-limits/">Response Times: The 3 Important Limits</a></li>
+<li><a href="https://developer.chrome.com/multidevice">Chrome for a Multi-Device World</a></li>
+<li><a href="https://developer.chrome.com/multidevice/data-compression">Data Saver</a></li>
+<li><a href="https://www.ctrl.blog/entry/http-save-data">New Save-Data HTTP header tells websites to reduce their data usage</a></li>
+<li><a href="https://www.ctrl.blog/entry/http2-save-data-push">Save-Data aware HTTP/2 server push</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/module/">Speed up with the PageSpeed Modules</a></li>
+<li><a href="https://www.nginx.com/blog/nginx-1-13-9-http2-server-push/">Introducing HTTP/2 Server Push with NGINX 1.13.9</a></li>
+<li><a href="https://css-tricks.com/help-users-save-data/">Help Your Users `Save-Data`</a></li>
+<li><a href="https://www.opera.com/mobile/mini">Opera Mini</a></li>
+<li><a href="https://www.doubleclickbygoogle.com/articles/mobile-speed-matters/">The need for mobile speed: How mobile latency impacts publisher revenue</a></li>
+<li><a href="https://storage.googleapis.com/doubleclick-prod/documents/The_Need_for_Mobile_Speed_-_FINAL.pdf">The need for mobile speed (PDF)</a></li>
+<li><a href="https://www.soasta.com/blog/2016-best-web-performance-posts/">Best of 2016: New Google research, measuring SPA and AMP performance, plus 22 mobile stats you should know</a></li>
+<li><a href="https://w3c.github.io/preload/">Preload Specification</a></li>
+<li><a href="https://tools.ietf.org/html/rfc7540">HTTP/2 Spec</a></li>
+<li><a href="https://www.askapache.com/htaccess/speed-up-sites-with-htaccess-caching/#Cache-Control_Header">Speed Up Sites with htaccess Caching</a></li>
+<li><a href="https://www.askapache.com/htaccess/speed-up-sites-with-htaccess-caching/#Cache-Control_Header">Cache-Control Header</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

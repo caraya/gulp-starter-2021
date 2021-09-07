@@ -1,0 +1,161 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Working with dates in Javascript: The Temporal proposal</h1>
+<div class="message warning">
+  <p><strong>Note:</strong></p>
+  <p></p>
+  <p>The Temporal code is not ready for production, it is still possible (but not likely) that it'll change in incompatible ways before the final version is added to the ECMAScript specification, and because of that, it shouldn't be used in production until it reaches stage 4 in the TC39 process. However, you can test how it works now and decide if you want to use it in future projects.</p>
+</div>
+<p>One of the most infuriating things to do in Javascript is date manipulation. The default Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a> object is hard to work with. This has lead to a proliferation of third-party libraries like <a href="https://momentjs.com/">Moment.js</a>, <a href="https://moment.github.io/luxon/">Luxon</a>, <a href="https://date-fns.org/">date-fns</a> and even the Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl">Intl API</a> for some types of data manipulation.</p>
+<p>For this post we’ll concentrate in the <a href="https://tc39.es/proposal-temporal/docs/#Temporal-TimeZone">Temporal Proposal</a>, currently at stage 3 in the TC39 process. The idea is that <code>Temporal</code> will sit alongside the <code>Date</code> object and provide better date/time handling functionality without breaking existing code that uses the <code>Date</code> object.</p>
+<p>According to the <a href="https://tc39.es/proposal-temporal/docs/">Temporal documentation</a>:</p>
+<blockquote>
+<p>Date has been a long-standing pain point in ECMAScript. This is a proposal for Temporal, a global Object that acts as a top-level namespace (like Math), that brings a modern date/time API to the ECMAScript language. For a detailed look at some of the problems with Date, and the motivations for Temporal, see: <a href="https://maggiepint.com/2017/04/09/fixing-javascript-date-getting-started/">Fixing JavaScript Date</a>.</p>
+<p>Temporal fixes these problems by:</p>
+<ul>
+<li>Providing easy-to-use APIs for date and time computations</li>
+<li>First-class support for all time zones, including DST-safe arithmetic</li>
+<li>Dealing only with objects representing fixed dates and times</li>
+<li>Parsing a strictly specified string format</li>
+<li>Supporting non-Gregorian calendars</li>
+</ul>
+</blockquote>
+<p>SO with all the information out of the way, let’s look at some code. I wrote these demos using Node; so the first step, as usual, is to require the code or import it if you’re working with ESM Imports.</p>
+<pre><code class="language-js">const { Temporal } = require('proposal-temporal');
+</code></pre>
+<h2>Date and Date/Time objects</h2>
+<p>The first step in the research is to get the date right now. Note that this will provide the ISO calendar-based dates and date/time combinations using methods in the <code>Temporal.now</code> object.</p>
+<p><strong>If you run your own tests with this code your results will be different because the timing of now will be different than mine</strong> :)</p>
+<pre><code class="language-js">const date = Temporal.now.plainDateISO();
+// returns the date in ISO 8601 date format
+date.toString(); 
+
+const date2 = Temporal.now.plainDateTimeISO();
+// returns the time in ISO 8601 format
+date2.toString();
+</code></pre>
+<p>We can also get the time based on our time zone by using <code>zonedDateTimeISO</code> as the calendar instead of plain ISO as in the previous examples.</p>
+<pre><code class="language-js">const date2 = Temporal.now.zonedDateTimeISO();
+date2.toString();
+</code></pre>
+<p>Using a time zone as a parameter we can specify different times for our object. We cam use individual variables to contain the different date and time strings.</p>
+<pre><code class="language-js">const dateWithTimezone4 = Temporal.now.plainDateTimeISO('America/Los_Angeles');
+console.log(`Local Time: ${dateWithTimezone4.toString()}`);
+
+const dateWithTimezone = Temporal.now.plainDateTimeISO('America/Chicago');
+console.log(`Chicago Time: ${dateWithTimezone.toString()}`);
+
+const dateWithTimezone2 = Temporal.now.plainDateTimeISO('America/New_York');
+console.log(`New York Time: ${dateWithTimezone2.toString()}`);
+
+const dateWithTimezone3 = Temporal.now.plainDateTimeISO('Asia/Tokyo');
+console.log(`Tokyo Time: ${dateWithTimezone3.toString()}`);
+
+const dateWithTimezone5 = Temporal.now.plainDateTimeISO('Chile/Continental');
+console.log(`Santiago, Chile Time: ${dateWithTimezone5.toString()}`);
+</code></pre>
+<p>Or we can use a function to output the results we want. The function uses a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of">for of</a> ot iterate over a list of iterables from our <code>citiesToCheck</code> generated with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries">object.entries</a></p>
+<p>We then log to console the name of the city and the result of running <code>Temporal.now.zonedDateTimeISO</code> for the corresponding time zone.</p>
+<pre><code class="language-js">const citiesToCheck = {
+  'Los Angeles': 'America/Los_Angeles',
+  'Chicago': 'America/Chicago',
+  'New York': 'America/New_York',
+  'Tokyo': 'Asia/Tokyo',
+  'Santiago, Chile': 'Chile/Continental',
+};
+
+for (const [name, timeZone] of Object.entries(citiesToCheck)) {
+  console.log(`${name}: ${Temporal.now.zonedDateTimeISO(timeZone)}`);
+}
+</code></pre>
+<p>We can use something like this to keep a world clock-like application. Every time you reload the page the times for all your cities and time zones will be updated or you could run it so it updates once a second.</p>
+<h2>Building dates and date/times from custom parts</h2>
+<p>So far we’ve worked with dates based on the current time. But we can also build specific dates.</p>
+<p>We can build the <code>Temporal.PlainDate</code> objects from an object containing key/value pairs for each element (year, month and day) or from an ISO 8601 date.</p>
+<pre><code class="language-js">const instant = Temporal.PlainDate.from({ year: 1974, month: 3, day: 14 });
+instant.toString();
+// Result = '1974-09-25'
+
+const instant2 = Temporal.PlainDate.from(Temporal.now.plainDateTimeISO());
+instant2.toString();
+// Result = 2021-05-07
+</code></pre>
+<p>We can further refine it by breaking out date and time elements.</p>
+<pre><code class="language-js">const instant3 = Temporal.PlainDate.from(
+  Temporal.now.plainDateTimeISO('Chile/Continental')
+);
+
+const instant3a = Temporal.PlainTime.from(
+  Temporal.now.plainDateTimeISO('Chile/Continental')
+);
+
+instant3.toString();
+// Result = '2021-05-07'
+instant3a.toString();
+// Result = '11:49:24.125564123'
+</code></pre>
+<p>The last item I found interesting when playing with dates is that we can find out what day of the week a given date falls in that specific date.</p>
+<p>We create a <code>Temporal.PlainDate</code> object with the date we want to work with. Then we creaate a 2-dimensional array with the days of the week in one array and the specific day we want expressed as <code>instant.dayOfWeek -1</code>. This will return the correct day of the week for our instant date.</p>
+<pre><code class="language-js">// BUILDING TEMPORAL DATES FROM STRINGS AND OBJECTS
+const instant = Temporal.PlainDate.from({ year: 1974, month: 3, day: 14 });
+instant.toString();
+// Result = '1974-03-14'
+
+['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
+  instant.dayOfWeek - 1
+];
+// Result = 'Thursday'
+</code></pre>
+<h2>Time Stamps</h2>
+<p>Another area of interest is timestamp generation. We can use these are hashes for files or to measure time since the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix Epoch</a>. This is particularly useful when working with code.</p>
+<p>To generate the time stamp, use the <code>Temporal.now.instant()</code>, which will be the end time of the comparison, and then choose the precision you want to work with either milliseconds (<code>epochMilliseconds</code>) or seconds (<code>epochSeconds</code>). This will measure how many of your chose units have ocurred between the Unix Epoch  (1970-01-01) and the value of <code>now.instant</code></p>
+<pre><code class="language-js">const timeStamp = Temporal.now.instant();
+
+// Timestamp in Milliseconds
+timeStamp.epochMilliseconds;
+// Timestamp in Seconds
+timeStamp.epochSeconds;
+</code></pre>
+<h2>Integrating with <code>Intl.DateTimeFormat</code></h2>
+<p>There is currently work in progress to integrate the Temporal proposal with ECMA 402’s <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat">Intl.DateTimeFormat()</a>.</p>
+<p>The current discussion is happening in a <a href="https://github.com/tc39/proposal-temporal/issues/129">Github issue</a> that I think is worth keeping track of. For now, there’s no integrated API for developers to experiment with.</p>
+<h2>Notes and closing</h2>
+<p>There is plenty more you can do with the Temporal Proposal. If you’re interested in tracking its evolution to stage 4 and publication as part of ECMAScript, the best place to do it is the Github Repository, particularly the cookbook, the issue tracker and the specification itself if you can understand the way specifications are written</p>
+<h2>Links and Resources</h2>
+<ul>
+<li><a href="https://blogs.igalia.com/compilers/2020/06/23/dates-and-times-in-javascript/">Dates and Times in Javascript</a> — Igalia</li>
+<li><a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> — Wikipedia</li>
+<li>Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl">Internationalization API</a>  — MDN</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat">Intl.DateTimeFormat</a> — MDN</li>
+<li><a href="https://tc39.es/proposal-temporal/">Temporal Propopsal</a> — TC39</li>
+<li><a href="https://tc39.es/proposal-temporal/docs/cookbook.html">Temporal Proposal Cookbook</a> — TC39</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Loading Multiple Versions of The Same Font</h1>
+<p>For most of my web work I use <a href="https://fontfaceobserver.com">Font Face Observer</a> to handle checking that the fonts have loaded.</p>
+<p>Using the following <code>@fontface</code> declaractions:</p>
+<pre><code class="language-scss">@font-face {
+  font-family: 'Roboto';
+  src: url('../../fonts/Roboto-min-VF.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+</code></pre>
+<p>I can use the following script to make sure the font loaded and provide a fallback when it doesn’t.</p>
+<p>Assuming that <code>fontfaceobserver.js</code> is already loaded  I use the following script to add classes based on whether the font loaded</p>
+<pre><code class="language-js">    const roboto = new FontFaceObserver('Roboto');
+
+    let html = document.documentElement;
+
+    html.classList.add('fonts-loading');
+
+    Promise.all([
+      roboto.load(),
+    ]).then(() =&gt; {
+      html.classList.remove('fonts-loading');
+      html.classList.add('fonts-loaded');
+      console.log('All fonts have loaded.');
+    }).catch(() =&gt; {
+      html.classList.remove('fonts-loading');
+      html.classList.add('fonts-failed');
+      console.log('One or more fonts failed to load');
+    });
+</code></pre>
+<p>When I use multiple fonts I add new <code>FontFaceObserver</code> objects as variablles and to the <code>Promise.all</code> array.</p>
+<p>But what happens when you load variants of the same font, like so:</p>
+<pre><code class="language-scss">@font-face {
+  font-family: 'Work Sans';
+  src: url('../../fonts/WorkSans-Regular.woff2') format('woff2'),
+    url('../../fonts/WorkSans-Regular.woff2') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Work Sans';
+  src: url('../../fonts/WorkSans-Bold.woff2') format('woff2'),
+    url('../../fonts/WorkSans-Bold.woff2') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+</code></pre>
+<p>Until recently I had not realized that there was a second parameter that lists the attributes of the font that we want to download.</p>
+<p>In the example below, the <code>workBold</code> definition includes the second parameter with the weight of the font we’re using in the second declaration.</p>
+<p>The second parameter is an object with one or more of <code>weight</code>, <code>style</code>, and <code>stretch</code> and it must match one of the font declarations you use to load the fonts.</p>
+<pre><code class="language-js">    const work = new FontFaceObserver('Work Sans');
+    const workBold = new FontFaceObserver('Work Sans', {
+      weight: 'bold'
+    });
+
+    let html = document.documentElement;
+
+    html.classList.add('fonts-loading');
+
+    Promise.all([
+      work.load(),
+      workBold.load(),
+    ]).then(() =&gt; {
+      html.classList.remove('fonts-loading');
+      html.classList.add('fonts-loaded');
+      console.log('All fonts have loaded.');
+    }).catch(() =&gt; {
+      html.classList.remove('fonts-loading');
+      html.classList.add('fonts-failed');
+      console.log('One or more fonts failed to load');
+    });
+
+</code></pre>
+<p>Using this technique you can use Font Face Observer to load multiple instances of the same font without having to give them different names.</p>
+<h2>Links</h2>
+<ul>
+<li><a href="https://www.bramstein.com/writing/web-font-loading-patterns.html">Web Font Loading Patterns</a></li>
+<li><a href="https://jonsuh.com/blog/font-loading-with-font-events/">Faster Font Loading with Font Events</a></li>
+<li><a href="https://prowebtype.com/delivering-web-fonts/">Delivering Web Fonts</a></li>
+<li><a href="https://www.filamentgroup.com/lab/font-events.html">How We Load Web Fonts Progressively</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

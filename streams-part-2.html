@@ -1,0 +1,178 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Streams Part 2</h1>
+<h2>Streams and service workers</h2>
+<p>Where I see the biggest benefit of using streams is in fetching resources for a service worker. It’ll make it faster to download a resource using streams and it’ll give a consistent and fast user experience using cached resources from the service worker.</p>
+<p>This is the outline of what I need to do:</p>
+<ol>
+<li>Create a function to stream the content</li>
+<li>If the URL is for an HTML file then:
+<ol>
+<li>See if it’s already in the cache</li>
+<li>If not fetch it</li>
+<li>If it’s not then stream it</li>
+<li>Clone the stream and cache the clone</li>
+<li>Return the original stream to the page for display</li>
+</ol>
+</li>
+<li>Otherwise respond with a default cache first strategy</li>
+</ol>
+<pre><code class="language-javascript">self.addEventListener('fetch', event =&gt; {
+  let requestURL = new URL(event.request.url);
+  if (requestURL.endsWith('text/html')) {
+
+    let stream = new ReadableStream({
+      let contentFetch = fetch(requestURL)
+        .catch(() =&gt; caches.match('/page-offline.html'));
+
+      function pushStream(stream) {
+        // Get a lock on the stream
+        let reader = stream.getReader();
+
+        return reader.read().then(function process(result) {
+          if (result.done) return;
+          // Push the value to the combined stream
+          controller.enqueue(result.value);
+          // Read more &amp; process
+          return reader.read().then(process);
+        });
+      }
+    }
+
+  }
+
+  // Get the start response
+  contentFetch // 1
+    // Push its contents to the combined stream
+    .then(response =&gt; pushStream(response.body))
+    .then(() =&gt; controller.close());
+});
+</code></pre>
+<h2>Composing content using streams and service workers</h2>
+<pre><code class="language-javascript">self.addEventListener('fetch', event =&gt; {
+  let requestURL = new URL(event.request.url);
+  let stream = new ReadableStream({
+    start(controller) {
+      // Get promises for response objects for each page part
+      // The start and end come from a cache
+      let startFetch = caches.match('/page-start.inc');
+      let endFetch = caches.match('/page-end.inc');
+      // The middle comes from the network, with a fallback
+      let contentFetch = fetch(requestURL)
+        .catch(() =&gt; caches.match('/page-offline.inc'));
+
+      function pushStream(stream) {
+        // Get a lock on the stream
+       let reader = stream.getReader();
+
+      return reader.read().then(function process(result) {
+        if (result.done) return;
+        // Push the value to the combined stream
+        controller.enqueue(result.value);
+        // Read more &amp; process
+        return reader.read().then(process);
+      });
+    } // Closes controller start
+
+    // Get the start response
+    startFetch
+      // Push its contents to the combined stream
+      .then(response =&gt; pushStream(response.body))
+      // Get the middle response
+      .then(() =&gt; middleFetch)
+      // Push its contents to the combined stream
+      .then(response =&gt; pushStream(response.body))
+      // Get the end response
+      .then(() =&gt; endFetch)
+      // Push its contents to the combined stream
+      .then(response =&gt; pushStream(response.body))
+      // Close our stream, we're done!
+      .then(() =&gt; controller.close());
+    } // Closes startFetch
+  }) // Closes ReadableStream
+
+}); // closes fetch event listener
+</code></pre>
+<h2>Creating my own streams</h2>
+<p>Service workers are not the only place where we can use streams. If we have the need for streams we can create our own readable streams using, at least, the following signature</p>
+<pre><code class="language-javascript">let stream = new ReadableStream({
+  start(controller) {},
+  pull(controller) {},
+  cancel(reason) {}
+}, queuingStrategy);
+</code></pre>
+<ul>
+<li><code>start</code> is called immediately. Use this to set up any underlying data sources (meaning, wherever you get your data from, which could be events, another stream, or just a variable like a string). If you return a promise from this and it rejects, it will signal an error through the stream</li>
+<li><code>pull</code> is called when your stream’s buffer isn’t full, and is called repeatedly until it’s full. Again, If you return a promise from this and it rejects, it will signal an error through the stream. Pull will not be called again until the returned promise fulfills</li>
+<li><code>cancel</code> is called if the stream is cancelled. Use this to cancel any underlying data sources</li>
+<li><code>queuingStrategy</code> defines how much this stream should ideally buffer, defaulting to one item. Check <a href="https://streams.spec.whatwg.org/#blqs-class">the spec</a> for more information</li>
+</ul>
+<p>And the controller has the following methods:</p>
+<ul>
+<li><code>controller.enqueue(whatever)</code> - queue data in the stream’s buffer.</li>
+<li><code>controller.close()</code> - signal the end of the stream.</li>
+<li><code>controller.error(e)</code> - signal a terminal error.</li>
+<li><code>controller.desiredSize</code> - the amount of buffer remaining, which may be negative if the buffer is over-full. This number is calculated using the queuingStrategy.</li>
+</ul>
+<p>An example from Jake Archibald’s blog uses a custom stream to generate random numbers. It touches on two methods of the <code>Readable Stream</code> interface (<code>start</code> and <code>cancel</code>) and two methods of <code>controller</code> (<code>enqueue</code> and <code>close</code>).</p>
+<pre><code class="language-javascript">let interval;
+let stream = new ReadableStream({
+  start(controller) {
+    interval = setInterval(() =&gt; {
+      let num = Math.random();
+
+      // Add the number to the stream
+      controller.enqueue(num);
+
+      if (num &gt; 0.9) {
+        // Signal the end of the stream
+        controller.close();
+        clearInterval(interval);
+      }
+    }, 1000);
+  },
+  cancel() {
+    // This is called if the reader cancels,
+    //so we should stop generating numbers
+    clearInterval(interval);
+  }
+});
+</code></pre>
+<p>The idea is that once a second (1000 milliseconds) we generate a random number and add it to our stream queue. If the number is greater than 0.9 we signal the end of the stream and call it done.</p>
+<h2>Links and Resources</h2>
+<ul>
+<li><a href="https://streams.spec.whatwg.org/">Streams Living Standard</a></li>
+<li><a href="https://streams.spec.whatwg.org/#ts">Transform Streams</a></li>
+<li><a href="https://streams.spec.whatwg.org/demos/">Stream Demos</a></li>
+<li><a href="https://github.com/whatwg/streams/tree/master/reference-implementation">Streams Reference Implementation</a></li>
+<li><a href="https://github.com/creatorrr/web-streams-polyfill">Web Streams Polyfill</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

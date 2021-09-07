@@ -1,0 +1,195 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Print Stylesheets</h1>
+<p>Although it is possible to print web pages directly there are a few things we can do to make the experience better. We’ll explore changes we can make to a regular stylesheet to make it work better in print.</p>
+<p>When it comes to print there are a few things I like to do to make the reading experience better.</p>
+<ul>
+<li><strong>Remove Background Images and Colors</strong> to make printing easier and not run through ink or bleed text and background colors together</li>
+<li><strong>Make text size slightly bigger</strong> so it’s easier to read in paper where we don’t have an option to zoom inn</li>
+<li><strong>Make margins bigger</strong> to avoid having text flush against the page border</li>
+<li><strong>Adding refereces to external links</strong> to provide context for the links on the page</li>
+<li><strong>Remove unnecessary content from the page</strong></li>
+<li><strong>Remove images that are not essential to the content</strong> to conserve ink and paper and not distract the reader</li>
+<li><strong>Remove videos or make sure that they display a poster image</strong> to avoid printing things that are not needed</li>
+</ul>
+<p>The first three items on the list can be done on the print style sheet; the other two need more manual touch, maybe adding a class  to images that are not essential and using that to style the elements accordingly.</p>
+<h2>Linking to the style sheet</h2>
+<p>When working with print-specifc styel sheets we use the link element’s <code>media</code> attribute to specify what medium we want the style sheet to work with.</p>
+<pre><code class="language-html">&lt;link rel=&quot;stylesheet&quot; media=&quot;print&quot; href=&quot;print.css&quot;&gt;
+</code></pre>
+<p>Most of the time I see</p>
+<pre><code class="language-html">&lt;link rel=&quot;stylesheet&quot; media=&quot;all&quot; href=&quot;style.css&quot;&gt;
+</code></pre>
+<p>But we forget that printing a page and viewing it on a screen will have very different results and not all of them are predictable for us. Instead use two declarations like this:</p>
+<pre><code class="language-html">&lt;link rel=&quot;stylesheet&quot; media=&quot;screen,projection,tv&quot; href=&quot;styles.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; media=&quot;print&quot; href=&quot;print.css&quot;&gt;
+</code></pre>
+<p>The decalrations will pass the screen style sheet to devices that are screen-based and print style sheets that support the printed rules.</p>
+<h2>Remove Background Images and Colors</h2>
+<p>The first I do is to remove background image and background color from the page. I also set the page color to black.</p>
+<pre><code class="language-css">body {
+  background-color: #fff;
+  background-image: none;
+  color: #000;
+}
+</code></pre>
+<p>We do this to save ink and prevent the colors from bleeding into each other.</p>
+<h2>Make text size slightly bigger</h2>
+<p>When working with print I like to use points instead of pixels and make sure that I explicitly stick to the 16px/16pt default from the browser.</p>
+<pre><code class="language-css">body {
+  font-size: 16pt;
+}
+</code></pre>
+<h2>Make margins bigger</h2>
+<p>To make sure sure that content doesn’t stick too close to the borders of the page, I like adding extra margins to the body element. You can tweak the margin value to give more or less space to the content.</p>
+<pre><code class="language-css">body {
+  margin: 2em;
+}
+</code></pre>
+<h2>Adding references to external links</h2>
+<p>Printed style sheets will not tell you what a link represents and since we’ve removed the underline from links there is no easy way to distinguish it from regular text.</p>
+<p>We’re doing three things:</p>
+<ul>
+<li>We remove links underline and make them black</li>
+<li>We create a text attribute with the value of the link’s <code>href</code> attribute</li>
+<li>We set links so that they will break at the word boundary rather than let the link go beyond the width of the page</li>
+</ul>
+<pre><code class="language-css">a, a:visited {
+color: #000;
+text-decoration: none;
+}
+
+a[href^=&quot;http&quot;]:after {
+content: &quot; (&quot; attr(href) &quot;)&quot;;
+word-wrap: break-word;
+}
+</code></pre>
+<p>Using these rules the link:</p>
+<pre><code class="language-html">&lt;a href=&quot;https://twitter.com/&quot;&gt;Twitter&lt;/a&gt;
+</code></pre>
+<p>will appear on the page as:</p>
+<p>Twitter (<a href="https://twitter.com">https://twitter.com</a>)</p>
+<h2>Cleanup video contents</h2>
+<p>Video content in printed media can be problematic and it’ll depend on how you add the video to your page. The easiest way (in terms of storage and use) is to link directly from Youtube or Vimeo.</p>
+<p>The Vimeo links look like this:</p>
+<pre><code class="language-html">&lt;div class=&quot;video&quot;&gt;
+  &lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/MY3GAFkvq5w?rel=0&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; encrypted-media&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+</code></pre>
+<p>Youtube looks like this:</p>
+<pre><code class="language-html">&lt;div class=&quot;video&quot;&gt;
+  &lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/MY3GAFkvq5w?rel=0&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; encrypted-media&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+</code></pre>
+<p>One way to work with this is to hide the iframe and put a link to the video inside in a similar to what we did with links. We can then style them as needed.</p>
+<pre><code class="language-css">iframe {
+  display: none
+}
+
+iframe[src*=&quot;youtube&quot;]:after,
+iframe[src*=&quot;vimeo&quot;]:after {
+content: &quot; (&quot; attr(src) &quot;)&quot;;
+word-wrap: break-word;
+}
+</code></pre>
+<p>This will not work when hosting video locally and referencing it with a video tag, either containing regular video or a DASH manifest.</p>
+<p>I’m making a few assumptions. When not linking from Youtube or Vimeo, I use the following structure for the video:</p>
+<pre><code class="language-html">&lt;div class=&quot;video&quot;&gt;
+  &lt;video
+    width=&quot;560&quot;
+    controls
+    poster=&quot;path/to/video1-poster.jpg&quot; &gt;
+      &lt;source src=&quot;https://example.org/video/video-high.mp4&quot; type=&quot;video/mp4&quot;&gt;
+      &lt;source src=&quot;https://example.org/video/video-medium.webm&quot; type=&quot;video/webm&quot;&gt;
+  &lt;/video&gt;
+&lt;/div&gt;
+</code></pre>
+<p>In this case we would remove the video element and add the link from the first source attribute denoted with the <code>:first-child</code> pseudo attribute (we do this in case therre is more than one source child for the video. The CSS now looks like this:</p>
+<pre><code class="language-css">video {
+  display: none
+}
+
+source:first-child:after {
+content: &quot; (&quot; attr(src) &quot;)&quot;;
+word-wrap: break-word;
+}
+</code></pre>
+<h2>Remove unnecessary content from the page</h2>
+<p>The final tweak to a page is to remove stuff we don’t need to have to read the page; for example social links, ads and other stuff that will not affect the reading experience.</p>
+<p>For example, let’s assume that we have a div with class social and a div with class ads that we want to get rid of in a print stylesheet. Removing the element is as simple as setting <code>display: none</code> like so:</p>
+<pre><code class="language-css">.social,
+.ads {
+  display: none;
+}
+</code></pre>
+<h2>The complete style sheet (so far)</h2>
+<p>This is the style sheet that contains all the rules we’v e disc ussed so far. It’s not a finished product and you will have to decide what else to take out and how best to do it.</p>
+<pre><code class="language-css">body {
+  background-color: #fff;
+  background-image: none;
+  color: #000;
+  font-size: 16pt;
+  margin: 2em;
+}
+
+a, a:visited {
+color: #000;
+text-decoration: none;
+}
+
+a[href^=&quot;http&quot;]:after {
+content: &quot; (&quot; attr(href) &quot;)&quot;;
+word-wrap: break-word;
+}
+
+iframe[src*=&quot;youtube&quot;]:after,
+iframe[src*=&quot;vimeo&quot;]:after {
+content: &quot; (&quot; attr(src) &quot;)&quot;;
+word-wrap: break-word;
+}
+
+video {
+  display: none
+}
+
+source:first-child:after {
+content: &quot; (&quot; attr(src) &quot;)&quot;;
+word-wrap: break-word;
+}
+
+.social,
+.ads {
+  display: none;
+}
+</code></pre>
+<p>You may also have to tweak some of the rules and selectors below. For example, I’ve only cleared the background image on the body and not considered that other elements inside the body of the page may also have their own backround color and/or images.</p>
+<p>Still this is a good beginning :)</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

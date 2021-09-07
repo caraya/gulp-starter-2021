@@ -1,0 +1,204 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Docs as code: The technical side</h1>
+<p>Docs as code is an interesting way to create documentation for software and technical projects. The idea is that we use the same tools to create our documentation that engineers or technical authors use to create their projects.</p>
+<p>According to [Write the Docs](<a href="https://www.writethedocs.org/guide/docs-as-code/">Docs As Code</a>):</p>
+<p>Documentation as Code (Docs as Code) refers to a philosophy that you should be writing documentation with the same tools as code:</p>
+<ul>
+<li>Issue Trackers</li>
+<li>Version Control (Git)</li>
+<li>Plain Text Markup (Markdown, reStructuredText, Asciidoc)</li>
+<li>Code Reviews</li>
+<li>Automated Tests</li>
+</ul>
+<p>This means the technical writing process follows the same workflows as development teams, and enables a culture where writers and developers both feel ownership of documentation and can work together in its development.</p>
+<p>If we are treating documentation or any content writing as part of the application code we need a way to build our documentation.</p>
+<h2>What we need to do if we take this approach</h2>
+<p>Docs as code is as much a philosophical change as much as a technical one.</p>
+<p>Some of the things we need to do to make docs as code work:</p>
+<ul>
+<li>Convince people that writing docs in something like <a href="https://commonmark.org/">Markdown</a> or <a href="https://asciidoc.org/">Asciidoc</a> is worth it</li>
+<li>If needed, provide Markdown extensions to accomplish project specific tasks</li>
+<li>Provide a strong review and editing facility, something similar to what we can do in Google Docs but using the hosting platform features</li>
+<li>Provide a good publishing platform as part of the documentation toolchain</li>
+<li>Automate updates and publications of documentation updates, possibly with continuous integration or Github actions or equivalent functionality</li>
+</ul>
+<p>This post will cover some of the technical aspects of docs like code. I can’t, and won’t, tell you how to sell the idea to your team.</p>
+<h2>Why Markdown</h2>
+<p>Markdown provides a light weight, text-based, means to write content that is easy to ready by humans and for computer programs to process and covert to HTML and other programs.</p>
+<blockquote>
+<p>The overriding design goal for Markdown’s formatting syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions.</p>
+<p>— <a href="http://daringfireball.net/projects/markdown/">http://daringfireball.net/projects/markdown/</a></p>
+</blockquote>
+<p>Having the files in a text-based format makes it easier to include in code repositories.</p>
+<p>when it was first created, there was no specification of what Markdown should do or specific behavior, there was only a <a href="https://daringfireball.net/projects/markdown/syntax">syntax page</a>. In 2014, people using Markdown in large-scale deployments create <a href="https://commonmark.org/">Commonmark</a> and its <a href="https://spec.commonmark.org/">specification</a> as a unified syntax that all Markdown implementations can reference and follow.</p>
+<p><a href="https://tools.ietf.org/html/rfc7764">RFC 7764</a> provides an overview of the format and the tools to create it.</p>
+<p>Perhaps the best feature is its extensivility. There are many available extensions and you can write your own if none of the existing ones do what you need to.</p>
+<h2>Publishing the docs</h2>
+<p>We’ll publish our docs in two ways:</p>
+<ul>
+<li>Publish individual documents by converting Markdown files to HTML</li>
+<li>Build a website converting the Markdown files to Vue using Vuepress</li>
+</ul>
+<h3>Direct Markdown to HTML conversion with Gulp</h3>
+<p>In the past I’ve relied on Gulp to convert Markdown files into HTML, and put them inside a template file using <a href="https://gulpjs.com/">Gulp.js</a>.</p>
+<p>For this example, we’ll assume there is an existing project that uses NPM, so we’ll start with installing the packages we need.</p>
+<p>The current version of Gulp is 4.0.2. If you need to stay in version 3 the istructions and commands may be slightly different.</p>
+<p>First we install gulp globally so we can just run <code>gulp</code> from the command line.</p>
+<p>Then we install Gulp (again), gulp-remarkable and gulp-wrap as development dependencies for our current project.</p>
+<pre><code class="language-bash">npm i -g gulp-cli
+npm i -D gulp gulp-remarkable gulp-wrap
+</code></pre>
+<p>Next we create a <code>gulpfile.js</code> file to put all out Gulp related code in.</p>
+<p>The first step is to register the modules we want to use using commonjs’s <code>require</code>.</p>
+<pre><code class="language-js">const gulp = require('gulp');
+const markdown = require('gulp-remarkable');
+const wrap = require('gulp-wrap');
+</code></pre>
+<p>We then define two gulp tasks; one to convert markdown files into HTML (<code>markdown</code>) and another one wrap a container around the HTML files we just created (<code>build-template</code>).</p>
+<pre><code class="language-js">gulp.task('markdown', () =&gt; {
+  return gulp.src('src/md-content/*.md')
+      .pipe(markdown({
+        preset: 'commonmark',
+        remarkableOptions: {
+          typographer: true,
+          linkify: true,
+          breaks: false,
+        },
+      }))
+      .pipe(gulp.dest('src/html-content/'));
+});
+
+gulp.task('build-template', gulp.series('markdown'), () =&gt; {
+  gulp.src('./src/html-content/*.html')
+      .pipe(wrap({
+        src: './src/templates/template.html',
+      }))
+      .pipe(gulp.dest('./src/'));
+});
+</code></pre>
+<p>This process works for converting individual files to HTML and PDF but it doesn’t work when converting documentation into a website that people can use presents additional challenges and may require a different approach to building the content.</p>
+<p>A future update to the code will include using plugins to add functionality to Remarkable without resorting to writing HTML in the Markdown files. These plugins make writing easier but require more work in the back end and a higher cognitive load in having to remember the chracter combination for each.</p>
+<h3>Using a static site generator: Vuepress</h3>
+<p><a href="https://vuepress.vuejs.org/">Vuepress</a> is a static site generator using <a href="https://vuejs.org/">Vue.js</a> as the front end framework. I picked it for two reasons:</p>
+<ul>
+<li>From research it appears that Vuepress gives a lot of functionality out of the box and easy ways to extend it if we need additional tools</li>
+<li>Vuepress was designed for the Vue.js documentation site so, I’m guessing, it’ll work for other documentation sites as well</li>
+</ul>
+<p>For this section, I will use Vuepress manual installation process as documented in the <a href="https://vuepress.vuejs.org/guide/getting-started.html#manual-installation">Vuepress Guide</a>.</p>
+<ol>
+<li>Create and change into a new directory</li>
+<li>Initialize with your preferred package manager</li>
+<li>Install VuePress locally</li>
+<li>Add documents to the <code>docs</code> directory of your site</li>
+<li>Add Vuepress-specific scripts to package.json</li>
+<li>Serve the documentation site in the local server</li>
+</ol>
+<h4><strong>Create and change to a new directory</strong></h4>
+<p>Before we can create and configure the project we need to setup the directory where we want to put the docs. In Bash (macOS and Linux) run the following command:</p>
+<pre><code class="language-sh">mkdir project-docs &amp;&amp; cd project-docs
+</code></pre>
+<h4><strong>Initialize with your preferred package manager</strong></h4>
+<p>Vuepress is a Node application. To preserve information about the project, we need to create a <code>project.json</code>. We will use <a href="https://www.npmjs.com/package/npm">npm</a>.</p>
+<pre><code class="language-bash">npm init
+</code></pre>
+<p>Even if the docs site will be part of a monorepo I still prefer configuring and building the docs as a standalone project.</p>
+<h4><strong>Install VuePress locally</strong></h4>
+<pre><code class="language-bash">npm install -D vuepress
+</code></pre>
+<h4><strong>Add documents to the <code>docs</code> directory in the directory you just created</strong></h4>
+<p>Vuepress works from the <code>docs</code> directory so we need to have some content before we run Vuepress.</p>
+<p>The first command below will create the docs director</p>
+<p>The following command will add the content we echo to the <a href="http://README.md">README.md</a> file in the docs directory.</p>
+<pre><code class="language-bash">mkdir docs
+echo '# Demo Content' &gt; docs/README.md
+</code></pre>
+<h4><strong>Add Vuepress-specific scripts to package.json</strong></h4>
+<p>You can run Vuepress directly from the command line but you can also add the commands as NPM scripts so you don’t have to remember the exact command.</p>
+<p>Add the following entries to the <code>scripts</code> section of your <code>package.json</code></p>
+<p><code>docs:dev</code> will compile the content and run WebPack’s dev server with hot module reloading</p>
+<p><code>docs:build</code> will build a production version of the site, ready to be published wherever it will be hosted.</p>
+<pre><code class="language-json">&quot;scripts&quot;: {
+  &quot;docs:dev&quot;: &quot;vuepress dev docs&quot;,
+  &quot;docs:build&quot;: &quot;vuepress build docs&quot;
+}
+</code></pre>
+<h4><strong>Serve the documentation site in the local server</strong></h4>
+<p>Now we’re ready to run the development version of the code. Run the following command in your terminal</p>
+<pre><code class="language-bash">npm run docs:dev
+</code></pre>
+<p>If you now go to <code>localhost:8080</code> you will see the content of the <code>README.md</code> file in your docs directory.</p>
+<p>This is the basic configuration for Vuepress. There’s more work to do in configuring the default theme with, at least, the following items:</p>
+<ul>
+<li>Site title</li>
+<li>Top-right navigation bar</li>
+<li>Sidebar navigation</li>
+</ul>
+<p>We will document these items in a future post.</p>
+<h2>Pushing docs to version control and serving them from there</h2>
+<p>Because we’re treating our documentation as code we can take advantage of services built for code to handle our documentation projects.</p>
+<p>If we use Gulp to convert Markdown to HTML, we can publish the content directly to <a href="https://pages.github.com/">Github Pages</a>.</p>
+<p>If you’re using Vuepress, their <a href="https://vuepress.vuejs.org/guide/deploy.html">deployment guide</a> gives instructions for deploying to multiple open source platforms.</p>
+<p>Whatever hosting mechanism we choose, we now have a bare-bones working set of project documents and the site to host them on.</p>
+<h2>Links and Resources</h2>
+<ul>
+<li>Docs as code philosophy
+<ul>
+<li><a href="https://www.writethedocs.org/guide/docs-as-code/">Docs As Code</a></li>
+</ul>
+</li>
+<li>Books on Docs Like Code
+<ul>
+<li><a href="https://www.amazon.com/Docs-Like-Code-Anne-Gentle/dp/1387081322/">Docs Like Code</a> — Anne Gentle</li>
+<li><a href="https://www.amazon.com/Modern-Technical-Writing-Introduction-Documentation-ebook/dp/B01A2QL9SS/">Modern Technical Writing: An Introduction to Software Documentation</a> — Andrew Etter</li>
+</ul>
+</li>
+<li>Static Site Generators
+<ul>
+<li><a href="https://gohugo.io/">Hugo</a></li>
+<li><a href="https://vuepress.vuejs.org/">Vuepress</a>
+<ul>
+<li><a href="https://vuepress.vuejs.org/">Vuepress Docs</a></li>
+</ul>
+</li>
+<li><a href="https://www.gatsbyjs.com/">Gatbsy</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/static-site-generators-nunjucks-and-gulp/">Static Site Generators: Nunjucks and Gulp</a></li>
+</ul>
+</li>
+<li>Gulp-based research
+<ul>
+<li><a href="https://github.com/documentationjs/gulp-documentation">gulp-documentation</a></li>
+<li><a href="https://github.com/gummesson/gulp-pandoc">gulp-pandoc</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/generating-html-and-pdf-from-markdown/">Generating HTML and PDF from Markdown</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

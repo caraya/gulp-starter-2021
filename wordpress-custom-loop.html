@@ -1,0 +1,77 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Create a custom loop in WordPress</h1>
+<p>When researching how to use Gutenberg Ramp to partially allow Gutenberg on a WordPress site, I decided that I wanted to use a custom post type for the test so I wouldn’t screw up the existing content for my blog.</p>
+<p>There is a problem with this idea. Custom post types don’t appear in the default loop of a WordPress type so they wouldn’t appear along with regular posts in the blog homepage.</p>
+<p>Most times, this is what we want. We want to use the custom post types on their own specialized loops. However,  in this case, it is not what I want so I have to figure out a way to integrate posts and essays (the custom post type) in the same loop.</p>
+<p>The code below is a modified version of the experiment I ran on my development syste. It is not complete, just enough to show the steps I took.</p>
+<pre><code class="language-php">&lt;?php
+// WP_Query arguments
+$args = array(
+  'post_type' =&gt; array( 'essay', 'post' ),
+); // 1
+
+// The Query
+$myQuery = new WP_Query( $args ); // 2
+  if ( $myQuery-&gt;have_posts() ) : // 3
+    if ( is_home() &amp;&amp; ! is_front_page() ) : // 4
+?&gt;
+      &lt;header&gt;
+        &lt;h1 class=&quot;page-title screen-reader-text&quot;&gt;&lt;?php single_post_title(); ?&gt;&lt;/h1&gt;
+      &lt;/header&gt;
+    &lt;?php
+    endif;
+
+    // Start the Loop
+    while ( $myQuery-&gt;have_posts() ) : $myQuery-&gt;the_post(); // 5
+
+      get_template_part( 'template-parts/content', get_post_type() ); // 6
+
+    endwhile; ?&gt;
+
+  else :
+
+    get_template_part( 'template-parts/content', 'none' ); // 7
+
+  endif;
+  ?&gt;
+</code></pre>
+<p>The custom loop code does the following:</p>
+<ol>
+<li>Sets up an array of arguments for the custom loop. In this case we only want an array of <code>post_type</code> to hold the values we want to use in the loop: posts and essays in the singular form</li>
+<li>Creates the new query using the <code>$args</code> array</li>
+<li>Checks if the query has posts (is not empty)</li>
+<li>Checks if this is the home page (blog index) and not the front page (static home defined in admin)</li>
+<li>Loop through the posts</li>
+<li>Display their content using the corresponding template part if there is one</li>
+<li>If the loop is empty (the check on step 3 returned false) display the <code>none</code> content part to the user</li>
+</ol>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

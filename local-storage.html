@@ -1,0 +1,118 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Using LocalStorage</h1>
+<p>The idea behind <a href="https://html.spec.whatwg.org/multipage/webstorage.html#storage">local storage</a> (also known as web storage) is that we can save key/value pairs of data in the browser for later retrieval and use.</p>
+<p>A good example of where this may be useful is to set basic settings of an application and persist them between visits to the site.</p>
+<p>The feature is supported by <a href="https://caniuse.com/#feat=namevalue-storage">all browsers except Opera Mini</a></p>
+<p>We’ll look at setting and retrieving values to local storage and how we can use them in making an application configuration consistent across visits to the page.</p>
+<h2>How does it work?</h2>
+<p>Although the API is widely supported we should still code defensively and provide feature detection to make sure that it works before we use it.</p>
+<h3>Feature Detection</h3>
+<p>To make sure that we support the API we check that the localStorage is available in the window object. If it’s not available we bail early and if it is supported then we continue working.</p>
+<pre><code class="language-javascript">if (!'localStorage' in window) {
+  console.log('Local Storage Not Supported');
+  return;
+} else {
+  console.log('Local Storage Works!');
+}
+</code></pre>
+<p>We can further abstract the test into a function and use that function to test if the API is supported. Then it follows the same process as the</p>
+<pre><code class="language-javascript">function supportsLS(){
+  return 'localStorage' in window;
+}
+
+if (supportsLS()) {
+  console.log('yay!');
+} else {
+  console.log('boo!!!');
+}
+</code></pre>
+<p>Now that we know the feature is supported we can move forward with the rest of the code.</p>
+<h3>Setting values</h3>
+<p>at it’s simplest use setting a value for Local Storage is just a matter of calling <code>localStorage.setItem</code> with the key/value pair we want to store as the parameters.</p>
+<pre><code class="language-javascript">localStorage.setItem('firstName', 'Marty');
+</code></pre>
+<h3>Retrieving values</h3>
+<p>Let’s say that we did our setup, added the data that we wanted to save and now we need to retrieve it on subsequent visits. All we need to do is to call <code>localStorage.getItem</code> and pass it the name of they key we want to retrieve.</p>
+<pre><code class="language-javascript">localStorage.getItem('firstName');
+</code></pre>
+<p>We can then attach the value of the item elsewhere on the script to make it do what we want to.</p>
+<h3>Clearing everything up</h3>
+<p>There are time when we want to reset all the settings we have added using <code>setItem()</code>. We could set them to a null value but it would be cumbersome if we have too many values.</p>
+<p>The other alternative is to use <code>localStorage.clear()</code></p>
+<pre><code class="language-javascript">localStorage.clear();
+</code></pre>
+<h2>Basic Example</h2>
+<p>The example will take two values we enter in a form, first name and last name and add them to local storage.</p>
+<p>The form is a standard form without the action field (we don’t need it so why have it) a submit and a reset button.</p>
+<pre><code class="language-html">&lt;form id=&quot;demo1&quot;&gt;
+  &lt;fieldset&gt;
+    &lt;legend&gt;Enter Your Name&lt;/legend&gt;
+
+    &lt;label for=&quot;firstName&quot;&gt;First Name&lt;/label&gt;
+    &lt;input type=&quot;text&quot; id=&quot;firstName&quot; /&gt;
+
+    &lt;label for=&quot;lastName&quot;&gt;Last Name&lt;/label&gt;
+    &lt;input type=&quot;text&quot; id=&quot;lastName&quot; /&gt;
+
+    &lt;button type=&quot;submit&quot; id=&quot;submit&quot;&gt;Tell me!&lt;/button&gt;
+    &lt;button type=&quot;reset&quot; id=&quot;reset&quot;&gt;Reset&lt;/button&gt;
+  &lt;/fieldset&gt;
+&lt;/form&gt;
+</code></pre>
+<p>Javascript is where the magic happens.</p>
+<p>First we create for constants to capture the different elements of the form.</p>
+<p>Then we create an <code>onSubmit</code> event for the form, prevent defaults and store first and last names in the browser’s local storage.</p>
+<p>Finally we create an <code>onClick</code> event for the reset button, then we prevent the default action and, finally, we clear local storage altogether.</p>
+<pre><code class="language-javascript">const myForm = document.querySelector('#demo1');
+const firstName = document.querySelector('#firstName');
+const lastName = document.querySelector('#lastName');
+const reset = document.querySelector('#reset');
+
+myForm.onsubmit = function(e) {
+  e.preventDefault();
+
+  window.localStorage.setItem('firstName', firstName.value);
+  window.localStorage.setItem('lastName', lastName.value);
+}
+
+reset.onclick = function(e) {
+  e.preventDefault();
+  window.localStorage.clear();
+}
+</code></pre>
+<h2>Drawbacks</h2>
+<p>There are some things to keep in mind when working with Web/Local storage.</p>
+<ul>
+<li>It only works with strings. All other values are converted to strings before being stored.</li>
+<li>It overwrites values with the last one you entered. This is why the usefulness of LocalStorage is limited to string-based documents.</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

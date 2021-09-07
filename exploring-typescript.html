@@ -1,0 +1,224 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Exploring Typescript</h1>
+<p>Typescript is an interesting language. It’s a typed superset of Javascript that you can compile to usable Javascript, either ES5 or later yearly versions of the language.</p>
+<p>Because it’s not straigth Javascript it requires compilation before it can be used in Node or browsers.</p>
+<h2>Using built-in tools to work with Typescript</h2>
+<p>The easiest way to use Typescript is to install the tool themselves and then run them through NPM scripts we set up in <code>package.json</code>.</p>
+<h3>Compiling</h3>
+<p>To compile Typescript we need the Typescript compiler (TSC) that comes bundled with the NPM <code>typescript</code> package. To install it run the following command.</p>
+<pre><code class="language-bash">npm i -D typescript
+</code></pre>
+<p>To run the compiler add the following line to the scripts section of your <code>package.json</code>.</p>
+<pre><code class="language-json">&quot;compile&quot;: &quot;tsc ./src/**/*.ts&quot;
+</code></pre>
+<p>And run the command with:</p>
+<pre><code class="language-bash">npm run compile
+</code></pre>
+<p>This will convert all the files ending with <code>.ts</code> under the src directory regardless of how deep they are in the hierarchy.</p>
+<h3>Linting</h3>
+<p>Linting Typescript is a little more complicated than Javascript. We still use <a href="https://eslint.org/">ESLint</a> to lint and fix our code but we need to make sure that when we initialize the linter we tell it that we’ll be working with Typescript so that it installs the appropriate packages.</p>
+<p>Run:</p>
+<pre><code class="language-bash">npx eslint --init
+</code></pre>
+<p>And make sure that when the installer asks you <strong>Does your project use TypeScript?</strong> you answer yes.</p>
+<p>It will then install all the packages needed to lint both JS and TS files.</p>
+<p>Add the following lines to the script section of your <strong>package.json</strong></p>
+<pre><code class="language-json">&quot;lint&quot;: &quot;eslint ./src/**/*.ts&quot;,
+&quot;fix&quot;: &quot;eslint --fix ./src/**/*.ts&quot;,
+</code></pre>
+<p>And run the commands as follows:</p>
+<p>To lint run: <code>npm run lint</code>.</p>
+<p>To lint and fix errors, run: <code>npm run fix</code>.</p>
+<h2>Using Gulp to work with Typescript</h2>
+<p>If you use Gulp to run and build other aspects of your project it would make sense to use it to process Typescript as well.</p>
+<p>The instructions on the next sections assume that you haven’t installed or used Gulp before. If you have, some of these instructions may be redundant.</p>
+<p>First install the Gulp CLI globally, this will give you the <code>gulp</code> command to make your life easier.</p>
+<pre><code class="language-bash">npm install -g gulp-cli
+</code></pre>
+<p>Inside your project run the following command to install Gulp.</p>
+<pre><code class="language-bash">npm install -D gulp@4
+</code></pre>
+<p>Now we’re ready to install and work with Typescript.</p>
+<h3>Compiling</h3>
+<p>Before working with Typescript we need to install them. To do so run the following command:</p>
+<pre><code class="language-bash">npm install -D gulp-typescript \
+ typescript \
+ merge2
+</code></pre>
+<p>Once the packages are installed</p>
+<pre><code class="language-js">const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const merge = require('merge2');
+
+gulp.task('default', function() {
+  const tsResult = gulp.src('js/**/*.ts')
+    .pipe(ts({
+      declaration: true
+  }));
+
+  return merge([
+    tsResult.dts.pipe(gulp.dest('dist/js/definitions')),
+    tsResult.js.pipe(gulp.dest('dist/js/js'))
+  ]);
+});
+</code></pre>
+<h3>Linting</h3>
+<p>Linting Typescript can be a little hard to understand. We still use <a href="https://eslint.org/">ESLint</a> with Typescript presets. There used to be a TSLint application but the creators decided to merge their work with ESLint.</p>
+<pre><code class="language-bash">npm i -D @typescript-eslint/eslint-plugin \
+@typescript-eslint/parser \
+gulp-eslint eslint
+</code></pre>
+<p>We add the require statement at the top of the file, along with the other declarations.</p>
+<pre><code class="language-js">const eslint = require('gulp-eslint');
+</code></pre>
+<p>We then add a task to lint our files. Because it uses the ESLint configuration that we created when working on setting up the command line, there is no need to configure the Gulp task itself.</p>
+<p>One way to do it may look like this:</p>
+<pre><code class="language-js">gulp.task('lint', function () {
+  return gulp.src(['./src/**/*.ts'])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+});
+</code></pre>
+<p>And that’s it, we now have a working process to compile and lint Typescript files using NPM and a build system (Gulp in this case).</p>
+<p>We’ll now move to talking about the language itself.</p>
+<h2>Things to know about Typescript</h2>
+<p>Typescript is good to usee but at times it can be really infuriating to learn how to use it and to use it properly.</p>
+<p>When you bring in Javascript files to convert to Typescript it will give you many surprises and not all of them are intuitive or easy to decipher.</p>
+<p>It’s important to remember that <strong><em>while Typescript will transpile to Javascript it’s superset of the ECMAScript specification, and you need to learn the differences</em></strong>.</p>
+<p>These are not all the things I’ve learned but they are the most important to me.</p>
+<h3>When to add types and when to let the compiler do its thing</h3>
+<p>The Typescript compiler is really good at infering (guessing) the type of your parameters, variables or return values so it’s usually OK to let it do its thing.</p>
+<p>It is only when we get an unexpected value or when the compiler gives an error that we should explicitly add types to your code.</p>
+<p>Pay particular attention when the compiler tells you that there’s a type mismatch. For example, an error like <code>Type '1234' is not assignable to type 'string'</code> may indicate that we need to be explicit about types (or it may mean we made a mistake, it’s always possible).</p>
+<p>Take for example the following function signature in Javascript.</p>
+<pre><code class="language-js">function setRootVar(name, otname, value) {}
+</code></pre>
+<p>When I wrote it I instinctively knew that name and otname were strings and value was a number that would be cast as a string to accommodate CSS requirements.</p>
+<p>But Typescript saw it as this:</p>
+<pre><code class="language-typescript">function setRootVar(name: any,
+  otname: any,
+  value: any) {}
+</code></pre>
+<p>The <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html#any">any</a> type tells the Typescript compiler to take any value you pass in and not check for validity; This defeats the purpose of type checking.</p>
+<p>To make sure that the code works as we intended it to we have to explicitly add type declarations to the parameters.</p>
+<p>As we said, the name is a string, otname is a string but it’s optional and value will become a string so we’ll define it as one from the beginning.</p>
+<pre><code class="language-typescript">function setRootVar(name: string,
+  value: string,
+  otname?: string) {
+   // body of the function here
+ }
+</code></pre>
+<p>Using an optional parameter also forced me to change the order of parameters. Optional parameters must be the last ones on the list.</p>
+<h3>Declare your types first, then build around them</h3>
+<p>Typescript checks are concerned with the shape of an object and will use that shape to check if we’re doing the right thing.</p>
+<p>As we start working with code either from scratch or modifying an existing codebase we may want to start by defining the types that we want to use in an interface.</p>
+<p>Let’s assume that we defined a <code>person</code> interface with three values, two strings and an optional string.</p>
+<pre><code class="language-typescript">interface Person {
+  firstName: string;
+  lastName: string;
+  userName: string;
+};
+</code></pre>
+<p>Then we can use the interface everywhere we need to identify a person. Below are some examples:</p>
+<p>The first one is a person.</p>
+<pre><code class="language-typescript">function createPerson(person: Person): void {
+  console.log(person.firstName);
+  console.log(person.lastName);
+  console.log(person.userName);
+}
+</code></pre>
+<p>The next example is an administrator. In this example we’ll extend the Person interface with additional information that is only relevant for administrators.</p>
+<pre><code class="language-typescript">interface Administrator extends Person {
+  signedRelease: boolean;
+  accountEnabled: boolean;
+}
+</code></pre>
+<p>Because the Administrator interface extends Person, we get everything from Person in addition to what we get from Administrator. We’re saying an administrator is a person.</p>
+<pre><code class="language-typescript">function createAdmin(admin: Administrator): void {
+  // These come from Person
+  console.log(admin.firstName);
+  console.log(admin.lastName);
+  console.log(admin.userName);
+  // These come from Administrator
+  console.log(admin.signedRelease);
+  console.log(admin.accountEnabled);
+}
+</code></pre>
+<p>Another thing worth exploring is function overload. We can have multiple versions of a function with different parameters that perform different functions based on the type of the parameter.</p>
+<p>This is different than generic types because we do know the type of the parameters ahead of time and we code the different functions to handle them.</p>
+<h3>Generic types</h3>
+<p>One of the first things I saw and learned about Typescript was the idea of generic types.</p>
+<p>There are times when we don’t know what parameters we want to use, whether the kind of parameters we want to use wil change over time, or whether we will want to use the same function in different contexts.</p>
+<pre><code class="language-typescript">function id&lt;T&gt;(arg: T): T {
+  return arg;
+}
+</code></pre>
+<p>The id can be a string or a number. Rather than hardcode the type we can use the generic function and decide when we instantiate it what type will it have.</p>
+<p>This is legal:</p>
+<pre><code class="language-typescript">let outputString = id&lt;string&gt;(&quot;myString&quot;);
+// outputString: string;
+</code></pre>
+<p>So is this:</p>
+<pre><code class="language-typescript">let outputNumber = id&lt;number&gt;(984323243);
+// outputNumber: number;
+</code></pre>
+<p>This gives us additional flexibility when writing code that will grow along with our project.</p>
+<h3>Declaration Files (yours and theirs)</h3>
+<p>Type declarations are ways of providing Type information about JavaScript code base (which by their nature of being JavaScript lacks any type information) to the TypeScript compiler. The type declarations are usually in external files with a <code>.d.ts</code> extension.</p>
+<p><code>npm</code> is the recommended tool for managing declaration files. When managing declaration files with <code>npm</code>, the TypeScript compiler would automatically find the declaration files.</p>
+<p>If you want to generate declarations for your own projects you can use the <code>d</code> flag for TSC. This will generate the declaractions for you. It is not required but it may be good to have.</p>
+<p>A final note about declarations. You’re not guaranteed to find declaration files on NPM for all scripts and modules you use so you may have to create them yourself.</p>
+<p>Most of the time the creation is simple and the error in your editor will tell you what to do. Other times you will have to create the complete declaration file; Use the <a href="https://www.typescriptlang.org/docs/handbook/declaration-files/by-example.html">Declaration Reference</a> and the Declration <a href="https://www.typescriptlang.org/docs/handbook/declaration-files/deep-dive.html">Deep Dive</a> when building it.</p>
+<h3>Documenting Typescript code</h3>
+<p>I documented Javascript code with <a href="https://jsdoc.app/">JSDoc</a> in comments before the functions or the code.</p>
+<p>Typescript supports a <a href="https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html">subset</a> of JSDoc so I can leverage some Typescript functionality in my existing comments.</p>
+<p><a href="https://typedoc.org/">typedoc</a> provides a Typescript-specific documentation system. I may try it in a Typescript-only project but I’m hesitatnt to throw away all the JSDoc documentation I’ve already written.</p>
+<h3>Working with HTML</h3>
+<p>Working with HTML in Typescript is more complicated than the equivalent Javascript.</p>
+<p>Because we need to add types to elements that are not strictly part of the script, we must use type assertions to make sure the compiler understands what we want to do.</p>
+<p>Take the following code snippet as an example:</p>
+<pre><code class="language-js">const weight = document.getElementById('robotoWeight');
+const weightSlider = document.querySelector('.weightSlider');
+weightSlider.innerHTML = weight.value;
+</code></pre>
+<p>The compiler has no way of knowing what type of element <code>weight</code> or <code>weightSlider</code> reference because it lacks the context of the page the script will run in. The compiler throws an error on the last line of the example because HTMLElement doesn’t have a value property.</p>
+<p>One solution is to use <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions">type assertions</a> to modify the code to specify what we mean and what type of HTML elements we’re referencing to.</p>
+<pre><code class="language-typescript">const weight = document.getElementById('robotoWeight') as HTMLInputElement;
+const weightSlider = document.querySelector('.weightSlider') as HTMLElement;
+weightSlider.innerHTML = weight.value;
+</code></pre>
+<p>So now the compiler knows what type of HTML element weight references and that it has a value attribtue. Problem solved.</p>
+<p>The <a href="https://html.spec.whatwg.org/multipage/semantics.html#htmlhtmlelement">HTMLElement Interface</a> and its children provide a comprehensive list of all the elements you can cast to when working with Typescript.</p>
+<p>There’s a lot more to learn about Typescript but so far it’s boiled to this:</p>
+<p><strong>Be disciplined in working with Typescript as it won’t hesitate to fail the compilation and tell you where you were wrong, and stare at you while you try and figure out what the errors mean.</strong></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

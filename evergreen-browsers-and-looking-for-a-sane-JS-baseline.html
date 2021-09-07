@@ -1,0 +1,101 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Evergreen browsers and looking for a sane JS baseline</h1>
+<blockquote>
+<p>The term “evergreen browser” refers to browsers that are automatically upgraded to future versions, rather than being updated by distribution of new versions from the manufacturer, as was the case with older browsers.</p>
+<p>from Techopedia — <a href="https://www.techopedia.com/definition/31094/evergreen-browser">Evergreen Browser</a></p>
+</blockquote>
+<p>The concept of an evergreen browser is an interesting one from a development perspective but it’s not without its drawbacks.</p>
+<p>In an evergreen world developers don’t have to worry about what version of a browser a user has because it automatically updates to the latest version. Most major browsers are evergreen, either via autoupdating (Chromium browsers and Firefox) or via OS updates (like Safari).</p>
+<p>At least that’s the theory.</p>
+<p>I can think of at least two reasons why people would stop auto updating to the latest version of a given browser.</p>
+<p>There may be reasons why corporate IT departments want to stop browser updates, likely because there’s an issue preventing internal applications from working or the IT team needs to test an approve updates before updating hundreds or potentially thousands of computers.</p>
+<p>Other users may stop auto-updating their browsers on the mistaken notion that they will be able to keep Adobe Flash working past its end of life and despite the blocking of Flash content on the latest released version of the Flash Player plugin before its termination.</p>
+<p>So, even for a short time there may be users who can’t use apps that rely on the latest features.</p>
+<h2>Think features, not specific versions</h2>
+<p>So what do we do? We want to leverage modern features but we don’t want to transpile our code if we don’t have to but at the same time we want to support as large a browser base as possible.</p>
+<p>The first thing is not to worry about specific versions of the ECMAScript specification, but rather in syntax that is supported by your target browsers.</p>
+<p>As long as modern browsers (Chrome, Edge, Firefox, and Safari) support a given feature, we’re safe. These browsers make up more than 90% of the market, with other browsers that rely on the same rendering engines make up an additional 5%. Let’s look at some interesting features from older specifications that are available across browsers without needing to polyfill (next to the feature is the version of the ECMAscript specification where it was introduced)</p>
+<ul>
+<li>Classes (ES2015)</li>
+<li>Arrow functions (ES2015)</li>
+<li>Generators (ES2015)</li>
+<li>Block scoping (ES2015)</li>
+<li>Destructuring (ES2015)</li>
+<li>Rest and spread parameters (ES2015)</li>
+<li>Object shorthand (ES2015)</li>
+<li>Async/await (ES2017)</li>
+</ul>
+<p>So, if we choose to use these features as the core of our JS code, we don’t need to transpile them to support older browsers.</p>
+<p>Features in newer versions of the language specification generally have less consistent support across modern browsers, not enough to rely on those features in production environments.</p>
+<h2>Using modules in Node</h2>
+<p>One of the things that has really bothered me when working with Node is that getting modules and imports to work on Node-based projects.</p>
+<p>The first approach is to pay attention to the extension you use:</p>
+<p>Node treats following items as ES modules when passed to node as the initial input, or when referenced by import:</p>
+<ul>
+<li>Files ending in <code>.mjs</code></li>
+<li>Files ending in <code>.js</code>, or extensionless files, when the nearest parent package.json file with a <code>type=&quot;module&quot;</code> field</li>
+</ul>
+<p>Node.js will treat as CommonJS all other forms of input without a <code>type</code> field in <code>package.json</code>, or string input without the flag <code>--input-type</code>; this is meant to provide backward compatibility. However, now that Node supports both CommonJS and ES modules, we should always be explicit with the type of modules we are working with.</p>
+<p>Node.js will treat the following as CommonJS when passed to node as the initial input, or when referenced by import:</p>
+<ul>
+<li>Files ending in <code>.cjs</code>
+Files ending in <code>.js</code>, or extensionless files, when the nearest parent package.json file contains a top-level field “type” with a value of “commonjs”</li>
+</ul>
+<p>The second approach is to add fields to the <code>package.json</code> file. Node.js has standardized an “exports” field to define entry points for a package:</p>
+<pre><code class="language-json">{
+  &quot;exports&quot;: &quot;./index.js&quot;
+}
+</code></pre>
+<p>Modules referenced by the “exports” field imply Node 12.8 or later, which supports ES2019. This means that any module referenced using the “exports” field can be written in modern JavaScript.</p>
+<p>When consuming a module with an “exports” field we must assume that it contains modern code and transpile if necessary.</p>
+<p>However, if you choose not to transpile the code in a package with only “exports” field, it won’t be usable unless the browser supports the modern code you wrote.</p>
+<p>To make sure that the code will work with out transpilation use both the “exports” and “main” fields in your package.json file.</p>
+<p>“exports” will provide the modern code version and “main” will point to a ES5 + CommonJS version usable in older browsers.</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;foo&quot;,
+  &quot;exports&quot;: &quot;./modern.js&quot;,
+  &quot;main&quot;: &quot;./legacy.cjs&quot;
+}
+</code></pre>
+<p>There is one more thing we can do to optimize our code for both modern and legacy browsers.</p>
+<p>We can define a “module” field pointing to a second legacy bundle that uses JavaScript module syntax (import and export).</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;foo&quot;,
+  &quot;exports&quot;: &quot;./modern.js&quot;,
+  &quot;main&quot;: &quot;./legacy.cjs&quot;,
+  &quot;module&quot;: &quot;./module.js&quot;
+}
+</code></pre>
+<p>Bundlers, like Webpack and Rollup, use the “module” field to take advantage of module features and enable tree shaking.</p>
+<p>This is a legacy bundle that does not contain any modern code other than import/export statements. Use this method to ship a legacy fallback that is optimized for bundling.</p>
+<p>See <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a> for more information and more tools you can use when working with modern versus legacy code and <a href="https://nodejs.medium.com/announcing-core-node-js-support-for-ecmascript-modules-c5d6dc29b663">Announcing core Node.js support for ECMAScript modules</a> for information about Node module support.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

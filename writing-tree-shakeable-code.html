@@ -1,0 +1,64 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Writing tree-shakeable code</h1>
+<p><a href="https://webpack.js.org/guides/tree-shaking/">Tree shaking</a> has become one of the most popular performance features when working with bundlers.</p>
+<p>The idea behind tree shanking is that:</p>
+<ol>
+<li>You declare all of your imports and exports for each of your modules</li>
+<li>Your bundler (Webpack, Rollup, and so on) analyzes your dependency tree during the compilation step</li>
+<li>Any code that appears not to be used is dropped from the final bundle, or ‘tree-shaken’.</li>
+</ol>
+<p>That means that our library code should export individual functions rather than classes. It would be tempting to do something like this:</p>
+<pre><code class="language-js">export class Number {
+  constructor(num) {
+    this.num = num;
+  }
+  add(otherNum) {
+    return this.num + otherNum;
+  }
+  substract(otherNum) {
+    return this.num - otherNum;
+  }
+}
+</code></pre>
+<p>While this is perfectly fine, it will prevent bundlers from tree shaking the code since we’re exporting the entire class and all its methods regardless of whether they are used or not, the bundler has no way of knowing.</p>
+<p>Instead, export functions individually. This way, the bundler will know that if the function is not used then it can be tree shaken out of the final bundle.</p>
+<pre><code class="language-js">export function add(num, otherNum) {
+  return num + otherNum
+}
+
+export function substract(num, otherNum) {
+  return num - otherNum;
+}
+</code></pre>
+<p>Keep your module functions side-effect free. Unless the bundler can be 100% certain that a function will not be used in your code, it will err on the side of caution and not tree shake the affected function.</p>
+<p>Specifics of how to make sure tree shaking works depend on the tool chain that you use. Daniel Brain’s <a href="https://bluepnume.medium.com/javascript-tree-shaking-like-a-pro-7bf96e139eb7">JavaScript tree shaking, like a pro</a> provides a good introduction to tree shaking with WebPack and <a href="https://www.codingame.com/playgrounds/7463/tree-shaking-in-javascript-with-rollup">Tree-Shaking in JavaScript with Rollup</a> gives you a good starting point for tree shaking your code using Rollup.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Measurments on the web with css and javascript</h1>
+<p>How do we measure height and width for your layout and</p>
+<h2>Javascript</h2>
+<h3>clientWidth/Height</h3>
+<p>Measures the inner width/height of an element in pixels. It includes padding but not the vertical/Horizontal scrollbar (if present, if rendered), border or margin.</p>
+<pre><code class="language-javascript">let clientX = document.documentElement.clientWidth;
+let clientY = document.documentElement.clientHeight;
+</code></pre>
+<h3>InnerWidth/Height</h3>
+<p>Width/Height (in pixels) of the browser window viewport including, if rendered, the vertical/Horizontal scrollbar if presented and rendered.</p>
+<pre><code class="language-javascript">let windowX = window.innerWidth;
+let windowY = window.innerHeight;
+</code></pre>
+<h3>Safe bet the bigest of ClientWidth/Height and innerWidth/Height</h3>
+<p>The safest way to measure viewport dimensions is to use the largest of clientWidth /  innerWidth and clientHeight / innerHeight, something like this</p>
+<pre><code class="language-javascript">let windowW = Math.max(clientX, windowX);
+let windowH = Math.max(clientY, windowY);
+
+console.log(`There biggest values are ${windowW} x ${windowH}`);
+</code></pre>
+<h3>Making this into a function</h3>
+<p>Rather than make the calculation eveerytime we need it and run it again when the screen changes either because we resize the window in desktop (which has no effect in mobile) or change the display orientation (useful in mobile and some desktop monitors that can turn from vertical to horizontal).</p>
+<p>We first initialize variables to false or 0 in the global scope.</p>
+<p>We then calculate the values for the different elements inside the <code>calcScreen</code> function.</p>
+<p>We run the function.</p>
+<p>The most important parts of this version are the event listeners for <code>resize</code> and <code>orientationchange</code>. When either of those events trigger we want to rerun the function to get updated values.</p>
+<pre><code class="language-javascript">let screenW = screenH = windowW = windowH = false;
+
+var calcScreen = function() {
+  screenW = screen.width;
+  screenH = screen.height;
+  windowW = Math.max(document.documentElement.clientWidth, window.innerWidth);
+  windowH = Math.max(document.documentElement.clientHeight, window.innerHeight);
+};
+
+calcScreen();
+window.addEventListener(&quot;resize&quot;, calcScreen());
+window.addEventListener(&quot;orientationchange&quot;, calcScreen());
+</code></pre>
+<h2>CSS</h2>
+<h3>Viewport Units</h3>
+<ul>
+<li><a href="http://thenewcode.com/660/Using-vw-and-vh-Measurements-In-Modern-Site-Design">http://thenewcode.com/660/Using-vw-and-vh-Measurements-In-Modern-Site-Design</a></li>
+<li><a href="http://thenewcode.com/1137/MinMaxing-Understanding-vMin-and-vMax-in-CSS">http://thenewcode.com/1137/MinMaxing-Understanding-vMin-and-vMax-in-CSS</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>SVG and CSS for cool effects with text</h1>
+<p>In recent years there has been a lot of new features that make magazine-style layouts possible and enticing for designers to use and for developers to implement.</p>
+<p>Some of these features are quite old in terms of when they were introduced but it wasn’t until I saw the work of <a href="https://labs.jensimmons.com/">Jenn Simmons</a> and <a href="https://stuffandnonsense.co.uk/design">Andy Clarke</a> that I started seeing the real possibilities of dooing design on the web.</p>
+<p>Sure we’re still missing fragmentation primitives for the web and the purists seem to have won, so far. Regions are dead and no alternatives have surfaced yet.</p>
+<h2>Clip-path</h2>
+<p>Clipping an image means that we hide parts of the images from view while showing others.</p>
+<p>The following example will create a circle clipping area 100px in diameter around whatever image we add the class to.</p>
+<pre><code class="language-css">.clipped {
+  clip-path: circle(90px);
+}
+</code></pre>
+<p>This is equivalent to the following code that you may see in some examples.</p>
+<pre><code class="language-css">.clipped {
+  clip-path: circle(90px at center center);
+}
+</code></pre>
+<p>The second version of the code allows for more flexibility as we can move the center from which we generate the clipping path to create interesting variations on a theme.</p>
+<p>For example, using portraits of presenters at a meetup, we can play with the direction of the clip to create more interesting clip effects.</p>
+<p>Furthermore, we can define clip paths with SVG (and the full power it gives us), like the example below that will place circles in different places of the image.</p>
+<pre><code class="language-xml">&lt;svg width=&quot;0&quot; height=&quot;0&quot;&gt;
+  &lt;defs&gt;
+    &lt;clipPath id=&quot;bubbles&quot;&gt;
+      &lt;circle cx=&quot;200&quot; cy=&quot;100&quot; r=&quot;40&quot; /&gt;
+      &lt;circle cx=&quot;300&quot; cy=&quot;60&quot; r=&quot;40&quot; /&gt;
+      &lt;circle cx=&quot;490&quot; cy=&quot;50&quot; r=&quot;40&quot; /&gt;
+      &lt;circle cx=&quot;380&quot; cy=&quot;140&quot; r=&quot;40&quot; /&gt;
+      &lt;circle cx=&quot;220&quot; cy=&quot;220&quot; r=&quot;40&quot; /&gt;
+    &lt;/clipPath&gt;
+  &lt;/defs&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>And reference the <code>clipPath</code> SVG element from CSS like so:</p>
+<pre><code class="language-css">.clipped {
+  clip-path: url('#bubbles');
+}
+</code></pre>
+<p>An easy way to create clip path values for clipping is to use Bennet Feely’s <a href="https://bennettfeely.com/clippy/">Clippy</a>.</p>
+<h2>Mask</h2>
+<p>Masking is, from my perspective, far more complex than clipping. According to Sarah Drasner’s <a href="https://css-tricks.com/masking-vs-clipping-use/">Masking vs. Clipping: When to Use Each</a>:</p>
+<blockquote>
+<p>Think about masking as a way to apply complex, detailed, and shapes with varying opacity over another element. This can lead to really beautiful visual effects and performant alternatives to other techniques.</p>
+</blockquote>
+<p>And according to Chris Collier’s <a href="https://abookapart.com/products/practical-svg">Practical SVG</a>:</p>
+<blockquote>
+<p>Clipping and masking are related concepts because they are both capable of hiding parts of an image. But the distinction between them can be confusing, so let’s clear that up right now:</p>
+<p>Clipping is created from vector paths. Anything outside the path is hidden; anything inside is shown.</p>
+<p>Masking is created from images. Black parts of the image mask hide; white parts show through. Shades of gray force partial transparency—imagine a black-to-white gradient over an image that “fades out” the image.</p>
+</blockquote>
+<p>Using SVG makes it easier to create masks that we can use in an HTML document.</p>
+<p>The first SVG document creates the definitions of the elements we want to use inside a <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs">defs</a> to hold templates for the things we want to use inside <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs">symbols</a></p>
+<pre><code class="language-xml">&lt;div class=&quot;wrapper&quot;&gt;
+  &lt;svg width=&quot;200&quot; height=&quot;300&quot;&gt;
+    &lt;defs&gt;
+      &lt;symbol id=&quot;s-mask-circles&quot;&gt;
+        &lt;g stroke=&quot;lightgrey&quot; stroke-width=&quot;10&quot; fill=&quot;white&quot;&gt;
+          &lt;circle cx=&quot;125px&quot; cy=&quot;30%&quot; r=&quot;20%&quot; /&gt;
+          &lt;circle cx=&quot;52%&quot; cy=&quot;62%&quot; r=&quot;32%&quot; /&gt;
+        &lt;/g&gt;
+      &lt;/symbol&gt;
+
+      &lt;symbol id=&quot;illiad&quot;&gt;
+        &lt;image xlink:href=&quot;images/Illiad1-mod.jpg&quot; width=&quot;398&quot; height=&quot;300&quot; /&gt;
+      &lt;/symbol&gt;
+
+      &lt;symbol id=&quot;coffee&quot;&gt;
+        &lt;image xlink:href=&quot;images/coffee2.png&quot; width=&quot;199&quot; height=&quot;375&quot; /&gt;
+      &lt;/symbol&gt;
+
+      &lt;mask id=&quot;mask-circles&quot;&gt;
+        &lt;use xlink:href=&quot;#s-mask-circles&quot; /&gt;
+      &lt;/mask&gt;
+    &lt;/defs&gt;
+
+  &lt;/svg&gt;
+</code></pre>
+<p>We can then use additional SVG elements to create the masks. The examples below uses the elements we defined earlier in the <code>mask</code> and <code>use</code> elements.</p>
+<pre><code class="language-xml">&lt;svg width=&quot;200&quot; height=&quot;300&quot;&gt;
+  &lt;g mask=&quot;url(#mask-circles)&quot;&gt;
+    &lt;use xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; xlink:href=&quot;#illiad&quot;&gt;&lt;/use&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;
+
+&lt;svg width=&quot;200&quot; height=&quot;300&quot;&gt;
+  &lt;g mask=&quot;url(#mask-circles)&quot;&gt;
+    &lt;use xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; xlink:href=&quot;#coffee&quot;&gt;&lt;/use&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>This works with SVG elements and the flexibility they give you is amazing. But it doesn’t work with CSS directly.</p>
+<p>Using masks in CSS is a two step process.</p>
+<ol>
+<li>Create the mask image using a tool like Photoshop or GIMP</li>
+<li>Use the mask image as the attribute for the <code>mask-image</code> attribute</li>
+<li>Use the <code>mask-type</code> attribute to indicate what type of mask you want to use</li>
+</ol>
+<p>In the HTML document we provide the background image for our experiment.</p>
+<pre><code class="language-html">&lt;img src=&quot;images/chile-01.jpg&quot;&gt;
+</code></pre>
+<p>The CSS does a few things:</p>
+<ol>
+<li>It says the image to <code>display-block</code> just to make sure in case we set it to something else in the stylesheet</li>
+<li>Set <code>mask-image</code> to the image that we want to set as the mask</li>
+<li>Position the mask image using <code>mask-position</code></li>
+<li>Choose if the we want to repeat the mask image using <code>mask-repeat</code></li>
+</ol>
+<pre><code class="language-css">img {
+  margin: 20vh auto;
+  display: block; /* 1 */
+  width: 50%;
+  height: 400px;
+  -webkit-mask-image:
+    url(images/mask-image.png); /* 2 */
+  mask-image:
+    url(images/mask-image.png); /* 2 */
+  -webkit-mask-position: center bottom; /* 3 */
+  mask-position: center bottom; /* 3 */
+  -webkit-mask-repeat: no-repeat; /* 4 */
+  mask-repeat: no-repeat; /* 4 */
+}
+</code></pre>
+<p>Right now we have to duplicate code foor the mask attributes because Blink supports only prefixed versions of the attributes but we still want to future proof our code. Tools like Autoprefixer or Prefix Free will keep our code DRY.</p>
+<p>In the video CJ Gammon, from Adobe, presents a deep dive on masking, which may be easier to process.</p>
+<div class="video">
+  <iframe loading="lazy" width="560" height="315" src="https://www.youtube.com/embed/jSmp3osrQiA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<h2>Motion on a path</h2>
+<p>Motion on a path is interesting. It allows you to create animations that follow a set path (defined using <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths">SVG path</a> elements).</p>
+<p>The three aspects of this code that are important:</p>
+<ol>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/offset-path">offset-path</a> sets the path we want the animation too navigate</li>
+<li>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/animation">animation</a></li>
+<li>We create the steps of the animatioon using the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes">@keyframes</a> at-rule. Make sure the name matches the one we used in the animation rule</li>
+</ol>
+<pre><code class="language-css">#motion-demo {
+  offset-path: path('M6,150C49.63,93,105.79,36.65,156.2,47.55,207.89,58.74,213,131.91,264,150c40.67,14.43,108.57-6.91,229-145'); /* 1 */
+  animation: move 4000ms infinite alternate ease-in-out; /* 2 */
+  width: 40px;
+  height: 40px;
+  background: rebeccapurple;
+}
+
+@keyframes move { /* 3 */
+  0% {
+    offset-distance: 0%;
+  }
+  100% {
+    offset-distance: 100%;
+  }
+}
+</code></pre>
+<h2>Text on a path</h2>
+<p>We can also do text on a path using SVG <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths">paths</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text">text</a>, and <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/textPath">textPath</a> elements.</p>
+<pre><code class="language-xml">&lt;svg viewBox=&quot;0 0 425 300&quot;&gt;
+  &lt;path id=&quot;curve&quot;
+      d=&quot;M6,150C49.63,93,105.79,36.65,156.2,47.55,207.89,58.74,213,131.91,264,150c40.67,14.43,108.57-6.91,229-145&quot; /&gt;
+  &lt;text x=&quot;25&quot;&gt;
+    &lt;textPath xlink:href=&quot;#curve&quot;&gt;
+      Dangerous Curves Ahead
+    &lt;/textPath&gt;
+  &lt;/text&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>There are ways to animate the text as it moves on the path we’ve set up. Sadly it’s an all-SVG solution right now.</p>
+<pre><code class="language-xml">&lt;svg id=&quot;canvas&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; version=&quot;1.1&quot; width=&quot;800px&quot; height=&quot;800px&quot; preserveAspectRatio=&quot;none&quot;&gt; &lt;!-- 1 --&gt;
+  &lt;defs&gt;
+    &lt;path id=&quot;curve&quot; d=&quot;
+          M 400, 200
+          a100,100 0 1,1 0,-.00001 z&quot;
+          fill=&quot;none&quot;
+          stroke=&quot;transparent&quot;
+          stroke-width=&quot;1&quot;&gt;&lt;/path&gt; &lt;!-- 2 --&gt;
+  &lt;/defs&gt;
+  &lt;text dx=&quot;50&quot;
+        font-family=&quot;Verdana&quot;
+        font-size=&quot;18&quot;
+        fill=&quot;rebeccapurple&quot;&gt; &lt;!-- 3 --&gt;
+      &lt;textPath
+        xlink:href=&quot;#curve&quot;&gt;Hello, here is some text animated along a crazy path.&lt;/textPath&gt; &lt;!-- 4 --&gt;
+      &lt;animate
+        attributeName=&quot;dx&quot;
+        type=&quot;xml&quot;
+        dur=&quot;12s&quot;
+        from=&quot;20&quot;
+        to=&quot;900&quot;
+        repeatCount=&quot;indefinite&quot; /&gt; &lt;!-- 5 --&gt;
+  &lt;/text&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>The example does the following:</p>
+<ol>
+<li>Set up the SVG documents with the correct namespaces and</li>
+<li>Under <code>defs</code> we set up a <code>path</code> that the text will navigate on</li>
+<li>Set up a text element containing the text path and the associated animation</li>
+<li>Set up the content for the text we want to animate. The link to the path defined in step 2 associates the text with the path that</li>
+<li>We use a SMIL <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate">animate</a> tag to generate the animation</li>
+</ol>
+<p>This last bit is important. I’m not 100% sure if the <code>animate</code> element uses SMIL or not but either waay we should move it to CSS or Web Animation API to make sure that it will continue too work after SMIL is removed from browsers.</p>
+<p>Chris Coyier’s CSS Tricks Screencast “Three Ways to Animate SVG” covers different ways to do animated SVGs</p>
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/lM7cuk5DPgc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>If nothing else works, you can always pull out the big guns and use animation libraries like GSAP to animate your SVG. See Sarah Drasner’s <a href="https://www.amazon.com/SVG-Animations-Implementations-Responsive-Animation/dp/1491939702/ref=sr_1_1">SVG Animations</a> for more information.</p>
+<h2>Blend Modes</h2>
+<p>One of the first things that attracted me to typography and the expressive potential of the web was seeing text with a background image bleeding through inside the shape of the letters</p>
+<p>I later learned that technique is called blend modes and the one in particular I was interested in is called mix-blend-mode and there are 16 different posibilities:</p>
+<ul>
+<li>color</li>
+<li>color-burn</li>
+<li>color-dodge</li>
+<li>darken</li>
+<li>difference</li>
+<li>exclusion</li>
+<li>hard-light</li>
+<li>hue</li>
+<li>lighten</li>
+<li>luminosity</li>
+<li>multiply</li>
+<li>normal</li>
+<li>overlay</li>
+<li>saturation</li>
+<li>screen</li>
+<li>soft-light</li>
+</ul>
+<p>See MDN’s <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/blend-mode">Blend Mode</a> for a description of what the different blend mode values do.</p>
+<p>The basic mix blend looks like this.</p>
+<pre><code class="language-css">h1 {
+  margin: 0;
+  font-size: 20vw;
+  text-transform: uppercase;
+  font-family: Montserrat, sans-serif;
+  line-height: 1.2;
+}
+
+.blended {
+  background-image:
+    url(../images/tea-ceremony.jpg);
+  background-position: 50% 50%;
+}
+
+.blended h1 {
+  color: #000;
+  background: #fff;
+  font-size: 19vw;
+  mix-blend-mode: lighten;
+}
+</code></pre>
+<p>The markup for the blending is as simple as possible. We use a div for the background image and the text we want to blend it with</p>
+<pre><code class="language-html">&lt;div class=&quot;blended&quot;&gt;
+  &lt;h1&gt;Ichi-Go Ichi-E&lt;/h1&gt;
+&lt;/div&gt;
+</code></pre>
+<p>The second type of blending we can do is background blending. In this we take one or more background images, gradients, or solid colors and blend them together.</p>
+<p>The second example, taken from Codrops <a href="https://tympanus.net/codrops/css_reference/background-blend-mode/">background-blend-mode</a> page mixes two backround images and a color to create a very interesting effect.</p>
+<p>The important part is that we can have any number of background images, colors or gradients and any number of blend modes to create whatever effects we can imagine.</p>
+<pre><code class="language-css">.backgrounder2 {
+  width: 600px;
+  height: 400px;
+
+  background-image:
+    url(images/blend-mode-texture.jpg),
+    url(images/blend-mode-image.jpg);
+  background-color: olive;
+  background-blend-mode: hard-light;
+}
+</code></pre>
+<p>One final thing when talking about blend modes is that we can use gradients as background images to blend.</p>
+<p>In the next example we swap one of the images with a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/linear-gradient">linear gradient</a> to blend the image with, taking advantage of everything we can do with gradients.</p>
+<pre><code class="language-css">.backgrounder3 {
+  width: 600px;
+  height: 400px;
+
+  background-image:
+    linear-gradient(to right, #69B62F, #DE3375),
+    url(images/blend-mode-example-texture.jpg);
+  background-blend-mode: hard-light;
+}
+</code></pre>
+<p>Blend modes give us one more tool in the battle for creative layouts on the web.</p>
+<h2>z-index</h2>
+<p>z-index controls the stacking order of elements that share the same parent. For people looking at the screen elements with a higher z-index value will appear on top, or over, other elements without z-index.</p>
+<p><code>z-index</code> will only work on positioned elements. Even if you give an element a z-index value, it will have no effect on the element unless it is positioned; i.e. unless it has a <a href="https://tympanus.net/codrops/css_reference/position/">position</a> value other than the default <code>static</code>.</p>
+<p>This figure illustrates the stacking order of different elements.</p>
+<figure>
+  <img src='https://codropspz-tympanus.netdna-ssl.com/codrops/wp-content/uploads/2014/10/new-stacking-order.png' alt='Stacking order when using z-index and other elements' width='560' height='auto'>
+  <figcaption>Stacking order when using z-index and other elements</figcaption>
+</figure>
+<p>This example uses the following HTML:</p>
+<pre><code class="language-html">&lt;div class=&quot;container&quot;&gt;
+  &lt;div class=&quot;image&quot;&gt;
+    &lt;img
+      src='image/chile-02.jpg'
+      alt='Easter Island, Chile'&gt;
+  &lt;/div&gt;
+  &lt;h1&gt;Easter Island&lt;/h1&gt;
+&lt;/div&gt;
+</code></pre>
+<p>And the acompanying CSS</p>
+<pre><code class="language-css">.container {
+  position: absolute;
+}
+
+.image {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+}
+
+.text {
+  position: absolute;
+  z-index: 10;
+  width: 100vw;
+  color: white;
+  font-family: cursive;
+  font-size: 8vw;
+  left: 500px;
+  top: 800px
+}
+</code></pre>
+<p>To stack the text on top of the image to give the impression that the text is laid on top. Because we’re using absolutely positioned content we can play with left, top and z-index to create combinations of positioned text.</p>
+<h2>Final Notes: This is a nice to have</h2>
+<p>One final thing to remember is that, for all the cool things you can do with the techniques in this post, in the end they are icing on the cake.</p>
+<p>Where possible, and assuming that your target browsers support it, use <a href="https://hacks.mozilla.org/2016/08/using-feature-queries-in-css/">feature queries</a>, the @support at-rule.</p>
+<p>This way you can provide two branches of code based on the support for a feature or the lack thereof.</p>
+<p>As an example, this code will only use the code for <code>#motion-demo</code> if the browser supports either the prefixed or unprefixed versions of clip-path</p>
+<pre><code class="language-css">@supports (clip-path: polygon(0 0)) or (-webkit-clip-path: polygon(0 0)) {
+  #motion-demo {
+    offset-path: path('M6,150C49.63,93,105.79,36.65,156.2,47.55,207.89,58.74,213,131.91,264,150c40.67,14.43,108.57-6.91,229-145');
+    animation: move 4000ms infinite alternate ease-in-out;
+    width: 40px;
+    height: 40px;
+    background: rebeccapurple;
+  }
+}
+</code></pre>
+<p>Lkewise, if you use an inline SVG image to take advantage of what you can do with it, remember to provide an alternative if your target browsers don’t support the feature.</p>
+<h2>References and tools</h2>
+<ul>
+<li>clip-path
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/clip-path">clip-path</a> @ MDN</li>
+<li><a href="https://bennettfeely.com/clippy/">Clippy</a></li>
+<li><a href="https://hacks.mozilla.org/2018/09/make-your-web-layouts-bust-out-of-the-rectangle-with-the-firefox-shape-path-editor/">Firefox Shape Path Editor</a></li>
+<li><a href="https://css-tricks.com/svg-path-syntax-illustrated-guide/">The SVG path Syntax: An Illustrated Guide</a></li>
+</ul>
+</li>
+<li>Masking
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/mask">Mask</a> @ MDN</li>
+<li><a href="https://css-tricks.com/masking-vs-clipping-use/">Masking vs. Clipping: When to Use Each</a></li>
+<li><a href="https://tympanus.net/codrops/css_reference/mask-image/">mask-image</a> reference at Codrops</li>
+<li><a href="https://tympanus.net/codrops/css_reference/mask-composite/">mask-composite</a> reference at Codrops</li>
+</ul>
+</li>
+<li>Motion on a path
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Motion_Path">CSS Motion Path</a> @ MDN</li>
+<li><a href="https://danielcwilson.com/blog/2020/01/motion-path-quirks/">Get Moving (or not) with CSS Motion Path</a></li>
+<li><a href="https://mavo.io/demos/svgpath/">SVG Path Generator</a> using <a href="https://mavo.io/">Mavo</a></li>
+<li><a href="https://css-tricks.com/moving-text-on-a-curved-path/">Moving Text on a Curved Path</a></li>
+<li><a href="https://css-tricks.com/video-screencasts/135-three-ways-animate-svg/">#135: Three Ways to Animate SVG</a> CSS Tricks Screencast</li>
+<li><a href="https://codepen.io/jakob-e/pen/bgBegJ">How to draw a circle using SVG paths</a></li>
+</ul>
+</li>
+<li>Blend Modes
+<ul>
+<li><a href="https://drafts.fxtf.org/compositing-1/">Compositing and Blending Level 1</a> W3C Editor’s Draft</li>
+<li><a href="https://css-tricks.com/basics-css-blend-modes/">Basics of CSS Blend Modes</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/mix-blend-mode">mix-blend-mode</a> @ MDN</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/background-blend-mode">background-blend-mode</a> @ MDN</li>
+<li><a href="https://tympanus.net/codrops/css_reference/mix-blend-mode/">mix-blend-mode</a> reference at Codrops</li>
+<li><a href="https://tympanus.net/codrops/css_reference/background-blend-mode/">background-blend-mode</a> reference at Codrops</li>
+</ul>
+</li>
+<li>z-index
+<ul>
+<li><a href="https://24ways.org/2019/zs-still-not-dead-baby-zs-still-not-dead/">Z’s Still Not Dead Baby, Z’s Still Not Dead</a></li>
+<li><a href="https://tympanus.net/codrops/css_reference/z-index/">CSS Reference: z-index</a></li>
+</ul>
+</li>
+<li>Accessibility considerations
+<ul>
+<li><a href="https://alistapart.com/article/designing-safer-web-animation-for-motion-sensitivity/">Designing Safer Web Animation For Motion Sensitivity</a></li>
+<li><a href="https://css-tricks.com/introduction-reduced-motion-media-query/">An Introduction to the Reduced Motion Media Query</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Workbox 5, or why you shouldn’t wait to migrate to a newer version</h1>
+<p>In my <a href="https://layout-experiments.firebaseapp.com/">layouts site</a> I use <a href="https://developers.google.com/web/tools/workbox/">Workbox</a> as an abstraction to create a service worker.</p>
+<p>I created the service worker with version 3 of the library and it was good. The problem is that the longer it passes the harder it is to migrate to a later version.</p>
+<p>This was the case when moving from version 3 to version 5, and, of course, as soon as I decide to upgrade to version 5, the first pre-release versions of version 6 go out into NPM.</p>
+<p>But leaving aside version 6 for now, I want to look at the new service worker script that I wrote for version 5. This is just the service worker, I haven’t looked at how to use <code>workbox.window</code> to notify users that they need to reload the page when updates happen. I may save that as an exercise for later.</p>
+<p>In Workbox 3, I separate the route registration from the route handler. The result looked like this example using Typekit fonts.</p>
+<pre><code class="language-js">// Third party fonts from typekit
+workbox.routing.registerRoute(/https:\/\/use\.typekit\.net/, (args) =&gt; {
+  return extFontHandler.handle(args);
+});
+
+const extFontHandler = workbox.strategies.staleWhileRevalidate({
+  cacheName: 'external-fonts',
+  plugins: [
+    new workbox.expiration.Plugin({
+      maxAgeSeconds: 30 * 24 * 60 * 60,
+      // maxEntries: 20,
+    }),
+    new workbox.cacheableResponse.Plugin({
+      statuses: [0, 200],
+      // Automatically cleanup if quota is exceeded.
+      purgeOnQuotaError: true,
+    }),
+  ],
+});
+</code></pre>
+<p>In Workbox 5 I’ve moved back to using a single function to register and handle the route. I’ve also moved to using a combination of <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL/origin">url.origin</a>, <a href="https://fetch.spec.whatwg.org/#concept-request-destination">request.destination</a> and regular expressions to better track what is the route working on. See <a href="http://bit.ly/2CW117e">Service Worker Caching Strategies Based on Request Types</a> for more on how <code>request.destination</code> works in service workers.</p>
+<p>This example caches fonts from <a href="https://fonts.adobe.com/">Adobe Fonts</a> (FKA Typekit). It will use a <a href="https://developers.google.com/web/fundamentals/instant-and-offline/offline-cookbook#stale-while-revalidate">stale while revalidate</a> strategy meaning that it will serve content from the cache (even if it’s not the latest) while fetching the updated content from the network and placing it in the cache for later visitors.</p>
+<p>It’s unlikely that fonts will change frequently. So we’re OK with serving the older version while we fetch the updated version and cache it for future visits.</p>
+<p>We also set up the expliration plugin with the following conditions:</p>
+<ul>
+<li>Fonts will remain in the cache for 30 days (<strong>maxAgeSeconds</strong>)</li>
+<li>There will be no more than 30 items in the cache. If there are new entries that will push the cache to more than 30 entries, the oldest ones will be removed to make space (<strong>maxEntries</strong>)</li>
+<li>If the origin/domain runs of out storage space in the browser, this cache will be deleted (<strong>purgeOnQuotaError</strong>)</li>
+</ul>
+<pre><code class="language-js">registerRoute(
+  ({url}) =&gt; url.origin === 'https://use.typekit.net/',
+  new StaleWhileRevalidate({
+    cacheName: 'Typekit Fonts',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 30 * 24 * 60 * 60,
+        maxEntries: 30,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  })
+);
+</code></pre>
+<p>The way you register and use routes looks similar but, to me, it’s the <code>catch</code> handler is triggered when any of the other routes fail to generate a response.</p>
+<pre><code class="language-js">setCatchHandler(({event}) =&gt; {
+  switch (event.request.destination) {
+    case 'document':
+      return matchPrecache('pages/offline.html');
+    break;
+
+    case 'image':
+      return new Response(`&lt;svg role=&quot;img&quot;
+        aria-labelledby=&quot;offline-title&quot;
+        viewBox=&quot;0 0 400 300&quot;
+        xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+        &lt;title id=&quot;offline-title&quot;&gt;Offline&lt;/title&gt;
+        &lt;g fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;&gt;
+        &lt;path fill=&quot;#D8D8D8&quot; d=&quot;M0 0h400v300H0z&quot;/&gt;
+        &lt;text fill=&quot;#9B9B9B&quot;
+            font-family=&quot;Helvetica Neue,Arial,Helvetica,sans-serif&quot;
+            font-size=&quot;72&quot; font-weight=&quot;bold&quot;&gt;
+        &lt;tspan x=&quot;93&quot; y=&quot;172&quot;&gt;offline&lt;/tspan&gt;&lt;/text&gt;&lt;/g&gt;
+      &lt;/svg&gt;`,
+    {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'no-store',
+      },
+    });
+    break;
+
+    default:
+      return Response.error();
+  }
+});
+</code></pre>
+<p>I am looking at doing some further work using <a href="https://developers.google.com/web/tools/workbox/modules/workbox-window">workbox.window</a> to notify the user if there are changes so they reload the page to get fresh information.</p>
+<p>See <a href="https://redfin.engineering/service-workers-break-the-browsers-refresh-button-by-default-here-s-why-56f9417694">Service Workers Break the Browser’s Refresh Button by Default; Here’s Why</a> for an explanation of why service workers break the refresh button in browsers and <a href="https://redfin.engineering/how-to-fix-the-refresh-button-when-using-service-workers-a8e27af6df68">How to Fix the Refresh Button When Using Service Workers</a> for a way to solve this problem</p>
+<p>Another thing I want to explore is how to use Workbox to load individual entries on user request, rather than automatically on page load. Something similar to what <a href="https://una.im/save-offline/">Una Kravets</a> and <a href="https://www.sarasoueidan.com/blog/going-offline/">Sara Souedain</a> have done to only cache content on request.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

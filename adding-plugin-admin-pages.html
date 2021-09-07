@@ -1,0 +1,238 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Plugin Topics: Adding Plugin Admin Pages</h1>
+<p>If we want to allow users to configure our plugin, we can add menus to the admin pages either as a top-level menu or a submenu of an existing menu.</p>
+<p>When used with the settings and options APIs we get control of how users configure the plugin from the admin area, assuming that they have permission to do so.</p>
+<h2>Top Level Menus</h2>
+<p><a href="https://developer.wordpress.org/plugins/administration-menus/top-level-menus/">Top-Level Menus</a> are what people see when they first view the admin area. This means that our admin page has more visibility but, depending on the plugin, it may be better to use a submenu</p>
+<p>The first step is to create a function that outputs the HTML. In this function, we will perform the necessary security checks and render the options we’ve registered using the Settings API.</p>
+<div class="message info">
+  <p><strong>Note:</strong></p>
+  <p>Wrap your HTML using a <code>&lt;div></code> with a class of <code>wrap</code>.
+</p></div>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_options_page_html() {
+?&gt;
+  &lt;div class=&quot;wrap&quot;&gt;
+    &lt;h1&gt;&lt;?php echo esc_html( get_admin_page_title() ); ?&gt;&lt;/h1&gt;
+    &lt;form action=&quot;options.php&quot; method=&quot;post&quot;&gt;
+      &lt;?php
+      // output security fields for the registered setting &quot;rivendellweb_options&quot;
+      settings_fields( 'rivendellweb_options' );
+      // output setting sections and their fields
+      // (sections are registered for &quot;rivendellweb&quot;, each field is registered to a specific section)
+      do_settings_sections( 'rivendellweb' );
+      // output save settings button
+      submit_button( __( 'Save Settings', 'textdomain' ) );
+      ?&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+  &lt;?php
+  }
+</code></pre>
+<p>The second step is to register the Rivendellweb menu. Make sure you attach your function as a callback to the <a href="https://developer.wordpress.org/reference/hooks/admin_menu/">admin_menu</a> hook.</p>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_options_page() {
+  add_menu_page(
+      'Rivendellweb',
+      'Rivendellweb Options',
+      'manage_options',
+      'rivendellweb',
+      'rivendellweb_options_page_html',
+      plugin_dir_url(__FILE__) . 'images/icon_rivendellweb.png',
+      20
+  );
+}
+
+add_action( 'admin_menu', 'rivendellweb_options_page' );
+</code></pre>
+<p>For a list of parameters and what each, see the add_menu_page() in the reference.</p>
+<h2>Sub Menus</h2>
+<p><a href="https://developer.wordpress.org/plugins/administration-menus/sub-menus/">Sub-Menus</a> place the admin page as a submenu of an existing page. For most plugins, this makes more sense than creating a top-level menu.</p>
+<p>Just like with top-level menus, adding a submenu is a two-step process.</p>
+<p>The first step creates a function that will output the HTML. In this function, we will perform the necessary security checks and render the options we’ve registered using the Settings API.</p>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_options_page_html() {
+    // check user capabilities
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+    ?&gt;
+    &lt;div class=&quot;wrap&quot;&gt;
+        &lt;h1&gt;&lt;?php echo esc_html( get_admin_page_title() ); ?&gt;&lt;/h1&gt;
+        &lt;form action=&quot;options.php&quot; method=&quot;post&quot;&gt;
+            &lt;?php
+            // output security fields for the registered setting &quot;rivendellweb_options&quot;
+            settings_fields( 'rivendellweb_options' );
+            // output setting sections and their fields
+            // (sections are registered for &quot;rivendellweb&quot;, each field is registered to a specific section)
+            do_settings_sections( 'rivendellweb' );
+            // output save settings button
+            submit_button( __( 'Save Settings', 'textdomain' ) );
+            ?&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+    &lt;?php
+}
+</code></pre>
+<p>The second step is to register the Sub-menu. Attach the registration to the <code>admin_menu</code> action hook.</p>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_options_page()
+{
+    add_submenu_page(
+        'tools.php',
+        'Rivendellweb Options',
+        'Rivendellweb Options',
+        'manage_options',
+        'rivendellweb',
+        'rivendellweb_options_page_html'
+    );
+}
+add_action('admin_menu', 'rivendellweb_options_page');
+</code></pre>
+<p>For a list of parameters and what each do see the <a href="https://developer.wordpress.org/reference/functions/add_submenu_page/">add_submenu_page()</a> in the reference.</p>
+<h2>Settings API</h2>
+<p>You must define a new setting using <a href="https://developer.wordpress.org/reference/functions/register_setting/">register_setting()</a>, it will create an entry in the <code>{$wpdb-&gt;prefix}_options</code> table.</p>
+<p>You can add new sections on existing pages using <a href="https://developer.wordpress.org/reference/functions/add_settings_section/">add_settings_section()</a>.</p>
+<p>You can add new fields to existing sections using <a href="https://developer.wordpress.org/reference/functions/add_settings_field/">add_settings_field()</a>.</p>
+<div class="message danger">
+  <p><strong>Alert:</strong></p>
+  <p><code>register_setting()</code> as well <code>add_settings_*()</code> functions should be added to the <code>admin_init</code> action hook.</p>
+</div>
+<p>This is a full example of settings:</p>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_settings_init() {
+    register_setting('reading', 'rivendellweb_setting_name');
+ 
+    add_settings_section(
+        'rivendellweb_settings_section',
+        'Rivendellweb Settings Section', 'rivendellweb_settings_section_callback',
+        'reading'
+    );
+ 
+    add_settings_field(
+        'rivendellweb_settings_field',
+        'Rivendellweb Setting', 'rivendellweb_settings_field_callback',
+        'reading',
+        'rivendellweb_settings_section'
+    );
+}
+ 
+/**
+ * register rivendellweb_settings_init to the admin_init action hook
+ */
+add_action('admin_init', 'rivendellweb_settings_init');
+ 
+/**
+ * callback functions
+ */
+ 
+function rivendellweb_settings_section_callback() {
+    echo '&lt;p&gt;Rivendellweb Section Introduction.&lt;/p&gt;';
+}
+ 
+// field content cb
+function rivendellweb_settings_field_callback() {
+    $setting = get_option('rivendellweb_setting_name');
+    ?&gt;
+    &lt;input type=&quot;text&quot; name=&quot;rivendellweb_setting_name&quot; value=&quot;&lt;?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?&gt;&quot;&gt;
+    &lt;?php
+}
+</code></pre>
+<h3>Registering Settings</h3>
+<p>See <a href="https://developer.wordpress.org/reference/functions/add_settings_field/">register_setting()</a> in the Function Reference for an explanaton about the used parameters.</p>
+<h3>Addings Settings Sections</h3>
+<p>Sections are the groups of settings you see on WordPress settings pages with a shared heading. In your plugin, you can add new sections to existing settings pages rather than creating a whole new page. This makes your plugin simpler to maintain and creates fewer new pages for users to learn.</p>
+<p>Please <a href="https://developer.wordpress.org/reference/functions/register_setting/">add_settings_section()</a> for full explanation about the used parameters.</p>
+<h3>Adding Fields</h3>
+<p>Refer to the Function Reference about <a href="https://developer.wordpress.org/reference/functions/add_settings_section/">add_settings_field()</a> for information about the used parameters</p>
+<h3>Getting Settings</h3>
+<p>Getting settings is accomplished with the <a href="https://developer.wordpress.org/reference/functions/get_option/">get_option()</a> function.</p>
+<p>The function accepts two parameters: the name of the option and an optional default value for that option.</p>
+<pre><code class="language-php">&lt;?php
+$setting = get_option('rivendellweb_setting_name');
+</code></pre>
+<h2>Options API</h2>
+<p>The Options API allows developers to create, read, update and delete WordPress options. <strong><em>As far as I understand it, the Settings API lays out the settings page and the Options API handles storing and retrieving the options from the database.</em></strong></p>
+<h3>Where Options are Stored?</h3>
+<p>Options are stored in the <code>{$wpdb-&gt;prefix}_options</code> table. <code>$wpdb-&gt;prefix</code> is defined by the <code>$table_prefix</code> variable set in the wp-config.php file.</p>
+<h3>How Options are Stored?</h3>
+<p>Options may be stored in the WordPress database in one of two ways: as a single value or as an array of values.</p>
+<h4>Single Value</h4>
+<p>When saved as a single value, the option name refers to a single value.</p>
+<pre><code class="language-php">&lt;?php
+// add a new option
+add_option('rivendellweb_custom_option', 'hello world!');
+// get an option
+$option = get_option('rivendellweb_custom_option');
+</code></pre>
+<h4>Array of Values</h4>
+<p>When saved as an array of values, the option name refers to an array, which itself may be comprised key/value pairs.</p>
+<p><strong><em>If you have a large number of options to set, using arrays of values is the better solution since adding an array reduced the number of computationally expensive transactions required to save the options.</em></strong></p>
+<pre><code class="language-php">&lt;?php
+// array of options
+$data_r = array('title' =&gt; 'hello world!', 1, false );
+// add a new option
+add_option('rivendellweb_custom_option', $data_r);
+// get an option
+$options_r = get_option('rivendellweb_custom_option');
+// output the title
+echo esc_html($options_r['title']);
+</code></pre>
+<h4>Available functions</h4>
+<p>The following functions are available as part of the Options API. The difference between the <code>*_site_option</code> functions and their plain counterparts is that the <code>site</code> functions are meant for WordPress multi site networks where the other ones are meant for individual sites.</p>
+<ul>
+<li>Add Option
+<ul>
+<li><a href="https://developer.wordpress.org/reference/functions/add_option/">add_option()</a></li>
+<li><a href="https://developer.wordpress.org/reference/functions/add_site_option/">add_site_option</a></li>
+</ul>
+</li>
+<li>Get Option
+<ul>
+<li><a href="https://developer.wordpress.org/reference/functions/get_option/">get_ottion()</a></li>
+<li><a href="https://developer.wordpress.org/reference/functions/get_site_option/">get_site_option()</a></li>
+</ul>
+</li>
+<li>Update Option
+<ul>
+<li><a href="https://developer.wordpress.org/reference/functions/update_option/">update_option()</a></li>
+<li><a href="https://developer.wordpress.org/reference/functions/update_site_option/">update_site_option()</a></li>
+</ul>
+</li>
+<li>Delete Option
+<ul>
+<li><a href="https://developer.wordpress.org/reference/functions/delete_option/">delete_option()</a></li>
+<li><a href="https://developer.wordpress.org/reference/functions/delete_site_option/">delete_site_option()</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

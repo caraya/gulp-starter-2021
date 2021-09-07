@@ -1,0 +1,65 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Add inline scripts in WordPress</h1>
+<p>When working with WordPress there are times when you need to insert an inline script into a page or a template. This post will discuss two ways to do it</p>
+<h2>Method 1: wp_add_inline_script()</h2>
+<p>The first method, <code>wp_add_inline_script()</code> works with enqueued scripts and uses the same handle that we enqueued the script with to add the inline script to the page.</p>
+<p>With this method we can be sure that the enqueued script will be added to the page before the inline script.</p>
+<pre><code class="language-php">&lt;?php
+function mytheme_enqueue_typekit() {
+    wp_enqueue_script( 'mytheme-typekit', 'https://use.typekit.net/.js', array(), '1.0' );
+    
+    wp_add_inline_script( 
+      'mytheme-typekit', 
+      'try{Typekit.load({ async: true });}catch(e){}'
+    );
+}
+
+add_action( 'wp_enqueue_scripts', 'mytheme_enqueue_typekit' );
+</code></pre>
+<h2>Method 2: wp_footer()</h2>
+<p>Method 1 works best when the script we add is dependent on other scripts we’ve enqueued. There may be other situations where we need to add an independent script to the page that doesn’t require any other scripts to be enqueued.</p>
+<p>There may be times when I want to use a module (adding <code>type=&quot;module&quot;</code> to the script). I am not aware of any way you can do so using <code>wp_add_inline_script()</code> or <code>wp_script_add_data()</code>.</p>
+<p>Using <a href="https://developer.wordpress.org/reference/hooks/wp_footer/">wp_footer</a> insers the value of its second parameter into the document before the closing <code>&lt;html&gt;</code> tag.</p>
+<p>You have to write the full script, including opening and closing <code>&lt;script&gt;</code> tags but it gives you more flexibility in how you write the script.</p>
+<pre><code class="language-php">&lt;?php
+function script_init() {
+    // This will work on browsers that support newer Javascript syntax
+    echo '&lt;script type=&quot;module&quot;&gt;
+    // Your code goes here.
+    &lt;/script&gt;';
+
+}
+
+add_action( 'wp_footer', 'script_init' );
+</code></pre>
+<p>Which method you choose depends on your needs. It may be that you use both on all your pages. As usual, test the code throrougly before using it in production.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
