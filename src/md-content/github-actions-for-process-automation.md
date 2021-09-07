@@ -94,35 +94,20 @@ We could change the build process to point to the `docs` directory instead of `d
 
 Another option is to use the [GitHub Pages Deploy Action](https://github.com/JamesIves/github-pages-deploy-action) to deploy the `dist` folder to Github Pages.
 
-## Multiple versions of Node
+Rather than deploy it to the `docs` folder in `main`. I've chosen to deploy it to a `gh-pages` branch in the repository. My first naive attempt had it push everything in the `dist` directory to main, without realizing that it would wipe out the entire repository.
+
+I was able to fix it by force pushing the content back into main. Yes, there are many posts telling you that what I did is not safe and I shouldn't do it; but I'm the only one working on the project and I know I'm not losing any work, so it's OK in this case, but I wouldn't do it in a team setting.
 
 ```yaml
-name: NodeJS with Gulp
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x, 16.x]
-    
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Use Node.js 14.x${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+    - name: Deploy to Github Pages
+      uses: JamesIves/github-pages-deploy-action@4.1.5
       with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Build
-      run: |
-        npm install
-        gulp
+        branch: gh-pages
+        folder: dist
 ```
+
+The action is simple. It tells the action what packages to use via the `uses` attribute and then, inside the `with` attribute it tells it what branch to deploy to (`branch`) and what directory to deploy from (`folder`).
+
+## Conclusion
+
+As far as actions go, this project is a very simple one. 
