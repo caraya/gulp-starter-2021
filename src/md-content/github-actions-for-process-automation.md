@@ -110,4 +110,4 @@ The action is simple. It tells the action what packages to use via the `uses` at
 
 ## Conclusion
 
-As far as actions go, this project is a very simple one. 
+As far as actions go, this project is a very simple one.
