@@ -1,0 +1,93 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Using Fontface Observer in WordPress</h1>
+<p><a href="https://fontfaceobserver.com">Fontface observer</a> (FFO) is a font loader library that allows you to control the behavior of our downloadble fonts. This post will work through how to use the script in a WordPress installation.</p>
+<p>Using FontFace Observer is a two-step process. We first need to load the script and then we need to add an inline script to tell FFO what to do.</p>
+<h2>Loading the script</h2>
+<p>We load the script using <code>wp-enqueue-scripts</code>; the same way that we’d load all our scripts and stylesheets.</p>
+<p>The following code snippet enqueues the Fontface Observer into a standalone function. However, if you’re already enqueing scripts and styles you could incorporate it into an existing enqueue function and action.</p>
+<pre><code class="language-php">function rivendellweb_enqueue_ffo() {
+    wp_enqueue_script( 'ffo_script',
+            get_stylesheet_directory_uri() . '/js/fontfaceobserver.js');
+}
+add_action( 'wp_enqueue_scripts', 'rivendellweb_enqueue_ffo' );
+</code></pre>
+<h2>Inserting the inline script</h2>
+<p>The second part is to insert an inline script on the footer of pages.</p>
+<p>THe function interleaves Javascript and PHP to build the function.</p>
+<p>The javascript itself does the following tasks:</p>
+<ol>
+<li>Loads the font</li>
+<li>If the font download succeeds
+<ol>
+<li>Add a <code>fontsLoaded</code> entry to session storage with <code>true</code></li>
+</ol>
+</li>
+<li>If loading the font fails
+<ol>
+<li>Add a <code>fontsLoaded</code> entry to session storage with <code>true</code></li>
+</ol>
+</li>
+</ol>
+<p>If session storage has a <code>fontsLoaded</code> attribute</p>
+<ol>
+<li>If the value is <code>true</code> add the <code>fonts-loaded</code> loaded class to the <code>html</code> element</li>
+<li>If the value is <code>false</code> add the <code>fonts-failed</code> loaded class to the <code>html</code> element</li>
+</ol>
+<pre><code class="language-php">&lt;?php
+function rivendell_add_ffo(){
+?&gt;
+  &lt;script&gt;
+    const recursive = new FontFaceObserver('Recursive VF');
+    let html = document.documentElement;
+    Promise.all([
+      recursive.load(),
+    ]).then(() =&gt; {
+            sessionStorage.fontsLoaded = true;
+      console.log('Recursive has loaded.');
+    }).catch((err) =&gt; {
+            sessionStorage.fontsLoaded = false;
+      console.log('Recursive failed to load', err);
+    });
+
+        if (sessionStorage.fontsLoaded) {
+            html.classList.add('fonts-loaded');
+        } else {
+            html.classList.add('fonts-failed');
+        }
+  &lt;/script&gt;
+&lt;?php
+};
+add_action('wp_footer', 'rivendell_add_ffo');
+?&gt;
+</code></pre>
+<p>We could further change the code so that if the fonts fail to load and the session storage value is false, we load an alternative font stack from Google fonts.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

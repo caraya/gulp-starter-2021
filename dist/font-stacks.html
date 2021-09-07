@@ -1,0 +1,968 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Font stacks and other explorations on typography on the web</h1>
+<p>I have dealt with some of these topics before in different places but now want to weave a more coherent narrative around these topics and try to find a way how to tie them together so it makes sense.</p>
+<h2>What is a font-stack and why it matters</h2>
+<p>It wasn’t until I started reading blogs and books by <a href="http://rwt.io/">Jason Pamental</a>, <a href="https://www.bramstein.com/*">Bram Stein</a>, and <a href="http://tbrown.org/">Tim Brown</a> among others that I realized that web typography is a lot more than choosing the right fonts.</p>
+<p>The font stack is the set of fonts that we use for our site or application. The browser’s rendering engine will pick the first font on the stack that is installed and available.</p>
+<p>To install the font we use CSS’s <code>@font-face</code> declaration like this:</p>
+<pre><code class="language-css">@font-face {
+  font-family: 'Ubuntu'; /* regular */
+  src: url('Ubuntu-R-webfont.woff2') format('woff2'), url('Ubuntu-R-webfont.woff')
+      format('woff'), url('Ubuntu-R-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Ubuntu'; /* italic */
+  src: url('Ubuntu-RI-webfont.woff2') format('woff2'), url('Ubuntu-RI-webfont.woff')
+      format('woff'), url('Ubuntu-RI-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Ubuntu'; /* bold */
+  src: url('Ubuntu-B-webfont.woff2') format('woff2'), url('Ubuntu-B-webfont.woff')
+      format('woff'), url('Ubuntu-B-webfont.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Ubuntu'; /* bold italic */
+  src: url('Ubuntu-BI-webfont.woff2') format('woff2'), url('Ubuntu-BI-webfont.woff')
+      format('woff'), url('Ubuntu-BI-webfont.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+</code></pre>
+<p>To prevent faux bold and italics we load four fonts, one each for normal, italics, bold and bolditalics.</p>
+<p>But in this <code>@font-face</code> demo we can already see one of the performance pitfalls of using web fonts: The size of the files.</p>
+<p>Each of these font files can range from just a few tens of kilobytes to 400 kilobytes or more for a single weight of the font and 1.2 <strong>mega bytes</strong> for the four weights that we’re using.</p>
+<p>So try to find smaller sizes or subset the fonts.</p>
+<p>Subsetting fonts will make the files smaller by only adding the glyphs (character, punctuations and others) that are needed to render the page. You must be careful when doing this as any glyph missing will be rendered in a backup font, either one you designate or one of the defaults for serif, sanserif and monospace.</p>
+<p>I’ve discussed subsetting fonts in two posts: <a href="https://publishing-project.rivendellweb.net/subsetting-fonts/">subsetting fonts</a> and <a href="https://publishing-project.rivendellweb.net/more-on-font-subsetting/">more on font subsetting</a>.</p>
+<p>This is what a font stack looks like:;</p>
+<pre><code class="language-css">/* Times New Roman-based stack */
+font-family: Cambria, 'Hoefler Text', Utopia,
+  'Liberation Serif' 'Nimbus Roman No9 L Regular', Times, 'Times New Roman', serif;
+
+/* Modern Georgia-based serif stack */
+font-family: Constantia, 'Lucida Bright', Lucidabright, 'Lucida Serif', Lucida,
+  'DejaVu Serif', 'Bitstream Vera Serif', 'Liberation Serif', Georgia, serif;
+
+/* Traditional Garamond-based serif stack */
+font-family: 'Palatino Linotype', Palatino, Palladio, 'URW Palladio L',
+  'Book Antiqua', Baskerville, 'Bookman Old Style', 'Bitstream Charter',
+  'Nimbus Roman No9 L', Garamond, 'Apple Garamond', 'ITC Garamond Narrow',
+  'New Century Schoolbook', 'Century Schoolbook', 'Century Schoolbook L',
+  Georgia, serif;
+
+/* Helvetica/Arial-based sans serif stack */
+font-family: Frutiger, 'Frutiger Linotype', Univers, Calibri, 'Gill Sans',
+  'Gill Sans MT', 'Myriad Pro', Myriad, 'DejaVu Sans Condensed',
+  'Liberation Sans', 'Nimbus Sans L', Tahoma, Geneva, 'Helvetica Neue',
+  Helvetica, Arial, sans-serif;
+
+/* Verdana-based sans serif stack */
+font-family: Corbel, 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans',
+  'DejaVu Sans', 'Bitstream Vera Sans', 'Liberation Sans', Verdana,
+  'Verdana Ref', sans-serif;
+
+/* Monospace stack */
+font-family: Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console',
+  'Lucida Sans Typewriter', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
+  'Liberation Mono', 'Nimbus Mono L', Monaco, 'Courier New', Courier, monospace;
+</code></pre>
+<p>These are fairly complex stacks and the closer you move to the right the more likley you are to find an equivalent until you get to the final font of the stack, one of five generic fonts: <a href="https://drafts.csswg.org/css-fonts-3/#serif">serif</a>, <a href="https://drafts.csswg.org/css-fonts-3/#sans-serif">sans-serif</a>, <a href="https://drafts.csswg.org/css-fonts-3/#cursive">cursive</a>, <a href="https://drafts.csswg.org/css-fonts-3/#fantasy">fantasy</a>, and <a href="https://drafts.csswg.org/css-fonts-3/#monospace">monospace</a>. The generic fonts are different than the other fonts in the stack, rather than trying match a specific font, they ask the browser to provide a default fallback.</p>
+<p>According to the <a href="https://drafts.csswg.org/css-fonts-3/#generic-font-families">CSS Fonts Level 3 Specification</a> generic fonts section:</p>
+<blockquote>
+<p>All five generic font families must always result in at least one matched font face, for all CSS implementations. However, the generics may be composite faces (with different typefaces based on such things as the Unicode range of the character, the language of the containing element, user preferences and system settings, among others). They are also not guaranteed to always be different from each other.</p>
+<p>User agents should provide reasonable default choices for the generic font families, which express the characteristics of each family as well as possible, within the limits allowed by the underlying technology. User agents are encouraged to allow users to select alternative choices for the generic fonts.</p>
+</blockquote>
+<h3>Making sure your fallback fonts work well</h3>
+<p>One problem with fallback fonts is that they may not match the web font they replace 100%… and this will definitely become a problem when working on how will the layout look in your fallback font and whether it’ll work at all or not.</p>
+<p>Monica Dinculescu created a <a href="https://meowni.ca/font-style-matcher/">Font Style Matcher</a> to work around this issue. We match the fonts as close as possible as show in the figure below and then copy the two CSS blocks.</p>
+<figure>
+  <img src='images/font-matcher.png' alt='Font Matcher Demo of Work In Progress' />
+  <figcaption>Font Matcher Demo of Work In Progress</figcaption>
+</figure>
+<p>What we get when we copy the CSS is one block for the fallback font (Georgia) and one for the web font (Merriweather). Since CSS will apply both sequences in order it’ll jump from Georgia to Merriweather but, since we took care that the fonts would match, the jarring change will be minimized.</p>
+<pre><code class="language-css">font-family: Georgia
+font-size: 16px
+line-height: 1.6;
+
+font-family: Merriweather
+font-size: 16px
+line-height: 1.6;
+</code></pre>
+<h2>System Fonts: Use what’s given to you</h2>
+<p>OK, we have our font stack, we understand what it is and we can customize it, after a fashion, to reduce any jarring text change between fallback fonts and the web fonts we’ve downloaded.</p>
+<p>Another way provide a better experience is to use system fonts; the same fonts that the Operating System uses on your machine. We use the following CSS to load system specific fonts across platforms, knowing that the CSS parser will stop when it hits the first match.</p>
+<p>Also note that we use the long form, with different attributes for each of <code>font-family</code>, <code>font-size</code> and <code>line-height</code> to work around a bug that may cause the <code>-apple-system</code> font (used in Safari) to be considered a named prefixed and cause the rest of the declaration (fonts for all other systems) to be ignored.</p>
+<pre><code class="language-css">html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
+  font-size: 16px;
+  line-height: 1.2;
+}
+</code></pre>
+<p><a href="https://drafts.csswg.org/css-fonts-4/">CSS fonts module Level 4</a> introduces a new generic font family. The <a href="https://drafts.csswg.org/css-fonts-4/#system-ui-def">system-ui</a> generic font family will always map to the default user-interface font on all platforms.</p>
+<p>There is no browser support for system-ui yet, when it arrives on browsers, you’ll be able to reduce the above font stack to a single item:</p>
+<pre><code class="language-css">html {
+  font-family: system-ui;
+}
+</code></pre>
+<p><strong>This is cool but what’s the use case for system fonts?</strong></p>
+<p>System fonts are best used for the UI of your application. This will give users a familiar feell by using the same fonts throughout the Operating System.</p>
+<h2>Variable Fonts: New Swiss Army Knife?</h2>
+<p>Opentype 1.8 introduced the concept of variable fonts. In these variable fonts we get multiple axes representing six predefined axes: weight, width, optical size, italic, slant; plus an unlimited numbers of custom axes to define your own properties in the font. This is all packaged together in one file rather than have multiple files to represent the different font faces we use.</p>
+<p>If you have variable fonts avaialble you can use <a href="https://www.axis-praxis.org">Axis Praxis</a> a preview and experimentation tool. You can work with any of the available fonts or upload your own variable font to play with, all available axes will appear in the tool to play with.</p>
+<div class="video">
+<iframe src="https://player.vimeo.com/video/189350146" width="640" height="400" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+</div>
+<p>One thing to notice about Variable Fonts is that there are only six pre-defined axes (duiscussed above) and no limit to the number of custom axes a font can have. This means that we can have a single font that works for body copy, heaadings, and text-decorations if needed.</p>
+<p>For examples of what you can do with variable fonts check out <a href="https://caraya.github.io/vfonts-demo/">Variable Fonts Demo and Explainer</a> for work with early versions of variable fonts.</p>
+<p>Another idea worth exploring is whether we can use a single variable font for our site. This will depend on what Axes the variable font makes available and how complex is the typography for your site. It should be possible but requires careful planning and font selection.</p>
+<h2>Choosing Fonts</h2>
+<p>Choosing your font stack is a tricky balancing act of many conflicting and, sometimes, contradictory priorities. We’ll look at what I consider the most important design and non-design considerations.</p>
+<h3>Design Considerations</h3>
+<p>These are some of the design consideratons that go into my font selection process.</p>
+<p>If you think I missed anything, ping me on twitter (<a href="https://twitter.com/elrond25">@elrond25</a>)</p>
+<h4>Font Selection</h4>
+<p>Display faces are designed to be used large, such as in headlines and are usually less readable at smaller sizes and should not be used for body copy. These are called display fonts or faces.</p>
+<p>Other typefaces are designed specifically to be used in large areas of smaller body copy. These are called text, body, or copy fonts.</p>
+<p>Identifying fonts for your specific needs is the first step but then comes the big question: <strong>Serif or Sans-Serif?</strong></p>
+<figure>
+  <img src='images/418px-Serif_and_sans-serif_02.svg.png' alt='Sans Serif Font'>
+  <img src='images/418px-Serif_and_sans-serif_03.svg.png' alt='Serif font with serif lines show in red'>
+  <figcaption>Comparison of sans-serif font (left) and serif font showing serif lines in red (right)</figcaption>
+</figure>
+<p>I normally work with whatever font I think will work best for the project I’m working on either on its own if I’m using it for both headings and copy or paired with another font.</p>
+<p>So which is more legible: serif or sans-serif typefaces? In print it appears that serif fonts are considered more legible. Serif fonts allow the eye to flow more easily over the text, improving reading speed and decreasing eye fatigue.</p>
+<p>For the web the situation is somewhat different. We will never set as much text on the web as we would in a book or magazine and there are sans-serif fonts that work just as well as serif for the amount of text that we use on the web.</p>
+<p>This is one subject that is debated whenever typography people talk about fonts – some people argue that serif typefaces make text harder to read in smaller screens. Others believe that there’s no difference. My position is to test the fonts and then have people read it.</p>
+<h4>Font Sizes</h4>
+<p>We need to make sure that the text is not too small or too large for the device users are viewing the content on. The default size in browsers is 16px. I like using that as my base and then working with Modular Scales.</p>
+<blockquote>
+<p>A modular scale, like a musical scale, is a prearranged set of harmonious proportions.</p>
+<p>Robert Bringhurst</p>
+</blockquote>
+<p>I use Tim Brown and Scott Kellum’s <a href="http://www.modularscale.com/">modular scale builder</a> where we can play with a base value (for example 16px, the default for most browsers) and a set of predefined ratios (I normally use the golden ratio, 1.618) to create a series of values that are ratios of the base number.</p>
+<p>For the values of 16px and 1:1.618 ratios the scale looks like this:</p>
+<pre>
+2206.258em
+1363.571em
+842.751em
+520.86em
+321.916em
+198.959em
+122.966em
+75.999em
+46.971em
+29.03em
+17.942em
+11.089em
+6.854em
+4.236em
+2.618em
+1.618em
+1em
+0.618em
+0.382em
+0.236em
+0.146em
+0.09em
+0.056em
+</pre>
+<p>So you can take these values and plug them (up or down) to your CSS. If the Golden Ratio doesn’t work you can experiment with different ratios available on the tool; they will each produce different values you can plug in to your stylesheets.</p>
+<p>This is how I like to define the basic font size for the document. I rely on the fact that most browsers have a default font size of 16px; so I set the default value to 16px and then use <code>em</code> or <code>rem</code> units in other selectors to make sure that the sizing is relative to the parent element (when using em) and to the root element (with rem).</p>
+<p>I’ve also chosen not to support IE6 and 7. If you do need to support those or older browsers, then Richard Rutter’s <a href="http://alistapart.com/article/howtosizetextincss">How to Size Text in CSS</a> provides additional guidance for your work.</p>
+<pre><code class="language-css">body {
+  font-size: 16px;
+  line-height: 1.2em;
+}
+.bodytext p {
+  font-size: 1em;
+}
+.sidenote {
+  font-size: 0.75em;
+}
+</code></pre>
+<h4>Measure</h4>
+<p>Sometimes we allow the lines of text to become to wide; that makes them harder to read as the eye looses sight of where the line ends and when should the user return to the left edge of the screen. The horizontal distance is referred to as <a href="https://www.wikiwand.com/en/Line_length">measure</a> (also called line length).</p>
+<p>So what should the maximum width a text block be? Well, it all depends on the size of the font. The larger the font size, the longer the line can be; that said you don’t want to go beyond 80 characters or 40ems (since block width is easier to measure than counting characters). We can ensure the text grows no wider than our specified width using the <code>max-width</code> css attribute. It looks like this:</p>
+<pre><code class="language-css">body {
+  max-width: 40em;
+}
+</code></pre>
+<h4>Leading</h4>
+<p>Leading (pronounced “ledding”) is so called because, in mechanical presses, strips of lead are placed between lines of type to space the lines apart. CSS handles leading through the <code>line-height</code> property.</p>
+<p>Line-height is unique among CSS properties in that it doesn’t require a unit attached to its value, like in the example below the line-height is 1.25 times the value of the font size (18px in this case):</p>
+<pre><code class="language-css">p {
+  font-family: 'Minion Pro', 'Minion Web', serif;
+  font-size: 16px;
+  line-height: 1.25;
+}
+</code></pre>
+<p>I prefer to use the long hand syntax for my CSS and explictly write all attributes separately. You could write the declaration above as:</p>
+<pre><code class="language-css">p {
+  font: 16px/1.25 'Minion Pro', 'Minion Web', serif;
+}
+</code></pre>
+<p><strong>Spacing/Line Height</strong></p>
+<p>One of the most common typographic “mistakes” I see on the web today is improper type spacing. What I’m referring to here is instances where a block text isn’t given enough margin, subheads and correlated body text which aren’t visually grouped together, and so on. Proper spacing (combined with hierarchy) allows the reader to scan the text and access it at the desired points.</p>
+<p>It seems to me that the relationship of paragraph spacing (additional spacing placed before or after a paragraph), the space around a block of type, and letter spacing can be related proportionally to the line height of a paragraph. Line height is defined as the vertical distance between lines of text. So for instance, if the line height of one paragraph is set to 2em and a paragraph with the same size text is set to 1.5em, the first paragraph will require more paragraph spacing and probably more margin around it.</p>
+<p>Much of this is done by eye rather than an exact formula, but I do use a good rule of thumb when it comes to the relationship of paragraph spacing to line height. When working with web content we need to make sure that we do equal spacing on both the top and the bottom margins, otherwise the first and last paragraphs will look weird and your content will not flush to the top, as you probably intended.</p>
+<pre><code class="language-css">p {
+  line-height: 1.5;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+</code></pre>
+<p>We can modify the styles for the first and last paragraphs to remove the top or bottom margin as needed using <code>:first-child</code> and <code>last-child</code> <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Pseudo-classes_and_pseudo-elements">pseudo-classes</a>. The code look lie this.</p>
+<pre><code class="language-css">p:first-child {
+  margin-top: 0;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+</code></pre>
+<p>The final part of spacing that I consider is paragraph indentation. I don’t intend the first paragraph, either I’m using a <a href="http://www.magazinedesigning.com/drop-caps-and-initial-letters/">drop cap</a> or want to follow convention and not indent.</p>
+<p>The code uses and <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_selectors">adjacent sibling selector</a> to indent paragraphs that are next to each other. This will fail for the first and last paragraphs since there is no paragraph before/after it.</p>
+<pre><code class="language-css">p {
+  font-size: 1em;
+}
+
+p + p {
+  text-indent: 2em;
+}
+</code></pre>
+<h4>Contrast</h4>
+<p>It may sound obvious that good type contrast is essential for readability but we always try to push the boundaries of contrast.</p>
+<p>We forget that even sighted users may have problems with our “clever” light gray text on white background design assuming that what’s good for us is good for everyone or that everyone will understand the message.</p>
+<p>The <a href="https://www.w3.org/TR/2008/REC-WCAG20-20081211/">Web Content Accessibility Guidelines</a> have the following to say about color and contrast.</p>
+<p>Don’t use color as the only way to procide information or eliciting a response (Rule 1.4.1)</p>
+<blockquote>
+<p>Color is not used as the only visual means of conveying information, indicating an action, prompting a response, or distinguishing a visual element. (Level A)</p>
+<p><a href="https://www.w3.org/TR/2008/REC-WCAG20-20081211/#visual-audio-contrast-without-color">Rule 1.4.1</a></p>
+</blockquote>
+<p>Use high contrast between text and background color, with few exception indicated in the rule.</p>
+<blockquote>
+<p>The visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following: (Level AA)</p>
+<ul>
+<li>Large Text: Large-scale text and images of large-scale text have a contrast ratio of at least 3:1;</li>
+<li>Incidental: Text or images of text that are part of an inactive user interface component, that are pure decoration, that are not visible to anyone, or that are part of a picture that contains significant other visual content, have no contrast requirement.</li>
+<li>Logotypes: Text that is part of a logo or brand name has no minimum contrast requirement.</li>
+</ul>
+<p><a href="https://www.w3.org/TR/2008/REC-WCAG20-20081211/#visual-audio-contrast-contrast">Rule 1.4.3</a></p>
+</blockquote>
+<p>When planning your site’s color pallete (font, links, headers, additional text colors) you can use tools like Lea Verou’s <a href="http://leaverou.github.io/contrast-ratio/">Contrast Ratio</a> tool.</p>
+<p>The other aspect is a matter of cultural awareness. In addition to avoiding using color as the only way to convey meaning we have to be mindful about conveying the right meaning. Colors have different meanings for different cultures.</p>
+<p>The table below (From <a href="http://blog.globalizationpartners.com/culturally-customized-website.aspx">Creating Culturally Customized Content</a>) shows what different colors mean in 5 different countries with vastly different cultures. It is obvious you’re conveying a very different message to each of those audiences, even if they live in the same country.</p>
+<table border="1" width="100%">
+  <thead>
+    <tr>
+      <th>COLOR</th>
+      <th>USA</th>
+      <th>China</th>
+      <th>India</th>
+      <th>Egypt</th>
+      <th>Japan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="width: 20%; background: red;">Red</td>
+      <td>Danger
+        <br> Love
+        <br> Stop
+      </td>
+      <td>Good fortune
+        <br> Luck
+        <br> Joy
+      </td>
+      <td>Luck
+        <br> Fury
+        <br> Masculine
+      </td>
+      <td>Death</td>
+      <td>Anger
+        <br> Danger
+      </td>
+    </tr>
+    <tr>
+      <td style="background: orange;">Orange</td>
+      <td>Confident
+        <br> Dependable
+        <br> Corporate
+      </td>
+      <td>Fortune
+        <br> Luck
+        <br> Joy
+      </td>
+      <td>Sacred (the Color Saffron)</td>
+      <td>Virtue
+        <br> Faith
+        <br> Truth
+      </td>
+      <td>Future
+        <br> Youth
+        <br> Energy
+      </td>
+    </tr>
+    <tr>
+      <td style="background: yellow;">Yellow</td>
+      <td>Coward
+        <br> Joy
+        <br> Hope
+      </td>
+      <td>Wealth
+        <br> Earth
+        <br> Royal
+      </td>
+      <td>Celebration</td>
+      <td>Mourning</td>
+      <td>Grace
+        <br> Nobility
+      </td>
+    </tr>
+    <tr>
+      <td style="background: green;">Green</td>
+      <td>Spring
+        <br> Money
+        <br> New
+      </td>
+      <td>Health
+        <br> Prosperity
+        <br> Harmony
+      </td>
+      <td>Romance
+        <br> New
+        <br> Harvest
+      </td>
+      <td>Happiness
+        <br> Prosperity
+      </td>
+      <td>Eternal life</td>
+    </tr>
+    <tr>
+      <td style="background: blue;">Blue</td>
+      <td>Confident
+        <br> Dependability
+        <br> Corporate
+      </td>
+      <td>Heavenly
+        <br> Clouds
+      </td>
+      <td>Mourning
+        <br> Disgust
+        <br> Chilling
+      </td>
+      <td>Virtue
+        <br> Faith
+        <br> Truth
+      </td>
+      <td>Villainy</td>
+    </tr>
+    <tr>
+      <td style="background: purple;">Purple</td>
+      <td>Royalty
+        <br> Imagination
+      </td>
+      <td>Royalty</td>
+      <td>Unhappiness</td>
+      <td>Virtue</td>
+      <td>Wealth</td>
+    </tr>
+    <tr>
+      <td style="background: white;">White</td>
+      <td>Purity
+        <br> Peace
+        <br> Holy
+      </td>
+      <td>Mourning</td>
+      <td>Fun
+        <br> Serenity
+        <br> Harmony
+      </td>
+      <td>Joy</td>
+      <td>Purity
+        <br> Holiness
+      </td>
+    </tr>
+    <tr>
+      <td style="background: black; color: white;">Black</td>
+      <td>Funeral
+        <br> Death
+        <br> Evil
+      </td>
+      <td>Heaven
+        <br> Neutral
+        <br> High Quality</td>
+      <td>Evil</td>
+      <td>Death
+        <br> Evil
+      </td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+<h4>Same font for all text or combined?</h4>
+<p>Does the font you’re using work well for body and headings or will you have to combine it with another font that works better for headings and larger text. Not all fonts lend themselves to this dual usage so you’ll have to be careful in your research to test the font or fots work as intended.</p>
+<p>If you use specimens, particularly those that live in the web, use them to test visually if your font or fonts work well for your design.</p>
+<h4>Media queries are your friend</h4>
+<p>When we work with media queries we can change every detail of our content, including text layout and attributes. This way when you change the layout for smaller screens. You may also consider adjusting size, leading and other typography items to better suit the smaller size.</p>
+<h3>Non Design Considerations</h3>
+<p>There are other considerations outside design that must be taken into account when selecting fonts… as much as I hate to admit it sometimes licensing or cost will drive me away from a font that, otherwise, would be awesome for the project.</p>
+<p>These are some of the non-design things that come to mind.</p>
+<h4>Have you set your viewport correctly?</h4>
+<p>The <a href="https://css-tricks.com/snippets/html/responsive-meta-tag/">viewport meta tag</a> tells the browser how to render the page. This is required for responsive sites (and I’m assuming you’re working on responsive sites, right?!)</p>
+<pre><code class="language-html">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+</code></pre>
+<p>This will likely render the width of the page at the width of its own screen. So if that screen is 320px wide, the browser window will be 320px wide, rather than way zoomed out and showing 960px or whatever that device does by default.</p>
+<p>Do not, I repeat, <strong>do not</strong> use this meta tag if your site is not responsive. The results are unpredictable but ugly. You’ve been warned.</p>
+<h4>Are you subsetting your fonts? Pros and cons.</h4>
+<p>One way to make your fonts files smaller is to subset them. When you subset a font you take out all the characters you’re not using for your content. Depending on the font this may reducen the file size significantly at the risk of having to redo the work every time you add content to your site.</p>
+<p>I will not discuss subsetting in detail. I’ve written about it in <a href="https://publishing-project.rivendellweb.net/subsetting-fonts/">Subsetting Fonts</a> and <a href="https://publishing-project.rivendellweb.net/more-on-font-subsetting/">More on Font Subsetting</a>.</p>
+<p>To load Roboto Regular with only the Basic Latin character range look like this.</p>
+<pre><code class="language-css">@font-face {
+  font-family: 'Ubuntu'; /* regular */
+  src: url('Ubuntu-R-webfont.woff2') format('woff2'), url('Ubuntu-R-webfont.woff')
+      format('woff'), url('Ubuntu-R-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  unicode-range: U+0020-007f;
+}
+</code></pre>
+<p>One thing that you need to be mindfult of when/if you subset your fonts is to make sure that you keep all the characters you will need for your content to render with the chosen font.</p>
+<p>In the case of English using the first 127 characters (equivalent to the ASCII encoding standard) this is usually not a problem. However, if you’re working with more than one language (like English and Spanish or English and Swedish) you will have to make sure that you subset the additional characters that you will need, like opening question (¿) and exclamation mark (¡) or some of the Diacritics and accents needed (like ñ in Spanish or ö in Swedish). These additional characters are distinct Unicode codepoints and need to be included in your subset for it to work.</p>
+<h4>Does the font have all the weights and styles that you need?</h4>
+<p>Related to the necessary glyphs are the necessary weights for each font that you use in your page. Ideally we’d use 4 files representing regular, bold, italic and bold italic. We want to avoid the browser creating “faux” synthetic styles that will adversely impact the way your content look.</p>
+<p>In <a href="http://alistapart.com/article/say-no-to-faux-bold">Say No to Faux Bold</a> Alan Stearns shows what the impact of faux styles (bold in particular) can have in your content.</p>
+<p>If you want more indepth information, check <a href="https://spaceninja.com/2010/11/29/font-face-faux-styles/">How to use @font-face to avoid faux-italic and bold browser styles</a>. It goes deeper into the technical details than Alan’s article and it’s geared for a more technical audience.</p>
+<h4>Creating speciments of the fonts you use</h4>
+<p>An interesting idea is to start building specimen libraries for the fonts you have used in projects or plan to use in projects. If you have a good specimen template wil;l definitely help you in your design process.</p>
+<p>In <a href="http://alistapart.com/article/real-web-type-in-real-web-context">Real Web Type in Real Web Context</a> Tim Brown states the neeed explicitly: “I need to know how my type renders on screens, in web browsers”.</p>
+<p>Depending on your needs you could use the W3C’s <a href="https://www.w3.org/StyleSheets/Core/stylebot.html?family=9doc=Sampler">element sampler</a> and style the bare content with your styles and fonts.</p>
+<p>Another option is to use Tim Brown’s [<a href="http://webfontspecimen.com/">http://webfontspecimen.com/</a>](Web Font Specimen) to create more advanced specimens. I’ve created specimens for fonts with open sources licenses at <a href="https://caraya.github.io/font-specimen-archive/">Font Specimen Archive</a></p>
+<h4>Have you tested how will your fallback fonts affect your design?</h4>
+<p>So far we’ve made the assumption that our fonts will load and everything works well out of the box. But this is not always the case and we shouldn’t assume it is.</p>
+<p>This begs the question: <strong><em>How well will the fallback fonts work with your design</em></strong></p>
+<p>If the fallback has a higher or lower x-height or thicker strokes than your web font, the layout will look different. This is why you must test your stack during development and make sure that your web fonts match as close as possible with the fallbacks. Monica Dinculescu’s <a href="https://meowni.ca/font-style-matcher/">Font Style Matcher</a> can help</p>
+<h4>Hosting locally or using a font service?</h4>
+<p>Are you hosting your fonts with a service like <a href="https://fonts.google.com/">Google Fonts</a>, <a href="https://fonts.google.com/">Adobe Typekit</a> or other font hosting providers or are you hosting your fonts in your own site?</p>
+<p>If you choose to host fonts in your own site you will have to contend with network congestions and having your server become a bottleneck for your users. Yet it may be the only way to comply with some fonts restrictive licensing terms and conditions; as we’ll discuss in the next section be very careful about the licensing of your font.</p>
+<p>These are some of the font services I’ve used in the past.</p>
+<ul>
+<li><a href="https://fonts.google.com/">Google Fonts</a></li>
+<li><a href="https://fonts.google.com/">Adobe Typekit</a></li>
+<li><a href="http://webfonts.fonts.com/">Fonts.com Web Fonts</a></li>
+<li><a href="http://www.typotheque.com/webfonts">Typotheque</a></li>
+</ul>
+<p>As with anything else on the web, your milleage may vary.</p>
+<h4>Do you have the right license to use the font on the web?</h4>
+<p>The last, and perhaps most important, non-design aspect of selecting and using fonts on the web is the licensing. Rightly or not some foundries are very restrictive in the terms of their license and some will release their fonts under open source licenses like the <a href="http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&amp;item_id=OFL">SIL OFL</a> or <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache</a> (seen in some early fonts from Google and other companies for whom liability may be an issue).</p>
+<p>For most foundries, fonts are software users license rather than a product you can own. This has implications if you want to modify the fonts or want to convert them to other formats. Some foundries will go as far as block usage of Font Squirrel’s <a href="https://www.fontsquirrel.com/tools/webfont-generator">Webfont Generator</a> with their fonts.</p>
+<p>These problems with Foundries lead me to prefer comissioning fonts specifically for a project. If that is not possible my next option is to choose Open Source Fonts and, only if I have no choice, I will work with foundries based on past experience or expressed instructions from the client.</p>
+<p>This is a step we often overlook but is essential to cover yourself from liability.</p>
+<h2>Writing Modes and World Languages</h2>
+<p>Another thing that affects typography is the writing direction of your text. Either because the language requires it or because you’re experimenting with new technologies like Jen Simmons does in this example from <a href="https://www.youtube.com/channel/UC7TizprGknbDalbHplROtag">Layout Land Youtube Channel</a></p>
+<p>It leverages CSS Grid, Transforms, and other modern technologies to create really impressive layouts.</p>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OxrsO4aIjyc?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+<p>Going back to writing modes. Different languages use different writing modes. Some things to consider:</p>
+<ul>
+<li>Most Latin and Cyrilic languages run the text from left to right and top to bottom</li>
+<li>Arabic and Hewbrew run the text from right to left and top to bottom</li>
+<li>Japanese is a special case
+<ul>
+<li>Japanese can run the text from left to right, top to bottom</li>
+<li>Japanese can also run from top to bottom <strong>and</strong> right to left</li>
+<li>Both writing modes for Japanese can be used in the same page</li>
+</ul>
+</li>
+</ul>
+<p>There are other languages and considerations but you get the idea.</p>
+<p>But you can also use it for creative typographical effects that require CSS, not images or CSS translate, to accomplish the goal. A good, and subtle example is the “Rise To Success” text in the pen below:</p>
+<p data-height="511" data-theme-id="2039" data-slug-hash="ZBmwLo" data-default-tab="result" data-user="jensimmons" data-embed-version="2" data-pen-title="Writing Mode Demo — Article Subheadlines" class="codepen">See the Pen <a href="https://codepen.io/jensimmons/pen/ZBmwLo/">Writing Mode Demo — Article Subheadlines</a> by Jen Simmons (<a href="https://codepen.io/jensimmons">@jensimmons</a>) on <a href="https://codepen.io">CodePen</a>.</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+<p>If you look at the CSS code in the embedded pen, you’ll see the following code:</p>
+<pre><code class="language-css">h2 {
+  writing-mode: vertical-rl;
+  float: left;
+  margin: 1.5rem 0 0 -3.8rem;
+  font-size: 1.8em;
+  background: #96e5fb;
+  padding: 8px 0;
+}
+</code></pre>
+<p>It’s the <code>writing-mode: vertical-rl;</code> attribute that makes the text rotate while still allowing us to highlight it and keeping it in the document to be read by assistive technology.</p>
+<figure>
+  <img src='images/un-site-en.png' alt='UN Website in Eglish'>
+  <img src='images/un-site-ar.png' alt='UN Website in Arabic'>
+  <figcaption>United Nations Website in English (top) and Arabic (bottom). Notice how they are mirrors of each other. </figcaption>
+</figure>
+<p>Jen wrote <a href="https://24ways.org/2016/css-writing-modes/">an article</a> for 24 ways in 2016, where she provides a thorough explanation of writing modes and how to make them work in your projects, today.</p>
+<h2>font-variant: Low Level Plumbing</h2>
+<p>CSS offers different levels of control over font features available from your font. The prefered way is to use individual <code>font-variant-*</code> attributes in a selector or use the shorthand <code>font-variant</code>.</p>
+<p>Not all fonts providde all the features discussed in this section. As always research whether the chosen font or fonts have the features that you need.</p>
+<p>This may be a good thing to include in your font specimen, if you have one.</p>
+<p>The code looks for the shorthand looks like this:</p>
+<pre><code class="language-css">body {
+  font-variant: common-ligatures annotations() slashed-zero;
+}
+</code></pre>
+<p>The different values for the property are:</p>
+<dl>
+ <dt>normal</dt>
+ <dd>Specifies a normal font face; each of the longhand properties has an initial value of normal.
+ <dt>none</dt>
+ <dd>Sets the value of the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a> to none and the values of the other longhand property as normal, their initial value.</dd>
+ <dt>&lt;common-lig-values&gt;, &lt;discretionary-lig-values&gt;, &lt;historical-lig-values&gt;, &lt;contextual-alt-values&gt;</dt>
+ <dd>Specifies the keywords related to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a> longhand property. The possible values are: common-ligatures, no-common-ligatures, discretionary-ligatures, no-discretionary-ligatures, historical-ligatures, no-historical-ligatures, contextual, and no-contextual.</dd>
+ <dt>stylistic(),&nbsp; historical-forms, styleset(), character-variant(), swash(), ornaments(), annotation()</dt>
+ <dd>Specifies the keywords and functions related to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-alternates">font-variant-alternates</a> longhand property.</dd>
+ <dt>small-caps, all-small-caps, petite-caps, all-petite-caps, unicase, titling-caps</dt>
+ <dd>Specifies the keywords and functions related to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps">font-variant-caps</a> longhand property.</dd>
+ <dt>&lt;numeric-figure-values&gt;, &lt;numeric-spacing-values&gt;, &lt;numeric-fraction-values&gt;, ordinal, slashed-zero</dt>
+ <dd>Specifies the keywords related to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric">font-variant-numeric</a> longhand property. The possible values are:&nbsp; lining-nums, oldstyle-nums, proportional-nums, tabular-nums, diagonal-fractions, stacked-fractions, ordinal, and slashed-zero.</dd>
+ <dt>&lt;east-asian-variant-values&gt;, &lt;east-asian-width-values&gt;, ruby</dt>
+ <dd>Specifies the keywords related to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-east-asian">font-variant-east-asian</a> longhand property. The possible values are: jis78, jis83, jis90, jis04, simplified, traditional, full-width, proportional-width, ruby.</dd>
+</dl>
+<p>We can also use these variables individually. The individual names are:</p>
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a></li>
+  <li> <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-alternates">font-variant-alternates</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps">font-variant-caps</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric">font-variant-numeric</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-east-asian">font-variant-east-asian</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-position">font-variant-position</a></li>
+</ul>
+<p>The code using individual properties looks like this:</p>
+<pre><code class="language-css">body {
+  font-variant-ligatures: common-ligatures;
+  font-variant-alternates: historical-forms;
+  font-variant-numeric: slashed-zero;
+}
+
+.japanese {
+  font-variant-east-asian: ruby full-width jis83;
+}
+
+.small {
+  font-variant-caps: small-caps;
+}
+
+.sup {
+  font-variant-position: sub;
+}
+
+.super {
+  font-variant-position: super;
+}
+</code></pre>
+<h2>Performance: FontFace Observer and font-display</h2>
+<p>Whenever I need to make sure that a font has loaded before using it I work with <a href="https://fontfaceobserver.com">Fontface Observer</a> to load the fonts with a good fallback and timeouts.</p>
+<p>The process consists of the following sections:</p>
+<ul>
+<li>Font Loading</li>
+<li>Font Use</li>
+<li>Javascript Loader</li>
+</ul>
+<p>We first define our fonts in CSS like normal. We use the same declarations as we do normally to load fonts.</p>
+<pre><code class="language-css">/* Regular font */
+@font-face {
+  font-family: 'notosans';
+  src: url('../fonts/notosans-regular.woff2') format('woff2'), url('../fonts/notosans-regular.woff')
+      format('woff'), url('../fonts/notosans-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+/* Bold font */
+@font-face {
+  font-family: 'notosans';
+  src: url('../fonts/notosans-bold.woff2') format('woff2'), url('../fonts/notosans-bold.woff')
+      format('woff'), url('../fonts/notosans-bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+/* Italic Font */
+@font-face {
+  font-family: 'notosans';
+  src: url('../fonts/notosans-italic.woff2') format('woff2'), url('../fonts/notosans-italic.woff')
+      format('woff'), url('../fonts/notosans-italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+/* bold-italic font */
+@font-face {
+  font-family: 'notosans';
+  src: url('../fonts/notosans-bolditalic.woff2') format('woff2'), url('../fonts/notosans-bolditalic.woff')
+      format('woff'), url('../fonts/notosans-bolditalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+}
+</code></pre>
+<p>Next we prepare three versions of the default element styles. One for when there is no Javascript (<code>body</code>), one for when the fonts fail to load (<code>.fonts-failed body</code>) and one for when the fonts load successfully (<code>.fonts-loaded body</code>). Only one of these body declarations will be used for the page.</p>
+<pre><code class="language-css">/* Default body style */
+body {
+  font-family: Verdana, sans-serif;
+  font-size: 16px;
+  line-height: 1.275;
+  -webkit-text-decoration-skip: ink;
+  -moz-text-decoration-skip: ink;
+  -ms-text-decoration-skip: ink;
+  text-decoration-skip: ink;
+}
+
+/*
+    This will match if the fonts failed to load.
+    It is identical to the default but doesn't
+    have to be
+*/
+.fonts-failed body {
+  font-family: Verdana, sans-serif;
+  font-size: 16px;
+  line-height: 1.375;
+  -webkit-text-decoration-skip: ink;
+  -moz-text-decoration-skip: ink;
+  -ms-text-decoration-skip: ink;
+  text-decoration-skip: ink;
+}
+/*
+    This will match when fonts load successfully
+*/
+.fonts-loaded body {
+  font-family: notosans-regular, verdana, sans-serif;
+  font-size: 16px;
+  line-height: 1.375;
+  -webkit-text-decoration-skip: ink;
+  -moz-text-decoration-skip: ink;
+  -ms-text-decoration-skip: ink;
+  text-decoration-skip: ink;
+}
+</code></pre>
+<p>The final piece is the Javascript file that will actually load the fonts. This assumes that <code>fontfaceobserver.js</code> has already been loaded.</p>
+<p>We first define a constant for each of the fonts we want to load. We use the same name but add a second attribute to the <code>FontFaceObserver</code> object to indicate additional information about the font (weight and style)</p>
+<p>we assign <code>document.documentElement</code> to a variable that we will work with later in the script.</p>
+<p>We add the class <code>fonts-loading</code> to document element as a temporary place holder while we download the font.</p>
+<p>Next we use <code>promise.all</code> to create an array of promises with each font’s load method. Promise.all is an atomic function, either they will all succeed or the will all fail. This will help us make sure that all fonts are available.</p>
+<p>If the fonts are successful the <code>then</code> branch is followed. This branch will remove the <code>fonts-loading</code> class and replace it with <code>fonts-loaded</code>. This is the CSS class that uses the web font we just downloaded and it will only be used if the fonts loaded successfully.</p>
+<p>If the fonts fail to load the script follows the <code>catch</code> path. This path replaces <code>fonts-loading</code> with <code>fonts-failed</code>. This CSS class doesn’t use the web font and is essentially identical to the <code>body</code> element definition.</p>
+<pre><code class="language-javascript">const sans = new FontFaceObserver('notosans', {
+  weight: normal,
+  style: normal
+});
+const italic = new FontFaceObserver('notosans', {
+  weight: normal,
+  style: 'italic'
+});
+const bold = new FontFaceObserver('notosans', {
+  weight: 700,
+  style: 'normal'
+});
+const bolditalic = new FontFaceObserver('notosans', {
+  weight: 700,
+  style: 'italic'
+});
+
+let html = document.documentElement;
+
+html.classList.add('fonts-loading');
+
+Promise.all([sans.load(), bold.load(), italic.load() bolditalic.load()]).then(() =&gt; {
+  html.classList.remove('fonts-loading');
+  html.classList.add('fonts-loaded');
+}).catch(() =&gt;{
+  html.classList.remove('fonts-loading');
+  html.classList.add('fonts-failed');
+});
+</code></pre>
+<p>Yes, this is more work but think about it. You’re already loading the fonts and we could optimize the loader script to use only two elements (body and .fonts-loaded). The only new things we do is load <code>fontfaceobserver.js</code> and run our loader script.</p>
+<p>Another thing we can add to <code>@font-face</code> declarations to speed up font loading resolition is the <code>font-display</code> rule. The rule tells browsers how would you like it to handle loading web fonts.</p>
+<p>The possible values are:</p>
+<ul>
+<li><strong>auto</strong>: The default. Typical browser font loading behavior will take place. This behavior may be FOIT, or FOIT with a relatively long invisibility period. This may change as browser vendors decide on better default behaviors</li>
+<li><strong>swap</strong>: Fallback text is immediately rendered in the next available system typeface in the font stack until the custom font loads, in which case the new typeface will be swapped in. This is what we want for stuff like body copy, where we want users to be able to read content immediately</li>
+<li><strong>block</strong>: Like FOIT, but the invisibility period persists indefinitely. Use this value any time blocking rendering of text for a potentially indefinite period of time would be preferable. It’s not very often that block would be preferable over any other value</li>
+<li><strong>fallback</strong>: A compromise between <strong>block</strong> and <strong>swap</strong>. There will be a very short period of time (100ms <a href="https://developers.google.com/web/updates/2016/02/font-display?hl=en" rel="noopener">according to Google</a>) that text styled with custom fonts will be invisible. Unstyled text will then appear if the custom font hasn’t loaded before the short blocking period has elapsed. Once the font loads, the text is styled appropriately. This is great when FOUT is undesirable, but accessibility is more important</li>
+<li><strong>optional</strong>: Operates like <strong>fallback</strong> in that the affected text will initially be invisible for a short period of time, and then transition to a fallback if font assets haven’t completed loading. The optional setting gives the browser freedom to decide whether or not a font should even be used, and this behavior depends on the user’s connection speed. If you use this setting you should anticipate custom fonts may possibly not load at all</ul>
+</li>
+</ul>
+<p>So, depending on the importance of the font to the layout and ease of read of the site you can play with the different values for <code>font-display</code> to see how it affects your site. Since you’re likely to have a high speed connection and not throtle it it’s important to test the site in your target devices.</p>
+<p>Loading a font using <code>@font-face</code> and <code>font-display</code> looks like this:</p>
+<pre><code class="language-css">@font-face {
+  font-family: 'Ubuntu'; /* regular */
+  src: url('Ubuntu-R-webfont.woff2') format('woff2'), url('Ubuntu-R-webfont.woff')
+      format('woff'), url('Ubuntu-R-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+</code></pre>
+<p>I will not go into details on why testing on devices is important, I’ll just leave you, again, with Alex Russell’s video on web performance</p>
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/4bZvq3nodf4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+<div class="message warning">
+<p>One thing to keep in mind is that your fonts are subject to the web's <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy">same origin policy</a>. This means that unless you configure your server with universal CORS access or you serve fonts from a CDN like Google Fonts or Typekit they will not load across different origin.</p>
+</div>
+<h2>HTTP2 and Preload</h2>
+<p>We cam also tackle performance issues from the server side. I’m not talking about server side rendering but to use HTTP/2.</p>
+<p>HTTP2 allows several requests to use the same network connection, reducingthe overhead of several individual requests significantly and makes inlining obsolete.</p>
+<p>Browser support for HTTP/2 (and its predecessor SPDY) is excellent, so there’s no reason not to use HTTP/2.</p>
+<p>We can preload resources from the server Using Apache as an example we preload assets when the browser loads index.html. We’re preloading both <strong>woff</strong> and <strong>woff2</strong> fonts to make sure cover modern browsers that will support either version. If we must support older browsers we should also push the <strong>ttf</strong> version of the font.</p>
+<pre><code class="language-apacheconf">&lt;If &quot;%{DOCUMENT_URI} == '/index.html'&quot;&gt;
+  H2PushResource add css/site.css
+  H2PushResource add js/site.js
+  H2PushResource add font/font.woff2
+  H2PushResource add font/font.woff
+&lt;/If&gt;
+</code></pre>
+<p>We can also customize what resources we push based in the URI of the resource. In the following example each time we match a URI we will load specific assets for that file and nothing else. We could also have a wildcard match that will load assets needed by <strong>all</strong> pages and use the system below for page specific assets.</p>
+<pre><code class="language-apacheconf">&lt;if &quot;%{DOCUMENT_URI} == '/portfolio/index.html'&quot;&gt;
+  H2PushResource add /css/dist/critical-portfolio.css?01042017
+&lt;/if&gt;
+
+&lt;if &quot;%{DOCUMENT_URI} == '/code/index.html'&quot;&gt;
+  H2PushResource add /css/dist/critical-code.css?01042017
+&lt;/if&gt;
+</code></pre>
+<p>Nginx also allows you to push resources to the browser. The same examples reworked for nginx. The first one will preload a set of resources.</p>
+<pre><code class="language-nginx">server {
+  location = /index.html {
+    http2_push /css/style.css;
+    http2_push /js/main.js;
+    http2_push font/font.woff2;
+    http2_push font/font.woff;
+  }
+}
+</code></pre>
+<p>And the second example pushing assets depending on the page we’re trying to access:</p>
+<pre><code class="language-nginx">location = /portfolio/index.html {
+  http2_push /css/dist/critical-portfolio.css?01042017;
+}
+
+location = /code/index.html {
+  http2_push /css/dist/critical-code.css?01042017;
+}
+</code></pre>
+<p>If you don’t have access to your server’s configuration, don’t want to depend on manually updating the cache busting string you can do the preload from the client side using link elements with the <code>preload</code> attribute.</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot; href=&quot;https://example.com/fonts/font.woff2&quot;
+  as=&quot;font&quot; crossorigin type=&quot;font/woff2&quot;&gt;
+&lt;link rel=&quot;preload&quot; href=&quot;https://example.com/fonts/font.woff&quot;
+  as=&quot;font&quot; crossorigin type=&quot;font/woff&quot;&gt;
+&lt;link rel=&quot;preload&quot; href=&quot;https://example.com/css/main.css&quot;
+  as=&quot;style&quot; crossorigin type=&quot;text/css&quot;&gt;
+&lt;link rel=&quot;preload&quot; href=&quot;https://fonts.example.com/js/site.js&quot;
+  as=&quot;script&quot; crossorigin type=&quot;​text/javascript&quot;&gt;
+</code></pre>
+<p>The attributes of the link are:</p>
+<ul>
+<li><strong>rel</strong> - the type of link it is. In this case the value is <code>preload</code></li>
+<li><strong>href</strong> – the URL to preload</li>
+<li><strong>as</strong> – the destination of the response. This means the browser can set the right headers and apply the correct CSP policies.</li>
+<li><strong>crossorigin</strong> – Optional. Indicates that the request should be a CORS request. The CORS request will be sent without credentials unless you add <code>crossorigin=&quot;use-credentials&quot;</code> to the link</li>
+<li><strong>type</strong> – Optional. Allows the browser to ignore the preload if the provided MIME type is unsupported.</li>
+</ul>
+<p>I discuss link preloading along with other HTTP2 resource pushing and preloading strategies in <a href="https://publishing-project.rivendellweb.net/http2-server-push-link-preload-and-resource-hints/">HTTP/2 Server Push, Link Preload And Resource Hints</a></p>
+<h2>Service Worker Support</h2>
+<p>Service Workers are the core of progressive web applications. They work as a reverse network proxy that intercepts request for your site and performs actions based on its configuration. I’ve written about service workers <a href="https://publishing-project.rivendellweb.net/?s=service+worker">in my blog</a> before so I won’t go into detail.</p>
+<p>I will use <a href="https://developers.google.com/web/tools/workbox/next/">workbox.js</a> version 3, currently in beta, to illustrate how to cache fonts. You will most definitely want to add additional routes and caching strategies for your site.</p>
+<p>At the root of your site use the following snippet inside a script tag to register the service worker.</p>
+<p>We test if the <code>navigator</code> object has a serviceWorker method. If it does it means that Service Workers are supported and we can register it. If it doesn’t then Service Workers are not supported and we bail accordingly .</p>
+<p>Registering the Service Worker means that it’ll work for all pages under its scope but not above it (This is why we put the service worker at the root of the application).</p>
+<pre><code class="language-javascript">if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('sw.js')
+    .then(function(registration) {
+      console.log(
+        'Service Worker registration successful with scope: ',
+        registration.scope
+      );
+    })
+    .catch(function(err) {
+      console.log('Service Worker registration failed: ', err);
+    });
+}
+</code></pre>
+<p>The actual Service Worker script is fairly simple.</p>
+<p>We import <code>workbox-sw</code>, the core of our Service Worker.</p>
+<p>We check if Workbox loaded successfully and if it does then we register a route matching all possible font types and create a custom cache using a cache-first strategy (check the cache and if the resource is not there then fetch it from the network).</p>
+<p>The cache will store 10 fonts for 30 days (as indicated in <code>maxEntries</code> and <code>maxAgeSeconds</code>). If more than 10 fonts are added the oldest will be removed first.</p>
+<pre><code class="language-javascript">importScripts(
+  'https://storage.googleapis.com/workbox-cdn/releases/3.0.0-beta.0/workbox-sw.js '
+);
+
+if (workbox) {
+  workbox.routing.registerRoute(
+    /.*\.(?:woff2,woff,ttf,otf,eot)/,
+    workbox.strategies.cacheFirst({
+      cacheName: 'font-cache',
+      plugins: [
+        new workbox.expiration.Plugin({
+          maxEntries: 10,
+          maxAgeSeconds: 30 * 24 * 60 * 60
+        })
+      ]
+    })
+  );
+} else {
+  console.log(`Boo! Workbox didn't load`);
+}
+</code></pre>
+<p>Using a Service Worker to cache fonts using this method means that fonts will be loaded from cache in second and subsequent visits and when the browser is offline or connectivity is unreliable.</p>
+<p>We could have precached the fonts but that would remove the possibility of customizing the cache. The size of fonts may also impact how long does it take to precache resources and the whole idea of precaching is to make the first load of the page work fast.</p>
+<p>For more information, check Workbox 3 <a href="https://developers.google.com/web/tools/workbox/next/">documentation</a>.</p>
+<h2>Links and Resources</h2>
+<ul>
+<li>General Information
+<ul>
+<li><a href="https://helenvholmes.com/writing/type-is-your-right">What Is Beautiful Typography</a></li>
+<li><a href="http://labs.jensimmons.com/">The Experimental Layout Lab of Jen Simmons</a></li>
+<li><a href="https://simoncozens.github.io/fonts-and-layout/">Fonts and Layout for Global Scripts</a></li>
+</ul>
+</li>
+<li>Typography
+<ul>
+<li><a href="https://spaceninja.com/2010/11/29/font-face-faux-styles/">How to use @font-face to avoid faux-italic and bold browser styles</a></li>
+<li><a href="http://alistapart.com/article/say-no-to-faux-bold">Say No to Faux Bold</a></li>
+</ul>
+</li>
+<li>System Fonts
+<ul>
+<li><a href="http://markdotto.com/2018/02/07/github-system-fonts/">Shipping system fonts to GitHub.com</a></li>
+<li><a href="https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/">Using UI System Fonts In Web Design: A Quick Practical Guide</a></li>
+<li><a href="https://css-tricks.com/os-specific-fonts-css/">OS Specific Fonts in CSS</a></li>
+<li><a href="https://css-tricks.com/snippets/css/system-font-stack/">System Font Stack</a></li>
+<li><a href="https://booking.design/implementing-system-fonts-on-booking-com-a-lesson-learned-bdc984df627f">Implementing system fonts on Booking.com — A lesson learned</a></li>
+</ul>
+</li>
+<li>Choosing your font stack
+<ul>
+<li><a href="https://design.google/library/choosing-web-fonts-beginners-guide/?utm_source=frontendfocus&amp;utm_medium=email">Choosing Web Fonts: A Beginner’s Guide</a></li>
+<li><a href="http://fontfamily.io/">Font Family Reunion</a></li>
+<li><a href="https://meowni.ca/font-style-matcher/">Font style matcher</a></li>
+</ul>
+</li>
+<li><code>font-variant-*</code>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant">font-variant-* at MDN</a></li>
+</ul>
+</li>
+<li>Performance
+<ul>
+<li><a href="https://www.zachleat.com/web/comprehensive-webfonts/">A Comprehensive Guide to Font Loading Strategies</a></li>
+<li><a href="https://calendar.perfplanet.com/2017/3-tips-for-faster-font-loading/">3 Tips for Faster Font Loading</a></li>
+<li><a href="https://css-tricks.com/font-display-masses/">https://css-tricks.com/font-display-masses/</a></li>
+</ul>
+</li>
+<li>Media Queries
+<ul>
+<li><a href="https://www.smashingmagazine.com/2018/02/media-queries-responsive-design-2018/">Using Media Queries For Responsive Design In 2018</a></li>
+</ul>
+</li>
+<li>HTTP2
+<ul>
+<li><a href="http://http2.github.io/http2-spec/index.html">Specification</a></li>
+<li><a href="https://www.wikiwand.com/en/HTTP/2">Wikipedia Entry</a></li>
+<li><a href="https://caniuse.com/#search=http2">Can I Use HTTP2</a></li>
+</ul>
+</li>
+<li>Service Workers
+<ul>
+<li><a href="https://jakearchibald.com/2014/offline-cookbook/">The offline cookbook</a></li>
+<li>Jeremyt Keith’s <a href="https://adactio.com/journal/9775">My first Service Worker</a></li>
+<li><a href="https://adactio.com/journal/11730">Making Resilient Web Design work offline</a></li>
+<li><a href="https://adactio.com/journal/10186">Service Worker notes</a></li>
+<li><a href="https://www.smashingmagazine.com/2016/02/making-a-service-worker/">Making A Service Worker: A Case Study</a></li>
+<li><a href="https://developers.google.com/web/tools/workbox/next/">Workbox 3 Beta</a></li>
+</ul>
+</li>
+<li>Variable fonts
+<ul>
+<li><a href="https://medium.com/clear-left-thinking/how-to-use-variable-fonts-in-the-real-world-e6d73065a604">How to use variable fonts in the real world</a></li>
+<li><a href="http://www.alphabettes.org/responsive-variable-fonts/">Typographic Potential of Variable Fonts</a></li>
+<li><a href="https://webkit.org/blog/7051/variable-fonts-on-the-web/">Variable Fonts on the Web</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/variable-fonts-for-the-win/">Variable fonts for the win!</a></li>
+<li><a href="https://caraya.github.io/vfonts-demo/">Variable Fonts Demo and Explainer</a></li>
+<li><a href="https://css-tricks.com/use-variable-fonts-real-world/">How to use variable fonts in the real world</a></li>
+<li><a href="https://medium.com/clear-left-thinking/how-to-use-variable-fonts-in-the-real-world-e6d73065a604">How to use variable fonts in the real world</a></li>
+<li><a href="https://css-tricks.com/one-file-many-options-using-variable-fonts-web/">One File, Many Options: Using Variable Fonts on the Web</a></li>
+<li>Variable fonts <a href="https://codepen.io/collection/DwgRyd/">Codepen demos</a> by Jason Pamental</li>
+<li>Variable fonts <a href="https://codepen.io/collection/XqRLMb/">Codepen demos</a> by Mandy Michael</li>
+<li><a href="https://blog.typekit.com/2017/10/19/new-variable-fonts-from-adobe-originals/">New variable fonts from Adobe Originals</a></li>
+</ul>
+</li>
+<li>Document Order and Visual Order
+<ul>
+<li><a href="http://adrianroselli.com/2015/10/html-source-order-vs-css-display-order.html">HTML Source Order vs CSS Display Order</a></li>
+<li><a href="https://www.w3.org/TR/WCAG20-TECHS/C27.html">WCAG C27: Making the DOM order match the visual order</a></li>
+<li><a href="https://webdesign.tutsplus.com/tutorials/a-few-different-css-methods-for-column-ordering--cms-27079">A Few Different CSS Methods for Changing Display Order</a></li>
+</ul>
+</li>
+<li>Font Subsetting
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range">unicode-range</a> CSS descriptor</li>
+<li><a href="http://jrgraphix.net/r/Unicode/">Unicode Character Ranges</a></li>
+<li><a href="https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2015/august/how-to-subset-fonts-with-unicode-range/">How to subset fonts with unicode-range</a></li>
+<li><a href="https://24ways.org/2011/creating-custom-font-stacks-with-unicode-range/">Creating Custom Font Stacks with Unicode-Range</a></li>
+</ul>
+</li>
+<li>Font Specimens
+<ul>
+<li><a href="http://alistapart.com/article/real-web-type-in-real-web-context">Real Web Type in Real Web Context</a></li>
+</ul>
+</li>
+<li>Books
+<ul>
+<li>Tim Brown, <a href="https://blog.typekit.com/2016/04/29/combining-typefaces-free-guide-to-great-typography/">Combining Typefaces</a></li>
+<li>Cyrus Highsmith, <a href="http://insideparagraphs.com/">Inside Paragraphs</a></li>
+<li>Jason Santa Maria, <a href="https://abookapart.com/products/on-web-typography">On Web Typography</a></li>
+<li>Robert Bringhurst, <a href="https://www.amazon.com/Elements-Typographic-Style-Version-Anniversary/dp/0881792128">The Elements of Typographic Style</a></li>
+<li>Bram Stein, <a href="https://abookapart.com/products/webfont-handbook">Webfont Handbook</a></li>
+<li>Richard Rutter, <a href="http://book.webtypography.net/">Web Typography</a></li>
+<li>Richard Rutter, <a href="http://webtypography.net/">The Elements of Typographic Style Applied to the Web</a></li>
+<li>Donny Truong, <a href="https://prowebtype.com/">Professional Web Typography</a>
+<a id="markdown-credits" name="credits"></a></li>
+</ul>
+</li>
+</ul>
+<h2>Credits</h2>
+<p>Some material taken from MDN created by Mozilla Contributors and licensed under a Creative Commons <a href="http://creativecommons.org/licenses/by-sa/2.5/">Attribution-ShareAlike 2.5 Generic</a> license.</p>
+<p>Material taken from CSS-Tricks used according to their <a href="https://css-tricks.com/license/">license</a>.</p>
+<p>Content in HTTP2 Push taken from Jake Archibald’s site (<a href="https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/">H2 Push is tougher than I thought</a>), from Smashing Magazine (<a href="https://www.smashingmagazine.com/2017/04/guide-http2-server-push/">A Comprehensive Guide To HTTP/2 Server Push</a>) and Filament Group’s site (<a href="https://www.filamentgroup.com/lab/modernizing-delivery.html">Modernizing our Progressive Enhancement Delivery</a>).</p>
+<p>Content from <a href="http://webtypography.net/">The Elements of Typographic Style Applied to the Web</a> by Richard Rutter used under a Creative Commons <a href="https://creativecommons.org/licenses/by-nc/4.0/">Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</a> License</p>
+<p>Content from Google Web Funadmentals is licensed under a <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>. Code samples are licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a> License.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

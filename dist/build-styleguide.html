@@ -1,0 +1,438 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Build a style guide</h1>
+<p>For the longest time I’ve resisted building pattern and component libraries for my projects. I’ve thought about them as a waste of time and resources. I conceptually understand their importance and how they benefit projects.</p>
+<p>At An Event Apart last year I heard <a href="http://bradfrost.com/">Brad Frost</a> speak about <a href="http://atomicdesign.bradfrost.com/table-of-contents/">Atomic Design</a> and, based on my earlier research in Polymer and Web Components, I decided to take a look at design patterns again without web components.</p>
+<h2>Why a style Guide?</h2>
+<p>I’m also planning a full rebuild of my old labs website and decided to have a pattern library to make it easier to work in building the pages that I want to use. I started the design using Fractal and will probably continue to do so with the caveats we’ll discuss as we go through the process and build components</p>
+<h2>Starting with Fractal</h2>
+<p><a href="http://fractal.build/">Fractal</a> is a component build system created by <a href="https://clearleft.com/">Clearleft</a> is a fairly straightforward way to create elements and start building more complex structures based on those elements.</p>
+<p>The idea is that you can build as small a component as you want. Most styleguides and pattern libraries build buttons, links and color palettes.</p>
+<p>I haven’t gone that far down the rabbit hole, and perhaps I should. I’m playing with colors, strctures (Inverse color headers) but this should give me the chance to do so.</p>
+<p>The most important thing for me is the ability to create mockups of the files and attach different stylesheets to test what the element looks like under different parameters.</p>
+<h3>Issues that I have with Fractal</h3>
+<p>If there is one issue I have with Fractal is that it’s a completely different environment with its own CLI and no plugin to run fractal from within Gulp other than using <code>gulp-exec</code> to run the fractal CLI.</p>
+<p>Furthermore there is no easy way to rebuild the components into a static website. It’s a manual rebuild and reload process.</p>
+<h2>Exploring Fractal</h2>
+<p>Fractal is a Node application. To install it run the following command:</p>
+<pre><code class="language-command">npm install -g @frctl/fractal
+</code></pre>
+<p>This will install a <code>fractal</code> command line tool.</p>
+<pre><code class="language-bash">fractal --help
+┌───────────────────────────────────────────────────────┐
+│ Fractal interactive CLI                               │
+│───────────────────────────────────────────────────────│
+│ - Use the help command to see all available commands. │
+│ - Use the exit command to exit the app.               │
+│───────────────────────────────────────────────────────│
+│ Powered by Fractal v1.1.4                             │
+└───────────────────────────────────────────────────────┘
+
+fractal ➤
+</code></pre>
+<h2>Core Concepts</h2>
+<p>Now that we’ve installed and run Fractal we’ll explore some of the basic concepts. This is not an exhaustive reference, for ythat go to the <a href="http://fractal.build/guide/">Fractal Guide</a> that covers this in a lot more detail. This document covers how I use the tool.</p>
+<h3>View templates</h3>
+<p>Fractal can use any template engine we want. By default it uses handlebars with additional extensions. A basic Handlebar template looks like this:</p>
+<pre><code class="language-handlebars">&lt;div class=&quot;entry&quot;&gt;
+    &lt;h1&gt;{{ title }}&lt;/h1&gt;
+    &lt;div class=&quot;body&quot;&gt;
+    {{ body }}
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<p>This will take the <code>title</code> string from a configuration file or as passed to the element and use it inside the h1 element. It will do the same thing with the <code>body</code> content and the div in the body element.</p>
+<p>We can create partial templates to build more comple layouts. For example we can create a page template, a header template and a footer-scripts template to hold different parts of our page.</p>
+<p>The <code>header</code> template contains the head element and all its children. We use it because, other than the tilte, these elements are not likely to change. The template looks like this:</p>
+<pre><code class="language-handlebars">&lt;head&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;/styles/video-load.css&quot;&gt;
+
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; 
+      content=&quot;width=device-width,minimum-scale=1,maximum-scale=1&quot;&gt;
+
+    &lt;title&gt;{{title}}&lt;/title&gt;
+&lt;/head&gt;
+</code></pre>
+<p>We use the <code>footer-scripts</code> to add scripts that we want to add to all content pages of our site. It contains all the scripts that I use so it may get pruned and made into different versions depending on what the specific page needs. The default script is shown below:</p>
+<pre><code class="language-handlebars">&lt;script async src=&quot;/scripts/lazy-load.js&quot;&gt;&lt;/script&gt;
+&lt;script async src=&quot;/scripts/vendor/moment-with-locales.js&quot;&gt;&lt;/script&gt;
+&lt;script async src=&quot;/scripts/vendor/prism.js&quot;&gt;&lt;/script&gt;
+&lt;script async src=&quot;/scripts/vendor/fontfaceobserver.standalone.js&quot;&gt;&lt;/script&gt;
+&lt;script async src=&quot;/scripts/load-fonts.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;/scripts/lazy-load-video.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>The final template is for our basic pages. It will use the two partial templates we’ve seen before and build the page. The default Handlebars way looks like this:</p>
+<pre><code class="language-handlebars">&lt;html&gt;
+{{&gt; @header }}
+&lt;body&gt;
+{{&gt; body }}
+
+{{&gt; @footer-scripts }}
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>We can nest templates inside each other to make content even more moular. We could take our header and title element and make a template out of them. We’ll look at this in more detail when we build a component.</p>
+<p>If I’m working on a style guide then I will use them extensively. If I’m building the style guide as part of a larger project I may stick with standard handlebars or those available from the <a href="https://github.com/helpers/handlebars-helpers">handlebars-helpers</a> collection, I don’t want to stay tied to Fractal any more than absolutely necessary, particularly if the project is for a client.</p>
+<p>You can check the existing Fractal helpers in the documentation guide (<a href="http://fractal.build/guide/core-concepts/views#using-handlebars">Using Handlebars</a> section). I will use the <code>render</code> helper to illustrate how they work.</p>
+<pre><code class="language-handlebars">&lt;html&gt;
+{{render '@header' }}
+&lt;body&gt;
+{{&gt; body }}
+
+{{render '@footer-scripts' }}
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>The result should be the same but behind the scenes Fractal will do additional work with the rendered template. We don’t need to know what it is, it just works :)</p>
+<h3>Context data</h3>
+<p>Context data can be used to populate parts of the template. The two most common ways to do it are to create a .json file or to use YAML front matter at the top of the page. The idea is that you don’t need to manually give titles or do things with the template, for example we could create the following <a href="http://json.org/">JSON</a> file for a component may look like this:</p>
+<pre><code class="language-json">{
+  &quot;context&quot;: {
+    &quot;title&quot;: &quot;Level 1 Heading&quot;,
+    &quot;author&quot;: &quot;Aragorn, King of the West&quot;
+  }
+}
+</code></pre>
+<p>We could also provide the same data at the document level using <a href="http://yaml.org/">YAML</a>. The JSON file converted to YAML front matter works like this. We can extend this with additional information and data to work with our templates.</p>
+<pre><code class="language-yaml">---
+context:
+  title: &quot;Level 1 Heading&quot;
+  author: &quot;Aragorn, King of the West&quot;
+---
+</code></pre>
+<h3>Configuration files</h3>
+<p>Components, documentation pages and collections can all have their own (optional) configuration files associated with them.</p>
+<p>In order to be recognised, configuration files must:</p>
+<ul>
+<li>Reside in the same directory as the item that they are configuring</li>
+<li>Have a file name in the format item-name.config.{js|json|yml} - for example button.config.json, patterns.config.js or changelog.config.yml</li>
+</ul>
+<p>Some things to note:</p>
+<ul>
+<li>The javascript version (the one that exports a module) is not as strict as the JSON version in terms of quoting string attributes</li>
+</ul>
+<pre><code class="language-js">module.exports = {
+    title: &quot;Base Layout&quot;,
+    status: &quot;prototype&quot;, 
+    context: {
+        &quot;title&quot;: &quot;Click me!&quot;,
+        &quot;author&quot;: &quot;Carlos&quot;
+    }
+};
+</code></pre>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;Base Layout&quot;,
+  &quot;status&quot;: &quot;prototype&quot;,
+  &quot;context&quot;: {
+    &quot;title&quot;: &quot;Click me!&quot;,
+    &quot;author&quot;: &quot;Carlos&quot;
+  }
+}
+</code></pre>
+<p>Some configuration items will have their values inherited from upstream collections or their default settings if the values are not set in the item’s configuration file directly.</p>
+<p>This can also be thought of a cascade of configuration values from their default settings down through any nested collection configurations and into the item itself.</p>
+<h3>Naming &amp; referencing</h3>
+<p>Fractal is a flat-file system, and makes use of some simple file and folder naming conventions to help it parse the file system and generate the underlying data model.</p>
+<p>One of the main disadvantages of flat-file systems is that when one item references another via a path, moving any of those items inevitably results in those links breaking. So Fractal also supports a reference system, whereby items can use ‘handles’ instead of paths to link parts of the system together.</p>
+<p>Unless told otherwise, Fractal will infer the name of a component or documentation page from its view template file name (or the parent directory for ‘compound’ components). It will then use this name (plus some other information) to generate a handle for the item. Handles are what will be used to reference that item elsewhere around your project.</p>
+<div class="message info">
+  <p>Names and handles are both ‘slug’ type strings, and will contain only lowercase, alphanumeric characters plus underscores and dashes.</p>
+</div>
+<p>The name will also be used to generate a default label and a title for the item. Labels are the text that will be used when the item is referenced in any navigation (for example in the web UI) and the title value is the text that will be used anywhere else a human-readable name for the item is required.</p>
+<p>For a template in blockquote-large.hbs:</p>
+<pre><code class="language-bash">├── components
+│   └── blockquote-large.hbs
+</code></pre>
+<p>The following labels and slugs will be generated:</p>
+<ul>
+<li>name: blockquote-large</li>
+<li>handle: blockquote-large</li>
+<li>label: Blockquote Large</li>
+<li>title: Blockquote Large</li>
+</ul>
+<h3>Statuses</h3>
+<p>Pages can have statuses associated with them.</p>
+<p>Each status has a colour and a label that can be displayed in the web UI (and other places) to help people quickly understand the status of each component.</p>
+<p>Fractal defines some default statuses, but you are free to define your own to suit the needs of your project, or customise the colours and labels associated with these statuses.</p>
+<h2>Building a component</h2>
+<p>In this example we’ll build a header element with title and author children. We’ll build two separate templates, the first one has the content of the template that we can style as needed.</p>
+<pre><code class="language-handlebars">  &lt;h1&gt;{{title}}&lt;/h1&gt;
+
+  &lt;p&gt;by&lt;/p&gt;
+
+  &lt;h2&gt;{{author}}
+</code></pre>
+<p>The second template takes the content template and inserts it into a header element. The cool thing is that we can start with as small templates as we want or need to acommodate atomic design principles</p>
+<pre><code class="language-handlebars">&lt;header&gt;
+  {{&gt; @head}}
+&lt;/header&gt;
+</code></pre>
+<h2>Moving the components to Fractal</h2>
+<p>To move a component into Fractal do the following:</p>
+<ol>
+<li>Create the Handlebars template</li>
+</ol>
+<ul>
+<li>Make sure you’ve already created all the components that you’ll use inside the current element</li>
+</ul>
+<ol start="2">
+<li>Create the configuration file for your component</li>
+<li>Create the styles (note that these are for display only, the style should go into your SASS or CSS)</li>
+<li>Preview.</li>
+</ol>
+<h1>Static sites for Rapid Prototyping</h1>
+<p>Now that we have a way to create components and preview them using Fractal we can look at how we can use the same handlebars templates to build a static web site.</p>
+<p>Because I’ve used Gulp to build the rest of the site it’s important to me that whatever site generator I work with also uses Gulp. <a href="http://assemble.io/">Assemble</a> does enough of the work that it’s worth putting up with its idiosyncrasies.</p>
+<p>First the bad. There used to be a Gulp plugin that would make Assembly work with Gulp. The plugin has been deprecated and people cautioned to work directly with Assemble.</p>
+<p>This would be all well and good except for the fact that documentation sucks. That would be a minimal issue if there were Gulp examples that people (developers or users) shared with the community or if the documented best practices were illustrated with code.</p>
+<p>That said I got it to work in Gulp 3.9 and I’ll document the process and why I think this is a good way to build static sites.</p>
+<h2>Why Static?</h2>
+<p>Rather than spin up a new server or write a whole new app every time we want to test a layout or do a lot of complex things when prototyping layouts I’ve chosen to build the prototypes as static sites. With static sites I still use HTML, CSS and ES6 but don’t need to fireup a full server to make the demos work.</p>
+<p>Because I’m using Handlebars templates I can reuse as many templates as I need or use them to create specialized versions. For exampe, if I have a template for a header element, I can copy it and make it into an inverse header by just adding a CSS class and swapping the foreground and background color.</p>
+<p>I can also build pages with data without having to use a database. Using JSON and Handlebars we can build data-driven content without a database. It doesn’t work as well as PHP and other dynamic lanauges but we’re not serving the site as a dynamic application, I’m just using the data to build the files that will be statically served.</p>
+<p>The final part is easy of serving the content. I can serve them locally from a laptop for a presentation, I can upload them and serve them from my DVS where I also host my Wordpress installations and, the most intriguing option, I can serve them from buckets in AWS and Google cloud.</p>
+<p>We’ll explore these options as we progress through creating the content. But first let’s look at what we need to do to get Assemble up and running.</p>
+<h2>Building an Assemble Gulp workflow</h2>
+<p>Installing Assemble is fairly easy. We install 3 Gulp plugins: <code>assemble</code>, <code>gulp-extname</code> and <code>helper-markdown</code>.</p>
+<p><code>assemble</code> is the core Assemble toolkit.</p>
+<p><code>gulp-extname</code> provides a quick way to replace file extensions based on predetermined mappings.</p>
+<p><code>helper-markdown</code> converts Markdown to HTML using the Marked library create by the same author who created Assemble.</p>
+<pre><code class="language-bash">npm i --save-dev assemble gulp-extname helper-markdown
+</code></pre>
+<p>Once we’ve installed the plugins we can create the Gulp task. This is what will take the pages, build them using layouts which in turn will use one or more partials to build the resulting HTML page.</p>
+<p>The Assemble purists may complain that the task we defined should be broken down into two tasks, one to load configuration and the other to actually run Assemble. They are correct, that’s the right way to do it… but I’d rather keep most or all the configuration in the task that uses it and this has worked so far.</p>
+<p>So let’s configure Assemble to create our content.</p>
+<p>We first configure Assemble by assigning it to a constant. I’m doing this outside the task because I may want to break this single task into multiple Assemble tasks that reuse the app and some of the elements we define below.</p>
+<p>The first action we do inside the task is to tell assemble where to find <a href="http://assemble.io/docs/Partials.html">partials</a>, <a href="http://assemble.io/docs/Layouts.html">layouts</a> and <a href="http://assemble.io/docs/Pages.html">pages</a> to build the content.</p>
+<p>Next I provide a default layout. I do this to make sure the content will build even if I forget to specify the layout to use. Better to have the wrong layout than no layout at all.</p>
+<p>Because I write all my content in Markdown I need to be sure that I use Asssemble’s Markdown helper. It uses <a href="https://github.com/chjj/marked">Marked.js</a> under the hood so the result should be the same whether I run it through assemble or run it through my starter kit.</p>
+<p>There are times when I want to use JSON to populate data in the templates rather than have to type it all by hand; <code>app.helper</code> tells Assemble where to find the JSON or YAML files to populate data with.</p>
+<p>I then push the pages to the processing stream, render each file, run then through <code>extname</code> to change the extension from <code>hbs</code> to <code>html</code> and then save them in the destination file specified in <code>app.dest</code> (in this case the <code>_site</code> directory).</p>
+<pre><code class="language-javascript">// 1. Setup Assemble
+const app = assemble()
+
+gulp.task('build', () =&gt; {
+  // 2. sets the locations of partials, layouts and pages
+  app.partials('src/templates/partials/**/*.hbs')
+  app.layouts('src/templates/layouts/*.hbs')
+  app.pages('src/templates/pages/**/*.hbs')
+  // 3. Sets the default layout
+  app.option('layout', 'base')
+  // 4. Tells Assemble to use the Markdown helper
+  app.helper('markdown', require('helper-markdown'))
+  // 5. Sets the locations for data files
+  app.data('src/templates/{pages,partials,data}/**/*.{json,yaml}')
+
+  // 6. Pushes &quot;pages&quot; collection into stream
+  return app.toStream('pages')
+    // 7. Render pages with default engine (handlebars)
+    .pipe(app.renderFile())
+    // 8. Map the source extension to the desired output
+    .pipe(extname())
+    // 9. specify your output location
+    .pipe(app.dest('_site'))
+})
+</code></pre>
+<p>So now we have a working task that will convert all Handlebars template into HTML. Now we can worry about creating the content.</p>
+<h3>Partials, pages and layouts</h3>
+<p>When we built the Assemble Gulp task we mentioned three different types of Handlebars content: <code>partials</code>, <code>pages</code> and <code>layouts</code>. We’ll look at them in more detail.</p>
+<p>If you’re not familiar with the concepts we’ll look at them in more detail.</p>
+<p><strong>Partials</strong> are small reusable components for your page. These can be as small as a header or a list of links and as large as a card component. We make them partials to make sure we can reuse them in different pages.</p>
+<p>An example of a partial Handlebars template:</p>
+<pre><code class="language-handlebars">    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,minimum-scale=1,maximum-scale=1&quot;&gt;
+</code></pre>
+<p>Another type of partial holds smaller pieces of content like the header content we defined above:</p>
+<pre><code class="language-handlebars">&lt;head&gt;
+  {{&gt; head-content}}
+&lt;/head&gt;
+</code></pre>
+<p>We can go as granular as we need to with our partials. The basic question I ask when I build a partial is how many pages will I use it on, if it’s a single page then I’d rather keep it as part of the layout, otherwise I’ll create it as a partial.</p>
+<p><strong>Layouts</strong> are the structure of the page we want to build. It is also one of the places where we can add partials to build our content.</p>
+<p>In the example below we use several Handlebars techniques to make our template do what we want.</p>
+<pre><code class="language-handlebars">&lt;html lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;
+
+&lt;head&gt;
+    &lt;title&gt;
+        {{#if title}}
+            {{!-- If the page has a title then use it--}}
+            {{title}} | Essays
+        {{else}}
+             Essay
+        {{/if}}
+    &lt;/title&gt;
+
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;styles/main.css&quot;&gt;
+    {{#&gt; head-block}}
+      {{!-- default conten goes here --}}
+    {{/head-block}}
+&lt;/head&gt;
+
+&lt;body&gt;
+
+{{#markdown}}
+  {{&gt; body}}
+{{/markdown}}
+
+
+&lt;!-- scripts used throughout most pages --&gt;
+{{#&gt; bottom-scripts}}
+    {{!-- Default content if partial is not found --}}
+{{/bottom-scripts}}
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>In the head of the document we use the <code>if</code> <a href="http://handlebarsjs.com/builtin_helpers.html">builtin helper</a> to customize the title of the page if the title attribute is present and provide a generic title otherwise.</p>
+<p>The <code>head-block</code> and <code>bottom-script</code> partials use the block partial technique. According to the handlebar documentation:</p>
+<blockquote>
+<p>The normal behavior when attempting to render a partial that is not found is for the implementation to throw an error. If failover is desired instead, partials may be called using the block syntax.</p>
+<pre><code class="language-handlebars">{{#&gt; myPartial }}
+ Failover content
+{{/myPartial}}
+</code></pre>
+<p>Which will render Failover content if the myPartial partial is not registered.</p>
+</blockquote>
+<p>When only one person is working on the project it’s ok to use regular templates but even then it might be good idea to code defensively and provide failover content in case you give things the wrong name or put them in the same directory. I’ve done that many times and got frustrated because the pages were not rendering as intended.</p>
+<p><strong>Pages</strong> hold the content and additional content related partials. This is the content counterpar to the layout structure. In this case we use several techniques to make the content work with the layout and be performant.</p>
+<p>Be aware that this is not the full content.</p>
+<pre><code class="language-handlebars">---
+title: Ghost in the shell review and analysis
+author: Carlos Araya
+layout: base
+---
+
+{{#&gt;title-block--inverse}}{{/title-block--inverse}}
+
+&lt;div class=&quot;essay container&quot;&gt;
+
+**WARNING: Fanboy hat firmly on. We may disagree on specifics 
+but this is my vision.**
+
+## In World General notes
+
+In this video play special attention to the director's interview.
+
+&lt;div class=&quot;youtube-player&quot; data-id=&quot;GpsfXLa2g-s&quot;&gt;&lt;/div&gt;
+
+Kuze, his story and his relationship with the Major is 
+modified from Stand Alone Complex 2nd Gig. I have to admit, I 
+prefer the story as told in the TV show (2nd Gig, Episode 11: 
+Affection) but it's not quite the same story and it blends 
+itself well with the story and ideas as told in the film.
+
+The story of why the Major become a cyborg is original to the movie, 
+even though it has similarities with 2nd Gig and Arise even if the 
+movie shows an entirely different story of her parents being killed 
+by terrorists. 2nd Gig has the major and Kuze being severely injured 
+in an accident as children and receiving some of the first fully 
+prosthetic bodies, Arise has the major being fully cyberized at 
+birth because of a chemical spill accident that killed her parents.
+
+The Cyberization in the anime is much different than the cyber 
+enhancement in the movie and, in a way, it's closer to Ghost in 
+the Shell: Arise in terms of where the story is but not in how many 
+people have been fully converted to prosthetic bodies (most of them 
+are in the military and don't own their own cybernetic bodies, the 
+government does; Only after the second episode of Arise that the 
+major becomes the owner of her own body).
+&lt;/div&gt;
+</code></pre>
+<p>The page uses YAML Front Matter to indicate the title and the author as well as the layout to use.</p>
+<p>The page uses a block partial for displaying the author and title in a way that will render it in inverse text (white text over black background rather than the default black over white).</p>
+<p>I also write special tags for video using a lazy loader script that is defained in the layout of the page. One of the beauties of using Markdown is that we can write HTML where Markdown itself is not enough.</p>
+<h3>Using data to populate content</h3>
+<p>The last bit I want to discuss on this post is how to use JSON to populate content in a page. <strong>This is no dynamic content</strong>, every time we make changes to the data we need to recreate the page that uses it.  This approach is particularly good for pages where the content doesn’t change frequently like menus or big project lists like the one I’ve done below.</p>
+<p>The page template is fairly simple.  It (re)uses <code>head-content</code>, <code>title-block</code>, <code>footer-block</code> and <code>bottom-scripts</code> to create the oage structure.</p>
+<p>The new item is the use of the <code>#each</code> helper to loop over content. In this case it will look for <code>project.json</code> and for every item in that file it will call the <code>project-single</code> partial</p>
+<pre><code class="language-handlebars">---
+title: Project Archive
+author: Carlos Araya
+layout: base
+---
+&lt;!-- projects.hbs --&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    {{#&gt;head-content}}{{/head-content}}
+  &lt;/head&gt;
+  &lt;body&gt;
+    {{#&gt;title-block}}{{/title-block}}
+
+    &lt;div id=&quot;card-container&quot;&gt;
+      {{#each projects}}
+        {{&gt; project-single}}
+      {{/each}}
+    &lt;/div&gt;
+
+    {{#&gt;footer-block}}{{/footer-block}}
+    {{#&gt;botttom-scripts}}{{/botttom-scripts}}
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p><code>project-single</code> on its own doesn’t do anything, it doesn’t have a context to work from. But when it runs inside the projects page it will take the data from each item to populate that run of the template. Think of it as a Javascript For loop.</p>
+<p>The CSS is already defined in an external file.</p>
+<pre><code class="language-handlebars">  &lt;!-- project-single.hbs --&gt;
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;div class=&quot;title&quot;&gt;{{name}}&lt;/div&gt;
+    &lt;div class=&quot;content&quot;&gt;
+      &lt;div class=&quot;description&quot;&gt;
+        &lt;p&gt;{{description}}&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;metadata&quot;&gt;
+        &lt;p&gt;Project Status: &lt;strong&gt;{{stage}}&lt;/strong&gt;&lt;/p&gt;
+        &lt;p&gt;Project Type: &lt;strong&gt;{{type}}&lt;/strong&gt;&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;title&quot;&gt;Project Notes&lt;/div&gt;
+      &lt;div class=&quot;notes&quot;&gt;
+        &lt;p&gt;{{notes}}&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;notes-title&quot;&gt;Project Links&lt;/div&gt;
+      &lt;div class=&quot;action&quot;&gt;
+        {{#if url.code}}
+         &lt;a href=&quot;{{url.code}}&quot;&gt;Code&lt;/a&gt;
+        {{/if}}
+        {{#if url.writeup}}
+          &lt;a href=&quot;{{url.writeup}}&quot;&gt;Writing&lt;/a&gt;
+        {{/if}}
+        {{#if url.other}}
+          &lt;a href=&quot;{{url.other}}&quot;&gt;Other&lt;/a&gt;
+        {{/if}}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+</code></pre>
+<h2>What’s next?</h2>
+<p>I work in a parallel process. I create the content first (partials, layout and pages) with a thought about styles and creative uses of CSS, animations and Javascript.</p>
+<p>Some of my challenges with static websites is how much modularization we need versus how many CSS and Handlebaras files do we create? Right now my SASS process creates one monolithic stylesheet from multiple partials. In a static site I might want to break the styles in the same way that I break the pages.</p>
+<p>Working on converting the site into a PWA. You can can create service workers (<a href="https://developers.google.com/web/tools/workbox/">Gulp and workbox-sw</a>) and web app manifests (<a href="https://brucelawson.github.io/manifest/">Web App Manifest Generator</a>) or you can bite the bullet and do everything manually. That’s your call.</p>
+<p>Hosting the content will be the next problem to tackle. I’m inclined to look at Google Cloud or Firebase hosting to host the content. I love Google Cloud and I have the way to programmatically upload the content, the only downside is that it doesn’t support TLS and HTTPS.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

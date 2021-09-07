@@ -1,0 +1,425 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Custom Elements revisited (once more)</h1>
+<p>This post will look at technologies allow us to create fully encapsulated and accessible web content.</p>
+<ul>
+<li><strong>Custom Elements</strong> allows developers to create specialized elements for the web</li>
+<li><strong>Shadow DOM</strong> gives us encapsualated styles that won’t bleed into the parent document</li>
+<li><strong>Templates</strong> provide inert chunks of HTML content that we can instantiate after creaation</li>
+<li><strong>Custom Properties</strong> provide a way to create reusable styles that will work through the shadow DOM</li>
+</ul>
+<h2>Reviewing Custom elements</h2>
+<p>The idea behind custom elements is to allow developers to create their own valid HTML elements that encapsulate HTML content, CSS styles and Javascript behavior that is unique to that instance of the component.</p>
+<p>At the most basic level the component is a class that inherits from HTMLElement, the base class for all HTML elements on the page, whether visible or not.</p>
+<p>We can create constructor methods and use them to set up default behavior for the element. This behavior comes in handy when we extend a custom element rather than the default.</p>
+<pre><code class="language-js">class DemoElement extends HTMLElement {
+
+  // Can define constructor arguments if you wish.
+  constructor() {
+    // If you define a constructor, always call super()
+    // first! This is specific to CE and required by
+    // the spec.
+    super();
+  }
+
+}
+
+customElements.define('app-drawer', DemoElement);
+</code></pre>
+<p>To load the element we created we need to do two things:</p>
+<p>First we load the web comoponents polyfill loader. This will take care of loading all the necessary polyfills asynchronously.</p>
+<pre><code class="language-html">&lt;script src=&quot;node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js&quot; defer&gt;&lt;/script&gt;
+</code></pre>
+<p>Next, we use methods of the web components polyfill to dynamically load the component’s Javascript file.</p>
+<pre><code class="language-html">&lt;script type=&quot;module&quot;&gt;
+  function loadScript(src) {
+    return new Promise(function(resolve, reject) {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  WebComponents.waitFor(() =&gt; {
+    return loadScript('my-element.js');
+  });
+&lt;/script&gt;
+</code></pre>
+<h2>Adding Content to the component: Templates and ShadowDOM</h2>
+<p>So we’ve loaded the component but it has no content in it. To fix this we’ll look at shadow DOM, templates, and Shadow Parts.</p>
+<p>To fully understand how these things work together we will look at a working example using shdow DOM, templates and slots together.  We will then discuss each part in depth.</p>
+<p>The template has two named slots, one for the title and one for text. These will be the defaults if no content is entered in the custom element.</p>
+<pre><code class="language-html">&lt;template id=&quot;my-content&quot;&gt;
+  &lt;h1&gt;&lt;slot name=&quot;my-title&quot;&gt;My Default Title&lt;/slot&gt;&lt;/h1&gt;
+  &lt;p&gt;&lt;slot name=&quot;my-text&quot;&gt;My default text&lt;/slot&gt;&lt;/p&gt;
+&lt;/template&gt;
+</code></pre>
+<p>The class we use to define the custom element changes the constructor to acommodate adding the shadow DOM to the element.</p>
+<p>We capture references to the template and its content.</p>
+<p>Then we create and attach a shadow root to the custom element and, finally, we add the content of the template to the shadow root.</p>
+<pre><code class="language-js">class DemoElement extends HTMLElement {
+
+  constructor() {
+    // If you define a constructor, always call super()
+    // first! This is specific to CE and required by
+    // the spec.
+    super();
+    // Capture a reference to template
+    let template = document.getElementById('my-content');
+    // Capture a reference to template content
+    let templateContent = template.content;
+
+    // Attach the shadow root to the custom element
+    const shadowRoot = this.attachShadow({mode: 'open'})
+    // Attach a clone of the template to the shadow root
+    .appendChild(templateContent.cloneNode(true));
+  }
+}
+// Define a custom element using the class we created
+customElements.define('demo-element', DemoElement);
+</code></pre>
+<p>Now that we know how they work, let’s dive into the component pieces.</p>
+<h2>Templates: Inert pieces</h2>
+<p>Templates are the native solution to the problem of creating inert chunks of content that will not render until we instantiate them, can be used multiple times and will not impact layout until they are instantiated.</p>
+<p>Because it is part of the HTML standard, we can use it for everything where we could have used custom solutions.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;h1&gt;This is my card title.&lt;/h1&gt;
+  &lt;div class=&quot;content&quot;&gt;
+    &lt;p&gt;This is my content&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+<p>For custom elements, templates become important when we add slots to customize the template content as we’ll discuss in the next section.</p>
+<h2>Adding content from light DOM into the shadow</h2>
+<p>We now have a template that we can instantiate from, but the question is how to compose our template with information from the custom element.</p>
+<p><a href="https://alligator.io/web-components/composing-slots-named-slots/">Slots and named slots</a> are the answer to this question. Using slots we’re basically telling the browser: <strong><em>“Whatever content matches the name of this slot will replace the content of the slot in the template”</em></strong>.</p>
+<p>To make our lives easier we’ll only talk about named slots.</p>
+<p>Taking our template from the last section we will turn it into a reusable template for custom elements.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;h1&gt;&lt;slot name=&quot;card-title&quot;&gt;Default title&lt;/slot&gt;&lt;/h1&gt;
+  &lt;div class=&quot;content&quot;&gt;
+    &lt;slot name=&quot;card-content&quot;&gt;
+          &lt;p&gt;This is my content&lt;/p&gt;
+    &lt;/slot&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+<h2>Shadow DOM: Encapsulate all things.</h2>
+<p>The final step we’ll take is to wrap the slotted template in a shadow DOM.</p>
+<p>The shadow DOM gives developers the ability to include a subtree of DOM elements into the rendering of a document, but not into the main document DOM tree. Adding the template to a shadow DOM isolates the component’s content from the page.</p>
+<p>Elements like select, video or slider all use the shadow DOM to hide its children from the end user or the developer using your element. They don’t need too know what you did under the hood.</p>
+<p>In the example we used earlier in the post, we captured the template and the template content into variables and then attached a clone of the content into the element’s shadow root (the root of the element’s DOM subtree).</p>
+<pre><code class="language-js">class DemoElement extends HTMLElement {
+
+  constructor() {
+    super();
+    let template = document.getElementById('my-content');
+    let templateContent = template.content;
+
+    const shadowRoot = this.attachShadow({mode: 'open'})
+    .appendChild(templateContent.cloneNode(true));
+  }
+}
+customElements.define('demo-element', DemoElement);
+</code></pre>
+<p>With templates, slots and shadow DOM we have a fully customizable custom element. We have two other things to look at: how do add attributes to the custom elements and how to style them, both internally and from the host page.</p>
+<h2>Attributes and properties in custom elements</h2>
+<p>So far, all the code we’ve written assumes no attributes and no way to change the styles inside the document. We’ll first tackle attributes, how to add them and how to reflectt the changes back and forth between the custom element and the page.</p>
+<p>Let’s add two attributes to the <code>demo-element</code>.</p>
+<p>We start by listing the attributes that we want to observe using a static getter method, <code>getObservedAttributes</code>. This will enable to change the attribute from Javascript. Static methods are private to the class and unavailable on class instances.</p>
+<p>Next, we define the attributes that we want to use by adding setters and getters for the attributes that we want.</p>
+<p>To track changes we use a <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks">lifecycle callback method</a>, <code>attributeChangedCallback</code>.  In this case we just log the change to the console.</p>
+<p>The <code>DemoElement</code> now looks like this:</p>
+<pre><code class="language-js">class DemoElement extends HTMLElement {
+  static get observedAttributes() {
+    return ['height', 'width'];
+  }
+
+  get height() {
+    return this.getAttribute('height');
+  }
+
+  set height(newValue) {
+    this.setAttribute('height', newValue);
+  }
+
+  get width() {
+    return this.getAttribute('width');
+  }
+
+  set width(newValue) {
+    this.setAttribute('width', newValue);
+  }
+
+  constructor() {
+    super();
+    let template = document.getElementById('my-content');
+    let templateContent = template.content;
+
+    const shadowRoot = this.attachShadow({mode: 'open'})
+    .appendChild(templateContent.cloneNode(true));
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log('Custom demo-element attributes changed.');
+    console.log(`${name} changed from ${oldValue} to ${newValue}`);
+  }
+}
+customElements.define('demo-element', DemoElement);
+</code></pre>
+<h2>Styling custom elements from the inside</h2>
+<p>The easiest way to style a custom element is to include the styles in a style element and put it inside the template.  This example will leverage the single file component that we’ll discuss later to show how we can style components from the inside.</p>
+<p>In this stripped down example we’ve included the style for the component on the template. Since the template is inert until it’s instantiated, we don’t instantiate until we built the element instance and the styles are encapsulated to the instance the styles will not bleed</p>
+<pre><code class="language-js"> const template = document.createElement('template');
+template.innerHTML = `
+&lt;style&gt;
+  :host {
+    display: flex;
+  }
+  .card {
+    height: 300px;
+    width: 400px;
+    border: 2px solid red;
+    margin-top: 2em;
+    margin-left: 2em;
+    margin-bottom: 2em;
+  }
+&lt;/style&gt;
+&lt;div class=&quot;card&quot;&gt;
+  &lt;h1&gt;&lt;slot name=&quot;my-title&quot;&gt;Default Title&lt;/slot&gt;&lt;/h1&gt;
+  &lt;p&gt;&lt;slot name=&quot;my-content&quot;&gt;Default Content&lt;/slot&gt;&lt;/p&gt;
+&lt;/div&gt;
+`;
+
+class DemoElement extends HTMLElement {
+
+  constructor() {
+    super();
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+
+}
+window.customElements.define('demo-element', DemoElement);
+</code></pre>
+<h2>Styling custom elements from oustide the custom element</h2>
+<p>Styling the component from the inside means that we can’t easily match the styles with the host pages. Chris Coyier’s <a href="https://css-tricks.com/styling-a-web-component/">Styling a Web Component</a> show different ways to style your web components.</p>
+<p>I’ve picked CSS variables as a way to style components from a master style sheet. I do it this way to reuse the same variables across the app and its components, ennsuring some level of uniformity on the user interface.</p>
+<p>We define the custom variables to set up the attributes of our components.</p>
+<pre><code class="language-css">:root {
+  --border-color: blue;
+  --background-color: lightgray;
+  --title-size: 1.5rem;
+}
+</code></pre>
+<p>The style inside the custom element uses the variables defined in the CSS stylesheet, otherwise it’s the same as the internal version of our component.</p>
+<pre><code class="language-js"> const template = document.createElement('template');
+template.innerHTML = `
+&lt;style&gt;
+  :host {
+    display: flex;
+  }
+  .card {
+    background-color: var(--background-color);
+    height: 300px;
+    width: 400px;
+    border: 2px solid var(--border-color);
+    margin-top: 2em;
+    margin-left: 2em;
+    margin-bottom: 2em;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: var(--title-size);
+  }
+
+  p {
+    padding: 1em;
+  }
+&lt;/style&gt;
+&lt;div class=&quot;card&quot;&gt;
+  &lt;h1&gt;&lt;slot name=&quot;my-title&quot;&gt;Default Title&lt;/slot&gt;&lt;/h1&gt;
+  &lt;p&gt;&lt;slot name=&quot;my-content&quot;&gt;Default Content&lt;/slot&gt;&lt;/p&gt;
+&lt;/div&gt;
+`;
+
+class DemoElement extends HTMLElement {
+  static get observedAttributes() {
+    return ['height', 'width'];
+  }
+
+  get height() {
+    return this.getAttribute('height');
+  }
+
+  set height(newValue) {
+    this.setAttribute('height', newValue);
+  }
+
+  get width() {
+    return this.getAttribute('width');
+  }
+
+  set width(newValue) {
+    this.setAttribute('width', newValue);
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log('Custom demo-element attributes changed.');
+    console.log(`${name} changed from ${oldValue} to ${newValue}`);
+  }
+}
+window.customElements.define('demo-element', DemoElement);
+</code></pre>
+<p>This means that we, as the creators of the custom element (or elements), have to be careful in what aspects of the component we surface for users to style.</p>
+<p>When working on these examples I realized that the default color for the component (black), would not work with a dark colored background, so I had to add a text color variable and ensure that the header and text used this new variable to set the color of the text in a way that works well with whatever background color we want to use</p>
+<h2>Bonus points:  putting the template in the same file as the component definition</h2>
+<p>Something that took me forever to figure out was how to incorporate the template into the same file as the custom element defintion.</p>
+<p>This makes the element portable as we don’t have to paste the template in every page where we’ll use it. It also helps in keeping the styles for the component in one place, particularly since the styles will not be needed anywhere else.</p>
+<p>The code looks like this:</p>
+<pre><code class="language-js"> const template = document.createElement('template');
+template.innerHTML = `
+&lt;style&gt;
+  .card {
+    height: 300px;
+    width: 400px;
+    border: 2px solid red;
+    margin-top: 2em;
+    margin-left: 2em;
+    margin-bottom: 2em;
+  }
+
+  h1 {
+    text-align:center;
+  }
+
+  p {
+    padding: 1em;
+  }
+&lt;/style&gt;
+&lt;div class=&quot;card&quot;&gt;
+  &lt;h1&gt;&lt;slot name=&quot;my-title&quot;&gt;Default Title&lt;/slot&gt;&lt;/h1&gt;
+  &lt;p&gt;&lt;slot name=&quot;my-content&quot;&gt;Default Content&lt;/slot&gt;&lt;/p&gt;
+&lt;/div&gt;
+`;
+
+class DemoElement extends HTMLElement {
+
+  constructor() {
+    super();
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+
+}
+window.customElements.define('demo-element', DemoElement);
+</code></pre>
+<h2>Bonus Points: Using custom element attributes to style the element</h2>
+<p>When I created the <code>demo-element</code> element I added width and height attributes with the idea that I could use them to control the width and height of the custom element without having to modify the CSS of the element.</p>
+<p>The way that I found out to do this is a little cumbersoome but it works as intended. Rather than copying all the code from the final version of <code>demo-element</code>, I’ll just highlight the parts that changed.</p>
+<p>In the constructor we add an empty style element. We add it here but will use it elsewhere in the code.</p>
+<pre><code class="language-js"> constructor() {
+    super();
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+    const newStyle = document.createElement('style');
+    this.shadowRoot.appendChild(newStyle);
+  }
+</code></pre>
+<p><code>attributeChangedCallback</code> checks if the width and height attributes exists at all and, if they exist, if they are empty. If either of those conditions are true then we set a default value. If not it assumes that the values are correct and leaves them as is.</p>
+<p>It then calls <code>updateStyle</code> passing this as the parameter. This is what will change the appearance of the page</p>
+<pre><code class="language-js">attributeChangedCallback(name, oldValue, newValue) {
+  if (!this.hasAttribute('width')
+      || (this.getAttribute('width') == '')) {
+    this.setAttribute('width', 400);
+  }
+
+  if (!this.hasAttribute('height')
+      || (this.getAttribute('height') == '')) {
+    this.setAttribute('height', 300);
+  }
+
+  updateStyle(this);
+};
+</code></pre>
+<p>The <code>updateStyle</code> function is where the magic happens. It creates a new style element and attaches it to the element’s shadow root.</p>
+<p>Next it puts a copy of the element’s CSS using a string template literal with the values for width and height being interpolated from the corresponding attribute values.</p>
+<pre><code class="language-js">function updateStyle(elem) {
+  // Create new style element
+  const myStyle = elem.shadowRoot.querySelector('style');
+  myStyle.textContent = `
+  :host {
+    display: flex;
+  }
+  .card {
+    background-color: var(--background-color);
+    width: ${elem.getAttribute('width')}px;
+    height: ${elem.getAttribute('height')}px;
+    border: 2px solid var(--border-color);
+    margin-top: 2em;
+    margin-left: 2em;
+    margin-bottom: 2em;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: var(--title-size);
+    color: var(--font-color);
+  }
+
+  p {
+    padding: 1em;
+    color: var(--font-color);
+  }
+`;
+</code></pre>
+<p>SO now we have a custom element that can be styled from a master stylesheet for the application and that will respond to changes in the element attributes, while protecting developers from mistakes that are easy to overlook.</p>
+<h2>Future Looking: ::part and ::theme</h2>
+<p>There is an interesting specification in the pipeline regarding the styling of custom elements. <a href="https://www.w3.org/TR/css-shadow-parts-1/">CSS Shadow Parts</a> defines ways to pierce the shadow boundary (the separation between the custom element’s shadow DOM and the hosting page)</p>
+<p>I will leave the explanation to the experts. Monica Dinculescu has written an <a href="https://meowni.ca/posts/part-theme-explainer/">explainer about ::part and ::theme</a> that does a much better job than I can.</p>
+<h2>Links and Resources</h2>
+<ul>
+<li><a href="https://alligator.io/web-components/attributes-properties/">Attributes and Properties in Custom Elements</a></li>
+<li><a href="https://alligator.io/web-components/styling-custom-elements/">Styling Your Custom Elements</a></li>
+<li><a href="https://alligator.io/web-components/composing-slots-named-slots/">Composing Custom Elements With Slots And Named Slots</a></li>
+<li><a href="https://www.w3.org/TR/css-shadow-parts-1/">CSS Shadow Parts</a></li>
+<li><a href="https://meowni.ca/posts/part-theme-explainer/">::part and ::theme, an ::explainer</a> — Monica Dinculescu</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

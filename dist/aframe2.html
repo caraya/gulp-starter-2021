@@ -1,0 +1,130 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h2>Three.js and A-frame</h2>
+<p><code>a-frame</code> addresses a different problem space in VR and AR. Authoring WebGL is really hard.</p>
+<p>We will skeep the raw WebGL version, don’t want to scare readers away by talking about shaders and compiling them into Javascript and how to use them. Instead, we’ll move straight into the abstractions. I prefer to use <a href="https://threejs.org">three.js</a>, a very powerful abstraction on top of native WebGL implementations… but even as an abstraction the code is still not easy to understand.</p>
+<p>The code below assumes you’ve already <a href="https://cdnjs.com/libraries/three.js">downloaded</a> and linked the library using <code>script</code> tags.</p>
+<pre><code class="language-js">// Step 1
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 75,
+  window.innerWidth/window.innerHeight,
+  0.1, 1000 );
+
+// Step 2
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+// Step 3
+var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+var cube = new THREE.Mesh( geometry, material );
+scene.add( cube );
+
+camera.position.z = 5;
+
+// Step 4
+var animate = function () {
+  requestAnimationFrame( animate );
+
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
+
+  renderer.render( scene, camera );
+};
+
+// Step 5
+animate();
+</code></pre>
+<p>The code draws a cube and rotates in both the X and Y axes. The demo is in this <a href="https://codepen.io/caraya/full/oRyXNb">Codepen</a></p>
+<p>I’ve broken the code into 5 different steps</p>
+<ol>
+<li>Initialize the scene and the camera we’ll use to view it</li>
+<li>Create the WebGL render, set its size and attach it to the DOM</li>
+<li>Create the Box and Mesh Object. Then create a cuber using the two objects we just created</li>
+<li>Set up a Requet Animation Frame loop where we rotate the cube on the X and Y axes</li>
+<li>Run the animation for the first time so the loop will start</li>
+</ol>
+<p>The code is fairly simple as far as Three.js code is concerned, but you can see the difficulties for someone who’s just starting or someone who just wants to throw together a quick prototype.  The code become more complex when working with AR and more advanced features.</p>
+<p><code>a-frame</code> abstract the complexity of the Three.js code into a procedural language. The code below produces a similar result to the Three.js code.</p>
+<p>The biggest difference is that <code>a-frame</code> uses markup, rather than Javascript, to describe the scene and the interactivity.</p>
+<pre><code class="language-html">&lt;!-- 1 --&gt;
+&lt;a-scene&gt;
+
+  &lt;!-- 2 --&gt;
+  &lt;a-box
+    height=&quot;2&quot; width=&quot;2&quot; depth=&quot;2&quot;
+    position=&quot;0 2 -3.5&quot;
+    rotation=&quot;45 45 0&quot;
+    color=&quot;rebeccapurple&quot;&gt;
+
+    &lt;!-- 3 --&gt;
+    &lt;a-animation
+      attribute=&quot;rotation&quot;
+      dur=&quot;10000&quot;
+      to=&quot;360 360 0&quot;
+      repeat=&quot;indefinite&quot;
+      easing=&quot;linear&quot;&gt;&lt;/a-animation&gt;
+  &lt;/a-box&gt;
+
+  &lt;!-- 4 --&gt;
+  &lt;a-plane
+    position=&quot;0 0 -4&quot;
+    rotation=&quot;-90 0 0&quot;
+    width=&quot;12&quot;
+    height=&quot;6&quot;
+    color=&quot;#7BC8A4&quot;&gt;&lt;/a-plane&gt;
+
+  &lt;!-- 5 --&gt;
+  &lt;a-sky color=&quot;pink&quot;&gt;&lt;/a-sky&gt;
+&lt;/a-scene&gt;
+</code></pre>
+<p>The biggest difference is the declarative markup that hides the Three.js code to achieve the same behavior.</p>
+<p>I broke the <code>a-frame</code> code in 5 sections:</p>
+<ol>
+<li>Defines the scene using the <a href="https://aframe.io/docs/0.9.0/core/scene.html">a-scene</a> element</li>
+<li>Creates a cube using the <a href="https://aframe.io/docs/0.9.0/primitives/a-box.html">box</a> object
+<ul>
+<li>The position attribute is defined using a different coordinate system so you’ll have to test the values until you get the result you want</li>
+</ul>
+</li>
+<li>The <a href="https://aframe.io/docs/0.9.0/components/animation.html">animation</a> for the object is nested inside the object it’s animating.
+<ul>
+<li>Instead of using a RAF loop, we just tell it what the final values will be in the x, y and z axes (the <code>to</code> attribute)</li>
+</ul>
+</li>
+<li>Creates a <a href="https://aframe.io/docs/0.9.0/primitives/a-plane.html">plane</a> and positions it as the bottom of the scene as the “floor” where we place the other objects</li>
+<li>Defines the <a href="https://aframe.io/docs/0.9.0/primitives/a-sky.html">sky</a> for the scene</li>
+</ol>
+<h3>Further ideas</h3>
+<p>The example in this post uses a single object and a single animation. It is definitely possible to build multiple objects, add lighting and camera effects as well as add multiple animations and interactivity.</p>
+<p>A-Frame makes AR/VR easier. You can use AR.js as outlined in <a href="https://aframe.io/blog/arjs/">Creating Augmented Reality with AR.js and A-Frame</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

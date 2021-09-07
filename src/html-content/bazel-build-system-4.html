@@ -1,0 +1,177 @@
+<h1>Backend code, even more choices</h1>
+<p>Just like with the frontend, the backend gives you multiple choices of languages and feature sets for working with Bazel. C/C++, Go and Rust are the three languages that I <a href="https://publishing-project.rivendellweb.net/webassembly-a-new-swiss-army-knife/">tested generating WASM code</a> with so it may be interesting to see how well they work with Bazel and how they abstract WASM generation.</p>
+<p>We can keep all the code for our project in a single monorepo and let Bazel sort out what tools to use to compile wich part.</p>
+<p>I use C and C++ as the baseline for testing Bazel with backend languages. It also works slightly different from other languages as it is built into Bazel and doesn’t require the rules to be installed manually.</p>
+<p>As far as backend code goes, <a href="https://golang.org/">Go</a> is my favorite language. However, the Bazel toolchain’s way of compiling Go code to WASM is not intuitive.</p>
+<p>I’m also exploring <a href="https://www.rust-lang.org/">Rust</a> toolchains for Bazel because it provides better <a href="https://webassembly.org/">WebAssembly</a> tooling than Go, but it’s still a challenge to get it right every time.</p>
+<h2>Backend code: Go</h2>
+<p>I’ve always been interested in Go as a backend language or something that will allow me to create WASM code to run on the web.</p>
+<p>The first step, as usual, is to load the rules in the <code>WORKSPACE</code>.</p>
+<pre><code class="language-python">http_archive(
+  name = &quot;io_bazel_rules_go&quot;,
+  sha256 = &quot;6f111c57fd50baf5b8ee9d63024874dd2a014b069426156c55adbf6d3d22cb7b&quot;,
+  urls = [
+    &quot;https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz&quot;,
+    &quot;https://github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz&quot;,
+  ],
+)
+
+load(&quot;@io_bazel_rules_go//go:deps.bzl&quot;, &quot;go_register_toolchains&quot;, &quot;go_rules_dependencies&quot;)
+
+go_rules_dependencies()
+
+go_register_toolchains(version = &quot;1.15.5&quot;)
+</code></pre>
+<p><strong>This must be the first set of rules to appear in the global WORKSPACE or be in its own WORKSPACE, otherwise it will cause an error.</strong></p>
+<p>The ruleset provides the following core rules</p>
+<ul>
+<li><a href="https://github.com/bazelbuild/rules_go/blob/master/go/core.rst">Core rules</a>
+<ul>
+<li><a href="https://github.com/bazelbuild/rules_go/blob/master/go/core.rst#go_binary">go_binary</a></li>
+<li><a href="https://github.com/bazelbuild/rules_go/blob/master/go/core.rst#go_library">go_library</a></li>
+<li><a href="https://github.com/bazelbuild/rules_go/blob/master/go/core.rst#go_test">go_test</a></li>
+<li><a href="https://github.com/bazelbuild/rules_go/blob/master/go/core.rst#go_source">go_source</a></li>
+<li><a href="https://github.com/bazelbuild/rules_go/blob/master/go/core.rst#go_path">go_path</a></li>
+</ul>
+</li>
+</ul>
+<p>For more information see the <code>rules_go</code> <a href="https://github.com/bazelbuild/rules_go/blob/master/README.rst">README</a>.</p>
+<p>The BUILDFILE is simple. We load the <code>go_binary</code> rule and use it to compile the file we want. All the source files must be in the <code>main</code> package.</p>
+<pre><code class="language-python">load(&quot;@io_bazel_rules_go//go:def.bzl&quot;, &quot;go_binary&quot;)
+
+go_binary(
+  name = &quot;hello_go&quot;,
+  srcs = [&quot;hello.go&quot;],
+)
+</code></pre>
+<p>The code for <code>hello.go</code> is the basic 'hello world` example that builds a single binary executable.</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func main() {
+  fmt.Println(&quot;hello world&quot;)
+  fmt.Println(&quot;I'm learning Blaze and Go&quot;)
+}
+</code></pre>
+<p>To create packages we use <code>go_library</code> instead of <code>go_binary</code>. All the source files must be part of the same package for this to work.</p>
+<pre><code class="language-go">go_library(
+  name = &quot;go_default_library&quot;,
+  srcs = [
+    &quot;foo.go&quot;,
+    &quot;bar.go&quot;,
+  ],
+  deps = [
+    &quot;//tools:go_default_library&quot;,
+    &quot;@org_golang_x_utils//stuff:go_default_library&quot;,
+  ],
+  importpath = &quot;github.com/example/project/foo&quot;,
+  visibility = [&quot;//visibility:public&quot;],
+)
+</code></pre>
+<p>These libraries will not generate an executable and are meant to be consumed by binaries or other libraries.</p>
+<h3>Cross-compiling to WASM</h3>
+<p>While not as intuitive as Rust, Go also allows you to compile code into WASM.</p>
+<p><code>rules_go</code> can cross-compile Go projects to any platform the Go toolchain supports. The simplest way to do this is by setting the <code>--platforms</code> flag on the command line.</p>
+<pre><code class="language-bash">bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //my/project
+</code></pre>
+<p>You can replace <code>linux_amd64</code> in the example above with any valid <code>GOOS / GOARCH</code> pair. To list all platforms, run this command:</p>
+<pre><code class="language-bash">bazel query 'kind(platform, @io_bazel_rules_go//go/toolchain:all)'
+</code></pre>
+<p>By default, cross-compilation will cause Go targets to be built in “pure mode”, which disables cgo; cgo files will not be compiled, and C/C++ dependencies will not be compiled or linked.</p>
+<p>To compile a Go target into WASM, run the following command</p>
+<pre><code class="language-bash">bazel build --platforms=@io_bazel_rules_go//go/toolchain:js_wasm //go:hello_go
+</code></pre>
+<p>Note that this will change all future builds of that particular Go package to WASM. To change it back you’ll have to build again with a toolchain matching the GOOS / GOARCH you want to build for.</p>
+<pre><code class="language-bash">bazel build \
+--platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 \
+//go:hello_go
+</code></pre>
+<h2>Rust</h2>
+<p>Bazel also provides a set of rules to work with Rust and it’s ecosystem. The idea, as with Go and C/C++, is to be able to code backend software in the same repository as the frontend or be able to create WASM modules to address Javascript hot path bottlenecks in the frontend.</p>
+<p>To get started add the following block to the <code>WORKSPACE</code> file:</p>
+<pre><code class="language-python">http_archive(
+  name = &quot;io_bazel_rules_rust&quot;,
+  sha256 = &quot;0e2e633bf0f7f25392ffb477d677c88eb34fe70ffae05e3ad92fdd9f8d6579db&quot;,
+  strip_prefix = &quot;rules_rust-bc0578798f50d018ca4278ad5610598c400992c9&quot;,
+  urls = [
+    # Master branch as of 2020-12-05
+    &quot;https://github.com/bazelbuild/rules_rust/archive/bc0578798f50d018ca4278ad5610598c400992c9.tar.gz&quot;,
+  ],
+)
+
+load(&quot;@io_bazel_rules_rust//rust:repositories.bzl&quot;, &quot;rust_repositories&quot;)
+
+rust_repositories()
+</code></pre>
+<p>The file we’re using to test the build is simple, it’s a hello world example in Rust.</p>
+<pre><code class="language-rust">// This is the main function
+fn main() {
+    // Print text to the console
+    println!(&quot;Hello World!&quot;);
+    println!(&quot;I'm a Rustacean in training!&quot;)
+}
+</code></pre>
+<p>The <code>BUILD</code> command is simple.</p>
+<pre><code class="language-python">load(&quot;@io_bazel_rules_rust//rust:rust.bzl&quot;, &quot;rust_binary&quot;)
+
+rust_binary(
+    name = &quot;hello_rust&quot;,
+    srcs = [&quot;src/main.rs&quot;],
+)
+</code></pre>
+<p>However, there is a problem with the build. I generated the repository with Cargo using <code>cargo init</code>. But the documentation for <code>rust_rules</code> proposes a different system, one that doesn’t use the language’s built-in tools, at least not directly.</p>
+<p>This means that the project either works with the standard Rust tools or with Bazel, not with both.</p>
+<p>If you look at the <a href="https://github.com/bazelbuild/rules_rust/tree/master/examples/hello_world">example</a> on Github you will see that it has no <code>Cargo.toml</code> or <code>Cargo.lock</code> but it still build the binaries and libraries when using Bazel.</p>
+<p>The project also depends on a library crate also located as a top level child on the workspace. Moving them to a directory under the workspace (meaning they are not at the top level) will result in an error because Bazel cannot find the BUILDFILE for either crate.</p>
+<p>To run the code in <code>rust2/hello_rust</code> from the root of the project, use the following command:</p>
+<pre><code class="language-python">bazel build //rust2/hello_rust:all
+</code></pre>
+<p>Bazel has no concept of default build tasks so the <code>:all</code> component is important. Using a command like this means you can skip a <code>BUILD</code> file at the root of every package :)</p>
+<h3>Using Rust External Dependencies</h3>
+<p>Currently the most common approach to managing external dependencies is using <a href="https://github.com/google/cargo-raze">cargo-raze</a> to generate BUILD files for Cargo crates.</p>
+<p>This sounds like the best way to bring an existing Rust project into Bazel.</p>
+<h3>WebAssembly</h3>
+<p>To build a rust_binary for <code>wasm32-unknown-unknown</code> target add the <code>--platforms=@io_bazel_rules_rust//rust/platform:wasm</code> flag to your <code>bazel build</code> command.</p>
+<pre><code class="language-bash">bazel build @examples//hello_world_wasm /
+--platforms=@io_bazel_rules_rust//rust/platform:wasm
+</code></pre>
+<p>To build a rust_binary for wasm32-wasi target add the --platforms=@io_bazel_rules_rust//rust/platform:wasi flag.</p>
+<pre><code class="language-bash">bazel build @examples//hello_world_wasm /
+--platforms=@io_bazel_rules_rust//rust/platform:wasi
+</code></pre>
+<p><code>rust_wasm_bindgen</code> will automatically transition to the wasm platform and can be used when building WebAssembly code for the host target.</p>
+<h2>C++</h2>
+<p>If you will work with C++ code on Bazel it’s slightly different than working with Go or Rust.</p>
+<p>Loading rules for C++ is not necessary. The rules are built into Bazel so we can safely skip loading them in the WORKSPACE we want to work on so we can concentrate on the code and the <code>BUILD</code> files.</p>
+<p>The first example builds a binary from a single file without dependencies.</p>
+<p>This is the <code>BUILD</code> file we use to build the package:</p>
+<pre><code class="language-python">load(&quot;@rules_cc//cc:defs.bzl&quot;, &quot;cc_binary&quot;)
+
+cc_binary(
+  name = &quot;hello-world&quot;,
+  srcs = [&quot;hello-world.cc&quot;],
+)
+</code></pre>
+<p>Note that we load the <code>cc_binary</code> rule from the <code>rules_cc</code> rule set, even though we didn’t load it into the workspace, it just works.</p>
+<p>The second example build a library and integrates it with a binary.</p>
+<p>The buildfile defines two targets, a library and a binary.</p>
+<p>The <code>hello_greet</code> library target uses a C++ file and a header.</p>
+<p>The <code>hello-world</code> binary target uses a single C++ file and depends on the library we created.</p>
+<pre><code class="language-python">load(&quot;@rules_cc//cc:defs.bzl&quot;, &quot;cc_binary&quot;, &quot;cc_library&quot;)
+
+cc_library(
+    name = &quot;hello-greet&quot;,
+    srcs = [&quot;hello-greet.cc&quot;],
+    hdrs = [&quot;hello-greet.h&quot;],
+)
+
+cc_binary(
+    name = &quot;hello-world&quot;,
+    srcs = [&quot;hello-world.cc&quot;],
+    deps = [
+        &quot;:hello-greet&quot;,
+    ],
+)
+</code></pre>
+<p>See the cpp_tutorial in the <a href="https://github.com/bazelbuild/examples/tree/master/cpp-tutorial">Bazel examples repository</a> for the code for these examples.</p>

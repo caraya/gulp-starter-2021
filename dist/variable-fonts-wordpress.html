@@ -1,0 +1,218 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Using Variable Fonts in a WordPress theme</h1>
+<p>Variable Fonts give you a lot of flexibility in exchange of older browsers and operating systems. They reduce the number of font files required to render content and they give you options that are difficult or not possible with traditional web fonts.</p>
+<p>Quoting Jason Pamental’s <a href="https://rwt.io/blog/2018/07/evolution-typography-variable-fonts-introduction">The evolution of typography with variable fonts: an introduction</a>:</p>
+<blockquote>
+<p>As described by John Hudson, a variable font is a single font that acts as many: all the variations of width and weight, slant, and even italics can be contained in a single, highly efficient and compressible font file. What’s more: the format (which is technically part of the OpenType 1.8 specification) is completely extensible. The type designer has complete control over what axes are used, their ranges, and even the definition of new axes. There are currently 5 ’registered‘ axes (width, weight, slant, italics, and optical sizing), but the designer can vary any axis they choose. Some examples include the height of ascenders and descenders, text grade, even serif shape. The possibilities are nearly limitless.</p>
+</blockquote>
+<h2>Why use them</h2>
+<p>Variable fonts improve performance in a number of ways. They reduce the number of HTTP connections we have to make for Font assets, it make the fonts smaller overall (the one file you download may be larger but it’s one as opposed to 4 for each traditional font you work with).</p>
+<p>They also allow for things that were very difficult or impossible to do before. We can animate the axes if we set them up properly giving us additional flexibility.</p>
+<p>We’ll explore Variable fonts using <a href="https://recursive.design">Recursive</a> as the single font for a WordPress-based site. Along the way we’ll talk about responsive typography, based on the Work of Jason Pamental, and how to work with older browsers.</p>
+<h2>Loading variable fonts</h2>
+<p>WordPress strognly suggests that you enqueue third-party scripts and stylesheets for use with a WordPress theme. However when creating a theme from scratch we don’t need to enqueue the main stylesheet and that’s where we’ll make all our variable fonts additions.</p>
+<p>We’ll cover both methods below.</p>
+<h3>Modifying an existing theme</h3>
+<p>Assuming that we’ve created a stylesheet to load the font using <code>@font-face</code> syntax and all the style that override the default font size then all it takes is to enqueue the stylesheet.</p>
+<p>We’ve discussed how to enqueue local stylesheets so I won’t go into details aboout how the code below works, I’ll just show the end product.</p>
+<pre><code class="language-php">function rivendellweb_enqueue_local_fonts() {
+    wp_enqueue_style( 'local_styles',
+            get_stylesheet_directory_uri() . '/css/recursive-styles.css' );
+}
+add_action( 'wp_enqueue_scripts', 'rivendellweb_enqueue_local_fonts' );
+</code></pre>
+<h3>From Scratch</h3>
+<p>When building a theme from scratch the rules change slightly. We’re not adding new resources to the theme but we’re changing the existing CSS to match our design.</p>
+<p>There is no enqueueing necessary as we’re working with the default styles for the theme. We’ll look at how to do it in the next section.</p>
+<h2>Example: Recursive Font from scratch</h2>
+<p>The following code will build a responsive-typography stylesheet using <a href="https://recursive.design">Recursive</a>.</p>
+<p>We first laod the font using <code>@font-face</code> rule with some changes to accommodate the variable fonts.</p>
+<p>We use two different formats to support different syntaxes for the format for the attribute.</p>
+<p>Aattributes like <code>font-weight</code>, <code>font-style</code> and <code>font-stretch</code> take two values indicating the lower and upper boundaries for the particular axis.</p>
+<p>Finally, we use <code>font-display: swap</code> to tell the browser to swap the font once it’s loaded.</p>
+<pre><code class="language-css">@font-face {
+  font-family: &quot;Recursive VF&quot;;
+  src:
+    url('./fonts/recursive.woff2') format('woff2 supports variations'),
+    url('./fonts/recursive.woff2') format('woff2-variations');
+    font-weight: 300 1000;
+    font-display: swap;
+}
+</code></pre>
+<p>The next block defines variables with the default values for each of the axes that the font makes available. We’ll make extensive use of these variables elsewhere in the document.</p>
+<pre><code class="language-css">:root {
+  --recursive-mono: 0;
+  --recursive-casual: 0;
+  --recursive-weight: 400;
+  --recursive-slant: 0;
+  --recursive-italic: 0.5;
+}
+</code></pre>
+<p>This default selector adds the default font family and default values using the variables defined in the previous block.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings">font-variation-settings</a> allows you to add the custom axes with variables.</p>
+<p>The uppercase axes, <strong>MONO</strong> and <strong>CASL</strong>, are custom axes that will only work with Recursive.</p>
+<p>The lowercase axes, <strong>slnt</strong> and <strong>ital</strong> are predefined axes. The reason why we don’t use the equivalent CSS property is that they both match the same property so we’d have to use either one but we can’t use them together.</p>
+<pre><code class="language-css">* {
+  font-family:  &quot;Recursive VF&quot;,
+                Verdana,
+                sans-serif;
+  font-weight: var(--recursive-weight);
+  font-variation-settings:
+    &quot;MONO&quot; var(--recursive-mono),
+    &quot;CASL&quot; var(--recursive-casual),
+    &quot;slnt&quot; var(--recursive-slant),
+    &quot;ital&quot; var(--recursive-italic);
+}
+</code></pre>
+<p>The rest of the code in this post is taken and adapted from <a href="https://codepen.io/jpamental/pen/MPaxaP">FF Meta Variable Font Demo</a>, a pen from Jason Pamental.</p>
+<p>We first add another <code>:root</code> block with <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties">CSS Custom Properties / Variables</a> too define the values that we want to work with.</p>
+<p>This is a simplified version that considers only <code>p</code> and <code>h1</code> elements. The full version has additional entries for <code>h2</code> through <code>h4</code>.</p>
+<p>This code only deals with font size, line height and their relationship when screen size changes using media queries. It also takes advantage of Fontface Observer to add styles for when the font fails to load.</p>
+<pre><code class="language-css">:root {
+  /* Breakpoint variables */
+  --bp-small: 24.15;
+  --bp-medium: 43.75;
+  --bp-large: 60.25;
+  --bp-xlarge: 75;
+  /* Paragraph variables */
+  --p-line-height-min: 1.25;
+  --p-line-height-max: 1.4;
+  --p-font-size-min: 1.0;
+  --p-font-size-max: 1.25;
+  /* H1 variables */
+  --h1-line-height-min: 1.1;
+  --h1-line-height-max: 1.1;
+  --h1-font-size-min: 2.5;
+  --h1-font-size-max: 4;
+  --h1-vf-wght-multiplier-s: 0.75;
+  --h1-vf-wght-multiplier-m: 0.75;
+  --h1-vf-wght-multiplier-l: 0.75;
+}
+</code></pre>
+<p>The default rule for paragraphs sets the size to 16px, the font size to 400 and the line height to 1.</p>
+<p>All the media queries play with what values to use and how to combine them together.</p>
+<pre><code class="language-css">p, li {
+  font-size: calc( var(--p-font-size-min) * 1rem );
+  font-weight: var(--recursive-weight);
+  line-height: var(--p-line-height-min);
+}
+@media screen and (min-width: 24.15em) {
+  p, li {
+    line-height: calc(( var(--p-line-height-min) * 1em ) + ( var(--p-line-height-max) - var(--p-line-height-min) ) * ((100vw - ( var(--bp-small) * 1em )) / ( var(--bp-large) - var(--bp-small) )));
+  }
+}
+@media (min-width: 60.25em) {
+  p, li {
+    font-size: calc(( var(--p-font-size-min) * 1em ) + ( var(--p-font-size-max) - var(--p-font-size-min) ) * ((100vw - ( var(--bp-large) * 1em )) / ( var(--bp-xlarge) - var(--bp-large) )));
+    line-height: var(--p-line-height-max);
+  }
+}
+@media (min-width: 75em) {
+  p, li {
+    font-size: calc( var(--p-font-size-max) * 1em );
+  }
+}
+</code></pre>
+<p>We do something similar with <code>h1</code> with the corresponding <code>h1</code> variables and one additional change.</p>
+<p>We leverage the <code>.fonts-failed</code> class generated by FontFace Observer and style elements when our variable font is not available.</p>
+<pre><code class="language-css">h1 {
+  font-weight: calc( var(--recursive-weight) * var(--h1-vf-wght-multiplier-s) );
+  font-size: calc( var(--h1-font-size-min) * 1em );
+  font-style: normal;
+  line-height: var(--h1-line-height-min);
+}
+.fonts-failed h1 {
+  font-family:  Georgia,
+                &quot;New Times Roman&quot;,
+                serif;
+  margin: 2em 0;
+  letter-spacing: -.5px;
+}
+@media screen and (min-width: 24.15em) {
+  h1 {
+    line-height: calc(( var(--h1-line-height-min) * 1em ) +
+      ( var(--h1-line-height-max) - var(--h1-line-height-min) ) * ((100vw - ( var(--bp-small) * 1em )) / ( var(--bp-xlarge) - var(--bp-small) )));
+    font-size: calc(( var(--h1-font-size-min) * 1em ) + ( var(--h1-font-size-max) - var(--h1-font-size-min) ) * ((100vw - ( var(--bp-small) * 1em )) / ( var(--bp-xlarge) - var(--bp-small) )));
+  }
+}
+@media screen and (min-width: 43.75em) {
+  h1 {
+    font-weight: calc( var(--recursive-weight) * var(--h1-vf-wght-multiplier-m) );
+  }
+  .fonts-failed h1 {
+    letter-spacing: normal;
+  }
+}
+@media (min-width: 75em) {
+  h1 {
+    font-size: calc( var(--h1-font-size-max) * 1em );
+    font-weight: calc( var(--recursive-weight) * var(--h1-vf-wght-multiplier-l) );
+    line-height: var(--h1-line-height-max);
+  }
+  .fonts-failed h1 {
+    letter-spacing: -1px;
+  }
+}
+</code></pre>
+<p>Yes, this is a lot of code but it will keep text readable and easy to change. Whenever we need to change something, we change the corresponding variables at the top.</p>
+<p>One of the Recursive font’s custom axes is Casual. I use it to create distinctive headers in combination with both Slant and Italic axes.</p>
+<p>The code looks something like this:</p>
+<pre><code class="language-css">h1.casual {
+  --recursive-casual: 1;
+  --recursive-slant: -15;
+  --recursive-italic: 1;
+}
+</code></pre>
+<p>We’ve done the same thing with styles. This is the  modified styles for <a href="https://prismjs.com">Prism.js</a> used on my project.</p>
+<p>We change the font to monospaced and add slashed 0 to fully distinguish them from lowercase and uppercase o.</p>
+<pre><code class="language-css">code[class*=&quot;language-&quot;],
+pre[class*=&quot;language-&quot;] {
+    --recursive-mono: 1;
+    --recursive-zero: &quot;zero&quot; on;
+    color: #657b83;
+    font-family:  &quot;Recursive VF&quot;,
+                Consolas, Monaco,
+                'Andale Mono',
+                'Ubuntu Mono',
+                monospace;
+    font-size: 1.1em;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+    tab-size: 4;
+    hyphens: none;
+}
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<h1>Styling; A matter of choice</h1>
+<p>Blaze presents multiple choices for building your site or app’s styles. I’ve taken three of these choices for a deeper look.</p>
+<p>The first one, working with Less and Stylus, shows how to work with NPM packages. We could use the same techniques to work with other packages outside the Bazel toolchains, we’ll have to test to see if they work.</p>
+<p>The other two, PostCSS and SASS show how to work within the Bazel structure using Bazel toolchains and methodoloigy. I haven’t decided which one to use for my projects; been thinking about moving away from SASS for a while but I’m not fully convinced that PostCSS is the right solution.</p>
+<p>When you’re choosing what styling solution to use, think carefully.</p>
+<p>Take variables as an example; it’s true that both SASS and CSS have variables but they behave differently and each has its advantages and disadvantages.</p>
+<ul>
+<li>SASS variables are static, if you change them you must recompile the stylesheets for the changes to take effect.</li>
+<li>PostCSS uses CSS variables. These variables are live, whenever you change them, all rules using them will be updated and the new result shown to the user.
+<ul>
+<li>If you define them using the <a href="https://web.dev/at-property/">@property syntax</a>, you can define what type of element it is by defining the syntax it uses (either a <a href="https://drafts.css-houdini.org/css-properties-values-api/#supported-names">supported name</a> or the <a href="https://drafts.css-houdini.org/css-properties-values-api/#universal-syntax-definition">universal syntax definition</a>), an initial value and whether the element inherits down the cascade or not.</li>
+</ul>
+</li>
+</ul>
+<p>Whatever choice you make it will also depend on whether your codebase is already SASS or CSS.</p>
+<h2>Styling: LESS and Stylus</h2>
+<p>This buildfile depends on <a href="http://lesscss.org/">LESS</a> and <a href="https://stylus-lang.com/">Stylus</a> to process files into CSS. We first load the Node modules.</p>
+<pre><code class="language-python">load(&quot;@npm//less:index.bzl&quot;, &quot;lessc&quot;)
+load(&quot;@npm//stylus:index.bzl&quot;, &quot;stylus&quot;)
+</code></pre>
+<p>Gives access to targets defined in the package (but not its subpackages). <code>__pkg__</code> is a special piece of syntax representing all of the targets in a package. See <a href="https://docs.bazel.build/versions/master/visibility.html">visibility</a> in the Blaze documentation for more information.</p>
+<pre><code class="language-python">package(default_visibility = [&quot;//:__pkg__&quot;])
+</code></pre>
+<p>The example uses both LESS and Stylus to generate styles. This uses NPM packages to execute each application. They also use the <code>args</code> parameter to handle application specific parameters.</p>
+<pre><code class="language-python">lessc(
+  name = &quot;base&quot;,
+  outs = [
+    &quot;base.css&quot;,
+    &quot;base.css.map&quot;,
+  ],
+  args = [
+    &quot;$(execpath base.less)&quot;,
+    # Output paths must use $(execpath) since Bazel puts them in a platform-dependent output directory
+    &quot;$(execpath base.css)&quot;,
+    &quot;--silent&quot;,
+    &quot;--source-map&quot;,
+  ],
+  data = [
+    &quot;base.less&quot;,
+    &quot;variables.less&quot;,
+  ],
+)
+
+stylus(
+  name = &quot;styles&quot;,
+  outs = [
+    &quot;test.css&quot;,
+    &quot;test.css.map&quot;,
+  ],
+  args = [
+    &quot;$(execpath test.styl)&quot;,
+    &quot;--out&quot;,
+    # Output paths must use $(execpath) since Bazel puts them in a platform-dependent output directory
+    &quot;$(execpath test.css)&quot;,
+    &quot;--compress&quot;,
+    &quot;--sourcemap&quot;,
+  ],
+  data = [&quot;test.styl&quot;],
+)
+</code></pre>
+<h2>Styling: PostCSS</h2>
+<p>Bazel has a ruleset to work with <a href="https://postcss.org/">PostCSS</a>, a Javascript toolset to process CSS with Javascript.</p>
+<p>Install the <code>@bazel/postcss</code> package via NPM.</p>
+<pre><code class="language-bash">npm i -D @bazel/postcss postcss
+</code></pre>
+<p>Add the following block to your <code>WORKSPACE</code> to enable PostCSS rules in Bazel:</p>
+<pre><code class="language-python"># Loads rules_postcss
+http_archive(
+  name = &quot;build_bazel_rules_postcss&quot;,
+  # Make sure to check for the latest version when you install
+  url = &quot;https://github.com/bazelbuild/rules_postcss/archive/0.5.0.tar.gz&quot;,
+  strip_prefix = &quot;rules_postcss-0.5.0&quot;,
+  sha256 = &quot;3f0c754f97e3940ea90f4d6408bfb2aefb3850e7941572b22b1b88579c428ff9&quot;,
+)
+</code></pre>
+<p><code>postcss_rules</code> provide the following rules to use:</p>
+<ul>
+<li>postcss_binary</li>
+<li>postcss_multi_binary</li>
+<li>postcss_plugin</li>
+<li>autoprefixer</li>
+</ul>
+<p>For the first example we’ll use <a href="https://github.com/postcss/autoprefixer">Autoprefixer</a> on a CSS file that, we assume, was generated earlier on the build process.</p>
+<p>As usual, we first load the package and set its visibility. For simplicity’s sake I’ve set it to <code>tests:__subpackages__</code> so targets in the test package can see them.</p>
+<pre><code class="language-python">load(&quot;@build_bazel_rules_postcss//:index.bzl&quot;, &quot;autoprefixer&quot;)
+
+package(default_visibility = [&quot;//tests:__subpackages__&quot;])
+</code></pre>
+<p>Right now, this package has one variable and one target.</p>
+<p>The variable (<code>AUTO_PREFIXER_BROWSERS</code>) lists the versions of browsers we want to add prefixes for.</p>
+<p>The target actually runs Autoprefixer for the browsers specified in the variable.</p>
+<pre><code class="language-python">AUTO_PREFIXER_BROWSERS = &quot;ie &gt;= 9, \
+edge &gt;= 12, \
+firefox &gt;= 42, \
+chrome &gt;= 32, \
+safari &gt;= 8, \
+opera &gt;= 38, \
+ios_saf &gt;= 9.2, \
+android &gt;= 4.3, \
+and_uc &gt;= 9.9&quot;
+
+autoprefixer(
+  name = &quot;autoprefixer&quot;,
+  src = &quot;style.css&quot;,
+  out = &quot;style_processed.css&quot;,
+  browsers = AUTO_PREFIXER_BROWSERS,
+)
+</code></pre>
+<p>The next example will use Autoprefixer as an NPM plugin instead of the Bazel-bound one. Using this technique we can use any of the extensive <a href="https://www.postcss.parts/">PostCSS plugin collection</a> in your projects.</p>
+<p>The downside is that each plugin must have a corresponding <code>postcss_plugin</code> entry in the BUILD file, otherwise Bazel will not be happy and will fail the build.</p>
+<pre><code class="language-python">load(&quot;//:index.bzl&quot;, &quot;postcss_multi_binary&quot;, &quot;postcss_plugin&quot;)
+
+package(default_visibility = [&quot;//tests:__subpackages__&quot;])
+
+AUTO_PREFIXER_BROWSERS = &quot;ie &gt;= 9, \
+edge &gt;= 12, \
+firefox &gt;= 42, \
+chrome &gt;= 32, \
+safari &gt;= 8, \
+opera &gt;= 38, \
+ios_saf &gt;= 9.2, \
+android &gt;= 4.3, \
+and_uc &gt;= 9.9&quot;
+
+postcss_plugin(
+  name = &quot;autoprefixer&quot;,
+  node_require = &quot;autoprefixer&quot;,
+  deps = [&quot;@npm//autoprefixer&quot;],
+)
+
+postcss_binary(
+  name = &quot;styles&quot;,
+  src = &quot;styles.css&quot;,
+  plugins = {
+    &quot;:autoprefixer&quot;: &quot;[{ browsers: '%s' }]&quot; % AUTO_PREFIXER_BROWSERS,
+  },
+)
+</code></pre>
+<h2>Styling: SASS/SCSS</h2>
+<p>Lately I’ve been ambivalent about <a href="https://sass-lang.com/">SASS</a> because of their switching the main distribution to <a href="https://dart.dev/">Dart</a> and deprecating both <a href="https://sass-lang.com/ruby-sass">Ruby SASS</a> and <a href="https://sass-lang.com/blog/libsass-is-deprecated">LibSASS</a>, while LibSASS will receive maintenance releases indefinitely, there will be no new features.</p>
+<p>Since the SASS lead developer works at Google, it’s unsurprising that there is a Blaze set of Rules for SASS.</p>
+<p>To load the rules, add the folowing to your WORKSPACE file.</p>
+<p>In addition to loading the rules we also load transitive dependencies for SASS and configure the repositories necessary for the SASS rules.</p>
+<pre><code class="language-python">http_archive(
+  name = &quot;io_bazel_rules_sass&quot;,
+  # Make sure to check for the latest version when you install
+  url = &quot;https://github.com/bazelbuild/rules_sass/archive/1.26.3.zip&quot;,
+  sha256 = &quot;9dcfba04e4af896626f4760d866f895ea4291bc30bf7287887cefcf4707b6a62&quot;,
+  strip_prefix = &quot;rules_sass-1.26.3&quot;,
+)
+
+# Fetch required transitive dependencies.
+load(&quot;@io_bazel_rules_sass//:package.bzl&quot;, &quot;rules_sass_dependencies&quot;)
+rules_sass_dependencies()
+
+# Setup sass rules repositories
+load(&quot;@io_bazel_rules_sass//:defs.bzl&quot;, &quot;sass_repositories&quot;)
+sass_repositories()
+</code></pre>
+<p>The rest of this section assumes the following directory structure. The WORKSPACE file is included above <code>my_project</code> at the root of the repository.</p>
+<p>Each directory in this project has its own BUILD file that we’ll discuss later in the post.</p>
+<pre><code class="language-text">my_project/
+  hello_world/
+    BUILD
+    main.scss
+  shared/
+    BUILD
+    _fonts.scss
+    _colors.scss
+</code></pre>
+<p><strong>The structure is important. If <code>hello_world</code> and <code>shared</code> are not in the root of the project, Bazel will not find the BUILD files and exit with an error. I’m researching how to change this so it’ll work in subdirectories</strong></p>
+<p><code>hello_world/main.scss</code> is simple. It imports the partial files from the shared directory, <code>fonts</code> and <code>colors</code> and uses variable definitions from those files to construct the styles rules.</p>
+<pre><code class="language-scss">@import &quot;shared/fonts&quot;;
+@import &quot;shared/colors&quot;;
+
+html {
+  body {
+    font-family: $default-font-stack;
+    h1 {
+      font-family: $modern-font-stack;
+      color: $example-red;
+    }
+  }
+}
+</code></pre>
+<p>The BUILD file inside the <code>hello_world</code> directory is simple.</p>
+<p>It makes the visibility of the BUILD file public and it loads the sass_binary definition.</p>
+<pre><code class="language-python">package(default_visibility = [&quot;//visibility:public&quot;])
+
+load(&quot;@io_bazel_rules_sass//:defs.bzl&quot;, &quot;sass_binary&quot;)
+</code></pre>
+<p>It then creates a SASS file with both colors and fonts partials as dependencies.</p>
+<pre><code class="language-python">sass_binary(
+  name = &quot;hello_world&quot;,
+  src = &quot;main.scss&quot;,
+  deps = [
+    &quot;//shared:colors&quot;,
+    &quot;//shared:fonts&quot;,
+  ],
+)
+</code></pre>
+<p>The shared directory has files that may be used in multiple locations. For this example the partials (files starting with an underscore <code>_</code> )</p>
+<p>There is one for fonts (<code>_fonts.scss</code>):</p>
+<pre><code class="language-scss">$default-font-stack: Cambria, &quot;Hoefler Text&quot;, serif;
+$modern-font-stack: Constantia, &quot;Lucida Bright&quot;, serif;
+</code></pre>
+<p>And one for colors (<code>_colors.scss</code>):</p>
+<pre><code class="language-scss">$example-blue: #0000ff;
+$example-red: #ff0000;
+</code></pre>
+<p>We then use the <code>sass_library</code> rule to tell Blaze that these are library files and that are used as reference, without them generating an output file on their own.</p>
+<p>As usual we set a default visibility and load the <code>sass_library</code> rule</p>
+<pre><code class="language-python">package(default_visibility = [&quot;//visibility:public&quot;])
+
+load(&quot;@io_bazel_rules_sass//:defs.bzl&quot;, &quot;sass_library&quot;)
+</code></pre>
+<p>Each partial file must be registered with it’s own <code>sass_library</code> rule, each with its own attributes</p>
+<pre><code class="language-python">sass_library(
+  name = &quot;colors&quot;,
+  srcs = [&quot;_colors.scss&quot;],
+)
+
+sass_library(
+  name = &quot;fonts&quot;,
+  srcs = [&quot;_fonts.scss&quot;],
+)
+</code></pre>

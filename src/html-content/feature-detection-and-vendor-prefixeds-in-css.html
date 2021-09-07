@@ -1,0 +1,47 @@
+<h1>Feature detection and vendor prefixes in CSS</h1>
+<p>CSS has had to deal with vendor prefxies from very early on and some of those prefixes are still in use today. This post will look at how to use prefixes and how to automate the process, and how to use <code>@supports</code> to test if a feature is supported.</p>
+<h2>Adding CSS prefixes</h2>
+<p>That we’re still dealing with vendor prefixes shows how long some of them have lasted and provide an object lesson on how to handle features in development</p>
+<p>Developers didn’t think of vendor prefixes as a way to preview features, they shipped them in production,  something the CSS Working Group considers harmful.</p>
+<p>Once you add a flag or vendor prefix and developers start use it in production, it becomes harder for browsers to change the feature works or its syntax. With flags, your users must actively enable it.</p>
+<h3>The standard way</h3>
+<p>The easiest way to handle different vendor prefixes is to just list them all. Browsers will ignore any rule they don’t understand and if they understand more than one rule in a selector, the last one in document order wins; that’s why we put the unprefixed version last.</p>
+<pre><code class="language-css">.myClass {
+  -webkit-transition: all 1s linear;
+  -moz-transition: all 1s linear;
+  -ms-transition: all 1s linear;
+  transition: all 1s linear;
+}
+</code></pre>
+<p>Although most vendor prefixes have been consolidated we should still be careful which ones we use and in what order:</p>
+<ul>
+<li>Microsoft and Opera adopted Blink for their browsers so all the prefixed rules in Blink apply to Edge and Opera too</li>
+<li>IE 11 may stay with us a while longer so we still need the <code>-ms-</code> prefix for some properties</li>
+<li>Blink still uses <code>-webkit-</code> prefixed properties from before the fork</li>
+</ul>
+<h3>Automating the process</h3>
+<p>If we’re willing to put our CSS through a build process or use technologies like SASS/SCSS or LESS that already require a compilation step we can also automate vendor prefixes with tools like <a href="https://github.com/postcss/autoprefixer">Autoprefixer</a> either as a standalone tool or with your favorite task runner.</p>
+<p>This example uses <code>gulp-autoprefixer</code> and <code>gulp-sourcemaps</code> to automatically add prefixes to all the CSS files under the <code>src</code>.</p>
+<pre><code class="language-js">const gulp = require('gulp');
+const sourcemaps = require('gulp-sourcemaps');
+const autoprefixer = require('gulp-autoprefixer');
+
+exports.default = () =&gt; (
+  gulp.src('src/**/*.css')
+    .pipe(sourcemaps.init())
+    .pipe(autoprefixer())
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest('dist'))
+);
+</code></pre>
+<p>By default, Autoprefixer uses data from <a href="https://caniuse.com/">caniuse.com</a> to determine what prefixes to use for the default set of browsers.</p>
+<h2>Test browser support for a feature  using <code>@supports</code></h2>
+<p>CSS way to test if a browser supports a given feature is to use <code>@supports</code> to query if a browser supports a feature.</p>
+<pre><code class="language-css">@supports (display: grid) {
+  .container {
+    display: grid
+  }
+}
+</code></pre>
+<p>This example checks if the browser supports CSS grid (the <code>display: grid</code> rule) and uses it if it’s supported. If the browser doesnt understand <code>@support</code> or <code>display: grid</code> it will ignore the full <code>@supports</code> block altogether.</p>
+<p>For more information on <code>@supports</code> see MDN’s <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@supports">@supports article</a></p>

@@ -1,0 +1,70 @@
+<h1>Javascript Dynamic Imports</h1>
+<p>There is a function-like, dynamic form of import that will allow us to play with imports inside modules and classes and will let us work with them together with <code>async</code> functions and <code>await</code>ing for async events to complete instead of using <code>then/catch</code> blocks for our promise-based async code.</p>
+<pre><code class="language-js">&lt;script type=&quot;module&quot;&gt;
+  (async () =&gt; {
+    try {
+      const utilsModuleSpecifier = './utils.js';
+      const utilsModule = await import(utilsModuleSpecifier)
+      utilsModule.default();
+      utilsModule.doStuff();
+    }
+    catch {
+      console.log('Dynamic import failed');
+    }
+  })();
+&lt;/script&gt;
+</code></pre>
+<p>Modules (either dynamic or static) use <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#Attributes">defer</a> by default.</p>
+<p>ES6 modules run in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode">strict mode</a>, even if you don’t write “use strict”; in them. If you’re not familiar with strict mode, it can throw unexpected errors and warnings.</p>
+<p>You can use import and export in modules.</p>
+<h2>A Dynamic Module example</h2>
+<p>The idea behind the example in this section is that the admin module (<code>admin.js</code>) will only be loaded if the conditions are met and the user is an administrator.</p>
+<p>The idea behind the example in this section is that the admin module (<code>admin.js</code>) will only be loaded if the conditions are met and the user is an administrator.</p>
+<p>This will save us both on the size of the scripts we load and load time for the scripts we actually use. The examples are small but you can imagine large admin scripts with lots of functionality.</p>
+<p>The process is as follows:</p>
+<p>We define two modules.</p>
+<p>One module for users (user.js) for functions and data that relates to users.</p>
+<pre><code class="language-js">//user.js
+export function isAdmin() {
+  console.log('user is an administrator');
+  return true
+}
+</code></pre>
+<p>The second module is for administrator-only functions. We separate them to make each module smaller and more specialized.</p>
+<pre><code class="language-js">// admin.js
+export function nukeSystem() {
+  console.log('system will be nuked in 10 seconds');
+  alert('Admin decided to nuke the system');
+}
+</code></pre>
+<p>Our main script does a few things:</p>
+<ol>
+<li>Declare that we’re using a module</li>
+<li>Creates an async function</li>
+<li>Sets up a string to be the user module specifier.</li>
+<li>Awaits the import of the module with the given specifier</li>
+<li>Uses a function of the module to check if the user is an administrator</li>
+<li>If the user is an administrator then we await loading the admin module</li>
+<li>We run the <code>nukeSystem</code> function from the admin module</li>
+<li>If the user is not an admin we tell the user</li>
+<li>If the try statement doesn’t work, we jump to the catch statement and log an error message to the console</li>
+</ol>
+<pre><code class="language-javascript">&lt;script type=&quot;module&quot;&gt; // 1
+  (async () =&gt; { //2
+    try {
+      const userModuleSpecifier = './user.js' //3
+      const userModule = await import (userModuleSpecifier)// 4
+      if (userModule.isAdmin()) { // 5
+        const adminModuleSpecifier = './admin.js'
+        const adminModule = await import (adminModuleSpecifier) // 6
+        adminModule.nukeSystem() // 7
+      } else {
+        console.log(`User is not administrator`); // 8
+      }
+    }
+    catch {
+      console.log('Something went wrong'); // 9
+    }
+  })();
+&lt;/script&gt;
+</code></pre>

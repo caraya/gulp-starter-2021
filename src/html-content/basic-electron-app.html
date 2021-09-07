@@ -1,0 +1,239 @@
+<h1>Building a VSCode-like Editor</h1>
+<p>This is the code for the editor project as outlined in <a href="https://publishing-project.rivendellweb.net/ideas-and-projects-for-2021/">Ideas and Projects for 2021</a>.</p>
+<p>The idea is to Explore <a href="https://www.electronjs.org/">Electron</a>, <a href="https://microsoft.github.io/monaco-editor/">Monaco</a> (the editor behind VS Code) and how they work together (or not) to build a smaller code editor with special features.</p>
+<p>Some of the goals for the project (updated from the post to reflect new knowledge).</p>
+<ol>
+<li>Use the code from the <a href="https://github.com/microsoft/monaco-editor-samples/tree/master/electron-esm-webpack">electron-esm-webpack</a> example in the <a href="https://github.com/microsoft/monaco-editor-samples/">monaco-editor-sample</a> repository</li>
+<li>Switch the code to use <a href="https://www.typescriptlang.org/">Typescript</a></li>
+<li>User the <a href="https://github.com/Microsoft/monaco-editor">Monaco</a> text editor as the core editor the project. This way we leverage all the languages Monaco supports with specific emphasis on:
+<ul>
+<li>Markdown</li>
+<li>CSS</li>
+<li>SCSS</li>
+<li>HTML</li>
+<li>XML</li>
+<li>Javascript</li>
+<li>Typescript</li>
+</ul>
+</li>
+<li>Research the best way to integrate Monaco into an Electron application</li>
+<li>Use Electron’s built-in menus and event handlers to interact with the native file system</li>
+<li>Export Markdown to HTML</li>
+<li>Allow packaging of content into zipped bundles, <a href="http://idpf.org/epub/30/">epub3</a>, and <a href="https://web.dev/web-bundles/">web bundles</a></li>
+<li>Research what it would take to use  <a href="https://webassembly.org/">WASM</a> modules inside an Electron application</li>
+</ol>
+<h2>Why Electron?</h2>
+<p>Rather than create a web application and choosing a framework I want to explore how to bundle Monaco into a set of cross platform (MacOS, Windows and Linux) without having to write the code myself.</p>
+<h2>Monaco Editor</h2>
+<p>Monaco editor is the base for VSCode; as such you get a lot of features out of the box. For this project some of the features I’m most interested in are:</p>
+<ul>
+<li>Syntax Highlighting</li>
+<li>Support for all languages targeted in the project out of the box</li>
+<li>Intellisense and autocompletion for supported languages</li>
+<li>Exstensibility to other languages</li>
+</ul>
+<h2>Getting Started</h2>
+<p>Some things to understand before we start writing code.</p>
+<p>Electron uses two main files (taken from ELectron’s documentation).</p>
+<ul>
+<li><strong>The Main Process (<code>main.js</code>)</strong>
+<ul>
+<li>The <strong>Main</strong> process creates web pages by creating <code>BrowserWindow</code> instances. Each <code>BrowserWindow</code> instance runs the web page in its Renderer process. When a <code>BrowserWindow</code> instance is destroyed, the corresponding Renderer process gets terminated as well</li>
+<li>The <strong>Main</strong> process manages all web pages and their corresponding <strong>Renderer</strong> processes</li>
+</ul>
+</li>
+<li><strong>The Renderer process (<code>renderer.js</code>)</strong>
+<ul>
+<li>The <strong>Renderer</strong> process manages only the corresponding web page. A crash in one <strong>Renderer</strong> process does not affect other <strong>Renderer</strong> processes</li>
+<li>The <strong>Renderer</strong> process communicates with the Main process via IPC to perform GUI operations in a web page. Calling native GUI-related APIs from the Renderer process directly is restricted due to security concerns and potential resource leakage</li>
+</ul>
+</li>
+</ul>
+<h3>Setting everything up</h3>
+<p>Because this is a Node-based project we need to initialize it as such. The first step into create a <code>package.json</code> file.</p>
+<p>The command I use to create the package file with all the defaults I use on my projects is</p>
+<pre><code class="language-bash">npm init --yes
+</code></pre>
+<pre><code class="language-bash">npm i -D electron
+</code></pre>
+<p>just to be on the safe side, update the script section of <code>package.json</code> as follows:</p>
+<pre><code class="language-json">&quot;scripts&quot;: {
+  &quot;start&quot;: &quot;electron .&quot;
+},
+</code></pre>
+<p>This will make it easier to run the project with <code>npm start</code> or <code>npm run start</code> rather than installing electron globally or digging through the node modules hierarchy with <code>node_modules/.bin/electron</code>.</p>
+<p>The last remaining files are what’s actually going to run the app.</p>
+<h4><code>main.js</code></h4>
+<p>The first file is <code>main.js</code>. This will run the main tasks of the app like creating windows and allowing us to quit the application.</p>
+<p>I’ve broken it down by functionality.</p>
+<p>We first import <code>app</code> and <code>BrowserWindow</code> from the Electron package and the built-in <code>path</code> package from Node.</p>
+<pre><code class="language-js">const {app, BrowserWindow} = require('electron')
+const path = require('path')
+</code></pre>
+<p>The first function will create a browser window and load the application’s <code>index.html</code> file.</p>
+<p>The <code>webPreferences</code> child of BrowserWindow indicates what features we want to use for these web pages. For this example, I’ve added <code>nodeIntegration: true</code> to make sure I can run Node code in this application.</p>
+<p>For more information about <code>webPreferences</code> and its values, see the <code>webPreferences</code> entry in <a href="https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions">new BrowserWindow([options])</a></p>
+<pre><code class="language-js">function createWindow () {
+  // Create the browser window.
+  const mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+
+  // and load the index.html of the app.
+  mainWindow.loadFile('index.html')
+}
+</code></pre>
+<p>The <code>whenReady</code> method will be called when Electron has finished initialization and is ready to create browser windows. I think of it as equivalent to the <code>DOMContentLoaded</code> event.</p>
+<p>Some APIs can only be used after this event occurs. In this example we cannot create run <code>createWindow()</code> until the application is ready.</p>
+<p>Multiple actions can trigger the <code>activate</code> event, such as launching the application for the first time, attempting to re-launch the application when it’s already running, or clicking on the application’s dock or taskbar icon. In this example, if there are no windows present when we trigger the event, then create a new one.</p>
+<pre><code class="language-js">app.whenReady().then(() =&gt; {
+  createWindow()
+  
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+</code></pre>
+<p>The <code>windows-all-closed</code> event quits the application when all windows are closed for Windows and Linux systems. In  macOS it’s common for applications and their menu bar to stay active until the user quits explicitly with <code>Cmd + Q</code>.</p>
+<pre><code class="language-js">app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit()
+})
+</code></pre>
+<p><code>main.js</code> can include the rest of your app’s specific main process code. You can also put them in separate files and require them here.</p>
+<p>The second file is <code>renderer.js</code>. It is optional, if it’s not present then the renderer processes will work from the HTML file we load in <code>main.js</code>, but I choose to include it even if it’s empty</p>
+<p>Other examples use the index.html file by itself and ignore <code>renderer.js</code>, I choose not to.</p>
+<p>The only thing that’s important in this page is the <code>Content-Security-Policy</code> meta element. This will dictate what the things that the page, and therefore the app, can do.</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;title&gt;Hello World!&lt;/title&gt;
+  &lt;meta http-equiv=&quot;Content-Security-Policy&quot;
+  content=&quot;script-src 'self' 'unsafe-inline';&quot; /&gt;
+&lt;/head&gt;
+&lt;body style=&quot;background: white;&quot;&gt;
+  &lt;h1&gt;Hello World!&lt;/h1&gt;
+  &lt;p&gt;
+      We are using node &lt;script&gt;document.write(process.versions.node)&lt;/script&gt;,
+      Chrome &lt;script&gt;document.write(process.versions.chrome)&lt;/script&gt;,
+      and Electron &lt;script&gt;document.write(process.versions.electron)&lt;/script&gt;.
+  &lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3>Integrating Electron and Monaco</h3>
+<p>Integrating the Monaco editor into an Electron application requires us to configure WebPack. We begin by installing packages necessary to get WebPack working.</p>
+<pre><code class="language-bash">npm i -D webpack \
+webpack-cli \
+file-loader\
+style-loader\
+css-loader
+</code></pre>
+<p>To install the Monaco editor, just install the editor using NPM.</p>
+<pre><code class="language-bash">npm i monaco-editor
+</code></pre>
+<p>The only special thing to note on the WebPack configuration is the multiple entry points for both the Electron Renderer and for each of the Monaco workers.</p>
+<pre><code class="language-js">const path = require('path');
+
+module.exports = {
+  mode: 'development',
+  entry: {
+    'app': './renderer.js',
+    'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
+    'json.worker': 'monaco-editor/esm/vs/language/json/json.worker',
+    'css.worker': 'monaco-editor/esm/vs/language/css/css.worker',
+    'html.worker': 'monaco-editor/esm/vs/language/html/html.worker',
+    'ts.worker': 'monaco-editor/esm/vs/language/typescript/ts.worker',
+  },
+  output: {
+    globalObject: 'self',
+    filename: '[name].bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.ttf$/,
+        use: ['file-loader'],
+      },
+    ],
+  },
+};
+</code></pre>
+<p>Configuring the editor is done in the renderer process. We first require the <code>monaco-editor</code> NPM module.</p>
+<p>We then instantiate the editor environment in <code>self.MonacoEnvrionment</code>. This sets up all the workers for the diffrent languages the editor provides.</p>
+<pre><code class="language-js">const monaco = require('monaco-editor');
+
+self.MonacoEnvironment = {
+  getWorkerUrl: function(moduleId, label) {
+    if (label === 'json') {
+      return './json.worker.bundle.js';
+    }
+    if (label === 'css' || label === 'scss' || label === 'less') {
+      return './css.worker.bundle.js';
+    }
+    if (label === 'html' || label === 'handlebars' || label === 'razor') {
+      return './html.worker.bundle.js';
+    }
+    if (label === 'typescript' || label === 'javascript') {
+      return './ts.worker.bundle.js';
+    }
+    return './editor.worker.bundle.js';
+  }
+};
+</code></pre>
+<p>The next step is to create the editor instance. The <code>monaco.editor.create</code> method takes two parameters, the element where we want to inser the editor and an object with the value of the initial code and the language for this code extract.</p>
+<pre><code class="language-js">monaco.editor.create(document.getElementById('container'), {
+  value: ['function x() {', '\tconsole.log(&quot;Hello world!&quot;);', '}'].join('\n'),
+  language: 'javascript'
+});
+</code></pre>
+<p>Finally, we have to modify the <code>index.html</code> so it looks like this:</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;meta
+      http-equiv=&quot;Content-Security-Policy&quot;
+      content=&quot;default-src 'none'; script-src 'unsafe-eval' file: 'sha256-AcqnkP3xWRYJaQ27hijK3b831+qsxvzEoSYt6PfGrRE='; style-src 'unsafe-inline' file:; font-src file:; img-src data: file:&quot;
+    /&gt;
+    &lt;style&gt;
+      #container {
+        width: 1600px;
+        height: 1200px;
+        border: 1px solid #ccc;
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;div id=&quot;container&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+
+  &lt;script src=&quot;./app.bundle.js&quot;&gt;&lt;/script&gt;
+&lt;/html&gt;
+</code></pre>
+<h2>What’s next?</h2>
+<p>Now that we have Monaco wired to an Electron application we can start doing work on building the features we outlined at the begining of the post. Some of these include:</p>
+<ul>
+<li>Create custom menus</li>
+<li>Basic file management functionality
+<ul>
+<li>Create new windows</li>
+<li>Open</li>
+<li>Save</li>
+<li>Save</li>
+<li>Close</li>
+<li>Delete</li>
+</ul>
+</li>
+</ul>
+<p>Once that functionality is complete we will have a working editor that will be good enough for daily use. From there we can look at more advanced functionality</p>

@@ -1,0 +1,65 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Better Links for Print</h1>
+<p>When we print web pages we see links as underlined text either black or, if we printed in a color printer, blue or whatever color we made our links. That doesn’t help us know what the actual links is.</p>
+<p>A possible solution is to use generated content for paged media and the <code>:after</code> selector to insert the text of the URL after the link.</p>
+<h2>The code</h2>
+<p>We’re saving all the code in this section in a <code>print.css</code> file. Why we’re doing this will become clear when we actually use the styles.</p>
+<p>The easiest way to start is to tell the browser to add the content of the <code>href</code> attribute after all anchor elements (<code>a</code>).</p>
+<pre><code class="language-css">a::after,
+a:visited::after {
+  content: &quot; (&quot; attr(href) &quot;) &quot;;
+  font-size: 90%;
+}
+</code></pre>
+<p>There is a problem, this won’t work with relative links, those pointing to pages within the same site that don’t use a full URL or to anchors within the same document. We can use the <code>^=</code> attribute selector to only target those links that start with <code>http</code> and this will only target external links, whether they are <code>http</code> or <code>https</code>; they both start with http :)</p>
+<p>So now our code looks like this:</p>
+<pre><code class="language-css">a[href^=http]::after,
+a[href^=http]:visited::after {
+  content: &quot; (&quot; attr(href) &quot;) &quot;;
+  font-size: 90%;
+}
+</code></pre>
+<p>The final problem to deal with is overcrowding. If a paragraph has many links, the text of the links will make the paragraph hard to read, particularly if you have many long links. This will require case-by-case testing and decisions, but I’ve created a special case to remove the link.</p>
+<p>If you add the no-print class to a link it will not print the URL.</p>
+<p>That code looks like this:</p>
+<pre><code class="language-css">a.no-print::after,
+a.no-print:visited::after {
+  content: &quot;&quot;;
+}
+</code></pre>
+<p>So now we have both a way to print the URL of a link in parenthesis after the link and a special case to avoid printing the links when it makes sense.</p>
+<h2>Using it</h2>
+<p>Using the styles we creaated is easy to link it using a <code>link</code> element in the head of the page and the <code>media=&quot;print&quot;</code> attribute to make sure it will only get triggered when we print the page.</p>
+<pre><code class="language-html">&lt;link rel=&quot;stylesheet&quot; href=&quot;main.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; media=&quot;print&quot; href=&quot;print.css&quot; /&gt;
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

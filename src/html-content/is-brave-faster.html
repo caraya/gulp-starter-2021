@@ -1,0 +1,226 @@
+<h1>Building a performance test suite</h1>
+<p>Ever so often you see questions in Quora about <a href="https://brave.com/">Brave</a>, a Chromium-based browser that claims to be faster than stock Chromium and other derivative browsers like Edge,  or Opera on Desktop.</p>
+<p>The last time I saw the performance testing results and methodology was when they first released version 1.0, documented in <a href="https://brave.com/brave-one-dot-zero-performance-methodology-and-results/">Brave 1.0 Performance: Methodology and Results</a> with the code used to do the analysis available on <a href="https://github.com/brave-experiments/browser-comparison-toolkit">Github</a> but I haven’t seen more recent data.</p>
+<p>The tests were done in older versions of the browsers tested and the <a href="https://github.com/brave-experiments/browser-comparison-toolkit">Brave Browser Comparison Kit</a> hasn’t been updated for newer versions (not that I would expect tthem to), so the best solution is to create my own tests using <a href="https://playwright.dev">Playwright</a> to see if the performance gap has been reduced or the 3x claim speed improvement over other browsers is still valid.</p>
+<p>From this original idea, the notion evolved into using Playwright to do cross-platform performance testing. What can we do everywhere, what’s specific to browsers or performance libraries. Does Playwright work better than WebDriver (even though WebDriver is a W3C spec)? Does the tool used to test affect the results of the test?</p>
+<h2>Getting started: Implementing the playwright script</h2>
+<p>I’ve broken the initial Playwright script into smaller sections that are easier to explain.</p>
+<h3>Configuring the browser</h3>
+<p>One of the things Playwright does that allow us to configure which Chromium browser we want to run the tests with.</p>
+<p>The following configuration will run the test with an instance of Chrome Canary installed on my macOS laptop. It will run in headless mode.</p>
+<pre><code class="language-js">// Set the executable to Chrome canary
+const chrome = await playwright.chromium.launch({
+  headless: true,
+  executablePath: `/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary`
+})
+</code></pre>
+<p>We can configure other Chromium-based browsers. I chose to work Edge Canary and Brave Nightly. I believe other Chromium browsers would also work. I haven’t tested them.</p>
+<p>We can also use the default Playwright configurations to run Firefox and WebKit. We configure both browsers to run in headless mode</p>
+<pre><code class="language-js">// TESTING WITH FIREFOX
+const firefox = await playwright.firefox.launch({
+  headless: true,
+})
+
+// TESTING WITH WEBKIT
+const webkit = await playwright.webkit.launch({
+  headless: true,
+})
+</code></pre>
+<h3>Basic performance configuration</h3>
+<p>Below are some basic examples of how to test for performance items using the deprecated <code>window.performance.timing</code> object.</p>
+<p><code>performanceTimingJson</code> uses Playwright’s <a href="https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageevaluatepagefunction-arg">evaluate</a> to get the values of the <code>window.performance.timing</code> object.</p>
+<p>We then create another variable with the parsed result of <code>performanceTimingJson</code>.</p>
+<p>We then run some calculations to get values for some performance metrics  that I’m interested in.</p>
+<pre><code class="language-js">let performanceTimingJson = await page.evaluate(() =&gt; {
+  JSON.stringify(window.performance.timing)
+})
+let pt = JSON.parse(performanceTimingJson)
+
+let startToInteractive = pt.domInteractive - pt.navigationStart
+let domContentLoadedComplete = pt.domContentLoadedEventEnd - pt.navigationStart
+let startToComplete = pt.domComplete - pt.navigationStart
+</code></pre>
+<p>The other way to get performance data is to use <code>performance.getEntriesByName</code> to query different types of performance entries. In this case we create variables for <code>firstPaint</code> and <code>firstContentfulPaint</code>.</p>
+<p>These tests produce different results than the other tests we configured. The values for paint-related events are the high resolution time when the event happened and have a duration of 0.</p>
+<pre><code class="language-js">let firstPaint = JSON.parse(
+  await page.evaluate(() =&gt;
+    JSON.stringify(performance.getEntriesByName('first-paint'))
+  )
+);
+
+let firstContentfulPaint = JSON.parse(
+  await page.evaluate(() =&gt;
+    JSON.stringify(performance.getEntriesByName('first-contentful-paint'))
+  )
+);
+</code></pre>
+<h3>Adding tracing collection</h3>
+<p>One thing I hadn’t realized until I saw it in Playwright’s documentation is that you can create a DevTools <a href="https://brainshark.zendesk.com/hc/en-us/articles/205043644-How-to-Perform-a-Browser-Trace-Chrome">trace</a> that we can then feed back into DevTools or the trace viewer available as a <a href="https://chromedevtools.github.io/timeline-viewer/?loadTimelineFromURL=https://gist.github.com/caraya/cb047161dd5d223370ef6496ccff7ad3">web application</a> or directly in the browser via <code>chrome://tracing/</code></p>
+<pre><code class="language-js">const chrome = await playwright.chromium.launch({
+  headless: false,
+  executablePath: `/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary`
+})
+// create new chrome instance
+const page = await chrome.newPage();
+await chrome.startTracing(page, {path: 'chrome-trace.json'});
+// go to page
+await page.goto('https://example.com')
+await chrome.stopTracing();
+
+// Add performance tests here
+
+await chrome.close();
+</code></pre>
+<p>If needed, we could also add CSS and Javascript coverage, equivalent to the coverage menu in Chromium-based browsers.</p>
+<h3>Adding lighthouse data to Chromium browser runs</h3>
+<p>The <a href="https://www.npmjs.com/package/playwright-lighthouse">playwright-lighthouse</a> provides an interface between Playwright and <a href="https://developers.google.com/web/tools/lighthouse">Lighthouse</a> to gather results from Lighthouse runs as part of a Playwright automation script.</p>
+<p>We customize the Chrome launcher by adding a <code>remote-debugging-port</code> argument.</p>
+<p>After we go to the page we want to review, we configure the <code>playwright-lighthouse</code> script by adding a configuration to <code>playAudit</code>.</p>
+<p>We can generate three formats for the report: CSV, JSON and HTML (the same format that you see when you run lighthouse in Chrome DevTools).</p>
+<p>We can also choose a location and a file name for the report. Each version will get the appropriate extension.</p>
+<p>The last thing is to close the browser.</p>
+<pre><code class="language-js">const playwright = require('playwright-core');
+const { playAudit } = require('playwright-lighthouse');
+
+(async () =&gt; {
+  const chrome = await playwright.chromium.launch({
+    headless: true,
+    args: ['--remote-debugging-port=9222'],
+  })
+  const page = await chrome.newPage()
+  await page.goto('https://publishing-project.rivendellweb.net')
+  
+  await playAudit({
+    page: page,
+    port: 9222,
+    thresholds: {
+      performance: 50,
+      accessibility: 50,
+      'best-practices': 50,
+      seo: 50,
+      pwa: 50,
+    },
+    reports: {
+      formats: {
+        json: false, //defaults to false
+        html: true, //defaults to false
+        csv: false, //defaults to false
+      },
+      name: `lighthouse-${new Date().getTime()}`,
+      directory:  `${process.cwd()}/lighthouse-${new Date().getDate()}`,
+    },
+  });
+
+  await chrome.close();
+})()
+</code></pre>
+<h3>Writing the results to a file</h3>
+<p>The final part of this basic performance setup is to write the unpublished results to a file. Since were mixing stringified JSON and plain text content the attempt at making it all readable is not as straighforward as I thought it would.</p>
+<p>A working firrst step uses Node’s <a href="https://nodejs.org/api/fs.html#fs_file_system">fs</a> module to append an array and several lines of text to a file. If the file doesn’t exist the module will create it for us. I make the file unique by appending a new data object to the name.</p>
+<pre><code class="language-js">dataToAppend = (data.join('\n'));
+
+fs.appendFile(`chrome-performance-${new Date()}.txt`, dataToAppend, function (err) {
+  if (err) {
+    throw err;
+  } else {
+    console.log('Performance data saved to file');
+  }
+});
+</code></pre>
+<p>The problem with the code is that the first array object is stored as a single line, making it very difficult to read. Ideally we’d be able to pretty print it to make it easier for humans to read it.</p>
+<p>Fortunately, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify">JSON.stringify()</a> can do it for us.</p>
+<p>The third argument in the stringify method provides a String or Number used to insert white space into the output JSON string for readability purposes.</p>
+<p>…</p>
+<p>If this is a String, the string (or the first 10 characters of the string, if it’s longer than that) is used as white space. If this parameter is not provided (or is null), no white space is used.</p>
+<p>so we can use a tab character escape sequence as the third parameter to the stringify method:</p>
+<pre><code class="language-js">JSON.stringify(pt, null, '\t'),
+</code></pre>
+<p>It produces the following result that we can do further processing later in our build process.</p>
+<pre><code class="language-js">{
+  &quot;connectStart&quot;: 1614063600439,
+  &quot;navigationStart&quot;: 1614063600381,
+  &quot;loadEventEnd&quot;: 1614063603698,
+  &quot;domLoading&quot;: 1614063602269,
+  &quot;secureConnectionStart&quot;: 1614063600451,
+  &quot;fetchStart&quot;: 1614063600381,
+  &quot;domContentLoadedEventStart&quot;: 1614063603387,
+  &quot;responseStart&quot;: 1614063602263,
+  &quot;responseEnd&quot;: 1614063602320,
+  &quot;domInteractive&quot;: 1614063603353,
+  &quot;domainLookupEnd&quot;: 1614063600439,
+  &quot;redirectStart&quot;: 0,
+  &quot;requestStart&quot;: 1614063600538,
+  &quot;unloadEventEnd&quot;: 0,
+  &quot;unloadEventStart&quot;: 0,
+  &quot;domComplete&quot;: 1614063603696,
+  &quot;domainLookupStart&quot;: 1614063600383,
+  &quot;loadEventStart&quot;: 1614063603696,
+  &quot;domContentLoadedEventEnd&quot;: 1614063603389,
+  &quot;redirectEnd&quot;: 0,
+  &quot;connectEnd&quot;: 1614063600538
+}
+</code></pre>
+<p>To make the remaining lines legible, we can insert return characters <code>\n</code> before and after each line.</p>
+<h2>Customization: Entering the URL from the command line</h2>
+<p>One final customization I’d like to do is to have the ability to enter the URL to test from the command line rather than hard-code it on the script. This will give us the ability to run it multiple times from a shell script.</p>
+<p>We capture the URL from the command line using Node’s <a href="https://nodejs.org/docs/latest/api/process.html#process_process_argv">process.argv()</a> method.</p>
+<p>We know that the name of the script is the second value (zero-index) because the values are:</p>
+<ul>
+<li>0: Node (the command to run)</li>
+<li>1: Name of the script that Node will run</li>
+<li>2 and later: additional parameters</li>
+</ul>
+<p>In the async anonymous IFFE we use to run the code we add the URL as a parameter with a default value; this default value prevents errors when we don’t add a URL in the command line.</p>
+<p>The changes to the code are simple:</p>
+<pre><code class="language-js">const url = process.argv[2];
+
+(async (url=&quot;https://publishing-project.rivendellweb.net&quot;) =&gt; {
+
+// code goes here 
+
+})()
+</code></pre>
+<h2>Using shell scripts to enchance the playwright script</h2>
+<p>I built a list of 85 URLs that are possible candidates for testing by combining the URLs in the Brave testing list with the <a href="https://www.alexa.com/topsites">Alexa Top 50 websites</a> taken from the larger top 500 sites report on 2/23/21.</p>
+<p>This will only work for Linux, Mac and Windows using WSL (Window Subsystem for Linux). I currently don’t have an equivalent for Power Shell.</p>
+<p>The script does the following:</p>
+<ol>
+<li>Sets up the path to the Bash shell executable</li>
+<li>Seeds the random number generator that we’ll use to select the random URL</li>
+<li>Loads the data from fullsites.txt into the <code>urls</code> variable</li>
+<li>Creates a variable with a randomly selected URL from the urls variable</li>
+<li>Echos the URL we’re testing</li>
+<li>Runs the <code>performance-test</code> Node script with the random URL as the parameter</li>
+</ol>
+<pre><code class="language-bash">#!/usr/local/bin/bash #1
+
+# 2
+RANDOM=$$$(date +%s)
+
+#3
+mapfile urls &lt;fullset.txt 
+
+# 4
+URL_TO_TEST=${urls[$RANDOM % ${#urls[@]}]}
+
+# 5
+echo Testing $URL_TO_TEST
+
+# 6
+node performance-test.js URL_TO_TEST
+</code></pre>
+<h2>Conclusions and final touches</h2>
+<p>As presented the scripts do a lot:</p>
+<ul>
+<li>Generate traces that developers can review later</li>
+<li>Generate Lighthouse reports in machine readable (JSON) and human readable (HTML) formats</li>
+<li>Generate some Core Vital metrics</li>
+<li>Produce other performance metrics</li>
+</ul>
+<p>We can refine the script in different ways:</p>
+<ul>
+<li>There are more metrics we can incorporate to the scripts</li>
+<li>We can choose to put all the browser tests in one browser or put them in separate files and call  them from the main shell script</li>
+<li>Find a better way to randomize the URLs to choose. The built-in randomizing function in Bash is not as random as I’d like</li>
+</ul>
+<p>If you have any specific idea for improvevment, please open an issue in the project’s <a href="https://github.com/caraya/performance-testing">Github repo</a> or contact me on Twitter <a href="https://twitter.com/elrond25">@elrond25</a></p>

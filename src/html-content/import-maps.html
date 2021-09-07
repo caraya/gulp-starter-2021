@@ -1,0 +1,74 @@
+<h1>Import maps: What they are and why they are important</h1>
+<p>Most current browsers support <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">ESModules</a>. This is the way the ECMAScript standard defines to import modules. However, because it’s come late to the party after <a href="https://github.com/umdjs/umd">UMD</a> and <a href="https://nodejs.org/api/modules.html#modules_modules_commonjs_modules">CommonJS</a> modules, they are not widely used on client-side code. One of the problems is how to reference the modules we want to import.</p>
+<p>Import maps are a way to map the names of imported packages to the full path on the filesystem allowing developers to use bare module import.</p>
+<p>At their simplest, import maps are a list of tuples in the form of  <code>&lt;package-name&gt;: &lt;path-to-package&gt;</code></p>
+<p>The following example gives Lodash the identified lodash, like so:</p>
+<pre><code class="language-html">&lt;script type=&quot;importmap&quot;&gt;
+{
+  &quot;imports&quot;: {
+    &quot;lodash&quot;: &quot;/node_modules/lodash-es/lodash.js&quot;
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>Then you can do the following in your module scripts:</p>
+<pre><code class="language-html">&lt;script type=&quot;module&quot;&gt;
+import { partition } from &quot;lodash&quot;;
+
+partition(users, 'active');
+&lt;/script&gt;
+</code></pre>
+<p>Then start a server in the root of your project where your package.json and node_modules folder live. And that’s <code>python3 -m http.server</code> or whichever you prefer.</p>
+<p>Now you can import your module scripts with the bare module syntax directly in the browser without intermediate build steps.</p>
+<h2>The devil is in the details</h2>
+<p>There are two issues that make this technique more difficult to use as it should be right now.</p>
+<h3>Browser support</h3>
+<p>The first one is browser support. Import Maps are currently only supported in Chromium browsers (Chrome, Edge, Opera among others). They are not supported in Firefox and Safari.</p>
+<p>The <a href="https://github.com/guybedford/es-module-shims">es-module-shims</a> package can polyfill import maps (and other module-related specifications) for older browsers.</p>
+<p>It requires some changes to our code. First, we need to load <code>es-module-shims</code> using a script tag with the defer attribute so it won’t block rendering.</p>
+<pre><code class="language-html">&lt;script
+        defer 
+        src=&quot;es-module-shims.js&quot;&gt;
+&lt;/script&gt;
+</code></pre>
+<p>The value for the <code>type</code> attribute for the import map changes to <code>importmap-shim</code> so it can use the shim script we loaded.</p>
+<pre><code class="language-html">&lt;script type=&quot;importmap-shim&quot;&gt;
+{
+  &quot;imports&quot;: {
+    &quot;lodash&quot;: &quot;/node_modules/lodash-es/lodash.js&quot;
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>Likewise, the <code>type</code> attribute for module scripts changes to <code>module-shim</code> so it can use the import map we defined.</p>
+<pre><code class="language-html">&lt;script type=&quot;module-shim&quot;&gt;
+  import { partition } from &quot;lodash&quot;;
+  // ...
+  partition(users, 'active');
+&lt;/script&gt;
+</code></pre>
+<p>The order of the scripts does matter. In any other order the scripts will not work and you will get an error.</p>
+<h3>ESM Module availablity</h3>
+<p>The second isssue is that not all packages in NPM are available as ESModules.</p>
+<p>Tools like Snowpack can help deal with this. In its simplest use Snowpack <strong><em>“re-installs your dependencies as single JS files to a new web_modules/ directory”</em></strong> to be used with import commands.</p>
+<p>You can either run Snopwack manually in your directory:</p>
+<pre><code class="language-bash">npx snowpack dev
+</code></pre>
+<p>or run it as an NPM script:</p>
+<pre><code class="language-json">&quot;scripts&quot;: {
+  &quot;prepare&quot;: &quot;snowpack dev&quot;
+}
+</code></pre>
+<p>Snowpack will generate a <code>web_modules</code> directories that you’ve specified as dependencies in your <code>package.json</code> and an import map file that you can use to import the modules.</p>
+<p>If you need to use packages that are not defined as dependencies in your project’s <code>package.json</code> you can define them as part of your <code>package.json</code> definition</p>
+<pre><code class="language-json">&quot;snowpack&quot;: {
+  &quot;dependencies&quot;: [
+    &quot;file1&quot;,
+    &quot;file2&quot;,
+    &quot;core-js&quot;,
+    &quot;module1&quot;,
+    &quot;module2&quot;,
+    &quot;moodule3&quot;
+  ]
+}
+</code></pre>

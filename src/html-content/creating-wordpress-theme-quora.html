@@ -1,0 +1,144 @@
+<h1>Creating a WordPress Theme (Mostly) From Scratch</h1>
+<h2>What you need to know</h2>
+<h2>With or Without Gutenberg?</h2>
+<h2>Getting Started: Decisions and Coonsiderations</h2>
+<h2>CSS</h2>
+<h3>Grid</h3>
+<h3>Variable Fonts</h3>
+<h3>Fallbacks</h3>
+<h2>Javascript</h2>
+<h3>Don’t do what I did</h3>
+<h3>To jQuery or not to jQuery</h3>
+<h2>WordPress PHP</h2>
+<h3>Issues with theme tester</h3>
+<h3>Images</h3>
+<h4>add custom sizes</h4>
+<p>See <a href="https://developer.wordpress.org/reference/functions/add_image_size/">https://developer.wordpress.org/reference/functions/add_image_size/</a></p>
+<pre><code class="language-php">add_image_size( 'rivendellweb-full-bleed', 2000, 1500, true );
+add_image_size( 'rivendellweb-index-img', 1000, 550, true );
+</code></pre>
+<h4>Menu Registration</h4>
+<pre><code class="language-php">&lt;?
+register_nav_menus( array(
+  'header' =&gt; esc_html__( 'Header', 'rivendellweb' ),
+  'social' =&gt; esc_html__( 'Social', 'rivendellweb')
+) );
+</code></pre>
+<h4>Disable native lazy loading</h4>
+<h4>Add custom background color</h4>
+<pre><code class="language-php">&lt;?
+// Set up the WordPress core custom background feature.
+add_theme_support( 'custom-background', apply_filters( 'rivendellweb_custom_background_args', array(
+  'default-color' =&gt; 'ffffff',
+  'default-image' =&gt; '',
+) ) );
+</code></pre>
+<pre><code class="language-php">&lt;?
+add_theme_support( 'custom-logo', array(
+  'height'      =&gt; 250,
+  'width'       =&gt; 250,
+  'flex-width'  =&gt; true,
+  'flex-height' =&gt; true,
+) );
+</code></pre>
+<pre><code class="language-php">&lt;?
+// GUTENBERG-RELATED THEME SUPPORT COMMANDS
+/**
+ * Add support for editor styles and enqueue the styles
+ */
+add_theme_support('editor-styles');
+add_editor_style( '/editor-styles.css' );
+</code></pre>
+<pre><code class="language-php">&lt;?
+/**
+ * Disable custom colors in Gutenberg
+ * Uncomment the block to enable
+ */
+add_theme_support( 'disable-custom-colors' );
+</code></pre>
+<pre><code class="language-php">&lt;?
+/**
+ * Disable the Gutenberg color palette
+ * Uncomment the block to enable
+ */
+add_theme_support( 'editor-color-palette' );
+</code></pre>
+<pre><code class="language-php">/**
+ * Add support for default block styles
+ */
+add_theme_support( 'wp-block-styles' );
+</code></pre>
+<pre><code class="language-php">&lt;?
+/**
+ * Add custom font sizes for Gutenberg
+ *
+ */
+add_theme_support(
+  'editor-font-sizes',
+  array(
+    array(
+        'name' =&gt; __( 'Small', 'rivendellweb-blocks' ),
+        'size' =&gt; 12,
+        'slug' =&gt; 'small'
+    ),
+    array(
+        'name' =&gt; __( 'Regular', 'rivendellweb-blocks' ),
+        'size' =&gt; 16,
+        'slug' =&gt; 'regular'
+    ),
+);
+</code></pre>
+<pre><code class="language-php">&lt;?
+add_theme_support(
+  'editor-color-palette',
+  array(
+    array(
+        'name' =&gt; __( 'White', 'rivendellweb' ),
+        'slug' =&gt; 'white',
+        'color' =&gt; '#ffffff'
+    ),
+    array(
+        'name' =&gt; __( 'Black', 'rivendellweb' ),
+        'slut' =&gt; 'black',
+        'color' =&gt; '#000000'
+    ),
+    array(
+        'name' =&gt; __( 'Magenta', 'rivendellweb' ),
+        'slug' =&gt; 'magenta',
+        'color' =&gt; '#a156b4',
+    ),
+);
+</code></pre>
+<h4>Modify the body class array</h4>
+<pre><code class="language-php">&lt;?
+/**
+ * Adds custom classes to the array of body classes.
+ *
+ * @param array $classes Classes for the body element.
+ * @return array
+ */
+function rivendellweb_body_classes( $classes ) {
+    // Adds a class of hfeed to non-singular pages.
+    if ( ! is_singular() ) {
+        $classes[] = 'hfeed';
+        $classes[] = 'archive-view';
+    }
+
+    // Adds a class of no-sidebar if sidebar-1 or sidebar-2
+    // are not active.
+    //
+    // This is where you can get creative with the test and
+    // add different classes based on which sidebar is active
+    // and style accordingly.
+    if ( ( ! is_active_sidebar( 'sidebar-1' ) ) ||
+             ( ! is_active_sidebar( 'sidebar-2' ) ) ) {
+        $classes[] = 'no-sidebar';
+    } else {
+        // Otherwise add the has-sidebar class
+        $classes[] = 'has-sidebar';
+    }
+
+    return $classes;
+}
+add_filter( 'body_class', 'rivendellweb_body_classes' );
+</code></pre>

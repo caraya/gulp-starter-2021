@@ -1,0 +1,82 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>More Webpack stuff</h1>
+<p>I still keep looking for new items in the Webpack space that will make my code work better or will give me more information about it.  I found two that are of particular interest to me.</p>
+<h2>Size plugin</h2>
+<p>Webpack’s <a href="https://npm.im/size-plugin">size plugin</a> Prints the gzipped sizes of your Webpack assets and the changes since the last build. This may not sound like much but it’s an important reminder during development. If your bundles grow every time you build your project it may end up hurting your performance budget and download speeds.</p>
+<h3>Using the plugin</h3>
+<p>First install it using NPM</p>
+<pre><code class="language-bash">npm i -D size-plugin
+</code></pre>
+<p>Next, require the plugin at the top of your configuration file.</p>
+<pre><code class="language-javascript">const SizePlugin = require('size-plugin');
+</code></pre>
+<p>Finally, add it to the plugins section of your configuration.</p>
+<pre><code class="language-javascript">module.exports = {
+  plugins: [
+    new SizePlugin()
+  ]
+}
+</code></pre>
+<p>There is no additional configuration for this plugin.</p>
+<h2>Critters and CSS inlining</h2>
+<p><a href="https://github.com/GoogleChromeLabs/critters">Critters</a> from the Chrome team inlines your CSS into the HTML document, reducing the numbber of trips between client and server and improving your page speed and time to interactive.  The plugin works differently from other options, because it doesn’t use a headless browser to render content. Critters inlines all CSS rules used by your document, rather than only those needed for above-the-fold content.</p>
+<pre><code class="language-bash">npm i -D critters-webpack-plugin
+</code></pre>
+<p>Then, import Critters into your Webpack configuration and add it to your list of plugins:</p>
+<pre><code class="language-javascript">// webpack.config.js
+const Critters = require('critters-webpack-plugin');
+
+module.exports = {
+  plugins: [
+    new Critters({
+      // Outputs:
+      // &lt;link rel=&quot;preload&quot; onload=&quot;this.rel='stylesheet'&quot;&gt;
+      preload: 'swap',
+
+      // Don't inline critical font-face rules,
+      // but preload the font URLs:
+      preloadFonts: true
+    })
+  ]
+}
+</code></pre>
+<p>See the plugin’s <a href="https://github.com/GoogleChromeLabs/critters/blob/master/README.md">README</a> for more details and configuration parameters.</p>
+<p>If you want to inline only above the fold content you may want to look at these alternatives to Critters.</p>
+<ul>
+<li><a href="https://github.com/addyosmani/critical">Critical</a></li>
+<li><a href="https://github.com/pocketjoso/penthouse">Penthouse</a></li>
+<li><a href="https://github.com/lukeed/webpack-critical">webpack-critical</a></li>
+<li><a href="https://github.com/nrwl/webpack-plugin-critical">webpack-plugin-critical</a></li>
+<li><a href="https://github.com/anthonygore/html-critical-webpack-plugin">html-critical-webpack-plugin</a></li>
+<li><a href="https://github.com/stereobooster/react-snap">react-snap</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

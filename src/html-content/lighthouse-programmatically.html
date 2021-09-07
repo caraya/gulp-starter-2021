@@ -1,0 +1,68 @@
+<h1>Running Lighthouse Programmatically</h1>
+<p>In addition to the DevTools menu and the Chrome extension and the Lighthouse CLI, there are ways to use Lighthouse  programmatically in ways that would be too time consuming to do with the lighthouse tools aready available.</p>
+<p>The simplest example will run all Lighthouse reports for the given URL using the default options for Lighthouse.</p>
+<pre><code class="language-js">function launchChromeAndRunLighthouse(url, opts, config = null) {
+  return chromeLauncher.launch({chromeFlags: opts.chromeFlags})
+    .then((chrome) =&gt; {
+      opts.port = chrome.port;
+      return lighthouse(url, opts, config)
+        .then((results) =&gt; {
+          return chrome.kill()
+            .then(() =&gt; results.lhr)
+        });
+    });
+}
+</code></pre>
+<p>The <a href="https://github.com/GoogleChrome/lighthouse/blob/master/docs/configuration.md">lighthouse configurations docs</a> provides a detailes description of all the options that you can pass to Lighthouse.</p>
+<p>There are <a href="https://github.com/GoogleChrome/lighthouse/tree/master/lighthouse-core/config">sample configuration objects</a> to show specific customizations of the default configuration.</p>
+<p>This example will run the accessibility audits for a desktop-class device and produce an HTML report of the results.</p>
+<pre><code class="language-js">const lighthouseOptions = {
+  extends: 'lighthouse:default',
+  settings: {
+    onlyCategories: ['accessibility'],
+    emulatedFormFactor:'desktop',
+    output: ['html'],
+  },
+}
+
+modules.export = lighthouseOptions;
+</code></pre>
+<p>While the next example runs the performance audits and throttles using Chrome DevTools.</p>
+<pre><code class="language-js">const perfConfig = {
+  extends: 'lighthouse:default',
+  settings: {
+    throttlingMethod: 'devtools',
+    onlyCategories: ['performance'],
+  },
+};
+
+module.exports = perfConfig;
+</code></pre>
+<p>You can have multiple functions to run each set of audits separately or you can run them all in one function. It’s completely up to you.</p>
+<p><a href="https://github.com/GoogleChrome/lighthouse/blob/master/docs/readme.md#using-programmatically">Using Lighthouse programmatically</a> offers a more complete example using the built-in <a href="https://nodejs.org/api/fs.html">fs module</a>, <a href="https://www.npmjs.com/package/lighthouse">Lighthouse</a>, and <a href="https://www.npmjs.com/package/chrome-launcher">Chrome Launcher</a></p>
+<pre><code class="language-js">async function runLighthouse() {
+  const chrome = await chromeLauncher.launch({chromeFlags: ['--headless']});
+  const options = {
+    logLevel: 'info',
+    output: 'html',
+    onlyCategories: ['performance'],
+    port: chrome.port};
+  const runnerResult = await lighthouse('https://publishing-project.rivendellweb.net', options);
+
+  // `.report` is the HTML report as a string
+  const reportHtml = runnerResult.report;
+  fs.writeFileSync('lhreport.html', reportHtml);
+
+  // `.lhr` is the Lighthouse Result as a JS object
+  console.log('Report is done for', runnerResult.lhr.finalUrl);
+  console.log('Performance score was', runnerResult.lhr.categories.performance.score * 100);
+
+  await chrome.kill();
+}
+
+runLighthouse();
+</code></pre>
+<p>Chrome runs on <a href="https://developers.google.com/web/updates/2017/04/headless-chrome">headless mode</a> by passing <code>--headless</code> to Chrome Layncher.</p>
+<p>We then build an options object to run the performance audits, we write the results to an HTML file (<code>lhreport.html</code>) and log it to console.</p>
+<p>The final task is to kill the headless Chrome instance we create to run Lighthouse.</p>
+<p>This gives us a way to run repeated test against out sites; however it doesn’t guarantee the same results every time.</p>

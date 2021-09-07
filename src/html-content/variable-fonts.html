@@ -1,0 +1,95 @@
+<div class="message info">
+  <p>A lot of this material is taken from <a href="https://medium.com/@clagnut/get-started-with-variable-fonts-c055fd73ecd7">Get started with variable fonts</a> and the <a href="https://www.w3.org/TR/css-fonts-4/">CSS Fonts Module Level 4</a>
+</p></div>
+<blockquote>
+<p>Version 1.8 of the OpenType font format specification introduces an extensive new technology, affecting almost every area of the format. An OpenType variable font is one in which the equivalent of multiple individual fonts can be compactly packaged within a single font file. This is done by defining variations within the font, which constitute a single- or multi-axis design space within which many font instances can be interpolated. A variable font is a single font file that behaves like multiple fonts.</p>
+<p>There are numerous benefits to this technology. A variable font is a single binary with greatly-reduced comparable file size and, hence, smaller disc footprint and webfont bandwidth. This means more efficient packaging of embedded fonts, and faster delivery and loading of webfonts. The potential for dynamic selection of custom instances within the variations design space — or design-variations space, to use its technical name — opens exciting prospects for fine tuning the typographic palette, and for new kinds of responsive typography that can adapt to best present dynamic content to a reader’s device, screen orientation, or even reading distance.</p>
+<p>The technology behind variable fonts is officially called OpenType Font Variations. It has been jointly developed by Microsoft, Google, Apple, and Adobe, in an unprecedented collaborative effort also involving technical experts from font foundries and font tool developers. In addition to specifying the font format additions and revisions, the working group has also committed to the goal of interoperable implementation, defining expected behaviors and test suites for software displaying variable fonts. This should be welcome news to font developers and users, who have often struggled with incompatible implementations of earlier aspects of OpenType that were left to the interpretation of individual software companies.</p>
+<p><a href="https://medium.com/@tiro/https-medium-com-tiro-introducing-opentype-variable-fonts-12ba6cd2369">Introducting Opentype Variable Fonts</a></p>
+</blockquote>
+<p>The idea behind font variations is that you can have one font behave as if it was different fonts. For example, you can change the weight of the font-face at runtime and use the same font file to represent multiple values <strong>for the axis we’re changing</strong> without using a separate font file for each.</p>
+<p>For browsers that support the technology and fonts that are built using the Opentype variable font specification, this will result in smaller font downloads because now we can bundle the most common weights and styles for fonts (regular, bold, italic and bold italic) together and use them as needed, just like if we’ve added each one individually.</p>
+<p>In the OpenType specification, five common axes of variation have been pre-defined as four-character tags:</p>
+<ul>
+<li>weight: <code>wght</code>,</li>
+<li>width: <code>wdth</code>,</li>
+<li>italic: <code>ital</code>,</li>
+<li>slant: <code>slnt</code></li>
+<li>and optical size <code>opsz</code></li>
+</ul>
+<p>These font variations can be enabled by the font-weight, font-stretch, and font-style properties.</p>
+<p>CSS Fonts Level 4 adds new values for the properties to work with font variations:</p>
+<blockquote>
+<p><strong><em><a href="https://www.w3.org/TR/css-fonts-4/#font-weight-prop">font-weight</a></em></strong> takes any integer from 1–999 (not limited to multiples of 100 as in CSS3).</p>
+<p><strong><em><a href="https://www.w3.org/TR/css-fonts-4/#font-stretch-prop">font-stretch</a></em></strong> takes a percentage number in a range where 100% is normal, 50% is ultra-condensed and 200% is ultra-expanded.</p>
+<p><strong><em><a href="https://www.w3.org/TR/css-fonts-4/#font-style-prop">font-style</a></em></strong> takes an oblique angle value from oblique -90deg to oblique 90deg.</p>
+<p><strong><em><a href="https://www.w3.org/TR/css-fonts-4/#font-optical-sizing-def">font-optical-sizing</a></em></strong> is a new property taking a value of auto or none which turns on optical sizing if it’s available as an axis in the variable font.</p>
+</blockquote>
+<p>For more information see <a href="https://www.w3.org/TR/css-fonts-4/#font-resources">Font Resources</a> in the CSS Fonts Level 4 specification.</p>
+<p>So we have the new CSS 4 properties, we have the fonts, we just have to use them. From what I understand we need to make some changes to our <code>@font-face</code> declarations to enable the properties and still provide fallback fonts for browsers that don’t support them.</p>
+<pre><code class="language-language-css">@font-face {
+  font-family: 'Nicefont';
+    src: url('nicefont_var.woff2') format('woff-variations');
+    src: url('nicefont_regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+  font-family: 'Nicefont';
+    src: url('nicefont_var.woff2') format('woff-variations');
+    src: url('nicefont_black.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+}
+</code></pre>
+<p>Notice how both fonts with variation don’t require declarations for <code>font-weight</code> and <code>font-style</code> but the fallback fonts (the ones without <code>-variations</code> as part of the format name) do require font attributes as usual.</p>
+<p>Using a syntax similar to <code>font-feature-settings</code>, custom axes as well as the predefined ones, are available through the low-level <strong><em><a href="https://www.w3.org/TR/css-fonts-4/#font-variation-settings-def">font-variation-settings</a></em></strong> property. For example, this would render text with a variation that is very wide, lightweight and optically sized for 48pt:</p>
+<pre><code class="language-language-css">h2 {
+  font-variation-settings: &quot;wdth&quot; 600, &quot;wght&quot; 200, &quot;opsz&quot; 48;
+}
+</code></pre>
+<p>As with all powerful features, use it sparingly, if at all.  The spec gives you other ways to control these attributes that doesn’t drop you down to bare Opentype attributes.</p>
+<p>If you have a supported browser, Chrome Canary (version 62 or later) or Safari 11 (or Technical preview), you can use <a href="http://www.axis-praxis.org/">Axis-Praxis</a> as a playground for variable fonts, the ones they make available and your own fonts uploaded to the site.</p>
+<div class="video">
+  <iframe src="https://player.vimeo.com/video/189350146?byline=0&portrait=0" width="560" height="350" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+</div>
+<ul>
+<li>Variable Fonts
+<ul>
+<li>Decovar Font
+<ul>
+<li><a href="https://www.typenetwork.com/brochure/decovar-a-decorative-variable-font-by-david-berlow">https://www.typenetwork.com/brochure/decovar-a-decorative-variable-font-by-david-berlow</a></li>
+<li><a href="https://github.com/typenetwork/fb-decovar">https://github.com/typenetwork/fb-decovar</a></li>
+</ul>
+</li>
+<li>Cabin Fonts (Latin)
+<ul>
+<li>Available in Google Fonts early access</li>
+<li><a href="https://github.com/impallari/Cabin">Github</a></li>
+<li><a href="http://fonts.gstatic.com/ea/cabinvfbeta/v1/download.zip">Download</a></li>
+</ul>
+</li>
+<li>Nunito VF Beta (Latin)
+<ul>
+<li>Available in Google Fonts early access</li>
+<li><a href="https://github.com/googlefonts/NunitoFont">Github</a></li>
+<li><a href="http://fonts.gstatic.com/ea/nunitovfbeta/v1/download.zip">Download</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="http://www.alphabettes.org/responsive-variable-fonts/">Typographic Potential of Variable Fonts</a></li>
+<li><a href="https://alistapart.com/blog/post/variable-fonts-for-responsive-design">Variable Fonts for Responsive Design</a></li>
+<li><a href="https://blog.typekit.com/2016/09/14/variable-fonts-a-new-kind-of-font-for-flexible-design/">Variable fonts, a new kind of font for flexible design</a></li>
+<li><a href="https://github.com/scribbletone/i-can-variable-font/">I Can Variable Font</a></li>
+<li><a href="https://simoncozens.github.io/fonts-and-layout/opentype.html#opentype-font-variations">How Opentype Works: OpenType Font Variations</a></li>
+<li><a href="https://webkit.org/blog/7051/variable-fonts-on-the-web/">Variable Fonts on the Web</a></li>
+<li><a href="https://www.sitepoint.com/improve-web-typography-css-font-size-adjust/">Improve Web Typography with CSS Font Size Adjust</a></li>
+<li><a href="https://www.smashingmagazine.com/2017/09/new-font-technologies-improve-web/">How New Font Technologies Will Improve The Web</a></li>
+<li><a href="https://www.wired.com/2016/09/apple-google-adobe-microsoft-join-forces-make-typographic-history/">TECH GIANTS TEAM UP TO FIX TYPOGRAPHY’S BIGGEST PROBLEM</a></li>
+<li><a href="https://www.zachleat.com/web/comprehensive-webfonts/">A COMPREHENSIVE GUIDE TO FONT LOADING STRATEGIES</a></li>
+<li><a href="https://medium.com/@tiro/https-medium-com-tiro-introducing-opentype-variable-fonts-12ba6cd2369">Introducing OpenType Variable Fonts</a></li>
+<li><a href="https://material.io/guidelines/style/typography.html">Material Design Typography Guidelines</a></li>
+<li><a href="http://www.axis-praxis.org/">Axis-Praxis</a></li>
+</ul>

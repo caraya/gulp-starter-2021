@@ -1,0 +1,279 @@
+<h1>Internationalizing WordPress Themes and Plugins</h1>
+<p>According to <a href="https://www.gala-global.org/language-industry/intro-language-industry/what-internationalization">GALA (Globalization and Localization Alliance)</a>:</p>
+<blockquote>
+<p>Internationalization is a design process that ensures a product (usually a software application) can be adapted to various languages and regions without requiring engineering changes to the source code. Think of internationalization as readiness for localization…</p>
+<p>Some practical examples of how internationalization is critical to multilingual products include:</p>
+<ul>
+<li>Independence from a specific language/character set encoding</li>
+<li>Independence from specific cultural conventions</li>
+<li>Removal of hard-coded text</li>
+<li>Minimization of concatenated text strings</li>
+<li>Careful use of in-line variables</li>
+<li>Compatibility with third-party tools</li>
+<li>Unicode compliance for global text display</li>
+<li>Accommodation of double-byte languages (for example, Japanese)</li>
+<li>Accommodation of right-to-left languages (for example, Arabic)</li>
+</ul>
+</blockquote>
+<p>In the context of WordPress, internationalization means at least two things:</p>
+<ul>
+<li>Ensuring that the text in our themes and plugins is ready for localization</li>
+<li>Making sure that we consider right-to-left languages</li>
+</ul>
+<p>The strategies for internationalizing plugins and themes are slightly different so we’ll cover them separately.</p>
+<h2>Internationalization tools in WordPress</h2>
+<p>WordPress translation infrastructure is built on top of <a href="https://www.gnu.org/software/gettext/">GNU Gettext</a> so that’s a good starting point for research. The following is WordPress Specific.</p>
+<h3>Text Domain</h3>
+<p>The text domain provides WordPress with a unique identifier for our plugin or theme. This is important because WordPress will have many plugins and a theme to sort through so having unique names makes things easier.</p>
+<p>In a theme the text domain and the domain path, the location of our translaed files, is placed on the root css style sheet.  For our <code>my-demo-theme</code> theme this is placed in a comment inside <code>style.css</code>.</p>
+<pre><code class="language-php">/*
+* Theme Name: My Theme
+* Author: Theme Author
+* Text Domain: my-demo-theme
+* Domain Path: /languages
+*/
+</code></pre>
+<p>For plugins the Text Domain and Domain path are placed in a comment on the root PHP file, either index.php or the root of the plugin code.</p>
+<pre><code class="language-php">/*
+ * Plugin Name: My Plugin
+ * Author: Plugin Author
+ * Text Domain: my-demo-plugin
+ * Domain Path: /languages
+ */
+</code></pre>
+<h3>i18n functions</h3>
+<p>There are several i18n functions available for PHP internationalization</p>
+<p>The most basic one is <a href="https://developer.wordpress.org/reference/functions/__/">__()</a> that will just translate its content.</p>
+<pre><code class="language-php">&lt;?php
+__('Hello World', 'my-demo-theme');
+</code></pre>
+<p>Note that it will not echo the result, you have to use a different function (<code>_e()</code>), discussed next.</p>
+<p><a href="https://developer.wordpress.org/reference/functions/_e/">_e()</a> is similar to the previous example but it also displays the output to the page.</p>
+<pre><code class="language-php">&lt;?php
+_e('Hello World', 'my-demo-theme');
+</code></pre>
+<p>The next one, <a href="https://developer.wordpress.org/reference/functions/_x/">_x()</a>, is similar to <code>__()</code> but it also provides a context to help translators. You could do a comment before the item being translated but this will help systems like <a href="https://translate.wordpress.org/">Polyglots</a> do a better job.</p>
+<p>The function takes three arguments:</p>
+<ul>
+<li>The string to translate</li>
+<li>The context for the translation</li>
+<li>The text domaain</li>
+</ul>
+<pre><code class="language-php">_x( 'Read', '
+    past participle: books I have read',
+    'my-demo-theme'
+);
+</code></pre>
+<p>In this example, the word read, on its own, has multiple meanings and the translator will not be able to get the context right away so adding the context helps with the translation.</p>
+<p>The <a href="https://developer.wordpress.org/reference/functions/_ex/">_ex()</a> function is a combination of <code>_e()</code> and <code>_x()</code>.</p>
+<pre><code class="language-php">_ex( 'Read', '
+    past participle: books I have read',
+    'my-demo-theme'
+);
+</code></pre>
+<p>The next block is for strings that should be pluralized. The first one is <a href="https://developer.wordpress.org/reference/functions/_n/">_n()</a> and it takes a singular term, a plural term, their definition and the text domain.</p>
+<pre><code class="language-php">&lt;?php
+people = sprintf(
+  _n(
+    '%s person', // Singular Form
+    '%s people', // Plural Form
+    $count, // Number to compare to
+    'my-demo-theme' // Text Domain
+  ),
+  number_format_i18n( $count )
+  // Converts number to
+  // locale appropriate version
+);
+</code></pre>
+<p>The second parameter to <code>sprintf()</code> formats the number we produce into something appropriate to the locale the function is being called from.</p>
+<p><a href="https://developer.wordpress.org/reference/functions/_nx/">_nx()</a> is a combination of <code>_n()</code> and <code>_x()</code> in that it provides a way to pluralize content and the context necessary for translators.</p>
+<pre><code class="language-php">&lt;?
+$people = sprintf( _nx(
+    '%s person', // Singular
+    '%s people', // Plural
+    $count, // Number to compare
+    'context', // Context
+    'my-demo-theme' // Text Domaain
+  ),
+  number_format_i18n( $count )
+  // Converts number to
+  // locale appropriate version
+);
+</code></pre>
+<p>THe final block of functions are equivalent to <a href="https://developer.wordpress.org/reference/functions/_n_noop/">_n_noop()</a> and<a href="https://developer.wordpress.org/reference/functions/_nx_noop/">_nx_noop()</a> keep structures with translatable plural strings and use them later when the value is known.</p>
+<p>Once you’re ready to process the noop functions, you call <a href="https://developer.wordpress.org/reference/functions/translate_nooped_plural()/">translate_nooped_plural()</a></p>
+<pre><code class="language-php">&lt;?
+printf(
+  translate_nooped_plural(
+    $people,
+    $count,
+    'my-demo-theme'
+  ),
+  number_format_i18n( $count )
+);
+</code></pre>
+<h3>Escaping HTML</h3>
+<p>Three of the functions have equivalent versions that will escape any HTML In their values, rendering the string safe to use in HTML attributes.</p>
+<ul>
+<li><a href="https://developer.wordpress.org/reference/functions/esc_html__/">esc_html__()</a></li>
+<li><a href="https://developer.wordpress.org/reference/functions/esc_html_e/">esc_html_e()</a></li>
+<li><a href="https://developer.wordpress.org/reference/functions/esc_html_x/">esc_html_x()</a></li>
+</ul>
+<p>The following code will use the translation for <code>Hello World</code> available in the theme represented by <code>my-demo-theme</code> and escape the translated string to render HTML-specific characters safe.</p>
+<pre><code class="language-html">&lt;p&gt;&lt;?php esc_html_e(
+  'Hello World!',
+  'my-demo-theme'
+); ?&gt;&lt;/p&gt;
+</code></pre>
+<h3>Variables</h3>
+<p>What if you have a string like the following:</p>
+<pre><code class="language-php">&lt;?php
+echo 'Hello $city.'
+</code></pre>
+<p><code>$city</code> is a variable and should not be translated as such. The solution is to use placeholders for the variable, along with the <code>printf</code> family of functions. Especially helpful are <a href="http://php.net/printf">printf</a> and <a href="http://php.net/sprintf">sprintf</a>. Here is what one solution looks like:</p>
+<pre><code class="language-php">&lt;?php
+$city = Sao Paulo;
+
+printf(
+  /* translators: %s: Name of a city */
+  __( 'Your city is %s.', 'my-plugin' ),
+  $city
+);
+</code></pre>
+<p>Notice that here the string for translation is just the template “Your city is %s.”, which is the same both in the source and at run-time.</p>
+<p>Also note that there is a hint for translators so that they know the context of the placeholder.</p>
+<h3>Argument swapping</h3>
+<p>If you have more than one placeholder in a string, it is recommended that you use argument swapping.</p>
+<p>With argument swapping, you must use single quotes (’) around the string because double quotes (&quot;) will cause php to interpret the $s as the s variable, which is not what we want.</p>
+<p>In the following example, the first substitution is the name of a city and the second is the zip code.</p>
+<pre><code class="language-php">&lt;?php
+printf(
+  /* translators: 1: Name of a city 2: ZIP code */
+  __( 'Your city is %1$s, and your zip code is %2$s.', 'my-plugin' ),
+  $city,
+  $zipcode
+);
+</code></pre>
+<p>This will work for most western languages. However for some languages displaying the zip code and city in opposite order would be more appropriate.</p>
+<p>Using %s prefix in the above example, allows for such a case. A translation can thereby be written:</p>
+<p>The modified example changes the order of the variables without changing their meaning.</p>
+<pre><code class="language-php">&lt;?php
+printf(
+  /* translators:
+    1: Name of a city
+    2: ZIP code */
+  __( 'Your zip code is %2$s, and your city is %1$s.', 'my-plugin' ),
+  $city,
+  $zipcode
+);
+</code></pre>
+<h2>Internationalizing a plugin</h2>
+<p>After setting up the text domain in your plugin metadata we need to load the translated files to use them.</p>
+<p>For plugins we use the <a href="https://developer.wordpress.org/reference/functions/load_plugin_textdomain/">load_plugin_textdomain</a> function; it takes 4 parameters:</p>
+<ol>
+<li>The name of text domain</li>
+<li>This parameter is deprecated so always use FALSE</li>
+<li>The path to the directory where your plugin’s translations are stored</li>
+</ol>
+<p>Then add an action for the <code>plugins_loaded</code> hook and call the function we just created.</p>
+<pre><code class="language-php">&lt;?
+function rivendellweb_load_plugin_textdomain() {
+  load_plugin_textdomain(
+    'my-demo-plugin', // 1
+    FALSE,  // 2
+    basename(  // 3
+      dirname( __FILE__ ) ) . '/languages/'
+  );
+}
+add_action( 'plugins_loaded', 'rivendellweb_load_plugin_textdomain' );
+</code></pre>
+<p>See <a href="https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/">How to Internationalize Your Plugin</a> for more information about plugin internationalization.</p>
+<h2>Internationalizing a theme</h2>
+<p>Internationalizing themes is slightly different than plugins. The function we call is <a href="https://developer.wordpress.org/reference/functions/load_theme_textdomain/">load_theme_textdomain</a>.</p>
+<p>The function takes two parameters:</p>
+<ol>
+<li>The text domain identifier for the theme we want to use</li>
+<li>The location of the language file</li>
+</ol>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_load_theme_textdomain() {
+    load_theme_textdomain( 'my-demo-theme', get_template_directory() . '/languages' );
+}
+add_action(
+  'after_setup_theme',
+  'rivendellweb_load_theme_textdomain'
+);
+</code></pre>
+<p><a href="https://developer.wordpress.org/themes/functionality/internationalization/">https://developer.wordpress.org/themes/functionality/internationalization/</a></p>
+<h2>Internationalizing Javascript</h2>
+<div class="message info">
+<h3>Note</h3>
+We've already covered the basics of Javascript i18n in part 3 of my <a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-3/">Building Gutenberg Blocks</a> series.
+<p>We’ll just revisit some of the most important details here.</p>
+</div>
+<p>At this time the only use I see for JavaScript internationalization in WordPress is for Gutenberg blocks.</p>
+<p><a href="https://developer.wordpress.org/block-editor/packages/packages-i18n/">wp.i18n</a> provides a subset of the Gettext localization functions discussed earlier.</p>
+<ul>
+<li><code>__( 'Hello World', 'my-text-domain' )</code> – Translate a string</li>
+<li><code>_n( '%s Comment', '%s Comments', numberOfComments, 'my-text-domain' )</code> – Translate and retrieve the singular or plural form based on the supplied number.</li>
+<li><code>_x( 'Default', 'block style', 'my-text-domain' )</code> – Translate a certain string with additional context.</li>
+</ul>
+<p>This example provides a basic internationalize Gutenberg block. Since we’re working with React, our process has a build system that will convert the import statements into something older browsers can use.</p>
+<pre><code class="language-js">import { __ } from '@wordpress/i18n';
+import { registerBlockType } from '@wordpress/blocks';
+
+registerBlockType( 'myguten/simple', {
+  title: __( 'Simple Block', 'myguten' ),
+  category: 'widgets',
+
+  edit: () =&gt; {
+    return (
+      &lt;p style=&quot;color:red&quot;&gt;
+        { __( 'Hello World', 'myguten' ) }
+      &lt;/p&gt;
+    );
+  },
+
+  save: () =&gt; {
+    return (
+      &lt;p style=&quot;color:red&quot;&gt;
+        { __( 'Hello World', 'myguten' ) }
+      &lt;/p&gt;
+    );
+  },
+} );
+</code></pre>
+<p>This will not work with external scripts. For that we need to use <a href="https://developer.wordpress.org/reference/functions/wp_localize_script/">wp_localize_script</a></p>
+<p>The function will only work with scripts we’ve enqueued to the system using <code>wp-enqueue-script</code>.</p>
+<pre><code class="language-js">wp_enqueue_script(
+  'rivendellweb-navigation',
+  get_template_directory_uri() . '/js/navigation.js',
+  array('jquery'), '20151215', true
+);
+</code></pre>
+<p><code>wp_localize_script</code> takes three attributes:</p>
+<ul>
+<li>The name of the enqueued script</li>
+<li>The name of the javascript object we want to work with</li>
+<li>An array of internationalized objects</li>
+</ul>
+<pre><code class="language-js">wp_localize_script( 'rivendellweb-navigation',
+  'rivendellwebScreenReaderText',
+  array(
+    'expand' =&gt; __( 'Expand child menu', 'rivendellweb'),
+    'collapse' =&gt; __( 'Collapse child menu', 'rivendellweb'),
+  )
+);
+</code></pre>
+<h2>Additional considerations: RTL languages</h2>
+<p>If you’re planning on distirbuting your theme and plugin there’s one final consideration that I want to mention on this post: right to left language and how much our designs need to change to accomodate those languages.</p>
+<p>Compare the next two images. The first one is in English, a left to right, top to bottom language.  The second one is in Arabic, a right to left, top to bottom language.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/image/upload/v1587718299/publishing-project.rivendellweb.net/un-site-english.png' alt="English version of the United Nations Websie">
+  <p>&nbsp;</p>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/image/upload/v1587718292/publishing-project.rivendellweb.net/un-site-arabic.png' alt='Arabic version of the United Nations Website'>
+  <figcaption>English and Arabic versions of the United Nations Website <a href="https://www.un.org/">www.un.org</a></figcaption>
+</figure>
+<p>The content flows differently and we should take these languages into account when deciding on margin and padding for our contnet.</p>
+<p>Because we don’t know where our themes and plugins will be used we need to keep these differences in mind and provide some levell of support for RTL languages.</p>
+<p>You can convert your stylesheets to work with RTL languages manually or using tools like <a href="https://github.com/jjlharrison/gulp-rtlcss#readme">gulp-rtlcss</a></p>

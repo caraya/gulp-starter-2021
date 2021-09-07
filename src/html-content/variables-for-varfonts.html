@@ -1,0 +1,144 @@
+<h1>CSS Variables For Handling Fonts</h1>
+<blockquote>
+<p>Thanks to <a href="">Jason Pamental</a></p>
+</blockquote>
+<p>Variable fonts have a problem as currently implemented. If you use <code>font-variation-settings</code> to control the different axes of the font then every time one changes you must change the other ones or they will reset back to their default values.</p>
+<p>We’ll use <a href="https://www.recursive.design/">Recursive</a> as the font for this post.</p>
+<p>Recursive has two custom axes: Monospace and Csual and three default axes: Weight, Slant and Italics. The axes information is shown in the table below.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Axis Designation</th>
+      <th>Axis Name</th>
+      <th>Min Value</th>
+      <th>Max Value</th>
+      <th>Default</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MONO</td>
+      <td>Monospace</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>CASL</td>
+      <td>Casual</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>wght</td>
+      <td>Weight</td>
+      <td>300</td>
+      <td>1000</td>
+      <td>300</td>
+    </tr>
+    <tr>
+      <td>slnt</td>
+      <td>Slant</td>
+      <td>-15</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>ital</td>
+      <td>Italic</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0.5</td>
+    </tr>
+  </tbody>
+</table>
+<p>We define the following variables defining the default values of the Variable Font axes to the <code>:root</code> element of the style sheet. We use <code>:root</code> rather than <code>html</code> because <code>:root</code> has a higher specificity.</p>
+<pre><code class="language-css">root: {
+  --vf-mono: 0;
+  --vf-casl: 0;
+  --vf-slnt: 0;
+  --vf-ital: 0.5;
+  --vf-wght: 300;
+}
+</code></pre>
+<p>Using these variables we can then use them to update <code>font-variation-settings</code> when we make changes.</p>
+<p>In the first rule of the example below, we change the value of <code>--vf-mono</code> and when we update font-variation-settings, it’ll take the value for <code>--vf-mono</code> we just defined and all the other values from <code>:root</code> so we don’t have to define all the axes values every time we make a change to one of them.</p>
+<p>The different examples show different combinations of variable changes from a single value to changing multiple values for more complex forms.</p>
+<pre><code class="language-css">.mono-linear-light {
+  --vf-mono: 1;
+  font-variation-settings:  &quot;MONO&quot; var(--vf-mono),
+                            &quot;CASL&quot; var(--vf-casl),
+                            &quot;slnt&quot; var(--vf-slnt),
+                            &quot;ital&quot; var(--vf-ital);
+  font-weight: var(--vf-weight);
+}
+
+.mono-linear-light-italic {
+  --vf-mono: 1;
+  --vf-slnt: -15;
+  --vf-ital: 1;
+  font-variation-settings:  &quot;MONO&quot; var(--vf-mono),
+                            &quot;CASL&quot; var(--vf-casl),
+                            &quot;slnt&quot; var(--vf-slnt),
+                            &quot;ital&quot; var(--vf-ital);
+  font-weight: var(--vf-weight);
+}
+
+.mono-casual-light {
+  --vf-mono: 1;
+  --vf-casl: 1;
+  font-variation-settings:  &quot;MONO&quot; var(--vf-mono),
+                            &quot;CASL&quot; var(--vf-casl),
+                            &quot;slnt&quot; var(--vf-slnt),
+                            &quot;ital&quot; var(--vf-ital);
+  font-weight: var(--vf-weight);
+}
+
+.mono-casual-light-italic {
+  --vf-mono: 1;
+  --vf-casl: 1;
+  --vf-slnt: -15;
+  --vf-ital: 1;
+  font-variation-settings:  &quot;MONO&quot; var(--vf-mono),
+                            &quot;CASL&quot; var(--vf-casl),
+                            &quot;slnt&quot; var(--vf-slnt),
+                            &quot;ital&quot; var(--vf-ital);
+  font-weight: var(--vf-weight);
+}
+
+.mono-casual-regular {
+  --vf-mono: 1;
+  --vf-casl: 1;
+  --vf-wght: 400;
+  font-variation-settings:  &quot;MONO&quot; var(--vf-mono),
+                            &quot;CASL&quot; var(--vf-casl),
+                            &quot;slnt&quot; var(--vf-slnt),
+                            &quot;ital&quot; var(--vf-ital);
+  font-weight: var(--vf-weight);
+}
+
+.mono-casual-italic {
+  --vf-mono: 1;
+  --vf-casl: 1;
+  --vf-wght: 400;
+  --vf-slnt: -15;
+  --vf-ital: 1;
+  font-variation-settings:  &quot;MONO&quot; var(--vf-mono),
+                            &quot;CASL&quot; var(--vf-casl),
+                            &quot;slnt&quot; var(--vf-slnt),
+                            &quot;ital&quot; var(--vf-ital);
+  font-weight: var(--vf-weight);
+}
+</code></pre>
+<p>There is another use for Variable Fonts variables. The predefined axes change the way that we use existing attributes like <code>font-weight</code>, <code>font-stretch</code> and <code>font-styles</code>. Instead of preset values from 100 to 900 in increments of 100 units we now use values that are dependent on the font and can be used in as small increments as we want to use.</p>
+<p>Recursive’s weight range is from 300 (light) to 1000 (black). Let’s say for example that we want to use a value that is halfway between semi-bold (600) and bold (700). We could define a variable with the value we want to use, like this:</p>
+<pre><code class="language-css">:root {
+  --vf-bold-weight: 650;
+}
+</code></pre>
+<p>We could then use the variable wherever we want to use boldfaced text.</p>
+<pre><code class="language-css">strong, b {
+  font-weight: var(--vf-bold-weight);
+}
+</code></pre>
+<p>If we want to change the value of our bold font, we need to change it in one place at the top and it will change it everywhere we use it.</p>

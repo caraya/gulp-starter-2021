@@ -1,0 +1,83 @@
+<h1>The best way to leverage new image formats</h1>
+<p>After researching image sizes (<a href="https://publishing-project.rivendellweb.net/revisiting-image%E2%80%A6mats-for-the-web/">Revisiting images formats for the web</a> and <a href="https://publishing-project.rivendellweb.net/image-formats-for-the-web-heic-and-avif/">Image formats for the web: HEIC and AVIF</a>) and how to <a href="https://publishing-project.rivendellweb.net/supporting-aadditional-content-types-in-wordpress/">add new mime types to WordPress</a> there is one final question to ask. How do we leverage responsive images and the new image formats?</p>
+<h2>Background</h2>
+<p>We have four image formats to experiment with:</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Extension</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JPEG</td>
+<td>jpg</td>
+<td>Default where no other formats are supported <br> <br> <strong>We still need the format becauseSupported in all browsers</strong></td>
+</tr>
+<tr>
+<td>WebP</td>
+<td>webp</td>
+<td>Smaller file sizes than JPG. <br> <br> Supported in all modern browsers. (<a href="https://caniuse.com/#feat=webp">caniuse entry</a>)</td>
+</tr>
+<tr>
+<td>HEIF</td>
+<td>heif</td>
+<td><strong>Part of HEVC MPEG family of specifications</strong>.<br> <br> Supported in Safari (macOS and iOS)</td>
+</tr>
+<tr>
+<td>AVIF</td>
+<td>avif</td>
+<td><strong>Part of AV1 specification</strong>. <br> <br> Supported natively in Firefox (behind a flag) and in Chrome 85 and later (<a href="https://chromestatus.com/feature/4905307790639104">chromestatus entry</a>).</td>
+</tr>
+</tbody>
+</table>
+<p>Responsive images provide a client-side solution for delivering alternate image data based on device capabilities to prevent wasted bandwidth and optimize display for both screen and print. (Description taken from the  <a href="https://responsiveimages.org/">Responsive Images Community Group</a> web site).</p>
+<p>So the question is how we combine responsive images with all the formats we have available?</p>
+<p>We will use the <code>picture</code> element. In its most basaic form it includes one or more <code>source</code> attributes and an <code>img</code> that will work as a default when none of the image formats are supported.</p>
+<p>In the example below we use two <code>source</code> child elements. The first one uses a media query to specify the argument that has to match and a <code>srcset</code> to describe the images that we use based on screen resolution.</p>
+<pre><code class="language-html">&lt;picture&gt;
+  &lt;source media=&quot;(min-width: 40em)&quot;
+    type=&quot;image/jpeg&quot;
+    srcset=&quot;big.jpg 1x,
+            big-hd.jpg 2x&quot;&gt;
+  &lt;source
+    type=&quot;image/jpeg&quot;
+    srcset=&quot;small.jpg 1x,
+            small-hd.jpg 2x&quot;&gt;
+  &lt;img src=&quot;fallback.jpg&quot;
+       alt=&quot;&quot;
+       loading=&quot;lazy&quot;&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>So how do we combine the four formats that we want to use in a single picture element?</p>
+<p>We take each format and use it in a source element and use it with the corresponding <code>type</code> attribute to indicate the mime type for the content of the source.</p>
+<pre><code class="language-html">&lt;picture&gt;
+  &lt;source type=&quot;image/heif&quot; src=&quot;large.heif&quot;&gt;
+  &lt;source type=&quot;image/avif&quot; src=&quot;large.avif&quot;&gt;
+  &lt;source type=&quot;image/webp&quot; src=&quot;large.webp&quot;&gt;
+  &lt;img src=&quot;fallback.jpg&quot;
+       loading=&quot;lazy&quot;
+       alt=&quot;Large image of lake Tahoe&quot;&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>This will work fine but in Retina displays the image will look awful because there are not enough pixels in the image to display it at the higher resolution. Instead of having a single <code>src</code> attribute we add a <code>srcset</code> and add the images we need to acommodate our resolution.</p>
+<pre><code class="language-html">&lt;picture&gt;
+  &lt;source type=&quot;image/heif&quot;
+          srcset=&quot;large.heif 1x
+                  large-2x.heif 2x&quot;&gt;
+  &lt;source type=&quot;image/avif&quot;
+          srcset=&quot;large.avif 1x
+                  large-2x-avif 2x&quot;&gt;
+  &lt;source type=&quot;image/webp&quot;
+          srcset=&quot;large.webp 1x
+                  large2x.webp 2x&quot;&gt;
+  &lt;source type=&quot;image/jpeg&quot;
+          srcset=&quot;fallback.jpg 1x
+                  fallback-2x.jpg 2x&quot;
+       loading=&quot;lazy&quot;
+       alt=&quot;Large image of lake Tahoe&quot;&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>This is the basic code and the minimal number of images we need.  We can use these as the starting point for other responsive images use cases as described in many articles and posts. My reference guide is <a href="https://www.smashingmagazine.com/2014/05/responsive-images-done-right-guide-picture-srcset/">Responsive Images Done Right: A Guide To <picture> And srcset</a>.</p>

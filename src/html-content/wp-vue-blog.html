@@ -1,0 +1,441 @@
+<h1>WordPress + Vue: Building a blog</h1>
+<p>One of the reasons why I’ve been so interested in learning and using the WordPress REST API is to learn how to use WordPress as a <a href="https://www.sanity.io/blog/headless-cms-explained">headless CMS</a>, one where the content management is decoupled from the presentation layer.</p>
+<p>I’ve also told myself that in 2020 I would start looking at Vue (and possibly React) more seriously as a way to create user interfaces and static sites.</p>
+<p>In February 2020, Sarah Drasner wrote <a href="https://www.smashingmagazine.com/2020/02/headless-wordpress-site-jamstack/">How To Create A Headless WordPress Site On The JAMstack</a> for Smashing Magazine and <a href="https://github.com/netlify-labs/headless-wp-nuxt">released the code</a> on Github and, as the lazy developer, I will use Sarah’s code as the starting point for the project.</p>
+<h2>Project Goals</h2>
+<p>Before we start, we need to define what we’re trying to accomplish. These items are not listed in any  particular order of importance.</p>
+<ol>
+<li>Build a site using Vue.js for the front end and WordPress for a headless CMS via the <a href="https://developer.wordpress.org/rest-api/">REST API</a></li>
+<li>Create Vue components for the different parts of the site, even those you don’t plan to use in the current project</li>
+<li>Figure out how to incorporate <a href="https://prismjs.com/">Prism syntax highlighter</a> to post content</li>
+<li>Use <a href="https://vuex.vuejs.org/">Vuex</a> object store to cache content</li>
+<li>Expand from the basic prototype to a full working version of my <a href="https://publishing-project.rivendellweb.net/">publishing blog</a></li>
+<li>Create a login system</li>
+<li>Research how to build an Editor in Vue</li>
+<li>What will it take to upgrade the project to Vue 3?</li>
+</ol>
+<h2>Getting started</h2>
+<p>The first step is to clone Sarah’s repository from Github</p>
+<p>If you use the Github CLI the command is</p>
+<pre><code class="language-bash">gh repo clone netlify-labs/headless-wp-nuxt
+</code></pre>
+<p>Otherwise use the traditional cloning process:</p>
+<pre><code class="language-bash">git clone https://github.com/netlify-labs/headless-wp-nuxt.git
+</code></pre>
+<p>Once you have cloned the repository you will see something like this. Note that I’ve removed <code>node_modules</code> from the list.</p>
+<pre><code class="language-text">.
+├── LICENSE
+├── README.md
+├── assets
+│   └── mixins.scss
+├── components
+│   ├── AppIcon.vue
+│   ├── AppMasthead.vue
+│   └── AppNav.vue
+├── jsconfig.json
+├── layouts
+│   └── default.vue
+├── middleware
+│   └── README.md
+├── netlify.toml
+├── nuxt.config.js
+├── package-lock.json
+├── package.json
+├── pages
+│   ├── about.vue
+│   ├── blog
+│   └── index.vue
+├── plugins
+│   ├── dateformat.js
+│   ├── posts.server.js
+│   └── tags.server.js
+├── static
+│   ├── favicon.ico
+│   ├── icon.png
+│   ├── lake-photo.jpg
+│   └── mountains-masthead.jpg
+└── store
+    └── index.js
+</code></pre>
+<p>If you haven’t already, install the required packages by running</p>
+<pre><code class="language-bash">npm install
+</code></pre>
+<p>Once the installation completes, start up the development server by running:</p>
+<pre><code class="language-bash">npm run dev
+</code></pre>
+<h2>Learning to work with the store</h2>
+<p>The hardest part of this project, for me, is figuring out how to work with Vuex, the Vue data store.</p>
+<p>The idea is that whenever we make a request, we also put the data in the store so components can request the data from the store instead of fetching it from the network every time we need it.</p>
+<p>Vuex works with three primary concepts</p>
+<ul>
+<li><strong>state</strong> holds the info we need to store</li>
+<li><strong>mutations</strong> hold functions that update the state. Mutations are the only thing that can update state; actions cannot.</li>
+<li><strong>actions</strong> can execute arbitrary asynchronous operations. They commit mutations</li>
+</ul>
+<p>We’ll use an action to make the call to WordPress API and then commit a mutation to update the state.</p>
+<p>First, we’ll check if there’s any length to the posts array in state, which means we already called the API, so we don’t do it again.</p>
+<p>The code itself is fairly straight forward once you become familiar with data store concepts. The store, as initially impletemented, covers posts and tags. For illustration, we’ll only work with posts.</p>
+<p>The first thing we do is define the URL for the site in a constant. We do it to reduce typing and make the code less error prone.</p>
+<p>The first step in setting up the store is to define the containers for the items we want to store.</p>
+<p>In this case the post is an empty array. We can add additional state for other elements that we want to store.</p>
+<pre><code class="language-js">const siteURL = &quot;https://publishing-project.rivendellweb.net&quot;
+
+export const state = () =&gt; ({
+  posts: [],
+})
+</code></pre>
+<p>The mutation is also simple. When we call updatePosts we add the new posts to the posts array where we store the state for the posts.</p>
+<pre><code class="language-js">export const mutations = {
+  updatePosts: (state, posts) =&gt; {
+    state.posts = posts
+  },
+}
+</code></pre>
+<p>It’s in the <code>getPosts</code> action where the bulk of the work happens. We’re using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async functions</a> so we can use await instead of the raw promises.</p>
+<p>We’re also using a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch">try/catch</a></p>
+<pre><code class="language-js">export const actions = {
+  async getPosts({ state, commit, dispatch }) {
+    if (state.posts.length) return
+
+    try {
+      let posts = await fetch(
+        `${siteURL}/wp-json/wp/v2/posts?page=1&amp;per_page=10&amp;`
+      ).then(res =&gt; res.json())
+
+      posts = posts
+        .filter(el =&gt; el.status === &quot;publish&quot;)
+        .map(({ id, slug, title, excerpt, date, tags, content }) =&gt; ({
+          id,
+          slug,
+          title,
+          excerpt,
+          date,
+          tags,
+          content
+        }))
+
+      commit(&quot;updatePosts&quot;, posts)
+    } catch (err) {
+      console.log(err)
+    }
+  },
+}
+</code></pre>
+<p>In the try block, we fetch the content that we want to work with, in this case the last 10 posts as they appear in the database and make sure we read them as JSON.</p>
+<p>Once we have the array of posts, we use the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter">filter</a> method to only return the posts that have been published. Once we have an editor or another way to publish them from the front end, we may change this.</p>
+<p>Then we use the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">map</a> method to create a new array with only the information that we will use. Otherwise, WordPress will provide a lot of information we won’t use.</p>
+<p>We could also use the <a href="https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/#_fields">_fields</a> parameter to the API so using map to get the data we need is no longer necessary. It is up to you.</p>
+<p>With the data now prepared the way we want it to, we finally commit the mutation to our posts store.</p>
+<p>When we discuss loading additional pages of posts, we’ll touch on pushing items to the store in</p>
+<h2>Reviewing Vue Components</h2>
+<p>The other area of Vue.js that we need to look at before we can look at what additional components we might need.</p>
+<p>At its most basic level, a Vue component is made of three parts:</p>
+<ol>
+<li>A template that shows how the content of the component will appear on the page</li>
+<li>A script that exports different methods and functions related to the component</li>
+<li>An optional CSS stylesheet that will style the component. These styles can be scoped to the component so they won’t bleed out</li>
+</ol>
+<p>The example below, taken from <a href="https://github.com/bucky355/vue-wordpress/blob/master/src/components/404.vue">vue-wordpress</a> shows the basic elements of a Vue component.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;main&gt;
+    &lt;h1&gt;{{ title }}&lt;/h1&gt;
+    &lt;p&gt;{{ message }}&lt;/p&gt;
+  &lt;/main&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  data() {
+    return {
+      title: '404 - Page Not Found',
+      message: 'Apparently nothing exists at this location.'
+    }
+  },
+  created() {
+    this.$store.dispatch('updateDocTitle', { parts: [ 'Page not found', this.$store.state.site.name ] })
+  }
+}
+&lt;/script&gt;
+&lt;style scoped&gt;&lt;/style&gt;
+</code></pre>
+<p>To me, the most important thing to note about Vue components are their <a href="https://learnvue.co/2019/12/a-beginners-guide-to-vuejs-lifecycle-hooks/">lifecycle hooks</a> that allow you to run code at different points in the component’s lifecycle.</p>
+<p>There are many references for lifecycle hooks, some of them are</p>
+<ul>
+<li><a href="https://vuejs.org/v2/guide/single-file-components.html">Single File Components</a></li>
+<li><a href="https://learnvue.co/2020/01/an-overview-of-vuejs-dynamic-components/">An Overview of VueJS Dynamic Components</a></li>
+</ul>
+<p>However you must look at the version of Vue the documentation is for. I don’t expect it to change a lot, but some changes are inevitable.</p>
+<p><strong>This project works with version 2 of Vue and its components.</strong></p>
+<h2>Adding functionality</h2>
+<p>This is a first attempt at adding functionality to the blog. These ideas go beyond the basics, some took me a long time to figure out.</p>
+<h3>Pages</h3>
+<p>Creating pages proved to be significantly harder than I expected. At first I thought that cloning the post template and associated code in the store and moving it to a different directory would be enough but that was not the case.</p>
+<p>For the pages to work as intended, I had to delve into the internals of Nuxt and found the entry for <code>dynamicRoutes</code>. Since Nuxt uses Axios, each route calls the corresponding API endpoint and maps the JSON data to a URL in the application.</p>
+<pre><code class="language-js">let dynamicRoutes = () =&gt; {
+  const routes = axios
+    .get(&quot;https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts?page=1&amp;per_page=10&quot;)
+    .then(res =&gt; {
+      return res.data.map(post =&gt; `/blog/${post.slug}`)
+    })
+    .get(&quot;https://publishing-project.rivendellweb.net/wp-json/wp/v2/pages?page=1&amp;per_page=10&quot;)
+    .then(res =&gt; {
+      return res.data.map(pages =&gt; `/blog-pages/${page.slug}`)
+    })
+  return routes
+}
+</code></pre>
+<p>The store need to be update to also capture the page data. The first step is to add a pages array to the <code>state</code> object.</p>
+<pre><code class="language-js">export const state = () =&gt; ({
+  posts: [],
+  tags: [],
+  pages: [],
+})
+</code></pre>
+<p>We add a method to the <code>mutation</code> object to capture the changes to the state.</p>
+<pre><code class="language-js">  updatePages: (state, pages) =&gt; {
+    state.pages = pages
+  },
+</code></pre>
+<p>The <code>getPages action</code> is very similar to what we used to download and store pages but slimmer since we don’t use previous and next navigation links and don’t require to change the map to include next and previous. The code looks like this:</p>
+<pre><code class="language-js">  async getPages({ state, commit, dispatch }) {
+    if (state.pages.length) return
+  
+    try {
+      let pages = await fetch(
+        `${siteURL}/wp-json/wp/v2/pages?page=1&amp;per_page=10`
+      ).then(res =&gt; res.json())
+  
+      pages = pages
+        .filter(el =&gt; el.status === &quot;publish&quot;)
+        .map(({ id, slug, title, excerpt, date, tags, content }) =&gt; ({
+          id,
+          slug,
+          title,
+          excerpt,
+          date,
+          tags,
+          content
+        }))
+      commit(&quot;updatePages&quot;, pages)
+    } catch (err) {
+      console.log(err)
+    }
+  },
+</code></pre>
+<p>This may be overkill but I added a <code>pages()</code> computed property in <code>index.vue</code>. If I’m understanding it correctly this will get the JSON for pages and put it in the store before we actually make a request for a page.</p>
+<pre><code class="language-js">pages() {
+  return this.$store.state.pages;
+},
+</code></pre>
+<p>The final step, and what will actually render the page content, is to create <code>_slug.vue</code> inside <code>blog-pages</code>. It is a simplified version of the <code>_slug.vue</code> we use for posts; it  has a lighter workload.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;div&gt;
+    &lt;app-masthead&gt;&lt;/app-masthead&gt;
+    &lt;div class=&quot;page&quot;&gt;
+      &lt;main&gt;
+          &lt;h1&gt;{{ page.title.rendered }}&lt;/h1&gt;
+          &lt;small&gt;{{ page.date | dateformat }}&lt;/small&gt;
+          &lt;div v-html=&quot;page.content.rendered&quot;&gt;&lt;/div&gt;
+      &lt;/main&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+<p>The component script imports the <code>AppMasthead</code> component. It also has a data property, two computer methods and a created method that will also retrieve the pages data from the store.</p>
+<pre><code class="language-html">&lt;script&gt;
+import AppMasthead from &quot;@/components/AppMasthead.vue&quot;;
+
+export default {
+  data() {
+    return {
+      slug: this.$route.params.slug
+    };
+  },
+  computed: {
+    pages() {
+      return this.$store.state.pages;
+    },
+    page() {
+      return this.pages.find(el =&gt; el.slug === this.slug);
+    }
+  },
+  created() {
+    this.$store.dispatch(&quot;getPages&quot;);
+  },
+};
+&lt;/script&gt;
+</code></pre>
+<p>We also provide some basic styling for the pages. We will revisit this when we decide on overall styles for the blog.</p>
+<pre><code class="language-html">&lt;style&gt;
+.page {
+  width: 80vw;
+  margin: 0 auto;
+}
+
+h1 {
+  margin-bottom: 0.5em;
+}
+&lt;/style&gt;
+</code></pre>
+<h3>Previous / next post navigation</h3>
+<p>The other type of navigation I’m interested in is the previous/next navigation inside a single post. This will help the reader navigate the content of the blog.</p>
+<p>This is more difficult because we don’t have a previous and next links in the JSON we get from the server so we’ll have to figure out a way to do it.</p>
+<p>I think that the easiest way to do this is to modify the posts endpoint on the WordPress side and add the previous and next link to the REST API post route, which we’ll fetch as JSON from our Vue application</p>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_add_navlinks_to_post_rest( $response, $post, $request ) {
+  global $post;
+  // Get the next post.
+  $next = get_adjacent_post( false, '', false );
+  // Get the previous post.
+  $previous = get_adjacent_post( false, '', true );
+  // Format them and only send the data we need
+  // or null, if there is no next/previous post
+  $response-&gt;data['next'] = ( is_a( $next, 'WP_Post') ) ? array( &quot;title&quot; =&gt; get_the_title( $next-&gt;ID ), &quot;link&quot; =&gt; get_post_field( 'post_name', $next ) ) : null;
+  $response-&gt;data['previous'] = ( is_a( $previous, 'WP_Post') ) ? array( &quot;title&quot; =&gt; get_the_title( $previous-&gt;ID ), &quot;link&quot; =&gt; get_post_field( 'post_name', $previous ) ) : null;
+
+  return $response;
+}
+
+add_filter( 'rest_prepare_post', 'rivendellweb_add_navlinks_to_post_rest', 10, 3 );
+</code></pre>
+<p>We use the <a href="https://developer.wordpress.org/reference/functions/get_adjacent_post/">get_adjacent_post</a> function to get the next and previous posts. Once we get them, want the the title of the post (that we’ll show to the user) and the slug or name of the post (that we’ll use to build the URL to link to), that we’ll use to build the URL. To get slug we use <a href="https://developer.wordpress.org/reference/functions/get_post_field/">get)post_field</a> to retrieve the previous and next values, something like: <code>get_post_field( 'post_name', $previous )</code>.</p>
+<p>It would be tempting to just get the permalink with <a href="https://developer.wordpress.org/reference/functions/get_the_permalink/">get_the_permalink()</a> but that will produce a link that will point to the original server, not to the local system we’re working with.</p>
+<p>Next we need to edit the store to make sure that the <code>next</code> and <code>previous</code> fields are added to the store. This makes it easier to use elsewhere on the application.</p>
+<p>The final step to add previous and next navigation links is to change the template of our <code>blog/_slug.vue</code> component to use <a href="https://vuejs.org/v2/guide/conditional.html#v-if">v-if</a> directive and only render the previous and next items if the item is not empty. The template now looks like this:</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;main class=&quot;post individual&quot;&gt;
+    &lt;h1&gt;{{ post.title.rendered }}&lt;/h1&gt;
+    &lt;small class=&quot;date&quot;&gt;{{ post.date | dateformat }}&lt;/small&gt;
+    &lt;section v-html=&quot;post.content.rendered&quot;&gt;&lt;/section&gt;
+    &lt;div class=&quot;footer-nav&quot;&gt;
+      &lt;div v-if=&quot;post.next !== null&quot; class=&quot;nav-item next&quot;&gt;
+        &lt;p class=&quot;next-item-title&quot;&gt;
+          &lt;strong&gt;Next:&lt;/strong&gt;
+        &lt;/p&gt;
+        &lt;p&gt;&lt;a :href=&quot;post.next.link&quot;&gt;{{ post.next.title }}&lt;/a&gt;&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div v-if=&quot;post.previous !== null&quot; class=&quot;nav-item previous&quot;&gt;
+        &lt;p class=&quot;previous-item-title&quot;&gt;
+          &lt;strong&gt;Previous&lt;/strong&gt;
+        &lt;/p&gt;
+        &lt;p&gt;&lt;a :href=&quot;post.previous.link&quot;&gt;{{ post.previous.title }}&lt;/a&gt;&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+&lt;/template&gt;
+</code></pre>
+<p>I don’t like that if the next condition on the first post is false then the next post moves to the left. We might use a combination of <code>v-if</code>, <code>v-else</code> and CSS to keep the previous post from moving.</p>
+<h2>Adding third party functionality</h2>
+<p>Because we’re pulling content from a CMS we can’t use functionality via Vue components. The best example, in this blog is how to use <a href="https://prismjs.com/">Prism.js</a> to do syntax highlighting.</p>
+<h3>Add syntax highlighting</h3>
+<p>I love <a href="https://prismjs.com/docs/Prism.html">Prism.js</a> for syntqax highlighting. Luckily, I found a good tutorial on <a href="https://ashcroft.dev/blog/how-use-prism-js-vue/">how to use Prism.js with Vue</a></p>
+<p>First we install Prism as a dependency using the <a href="https://www.npmjs.com/package/prismjs">primsjs</a> Node Package.</p>
+<pre><code class="language-bash">npm install -D prismjs
+</code></pre>
+<p>In <code>_slug.vue</code> we add import statements to the component. In an ideal world we’d be able to only load the languages we want, but we can’t tell in advance what those languages will be so we load all the languages we want to have available, just like if we were loading a bundle with all javascript together.</p>
+<pre><code class="language-js">// Import Prism
+import Prism from 'prismjs';
+// Import the theme you want to use
+import 'prismjs/themes/prism-solarizedlight.css'
+// Import language plugins, this may be better bundled
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-markup';
+import 'prismjs/components/prism-scss'
+// NOTE: php depends on markup-templating
+import 'prismjs/components/prism-markup-templating'
+import 'prismjs/components/prism-php';
+</code></pre>
+<p>Once we’ve imported the code, we initialize Prism by adding its <code>highlightAll()</code> method to the <a href="https://v3.vuejs.org/api/options-lifecycle-hooks.html#mounted">mounted()</a> lifecycle hook.</p>
+<pre><code class="language-js">export default {
+  // code ...
+  mounted() {
+    Prism.highlightAll()
+  }
+}
+</code></pre>
+<p>The last remaining issue is that, according to the documentation, “This hook is not called during server-side rendering.” but it doesn’t tell us what we can replace it with or if there is a replacement at all.</p>
+<h2>Future Work</h2>
+<p>As it stands, the project does is a good example of how to pull data from WordPress REST API and use it in a Vue application. There are a few additional features I want before I can call this an MVP. I’ll discuss them here along with ideas of how they may work.</p>
+<h3>Load additional pages of posts</h3>
+<p>Right now the blog pulls in only the latest ten posts. This is the default for a query for the posts API and it has been hardcoded this way.</p>
+<p>But the blog has more than one page, sixty pages if we keep the default of ten posts per page, so the question is <strong><em>how do we load these additional pages of posts?</em></strong> <strong><em>where do we trigger the download from?</em></strong></p>
+<p>One way to do so would be to add a next and previous link to <code>index.vue</code> and let the user decide how to navigate the content.</p>
+<p>The response to the posts query includes a <code>link</code> header that looks like this:</p>
+<pre><code class="language-http">&lt;https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts?page=1&amp;per_page=10&gt;; rel=&quot;prev&quot;, &lt;https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts?page=3&amp;per_page=10&gt;; rel=&quot;next&quot;
+</code></pre>
+<p>The header is accessible, the <code>access-control-expose-headers</code> includes <code>link</code> as one of the exposed headers.</p>
+<p>The idea is to follow these steps (or something similar)</p>
+<ol>
+<li>When we query for a page of posts, extract the link header</li>
+<li>From the link header extract the previous and next URLs</li>
+<li>Make the API calls to both the previous and next URLs</li>
+<li>Append the returned items only if the first item in the page is not in the posts store</li>
+<li>Display a next and previous button as approriate if the links exist</li>
+</ol>
+<p>One of the remaining questions about these buttons is how to tell the UI what posts to display for which page.</p>
+<hr />
+<p>Another way to view paginated content is to create a navigation item for the available pages.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1607326986/publishing-project.rivendellweb.net/pagination-example-01/pagination-example-01.png' alt='Example of a pagination bar using numbers, single page navigation using previous and next and jump to beginning and end using first and last' width='width' height='height'>
+  <figcaption>Example of a pagination bar using numbers, single page navigation using previous and next and jump to beginning and end using first and last</figcaption>
+</figure>
+<p>WordPress provides the <code>x-wp-totalpages</code> response header with the number of pages available based on the number of posts per page you’ve specified (Number of posts divided by the number of post per page, rounded up).</p>
+<p>The idea is to do the following:</p>
+<ol>
+<li>Query for a single page of posts to get the total number of pages by capturing the <code>x-wp-totalpages</code> header.
+<ul>
+<li>We don’t need to keep the query, we just need the header</li>
+<li>We may be able to push the data to the store when we capture our initial page of posts</li>
+</ul>
+</li>
+<li>Create the navigation using the number of pages and links to each individual page
+<ul>
+<li>The issue becomes that, because it is not a linear navigation, it becomes harder to put the data in the store</li>
+</ul>
+</li>
+<li>Style the UI we created in the previous step</li>
+</ol>
+<h3>Categories</h3>
+<p>Like the original project does with tags, we can create a component that will show all categories and the associated posts to them.</p>
+<p>We need to research in more detail how the tag component work and how to display it if there are no categories.</p>
+<p>This is something we need to do for tags as well</p>
+<p>We also need to work on styling so we can display them both on the same page at the same time.</p>
+<p>One final consideration is whether tags and categories need their own component or if it’s OK to keep them on the homepage.</p>
+<h3>Latest Posts</h3>
+<p>This is a subset of the posts functionality we already have. What we need is a component that will take specified number of posts and display them as URLs, similar to what we did with pages in the navigation bar.</p>
+<p>The steps I think we need:</p>
+<ol>
+<li>Configure the number of posts that we want to see when we see the latest posts</li>
+<li>Query the store and receive the last <code>number</code> of posts, where <code>number</code> is configurable</li>
+<li>Build a URL using the <code>title</code> as what the user will see and the <code>post_name</code> as the URL
+<ul>
+<li>We cannot use the permalink because it will default to the server URL, not the application’s</li>
+</ul>
+</li>
+<li>Display the URLs for the latest posts as a list</li>
+<li>Provide hooks to style the component</li>
+</ol>
+<h3>Creating a search tool</h3>
+<p>I’ve wanted to experiment with <a href="https://www.elastic.co/elasticsearch/">Elastic Search</a> as a WordPress search replacement but the cost is too high for something I don’t know if I want to use long term.</p>
+<p>An interesting alternative is <a href="https://github.com/AlbertLucianto/vuex-search/blob/master/README.md">vuex-search</a>. It will require going into the internals of the Nuxt application I’ve created but I think it’s a fair compromise, at least for a development system.</p>
+<p>One thing to remember with all these solutions is that the Vuex store is not persistent by default and we don’t want it to be. So, whatever solution we implement, it has to account for dynamic data and how to search for content that might not have been downloaded yet.</p>
+<h3>Building a PWA</h3>
+<p>I love progressive web applications. They provide app-like features and help improve performance of web content. Nuxt.js, the library this project uses, has a <a href="https://pwa.nuxtjs.org/">PWA plugin</a>. All we have to do is configure it for our application as indicated in the <a href="https://pwa.nuxtjs.org/setup">module setup</a> documentation, and voila, we have a working PWA.</p>
+<p>Because the PWA module is a collection of modules bundled together, we need to test this exhaustively to make sure none of the submodules that make up the PWA module cause any problems.</p>
+<h3>i18n</h3>
+<p>For the most part English is OK as the language for my blog but as soon as you want to use this as the basis for other projects you have to consider internationalization.</p>
+<p>In theory, it should be possible to use Gettext-based solutions as outlined in <a href="https://publishing-project.rivendellweb.net/using-gettext-based-translations-in-node/">Using Gettext based translations in Node</a></p>
+<p><a href="https://vaclavhodek.com/how-to-localize-vuejs-app-with-vue-i18n-and-localazy">How to localize Vue.js app with vue-i18n and Localazy</a> presents a more idiomatic Vue way of doing localization. It’s true that it makes you dependent on a single translation tool and, if they decide to go to paid model, you will have to choose if the cost is worth it, but it appears as a fast and easy to implement solution.</p>
+<h3>Evaluate plugins for equivalent functionality</h3>
+<p>One of WordPress’s advantages (or curses depending on who you ask) is the huge number of plugins available. Some of these plugins add functionality to the front end.</p>
+<p>It is a good idea to take a look at the plugins on your site and see if there’s equivalent tools in the Vue ecosystem and how they can be added to the project.</p>
+<h2>Links and resources</h2>
+<ul>
+<li><a href="https://www.smashingmagazine.com/2020/02/headless-wordpress-site-jamstack/">How To Create A Headless WordPress Site On The JAMstack</a></li>
+<li><a href="https://snipcart.com/blog/wordpress-vue-headless">Build a Vue.js SPA on Top of Headless WordPress</a></li>
+<li><a href="https://github.com/bucky355/vue-wordpress/blob/master/README.md">vue-press</a></li>
+<li><a href="https://ashcroft.dev/blog/how-use-prism-js-vue/">how to use Prism.js with Vue</a></li>
+<li>Nuxt.js <a href="https://pwa.nuxtjs.org/">PWA plugin</a></li>
+<li><a href="https://vaclavhodek.com/how-to-localize-vuejs-app-with-vue-i18n-and-localazy">How to localize Vue.js app with vue-i18n and Localazy</a></li>
+</ul>

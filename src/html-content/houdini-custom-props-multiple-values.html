@@ -1,0 +1,142 @@
+<h1>Pushing Houdini Forward</h1>
+<p>I’ve written about Houdini before and how awesome it is. The articles I’ve written are:</p>
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/css-houdini-present-and-future-of-css/">CSS Houdini: Present and Future of CSS</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/css-houdini-properties-values/">CSS Houdini: Properties &amp; Values</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/css-houdini-css-typed-object-model/">CSS Houdini: CSS Typed Object Model</a></li>
+</ul>
+<p>But, because it’s not widely deployed and not all APIs have equal level of support in the browsers where they work, it’s hard to get something that works well without having to rely on writing two versions of the code.</p>
+<p>It wasn’t until I saw <a href="https://css-houdini.web.app/talks/design-systems/#/0">Design System Magic with CSS Houdini</a> that I realized that you can combine the different APIs and make fully working designs with them. It also prompted me to start looking  at coombination of the different APIs and how to provide API fallbacks for browsers that have not implemented them.</p>
+<p>In <a href="https://www.youtube.com/watch?v=GhRE3rML9t4">CSS Houdini &amp; The Future of Styling</a>, Una Kravets makes an interesting case for Houdini Custom Properties and Houdini APIs to style the web now and how much powerful these APIs can make your styles and design systems.</p>
+<h2>Examples</h2>
+<p>Most of the Houdini APIs will take CSS elements as input. We can leverage Houdini Custom Properties. An example, taken from the specification.</p>
+<p>The body of the page contains the following content. In thehead of the document we add the styles:</p>
+<pre><code class="language-html">&lt;style&gt;
+  #example {
+    --circle-color: deepskyblue;
+
+    background-image: paint(circle);
+    font-family: sans-serif;
+    font-size: 36px;
+    transition: --circle-color 1s;
+  }
+
+  #example:focus {
+    --circle-color: purple;
+  }
+&lt;/style&gt;
+</code></pre>
+<p>In the body of the document we add the element we add the textarea element we’ll be working in and a script that will add the custom property, using <code>CSS.registerProperty</code> and load our paint worklet.</p>
+<p>We feature test that the methods are available before we run them. If they are not available we log the fact to the console; in a production application we may want to add the custom property via CSS and load a polyfill for the Paint API.</p>
+<pre><code class="language-html">&lt;textarea id=&quot;example&quot;&gt;CSS is awesome.&lt;/textarea&gt;
+
+&lt;script&gt;
+if ('registerProperty' in CSS) {
+  CSS.registerProperty({
+    name: '--circle-color',
+    syntax: '&lt;color&gt;',
+    initialValue: 'deepskyblue',
+    inherits: false,
+  });
+  console.log('property successfuly registered');
+} else {
+  console.log('Houdini custom properties not supported');
+}
+
+if ('paintWorklet' in CSS) {
+  CSS.paintWorklet.addModule('circle.js');
+  console.log('paint worklet added successfully');
+} else {
+  console.log('Paint API not supported or not working properly');
+}
+&lt;/script&gt;
+</code></pre>
+<p>The paint worklet for this example registers input properties that we’ll take from the page’s existing properties and custom properties. The browser doesn’t care how we created the custom property, only that it exists.</p>
+<p>The syntax of the Paint Worklet is a subset of the Canvas API. Text rendering methods are missing and for security reasons you cannot read back pixels from the canvas.</p>
+<pre><code class="language-js">registerPaint('circle', class {
+  static get inputProperties() {
+    return ['--circle-color'];
+  }
+
+  paint(ctx, size, properties) {
+    // Get fill color from property
+    const color = properties.get('--circle-color');
+
+    // Determine the center point and radius.
+    const xCircle = size.width / 2;
+    const yCircle = size.height / 2;
+    const radiusCircle = Math.min(xCircle, yCircle) - 2.5;
+
+    // Draw the circle \o/
+    ctx.beginPath();
+    ctx.arc(xCircle, yCircle, radiusCircle, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+});
+</code></pre>
+<p>Other worklets you may find in the whild will have inputArguments instead. I’m researching how to use input arguments… the examples I’ve found don’t work in Chrome (stable or cannary).</p>
+<h2>Polifilling</h2>
+<p>Houdini is awesome when it works, but what do we do when it doesn’t?</p>
+<p>Different areas of the Houdini universe have different ways to polyfill the APIs and not all APIs have been implemented to where having a polyfill.</p>
+<p>There is a <a href="https://github.com/GoogleChromeLabs/css-paint-polyfill/tree/master/demo">CSS Paint Polyfill</a> from Jason Miller.</p>
+<p><a href="https://www.npmjs.com/package/postcss-register-custom-props">PostCSS Register Custom Property</a> works by converting CSS-based custom element syntax (basically writing Houdini properties in CSS) using the syntax below:</p>
+<pre><code class="language-css">@property --theme {
+  syntax: '&lt;color&gt;+';
+  initial-value: #fff;
+  inherits: true;
+}
+</code></pre>
+<p>and converting it to Javascript</p>
+<pre><code class="language-js">if (&quot;registerProperty&quot; in CSS) {
+  CSS.registerProperty({
+    name: &quot;--theme&quot;,
+    syntax: &quot;&lt;color&gt;+&quot;,
+    initialValue: &quot;#fff&quot;,
+    inherits: true
+  });
+}
+</code></pre>
+<h2>Packaging Ideas together</h2>
+<p>Another way to support Houdini APIs is to package them for consumption like <a href="https://twitter.com/una">Una Kravets</a> did with <a href="https://extra-css.netlify.com/">Extra.css</a>.</p>
+<p>Rather than provide a do-it-yourself framework where you’re responsible for all the details, it provides ready to use examples that you just link to your page.</p>
+<p>The following example, taken from: <a href="https://extra-css.netlify.com/">https://extra-css.netlify.com/</a> illustrates the process.</p>
+<p>In the HTML document we load the paint Worklet as a Javascript file.</p>
+<pre><code class="language-html">&lt;h1&gt;Hello&lt;br/&gt; World&lt;/h1&gt;
+&lt;p&gt;content goes here&lt;/p&gt;
+
+&lt;!-- This is where we include the worklet --&gt;
+&lt;script
+  src='https://unpkg.com/extra.css/crossOut.js'&gt;&lt;/script&gt;
+</code></pre>
+<p>The CSS portion is where the magic happens. The CSS Paint API allows you to define custom paints, defined in the paint worklet, that we can use everywhere you ocan use an image.</p>
+<p>We wrap our CSS in a <a href="https://www.youtube.com/watch?v=KbXy0f0aCN0">@supports</a> statement to make sure that the browser supports the feature we’re working with before we actually use it.  We can also leverage the cascade to make sure we have something that works, either CSS variables, Houdini variables and APIs or soomething else.</p>
+<pre><code class="language-css">@supports (background: paint(something)) {
+  h1 {
+    --extra-crossColor: #fc0;
+    --extra-crossWidth: 3;
+
+    background: paint(extra-crossOut);
+    line-height: 1.5;
+  }
+
+  span {
+    --extra-crossColor: #d4f;
+    background: paint(extra-crossOut);
+  }
+}
+</code></pre>
+<h2>More</h2>
+<ul>
+<li><a href="https://drafts.css-houdini.org/">Drafts of Houdini Specifications</a></li>
+<li><a href="https://ishoudinireadyyet.com/">Is Houdini ready yet‽</a> tracks status of Houdini APIs support across browsers</li>
+<li><a href="https://www.youtube.com/watch?v=lK3OiJvwgSc">State of Houdini (Chrome Dev Summit 2018) Video</a></li>
+<li><a href="https://css-houdini.rocks/">CSS Houdini Experiments</a>
+<ul>
+<li><a href="https://css-houdini.rocks/svg-path-layout/">SVG Path layout</a></li>
+</ul>
+</li>
+<li><a href="https://houdini.glitch.me/">CSS Houdini</a></li>
+<li><a href="https://css-tricks.com/the-css-paint-api/">The CSS Paint API</a></li>
+<li><a href="https://codersblock.com/blog/say-hello-to-houdini-and-the-css-paint-api/">Say Hello to Houdini and the CSS Paint API</a></li>
+</ul>

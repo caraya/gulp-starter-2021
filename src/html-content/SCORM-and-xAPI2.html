@@ -1,0 +1,216 @@
+<h1>SCORM and xAPI</h1>
+<p>One of the hottest things when I was working in higher education was SCORM. It provided a way for courses coded and packaged to the SCORM specification to send data to a Learning Management System for it to be tracked and recorded.</p>
+<p>Jump to 2010 when Rustici Software began the first research into <em>SCORM 2.0</em> with the specification reaching a 1.0 release in 2013 and becoming first the TinCanAPI and, eventually, the Experience API (xAPI).</p>
+<p>xAPI is based on <a href="http://activitystrea.ms/">Activity Streams</a> (and its corresponding <a href="https://raw.githubusercontent.com/activitystreams/activity-streams-verb-definition/master/activity-streams-verb-definition.txt">draft RFC</a>) and provides an education-focused extension to the activity streams specification so, in theory, we should be able to combine streams from xAPI-enabled courses and other sources.</p>
+<p>A technical definition:</p>
+<blockquote>
+<p>The Experience API is a set of RESTful web services. The services allow communications between a <em>Learning Activity Provider</em> and a <em>Learning Record Store (LRS)</em> using one or more “Statements”. Each “Statement” describes a learning experience of an “Actor” performing a “Verb” (representing an action) on an “Object”. For example: <strong>Peter finished an exam</strong>, <strong>Helen read a document</strong>, or <strong>David started a project</strong>.</p>
+</blockquote>
+<p>When you think of an <em>Activity Provider</em>, it’s easy to compare it to traditional e-learning content but that’s not completely accurate. xAPI can be used not only track learning events, but also other type of performance and learning activities like books, videos, web pages, etc. The variety of learning events gives different departments (HR, L&amp;D, direct managers) the possibility to improve performance by targetting learning for individual users based on their learning record.</p>
+<h2>Why is this important</h2>
+<p>xAPI gives us bigger and better insights into the learning process, and flexibility defining learning; We’re no longer limited to SCORM packages and tied to the LMS as our source of truth.</p>
+<p>In technical terms, we can pass an xAPI compliant JSON object to an LRS from wherever we can run a script on a page or from a custom data entry point. We are no longer tied to Learning Management Systems to deliver learning although we can use LMSs to deliver xAPI content using cmi5 (discussed later in the post).</p>
+<p>In the same way we are not tied to SCORM to communicate success and failure of our learning modules. With xAPI we get a much richer and customizable vocabulary to express learning activities and outcomes.</p>
+<h2>cmi5</h2>
+<p>When talking about SCORM and xAPI you may ocassionally hear the term <strong><em>CMI 5</em></strong> thrown around. It started as a parallel attempt by the AICC (Aviation Industry Computer-Based Training Committee) to create a successor to SCORM and AICC standards in 2010.</p>
+<p>In 2012 the AICC and ADL began working on a new specification for LMS-to-Assignable Unit (AU) communication. The new specification uses xAPI as the communication and data layer, combines the features of AICC and SCORM, and takes advantage new features on xAPI.</p>
+<p>cmi5, conceptually, is the LMS use case for xAPI; it defines how the LMS and the content will communicate using the LRS.</p>
+<p>ADL developed cmi5 with the following goals:</p>
+<dl>
+<dt>Interoperability</dt>
+<dd>A cmi5 assignable unit should work the same across all LMS systems that support the specification, just like a SCORM package. cmi5 has a similar import specification, but with cmi5 only the course structure is imported, not the actual content. This means the content can reside anywhere—behind a firewall, as an app on a mobile device, etc.</dd>
+<dt>Extensibility</dt>
+<dd>Unlike SCORM, the data cmi5 tracks is not limited. Since cmi5 is based on xAPI it supports extensions. You can also track binary data like videos, pictures, and audio clips. You can even share data across multiple assignable units.</dd>
+<dt>Mobile Support</dt>
+<dd>Here again, cmi5 benefits from xAPI: since the base communication mechanism handles mobile devices, so does cmi5.</dd>
+</dl>
+<p>See <a href="http://www.learningsolutionsmag.com/articles/1697/experience-api-cmi5-and-future-scorm">Experience API, cmi5, and Future SCORM</a> for additional information about cmi5, verbs defined for interoperability, features of compliant systems and use cases that show how these features and advantages work. For a more detailed comparison for different groups, see: <a href="http://aicc.github.io/CMI-5_Spec_Current/SCORM/">SCORM vs cmi5 Comparison</a>.</p>
+<h1>Interoperability: A possible use case</h1>
+<p>The thing that intrigued me the most about xAPI is the concept of interoperability.</p>
+<p>Imagine, for example, Jenny, a recent high school graduate who enters a community college where, thanks to the system-wide Learning Record Store (LRS), her academic record is tracked along with co-curricular and extracurricular activities that she voluntarily chose to share.</p>
+<p>She takes courses from multiple community colleges in the state and, because they all share the same LRS, the courses are recorded seamlessly on the statewide LRS, making it easier to transfer courses between different institutions.</p>
+<p>After graduation Jenny is accepted to a 4-year university. She requests her learning record to be transferred to the University’s LRS so the university can do credit transfer and prerequisite evaluation.</p>
+<p>She stays at the university to complete her bachelor’s and Master’s degree, upon which she takes a job at a large company. There she transfers her learning record the company’s LRS so HR can see her activities all the way back to community college and assist with training and career progression.</p>
+<p>This sounds far fetched, particularly when today we have to go through the registrars and HR departments to get a small amount of what learners have done in their educational careers. With one or more organizations using LRS systems it should be possible to leverage the learning histories of our users to provide them with more challenging and rewarding training and help with career progression.</p>
+<p>Each school or business uses common data as defined in one or more registries so the meaning of each activity is understood by all groups that received the data.</p>
+<p>There is also a way for the users to request data transfer and an implicit understanding that the users own their data. It is a balancing game between data ownership and privacy</p>
+<p>See <a href="https://xapi.com/blog/moving-receiving-xapi-data/">Moving and Receiving xAPI Data</a> and <a href="https://xapi.com/blog/semantic-interoperability/">Semantic interoperability</a> for more ideas of how we can do this.</p>
+<h2>Integrating xAPI to external content</h2>
+<p>One of the adavantages of xAPI over SCORM, in my opinion, is that xAPI is not tied to content in an LMS. Because of this, xAPI offers a much wider definition of what construes learning and it can be used in a variety of fields before grading.</p>
+<p>The only “requirement” to work with xAPI is to have a Learning Record Store (LRS) where to store the data generated by the xAPI statements. During development I’ve chosen to use the free tier of Rustici’s <a href="https://cloud.scorm.com/">SCORM Cloud</a></p>
+<p>I’ve also chosen to use Rustici’s <a href="http://rusticisoftware.github.io/TinCanJS/">TinCanJS</a> as my xAPI library. TinCan was the codename for xAPI while under development as Rustici.</p>
+<h1>Structuring the xAPI JSON object</h1>
+<p>xAPI uses JSON as the payload language. <a href="https://www.json.org/">JSON</a> is an international standard (<a href="http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf">ECMA-404</a>) for a data interchange format.</p>
+<p>In the simplest format the JSON we need to build an xAPI statement looks like this:</p>
+<pre><code class="language-json">{
+  &quot;actor&quot;: {
+    &quot;name&quot;: &quot;Sally Glider&quot;,
+    &quot;mbox&quot;: &quot;mailto:sally@example.com&quot;
+  },
+  &quot;verb&quot;: {
+    &quot;id&quot;: &quot;http://adlnet.gov/expapi/verbs/experienced&quot;,
+    &quot;display&quot;: {
+      &quot;en-US&quot;: &quot;experienced&quot;
+    }
+  },
+  &quot;object&quot;: {
+    &quot;id&quot;: &quot;http://example.com/activities/solo-hang-gliding&quot;,
+    &quot;definition&quot;: {
+      &quot;name&quot;: {
+        &quot;en-US&quot;: &quot;Solo Hang Gliding&quot;
+      }
+    }
+  }
+}
+</code></pre>
+<p>We’ll discuss each part of the statements in detail below:</p>
+<h2>Actor</h2>
+<p>The person who executes the action on an object. We can use more than one identifier for the same actor.</p>
+<pre><code class="language-json">&quot;actor&quot;: {
+  &quot;name&quot;: &quot;Sally Glider&quot;,
+  &quot;mbox&quot;: &quot;mailto:sally@example.com&quot;,
+  &quot;account&quot;: {
+    &quot;homePage&quot;: &quot;http://twitter.com&quot;,
+    &quot;name&quot;: &quot;sallyglider434&quot;
+  }
+},
+</code></pre>
+<p>In the fragment above we’ve refined Sally’s information by adding a Twitter account with the name <code>sallyglider434</code>. We could also use an internal company URL for the homepage and an LDAP credential as the name.</p>
+<h2>Verb</h2>
+<pre><code class="language-json">&quot;verb&quot;: {
+  &quot;id&quot;: &quot;http://adlnet.gov/expapi/verbs/experienced&quot;,
+  &quot;display&quot;: {
+    &quot;en-US&quot;: &quot;experienced&quot;
+  }
+},
+</code></pre>
+<p>The verb consists of an ID pointing to a URI and a display that has one or more children indicating the language used and the value for that verb in the specified language.</p>
+<p>Think of it as a JSON version of an XML namespaces.</p>
+<p>Because we have to agree on what the verbs mean there the people who created xAPI also created a <a href="https://registry.tincanapi.com/#home/verbs">registry</a> that define the different verbs in a way that we can agree to. We’ll review why this is important when we talk about interoperability.</p>
+<p>For verbs that we create, we can create and maintain our own registry to present the verbs we use so internal and external people can reference them when reviewing a learner’s record.</p>
+<h2>Object</h2>
+<p>The object is what action the actor (person) did (verb). You can define multiple objects that, as verbs, resolve to a unique URL.</p>
+<pre><code class="language-json">&quot;object&quot;: {
+  &quot;id&quot;: &quot;http://example.com/activities/solo-hang-gliding&quot;,
+  &quot;definition&quot;: {
+    &quot;name&quot;: { &quot;en-US&quot;: &quot;Solo Hang Gliding&quot; }
+  }
+}
+</code></pre>
+<p>The activities we define don’t have to be tied to activities explictly related to education and training. They can also represent professional development, additional certifications, courses or workshops that a student took outside school, events and conferences they attended, presented at or helped organize.</p>
+<p>A more complete version of the xAPI statement is shown below. It defines both an object (what item the <code>actor</code> does <code>verb</code> to) and a target (the recipient of the action on the object). This example, taken from <a href="https://github.com/activitystreams/activity-schema/blob/master/activity-schema.md">activity streams base schema</a> shows this second type of statement.</p>
+<pre><code class="language-json">{
+  &quot;actor&quot;: {
+    &quot;objectType&quot;: &quot;person&quot;,
+    &quot;displayName&quot;: &quot;Mark&quot;
+  },
+  &quot;verb&quot;: &quot;sell&quot;,
+  &quot;object&quot;: {
+    &quot;objectType&quot;: &quot;product&quot;,
+    &quot;displayName&quot;: &quot;A cool product&quot;
+  },
+  &quot;target&quot;: {
+    &quot;objectType&quot;: &quot;person&quot;,
+    &quot;displayName&quot;: &quot;Laura&quot;
+  }
+}
+</code></pre>
+<h2>Making it work in Javascript</h2>
+<p>Now that we have an idea of what we want to do, let’s look at how to do it. Because most of my content is web based it makes the most sense to code this as a set of Javascript functions that run when the user completes certain actions on the page.</p>
+<p>Before we can submit a statement we have to connect an authenticate to the LRS we are working with.</p>
+<p>We use TinCanJS LRS class to define the LRS location (endpoint), credentials (user name and password), and any additonal information (in this case that we don’t want the LRS to allow failed logins).</p>
+<p>If the LRS login is not successful, for whatever reason, we log the information to the console. We should also warn the user that the login did not succeed so they won’t try to complete work that won’t be recorded.</p>
+<pre><code class="language-js">try {
+  const lrs = new TinCan.LRS({
+    endpoint: &quot;https://cloud.scorm.com/tc/public/&quot;,
+    username: &quot;&lt;Test User&gt;&quot;,
+    password: &quot;&lt;Test Password&gt;&quot;,
+    allowFail: false
+  });
+}
+catch (err) {
+  console.log(&quot;Failed to setup LRS object: &quot;, err);
+  // What else do we want to do with the error?
+}
+</code></pre>
+<p>Once we have a successful login, we can jump to creating a statement. This example uses the Statement class from TinCanJS to build a statement that says: “John Smith experienced TinCanJS”.</p>
+<pre><code class="language-js">const statement = new TinCan.Statement({
+  actor: {
+    name: &quot;John Smith&quot;,
+    mbox: &quot;mailto:john@example.org&quot;
+  },
+  verb: {
+    id: &quot;http://adlnet.gov/expapi/verbs/experienced&quot;
+  },
+  target: {
+    id: &quot;http://rusticisoftware.github.com/TinCanJS&quot;
+  }
+});
+</code></pre>
+<p>The final step is to save the statement to the LRS. I’m somewhat dissapointed that TinCanJS still abstracts XHR instead of Fetch, but I think it’s a good solution to provide support for older browsers.</p>
+<p>We test to see if there is an error (err !== null) then, if there is no XHR we log the error to console and bail.</p>
+<p>If XHR failed (xhr === null) we also bail and log the error to console. In either of these cases there’s nothing for the code to do.</p>
+<p>If there is no error and XHR returned successfully then the statement was saved and we report that to console.</p>
+<p>We should also notify the user whether the statement was saved to the LRS or not.</p>
+<pre><code class="language-js">lrs.saveStatement(statement, {
+  callback: function (err, xhr) {
+    if (err !== null) {
+      if (xhr !== null) {
+        console.log(&quot;Failed to save statement: &quot; + xhr.responseText + &quot; (&quot; + xhr.status + &quot;)&quot;);
+        // Notify the user that statement wasn't saved
+        return;
+      }
+
+      console.log(&quot;Failed to save statement: &quot; + err);
+      // Notify the user that statement wasn't saved
+      return;
+    }
+
+    console.log(&quot;Statement saved&quot;);
+    // Notify the user that the data was saved
+  }
+});
+</code></pre>
+<p>There’s a lot more to do with the code that we’ve covered so far.</p>
+<p>The code so far doesn’t include user authentication. We need to authenticate users so we can get the actor information for the statement.</p>
+<p>We should also notify the user if we’re unable to save the statement to the LRS, but that’s dependent on the type of application we’re creating.</p>
+<h2>Links and Resources (and more questions)</h2>
+<ul>
+<li>SCORM
+<ul>
+<li><a href="https://scorm.com/scorm-explained/">SCORM explained</a></li>
+<li><a href="https://scorm.com/wp-content/assets/cookbook/CookingUpASCORM_v1_2.pdf">Cooking up a SCORM</a> — Click2Learn (content hosted in <a href="http://scorm.com">scorm.com</a>, Click2Learn site is no longer available)</li>
+</ul>
+</li>
+<li>xAPI
+<ul>
+<li><a href="https://xapi.com/overview/">What is the Experience API?</a></li>
+<li><a href="https://xapi.com/cmi5/">cmi5</a></li>
+<li>Interoperability
+<ul>
+<li><a href="https://xapi.com/learning-design-transformed/">Learning Design Transformed</a></li>
+<li><a href="https://xapi.com/kirkpatrick/">Kirkpatrick</a></li>
+<li><a href="https://xapi.com/70-20-10/">70:20:10</a></li>
+<li><a href="https://xapi.com/blended-learning/">Blended Learning</a></li>
+<li><a href="https://xapi.com/action-mapping/">Action Mapping</a></li>
+<li><a href="https://xapi.com/addie/">ADDIE</a></li>
+</ul>
+</li>
+<li><a href="https://www.learningsolutionsmag.com/articles/xapi-tools-update-spring-2019">xAPI Tools Update: Spring 2019</a></li>
+</ul>
+</li>
+<li>Tools
+<ul>
+<li><a href="https://xapi.com/libraries/">xAPI Client Libraries</a> — Rustici</li>
+<li><a href="https://github.com/RusticiSoftware/TinCanStatementViewer">TinCanStatementViewer</a> — Rustici</li>
+</ul>
+</li>
+<li>Activities, Verbs and Objects
+<ul>
+<li><a href="https://registry.tincanapi.com/#home/verbs">xAPI Registry</a> — Rustici</li>
+<li><a href="https://activitystrea.ms/">Activity Streams</a></li>
+<li><a href="https://xapi.com/statements-101/">xAPI Statements 101</a></li>
+<li><a href="http://adlnet.github.io/xapi-lab/">xAPI Lab</a></li>
+</ul>
+</li>
+</ul>

@@ -1,0 +1,26 @@
+<h1>When to use appendChild and when to use insertAdjacentHTML (and al alternative)</h1>
+<p>One thing that has always puzzled me is how to insert content into an existing document. In researching this I found two traditional alternatives and a newer API that may make things easier.</p>
+<p>Recently I was playing with JSON-LD and trying to append content that used the JSON data into the page. The code looked like this:</p>
+<pre><code class="language-js">const data = 
+  document.getElementById(&quot;data&quot;).text;
+const json = JSON.parse(data);
+const displayData = `
+&lt;h2&gt;${json.name}&lt;/h2&gt;
+&lt;h3&gt;by ${json.author.name}&lt;/h3&gt;
+&lt;p&gt;${json.description}&lt;/p&gt;
+`;
+</code></pre>
+<p>The first idea was to use <a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild">appendChild</a> to append <code>displayData</code> to the document but it didn’t work. <code>displayData</code> epxects a node as its parameter and <code>displayData</code> is not a node but a string.</p>
+<p>The next option is to work with <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML">insertAdjacentHTML</a>. it allows you to insert strings of HTML and to position them relative to a specific element. The positions of the inserted element are:</p>
+<ul>
+<li><code>beforebegin</code>: Before the element itself.</li>
+<li><code>afterbegin</code>: Just inside the element, before its first child.</li>
+<li><code>beforeend</code>: Just inside the element, after its last child.</li>
+<li><code>afterend</code>: After the element itself.</li>
+</ul>
+<p><strong>Note:</strong> <code>beforebegin</code> and <code>afterend</code> work only if the node is in the DOM tree and has a parent element.</p>
+<p><code>insertAdjacentElement</code> works fine but always having to specify the position of the element is prone to errors and there is no default.</p>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/append">append</a> method inserts a set of node or strings after the last child of the Element.</p>
+<p>It combines the syntax of <code>appendChild</code> with the flexibility of adding strings or DOM nodes, like we can with <code>insertAdjacentHTML</code>.</p>
+<p>So, from research for this post, I find that <code>append</code> is the best method of the ones I researched to append content to the end of an existing element.</p>
+<p>If the position of the data you’re inserting is important then <code>insertAdjacentHTML</code> is the method to use.</p>

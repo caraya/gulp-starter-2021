@@ -1,0 +1,608 @@
+<h1>Building a React app</h1>
+<p>Not liking a framework or library doesn’t mean that you don’t know how to use it. I’ve build a sample app and waht to document the process, the potholes I dealt with and how I solved them.</p>
+<p>I admit that I’m a beginner. There might be easier ways to deal with with some of the issues I encountered and there might be documentation that explains how to solve the issues, I wasn’t able to find them.</p>
+<h2>What we will build</h2>
+<p>As a community we collect information that we might want to share with the community. Rather than put them in emails that might get lost along the way we can build an app that will take the informatin and then display it in a list.</p>
+<p>The application has the following requirements:</p>
+<ul>
+<li>Be able to enter data into a form</li>
+<li>Be able to edit the data in an existing item</li>
+<li>List all the items in the database</li>
+<li>Use MongoDB to store the items</li>
+</ul>
+<h2>Building the backend with Express and MongoDB</h2>
+<p>Before we dive into the React specific code we’ll create a small API server using React. This server will connect to the MongoDB database and abstract all database connections and JSON rendering from the React postion of the application.</p>
+<p>First we create a server directory and move into that directory</p>
+<pre><code class="language-bash">mkdir server &amp;&amp; cd server
+</code></pre>
+<p>Next, we initialize an NPM repository using default values.</p>
+<pre><code class="language-bash">npm init --yes
+</code></pre>
+<p>Once we’ve initalized the project we can install the packages that we need to run the server.</p>
+<ul>
+<li><strong>Express</strong> provides the framework that we’ll use to create the server</li>
+<li><strong>Mongoose</strong> allows us to create the models that we’ll use with our database. It is not required but it will certainly make life easier</li>
+<li><strong>cors</strong> enables cors requests for the server</li>
+<li><strong>nodemon</strong> takes care of keeping our application up and running</li>
+</ul>
+<pre><code class="language-bash">npm install express mongoose cors nodemon
+</code></pre>
+<p>Now that we have have everything installed we can write code. The first part is to create our Mongoose Schema that describes the structure of the database.</p>
+<pre><code class="language-js">const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+let Review = new Schema({
+    review_title: {
+      type: String,
+      required: true
+    },
+    review_url: {
+      type: String,
+      required: true
+    },
+    review_type: {
+      type: String
+    },
+    review_description: {
+      type: String
+    },
+    review_sugested_by: {
+      type: String
+    },
+});
+
+module.exports = mongoose.model('Review', Review);
+</code></pre>
+<pre><code class="language-js">const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const reviewRoutes = express.Router();
+const PORT = 3010;
+
+let Review = require('./review.model');
+
+app.use(cors());
+app.use(bodyParser.json());
+
+app.use('/reviews', reviewRoutes);
+</code></pre>
+<pre><code class="language-js">mongoose.connect('path/to/mongodb/reviews', { useNewUrlParser: true });
+const connection = mongoose.connection;
+
+connection.once('open', function() {
+    console.log(&quot;MongoDB database connection established successfully&quot;);
+})
+</code></pre>
+<pre><code class="language-js">reviewRoutes.route('/').get(function(req, res) {
+    Review.find((err, reviews) =&gt; {
+        if (err) {
+            console.log(err);
+        } else {
+            return res.json(reviews);
+        }
+    });
+});
+</code></pre>
+<pre><code class="language-js">reviewRoutes.route('/:id').get(function(req, res) {
+    let id = req.params.id;
+    Review.findById(id, function(err, review) {
+        res.json(review);
+    });
+});
+</code></pre>
+<pre><code class="language-js">reviewRoutes.route('/update/:id').post(function(req, res) {
+    Review.findById(req.params.id, function(err, review) {
+        if (!review) {
+            res.status(404).send(&quot;data not found&quot;);
+        } else {
+          review.review_title = req.body.review_title;
+          review.review_url = req.body.review_url;
+          review.review_type = req.body.review_type;
+          review.review_description = req.body.review_description;
+          review.review_sugested_by = req.body.review_sugested_by;
+
+         review.save().then(review =&gt; {
+              res.json('Review updated!');
+          })
+          .catch(err =&gt; {
+              res.status(400).send(&quot;Update not possible&quot;);
+          });
+        }
+    });
+});
+</code></pre>
+<pre><code class="language-js">reviewRoutes.route('/add').post(function(req, res) {
+    let review = new Review(req.body);
+    review.save()
+        .then(review =&gt; {
+            res.status(200).json({'review': 'review added successfully'});
+        })
+        .catch(err =&gt; {
+            res.status(400).send('adding new review failed');
+        });
+});
+</code></pre>
+<pre><code class="language-js">app.use('/reviews', reviewRoutes);
+
+app.listen(PORT, function() {
+    console.log(&quot;Server is running on Port: &quot; + PORT);});
+
+</code></pre>
+<h2>Using create-react-app</h2>
+<p>I’ve chose to create the react portion of the application using <a href="https://facebook.github.io/create-react-app/">create-react-app</a>. As someone who is not completely familiar with the platform I’m ok using their opinionated setup to begin with and then, if necessary, I can eject from the tool and customize the project as needed.</p>
+<p>The problem with this approach is that it’s a one-way ticket. Once you eject from create-react-app you can’t go back to it short of having a Git branch from before you ejected or some other form of backup at the point before ejecting.</p>
+<pre><code class="language-bash">npx create-react-app my-app
+cd my-app
+npm start
+</code></pre>
+<p>NPX Executes the specified either from a local <code>node_modules/.bin</code>, or from a central cache, installing any packages needed in order to run the command, in this case, <code>create-react-app</code>.</p>
+<p>Once everything is installed we can switch to the directory and run <code>npm start</code> to run the default code the application provides. This code is for development and is not optimized for production.</p>
+<pre><code class="language-text">my-app
+├── README.md
+├── node_modules
+├── package.json
+├── .gitignore
+├── public
+│   ├── favicon.ico
+│   ├── index.html
+│   └── manifest.json
+└── src
+    ├── App.css
+    ├── App.js
+    ├── App.test.js
+    ├── index.css
+    ├── index.js
+    ├── logo.svg
+    └── serviceWorker.js
+</code></pre>
+<p>Once we have this code running without errors we can move on to create our own components. We’ll talk more about the different commands and version when we talk about development versus production builds</p>
+<h2>Basic CRU, not D</h2>
+<p>For this project I’ve chosen not to implement a delete functionality. I will hold that for future consideration.</p>
+<p>The three items I’ve chosen to consider are: List (read), Create and Update</p>
+<h3>List Reviews (Read)</h3>
+<pre><code class="language-js">import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+
+const Review = props =&gt; (
+  &lt;details style={{margin: 20}}&gt;
+      &lt;summary&gt;{props.review.review_title}&lt;/summary&gt;
+
+      &lt;p&gt;URL for resource: &lt;a href={props.review.review_url}&gt;{props.review.review_url}&lt;/a&gt;&lt;/p&gt;
+
+      &lt;p&gt;Type of content: {props.review.review_type}&lt;/p&gt;
+
+      &lt;p&gt;Sugested by: {props.review.review_sugested_by}&lt;/p&gt;
+
+      &lt;p&gt;Why should we review this item as a community:&lt;/p&gt;
+      &lt;section className=&quot;description&quot;&gt;{props.review.review_description}&lt;/section&gt;
+
+      &lt;p&gt;&lt;Link to={&quot;/edit/&quot;+props.review._id}&gt;Edit Item&lt;/Link&gt;&lt;/p&gt;
+  &lt;/details&gt;
+
+)
+
+export default class ReviewsList extends Component {
+
+    constructor(props) {
+      super(props);
+      this.state = {reviews: []};
+    }
+
+    componentDidMount() {
+      axios.get('http://localhost:3010/reviews/')
+      .then(response =&gt; {
+        this.setState({ reviews: response.data });
+      })
+      .catch(function (error){
+        console.log(error);
+      })
+    }
+
+    reviewList() {
+      return this.state.reviews.map(function(currentReview, i){
+        return &lt;Review review={currentReview} key={i} /&gt;;
+      })
+    }
+
+    render() {
+      return (
+        &lt;div&gt;
+          &lt;h3&gt;Items To Review&lt;/h3&gt;
+          { this.reviewList() }
+        &lt;/div&gt;
+      )
+    }
+}
+</code></pre>
+<h3>Create Review</h3>
+<pre><code class="language-js">import React, {Component} from 'react';
+import axios from 'axios';
+
+export default class CreateReview extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      review_title: '',
+      review_url: '',
+      review_type: '',
+      review_description: '',
+      review_sugested_by: ''
+    }
+
+    this.onChangeReviewTitle = this.onChangeReviewTitle.bind(this);
+    this.onChangeReviewUrl = this.onChangeReviewUrl.bind(this);
+    this.onChangeReviewType = this.onChangeReviewType.bind(this);
+    this.onChangeReviewDescription = this.onChangeReviewDescription.bind(this);
+    this.onChangeReviewSugestedBy = this.onChangeReviewSugestedBy.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+  }
+
+  onChangeReviewTitle(e) {
+    this.setState({
+      review_title: e.target.value
+    });
+  }
+
+  onChangeReviewUrl(e) {
+    this.setState({
+      review_url: e.target.value
+    });
+  }
+
+  onChangeReviewType(e) {
+    this.setState({
+      review_type: e.target.value
+    });
+  }
+
+  onChangeReviewDescription(e) {
+    this.setState({
+      review_description: e.target.value
+    });
+  }
+
+  onChangeReviewSugestedBy(e) {
+    this.setState({
+      review_sugested_by: e.target.value
+    });
+  }
+
+  onSubmit(e) {
+    e.preventDefault();
+
+    console.log(`Form submitted:`);
+    console.log(`Review Title: ${this.state.review_title}`);
+    console.log(`Review URL: ${this.state.review_url}`);
+    console.log(`Type: ${this.state.review_type}`);
+    console.log(`Review Description: ${this.state.review_description}`);
+    console.log(`sugested by: ${this.state.review_sugested_by}`);
+
+    const newReview = {
+      review_title: this.state.review_title,
+      review_url: this.state.review_url,
+      review_type: this.state.review_type,
+      review_description: this.state.review_description,
+      review_sugested_by: this.state.review_sugested_by,
+    };
+
+    axios.post('http://localhost:3010/reviews/add', newReview)
+        .then(res =&gt; console.log(res.data));
+
+    this.setState({
+      review_title: '',
+      review_url: '',
+      review_type: '',
+      review_description: '',
+      review_sugested_by: '',
+    })
+
+    this.props.history.push('/');
+  }
+
+
+
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;form onSubmit={this.onSubmit}&gt;
+        &lt;h2&gt;Add Item to Review&lt;/h2&gt;
+          &lt;div className='grid-container'&gt;
+            &lt;div className='grid-x grid-padding-x'&gt;
+              &lt;div className='medium-6 cell'&gt;
+                &lt;label&gt;Name of item to review
+                  &lt;input  type=&quot;text&quot;
+                          placeholder=&quot;Item Title&quot;
+                          value={this.state.review_title}
+                          onChange={this.onChangeReviewTitle}/&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+              &lt;div className='medium-6 cell'&gt;
+                &lt;label&gt;URL for item
+                  &lt;input  type=&quot;text&quot;
+                          placeholder=&quot;URL of item to review&quot;
+                          value={this.state.review_url}
+                          onChange={this.onChangeReviewUrl}/&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+
+              &lt;div className='medium-6 cell'&gt;
+                &lt;label&gt;Type of resource
+                  &lt;input  type=&quot;text&quot;
+                          placeholder=&quot;Item Type&quot;
+                          value={this.state.review_type}
+                          onChange={this.onChangeReviewType}/&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+
+              &lt;div className='medium-12 cell'&gt;
+                &lt;label&gt;Why should we review this as a group?
+                  &lt;textarea   placeholder=&quot;None&quot;
+                              rows='5'
+                              value={this.state.review_description}
+                              onChange={this.onChangeReviewDescription}&gt;&lt;/textarea&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+
+              &lt;div className='medium-12 cell'&gt;
+                &lt;label&gt;Sugested By&lt;/label&gt;
+                  &lt;input  type=&quot;text&quot;
+                          placeholder=&quot;sugested by&quot;
+                          defaultValue={this.state.review_sugested_by}
+                          onChange={this.onChangeReviewSugestedBy}/&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;input  type='submit'
+                    className='button'
+                    value='Create Item to Review'
+                    onClick={this.onSubmit}/&gt;
+          &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+</code></pre>
+<h3>Update Review</h3>
+<pre><code class="language-js">import React, {Component} from 'react';
+import axios from 'axios';
+
+export default class EditReview extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      review_title: '',
+      review_url: '',
+      review_type: '',
+      review_description: '',
+      review_sugested_by: '',
+    }
+
+    this.onChangeReviewTitle = this.onChangeReviewTitle.bind(this);
+    this.onChangeReviewUrl = this.onChangeReviewUrl.bind(this);
+    this.onChangeReviewType = this.onChangeReviewType.bind(this);
+    this.onChangeReviewDescription = this.onChangeReviewDescription.bind(this);
+    this.onChangeReviewSugestedBy = this.onChangeReviewSugestedBy.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+  }
+</code></pre>
+<pre><code class="language-js">  onChangeReviewTitle(e) {
+    this.setState({review_title: e.target.value});
+  }
+
+  onChangeReviewUrl(e) {
+    this.setState({review_url: e.target.value});
+  }
+
+  onChangeReviewType(e) {
+    this.setState({review_type: e.target.value});
+  }
+
+  onChangeReviewDescription(e) {
+    this.setState({review_description: e.target.value});
+  }
+
+  onChangeReviewSugestedBy(e) {
+    this.setState({review_sugested_by: e.target.value});
+  }
+
+  onSubmit(e) {
+    e.preventDefault();
+
+    console.log(`Form submitted:`);
+    console.log(`Review Title: ${this.state.review_title}`);
+    console.log(`Review URL: ${this.state.review_url}`);
+    console.log(`Type: ${this.state.review_type}`);
+    console.log(`Review Description: ${this.state.review_description}`);
+    console.log(`sugested by: ${this.state.review_sugested_by}`);
+
+    const newReview = {
+      review_title: this.state.review_title,
+      review_url: this.state.review_url,
+      review_type: this.state.review_url,
+      review_description: this.state.review_description,
+      review_sugested_by: this.state.review_sugested_by,
+    };
+
+    axios.post('http://localhost:3010/reviews/update/' +this.props.match.params.id, newReview)
+      .then(res =&gt; console.log(res.data));
+
+      this.setState({
+        review_title: '',
+        review_url: '',
+        review_type: '',
+        review_description: '',
+        review_sugested_by: '',
+      })
+
+      this.props.history.push('/');
+  }
+</code></pre>
+<pre><code class="language-js">  componentDidMount() {
+    axios.get('http://localhost:3010/reviews/' + this.props.match.params.id)
+    .then(response =&gt; {
+      this.setState({
+        review_title: response.data.review_title,
+        review_url: response.data.review_url,
+        review_type: response.data.review_url,
+        review_description: response.data.review_description,
+        review_sugested_by: response.data.review_sugested_by,
+      });
+    })
+    .catch(function (error){
+      console.log(error);
+    })
+  }
+</code></pre>
+<pre><code class="language-js">  render() {
+    return (
+      &lt;div&gt;
+        &lt;form onSubmit={this.onSubmit}&gt;
+        &lt;h2&gt;Edit Review Item&lt;/h2&gt;
+          &lt;div className='grid-container'&gt;
+            &lt;div className='grid-x grid-padding-x'&gt;
+              &lt;div className='medium-6 cell'&gt;
+                &lt;label&gt;Name of item to review
+                  &lt;input  type=&quot;text&quot;
+                    placeholder=&quot;Item Title&quot;
+                    value={this.state.review_title}
+                    onChange={this.onChangeReviewTitle}/&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+              &lt;div className='medium-6 cell'&gt;
+                &lt;label&gt;URL for item
+                  &lt;input    type='text'
+                    placeholder = 'URL of item to re view'
+                    value = {this.state.review_url}
+                    onChange = {this.onChangeReviewUrl} /&gt;
+                &lt;/label &gt;
+              &lt;/div&gt;
+
+              &lt;div className='medium-6 cell'&gt;
+                &lt;label&gt;Type of resource
+                  &lt;input  type=&quot;text&quot;
+                    placeholder=&quot;Item Type&quot;
+                    value={this.state.review_type}
+                    onChange={this.onChangeReviewType}/&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+
+              &lt;div className = 'medium-12 cell'&gt;
+                &lt;label&gt;Why should we review this as a group ?
+                  &lt;textarea   placeholder = 'None'
+                  rows = '5'
+                  value = {this.state.review_description}
+                  onChange = {this.onChangeReviewDescription} &gt; &lt;/textarea&gt;
+                &lt;/label&gt;
+              &lt;/div&gt;
+
+              &lt;div className='medium-12 cell'&gt;
+                &lt;label&gt;Sugested By&lt;/label&gt;
+                  &lt;input  type=&quot;text&quot;
+                  placeholder=&quot;sugested by&quot;
+                  defaultValue={this.state.review_sugested_by}
+                  onChange={this.onChangeReviewSugestedBy}/&gt;
+              &lt;/div&gt;
+
+            &lt;/div&gt;
+
+            &lt;input  type = 'submit'
+                    className = 'button'
+                    value = 'Edit Review Item'
+                    onClick={this.onSubmit}/&gt;
+          &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+</code></pre>
+<h3>Putting it all together</h3>
+<pre><code class="language-js">import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Link } from &quot;react-router-dom&quot;;
+import 'foundation-sites/dist/css/foundation.min.css'
+
+import CreateReview from &quot;./components/create-review&quot;;
+import EditReview from &quot;./components/edit-review&quot;;
+import ReviewsList from &quot;./components/reviews-list&quot;;
+
+class App extends Component {
+  render() {
+    return (
+      &lt;Router&gt;
+        &lt;div className=&quot;top-bar foundation-5-top-bar&quot;&gt;
+          &lt;div className=&quot;top-bar-title&quot;&gt;
+            &lt;Link to=&quot;/&quot;&gt;&lt;strong&gt;Items to review&lt;/strong&gt;&lt;/Link&gt;
+          &lt;/div&gt;
+          &lt;div className=&quot;right&quot;&gt;
+            &lt;Link to=&quot;/create&quot;&gt;Create Review&lt;/Link&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;Route path=&quot;/&quot; exact component={ReviewsList} /&gt;
+        &lt;Route path=&quot;/edit/:id&quot; component={EditReview} /&gt;
+        &lt;Route path=&quot;/create&quot; component={CreateReview} /&gt;
+      &lt;/Router&gt;
+    );
+  }
+}
+
+export default App;
+
+</code></pre>
+<p>The final piece is <code>index.js</code></p>
+<pre><code class="language-js">import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import * as serviceWorker from './serviceWorker';
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('root'));
+
+// Learn more about service workers: https://bit.ly/CRA-PWA
+serviceWorker.unregister();
+</code></pre>
+<h2>SEO :<code>react-helmet</code></h2>
+<p><code>react-helmet</code> from the NFL (See the helmet reference) provides a way to inject content into the</p>
+<pre><code class="language-js">import { Helmet } from 'react-helmet';
+</code></pre>
+<pre><code class="language-js">&lt;Helmet&gt;
+  &lt;meta charSet='utf-8' /&gt;
+  &lt;title&gt;My Title&lt;/title&gt;
+  &lt;link rel='canonical' href='http://mysite.com/example' /&gt;
+&lt;/Helmet&gt;
+</code></pre>
+<h2>SSR: <code>react-static</code></h2>
+<p>The idea behind Server Side Rendering an application is to make it load faster and be a better friend with search engine crawlers (although this is less of an issue now that the Googlebot crawler moved to a current version of Chrome)</p>
+<h2>Development versus production build</h2>
+<h2>Publishing</h2>
+<h2>Future requirements</h2>
+<h3>Adding user accounts</h3>
+<h3>Implementing Delete Functionality</h3>
+<h2>Links and Resources</h2>
+<ul>
+<li>Basic Crud Project
+<ul>
+<li><a href="https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-1/">https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-1/</a></li>
+<li><a href="https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-2/">https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-2/</a></li>
+<li><a href="https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-3/">https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-3/</a></li>
+<li><a href="https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-4/">https://codingthesmartway.com/the-mern-stack-tutorial-building-a-react-crud-application-from-start-to-finish-part-4/</a></li>
+</ul>
+</li>
+<li>Static build
+<ul>
+<li><a href="https://medium.com/superhighfives/an-almost-static-stack-6df0a2791319">https://medium.com/superhighfives/an-almost-static-stack-6df0a2791319</a></li>
+<li><a href="https://github.com/nfl/react-helmet">https://github.com/nfl/react-helmet</a></li>
+<li><a href="https://www.npmjs.com/package/react-snapshot">https://www.npmjs.com/package/react-snapshot</a></li>
+</ul>
+</li>
+<li>User accounts
+<ul>
+<li><a href="https://www.sitepoint.com/build-react-app-user-authentication-15-minutes/">https://www.sitepoint.com/build-react-app-user-authentication-15-minutes/</a></li>
+</ul>
+</li>
+</ul>

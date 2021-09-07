@@ -1,0 +1,217 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Creating an In-Browser Editor</h1>
+<p>One thing that blew my mind was a web-based slide deck that changed a style’s CSS when you edited the CSS block shown as text in the slide. Think about it… We can change the CSS of our content as we need to just by editing the CSS inline, in the same browser that is displaying the content we are styling. Awesome!</p>
+<p>Later on I changed my mind a little. CSS is too much of a pain but what if we want to change a document or create a new one and then save it or do some further processing with it.</p>
+<p>In this post I’ll cover things like <code>contenteditable</code>, <code>execCommand</code>, other ways to create and add content to our editable regions and how to package an editor into a web component.</p>
+<h2>What do we want to do</h2>
+<p>Before diving into the technology let’s talk about what we want to do for a second, It’s always a good idea to have a spec before we start doing the work so we won’t loose sight of the final objective.</p>
+<p>I want to build an inline editor that will let me edit CSS, Javacript and HTML. Think of a limited version of Netscape Composer but inline in the browser rather than being a separate application.</p>
+<p>I want to be able to type content directly in the editor and have buttons that will let me insert some HTML tags on their own or over highighted content.</p>
+<h2>Some functionality</h2>
+<p>At it’s simplest we can make a section editable by adding the <code>contenteditable=&quot;true&quot;</code> attribute to the element we want to make editable.</p>
+<pre><code class="language-language-markup">&lt;div class=&quot;editor-container&quot; contenteditable=&quot;true&quot;&gt;
+ &lt;p&gt;This is the editor&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+<p>We can change the content of the editor, but that’s about the extent of it. However this will change if we start working with styles. Take the following style element placed inline in a page’s body.</p>
+<pre><code class="language-language-markup">&lt;style&gt;
+  body {
+    font-size: 1.5em;
+    font-color: black;
+  }
+&lt;/style&gt;
+</code></pre>
+<p>In your master stylesheet make the style sheet visible by changing its display to block.</p>
+<pre><code class="language-css">style {
+  display: block
+}
+</code></pre>
+<p>This will make the stylesheet visible in your document but will still work styling the content. One last change to make, make the style element editable.</p>
+<pre><code class="language-language-markup">&lt;style contenteditable=&quot;true&quot;&gt;
+  body {
+    font-size: 1.5em;
+    font-color: black;
+  }
+&lt;/style&gt;
+</code></pre>
+<p>In this 3-step process we’ve created a basic CSS editor for the page it is running on. It will only work on the page we place the styles and, right now, we can’t save the styles.</p>
+<p>We’ll create a button to edit the content and wire it to enable and disabling content editable; When we make the content non editable we make sure we save the content in local storage.</p>
+<pre><code class="language-language-javascript">const editBtn = document.getElementById(&quot;editBtn&quot;);
+const editable = document.getElementById(&quot;editor-content&quot;);
+
+editBtn.addEventListener(&quot;click&quot;, function(e) {
+  if (!editable.isContentEditable) {
+    editable.contentEditable = &quot;true&quot;;
+    editBtn.innerHTML = &quot;Save Changes&quot;;
+    editBtn.style.backgroundColor = &quot;#6F9&quot;;
+  } else { // Disable Editing
+    editable.contentEditable = &quot;false&quot;;
+    editBtn.innerHTML = &quot;EDIT CONTENT&quot;;
+    editBtn.style.backgroundColor = &quot;#F96&quot;;
+    saveContent();
+  }
+});
+</code></pre>
+<p>The save function is simple, is creates an item in local storage with key of the id for our editor (<code>content-editor</code>) and the data in the editor (the editor’s innerHTML) as it’s value.</p>
+<pre><code class="language-language-javascript">function saveContent() {
+  if (typeof(Storage) !== &quot;undefined&quot;) {
+  // Save the data in localStorage
+  localStorage.setItem(editable.id, editable.innerHTML);
+  }
+}
+</code></pre>
+<p>If you save the changes and then reload the editor you will find that the editor will revert to the last time you saved it. That’s because there is a way to save the content not not to retrieve it.</p>
+<p>To handle loading content from local storage wedo three things:</p>
+<ol>
+<li>We check that local storage is supported</li>
+<li>If it’s suppoorted then we check that there is a value that matches what we want to load (<code>content-editor</code>)</li>
+<li>We load the data inside the editor’s body</li>
+</ol>
+<p>Yes, I’m being overtly cautious in checking if Local Storage is supported, both when saving and loading content. We could make a function out of the test but I’m comfortable doing it this way.</p>
+<pre><code class="language-language-javascript">if (typeof(Storage) !== &quot;undefined&quot;) { // 1
+  if (localStorage.getItem('editor-content') !== null) { // 2
+    editable.innerHTML = localStorage.getItem('editor-content'); // 3
+  }
+}
+</code></pre>
+<p>Right now we have a bare bones functional editor. We can write on it, we can save the data and when we return to it, we’ll be able to resume editing from where we left off. This is a good starting point but we can definitely do more.</p>
+<h2>Adding functionality</h2>
+<p>This is the most interesting part and also the most difficult to get working across browsers. <code>document.execCommand()</code> allows you to run a list of predefined commands insie your text editor. It takes three parameters:</p>
+<ul>
+<li>The name of the command to run</li>
+<li>Whether to show the default UI for the command (not supported in Firefox so we leave it as false throughout)</li>
+<li>The parameter for the command, if needed. For example the URL for the image if we are inserting one</li>
+</ul>
+<p>This is not a trivial undertaking and most times I would just turn to a canned solution like the <a href="https://ace.c9.io/">ACE</a> or <a href="https://www.tinymce.com/">TinyMCE</a> editor systems but for the purpose of this article I Want to be able to add the functionality manually.</p>
+<p>Because I want to add several commands we’ll have to get creative and use JSON as the data sourceand some creative use of JAvascript to generate the buttons and add them to the page.</p>
+<p>The JSON file takes three elements:</p>
+<ul>
+<li>The name of the command</li>
+<li>The command itself</li>
+<li>Any parameters for the command or null if there is none</li>
+</ul>
+<pre><code class="language-language-javascript">const commands = [
+  {
+    &quot;name&quot;: &quot;p&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;p&quot;
+  },
+  {
+    &quot;name&quot;: &quot;h1&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;h1&quot;
+  },
+  {
+    &quot;name&quot;: &quot;h2&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;h2&quot;
+  },
+  {
+    &quot;name&quot;: &quot;h3&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;h3&quot;
+  },
+  {
+    &quot;name&quot;: &quot;h4&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;h4&quot;
+  },
+  {
+    &quot;name&quot;: &quot;h5&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;h5&quot;
+  },
+  {
+    &quot;name&quot;: &quot;h6&quot;,
+    &quot;command&quot;: &quot;formatBlock&quot;,
+    &quot;param&quot;: &quot;h6&quot;
+  },
+  {
+    &quot;name&quot;: &quot;Bold&quot;,
+    &quot;command&quot;: &quot;bold&quot;,
+    &quot;param&quot;: null
+  },
+  {
+    &quot;name&quot;: &quot;Underline&quot;,
+    &quot;command&quot;: &quot;underline&quot;,
+    &quot;param&quot;: null
+  },
+  {
+    &quot;name&quot;: &quot;Strike Through&quot;,
+    &quot;command&quot;: &quot;strikeThrough&quot;,
+    &quot;param&quot;: null
+  },
+  {
+    &quot;name&quot;: &quot;Remove Formatting&quot;,
+    &quot;command&quot;: &quot;removeFormat&quot;,
+    &quot;param&quot;: null
+  }
+]
+</code></pre>
+<p>We then run the commands through <code>array.map</code> to perform the following actions:</p>
+<ol>
+<li>Create variables to hold each part of the command</li>
+<li>Create a button element</li>
+<li>Give it the name of the command</li>
+<li>Assing an ID attribute of the command itself</li>
+<li>Create an <code>onclick</code> event handles and use it to add a <code>document.execCommand</code> command for the appropriate element</li>
+</ol>
+<pre><code class="language-language-javascript">var tb1 = document.getElementById('toolBar1');
+
+commands.map(function(item) {
+  var name = item.name; // 1
+  var command = item.command;
+  var param = item.param;
+
+  var newButton = document.createElement('button'); // 2
+  newButton.textContent = name; // 3
+  newButton.setAttribute('id', command); // 4
+
+  newButton.addEventListener('click', () =&gt; {
+    document.execCommand(command, false, param) // 5
+  });
+
+  tb1.appendChild(newButton);
+});
+</code></pre>
+<p>This method will provide a basic set of commands but will not handle some of the more complex cases like inserting images or hyperlinks.</p>
+<p>I’ve chosen not to address these cases and leave them as exercise for the reader. There are commercial solutions like <a href="https://ace.c9.io/">ACE</a> or <a href="https://www.tinymce.com/">TinyMCE</a> editor systems that do a much better job than I’ve done in this project and I’mm ok with that. This is a proof of contcept and will probably not go into much further development.</p>
+<h2>Links and resources</h2>
+<ul>
+<li><a href="http://caniuse.com/#feat=contenteditable">Basic support for content editable</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/designMode">Design Mode</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand">execCommand</a></li>
+<li><a href="https://w3c.github.io/editing/contentEditable.html">Content Editable Spec @ W3C</a></li>
+<li><a href="https://w3c.github.io/input-events/">Input Events Spec @ W3C</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Rich-Text_Editing_in_Mozilla">Rich Text Editing in Mozilla</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

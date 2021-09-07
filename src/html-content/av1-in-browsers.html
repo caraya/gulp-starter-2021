@@ -1,0 +1,85 @@
+<h1>AV1 video now in browsers</h1>
+<p>While at the <a href="https://developer.chrome.com/devsummit/">Chrome Dev Summit</a> I learned several things that made me really happy, one of them is abou video: You can play <a href="https://aomedia.org/av1-features/get-started/">AV1</a>video in browsers (currently Chrome, Opera, Firefox, and Edge) using the <code>video</code> element.</p>
+<p>Firefox and Bitmovin have had a <a href="https://demo.bitmovin.com/public/firefox/av1/">demo for AV1 playback</a> for a while but it’s hardcoded to play in Firefox nightly so it wasn’t a good way to test playback capabilities.</p>
+<p>The supported browsers each come with caveats.</p>
+<ul>
+<li>As of this writing, AV1 supports only works in Firefox Nightly
+<ul>
+<li>Must enable <code>media.av1.enabled</code> in <code>about:config</code></li>
+</ul>
+</li>
+<li>Works in Chrome 70 and newer and Opera 57 and newer for Desktop only
+<ul>
+<li>Must enable the <code>#enable-av1-decoder</code> flag in <code>chrome://flags</code> or <code>opera://flags</code></li>
+</ul>
+</li>
+<li>Supported in Edge but not IE
+<ul>
+<li>Must install the <code>AV1 Video Extension (Beta)</code> from the Microsoft Store</li>
+</ul>
+</li>
+</ul>
+<h2>Compressing the video</h2>
+<p>I took an HEVC/H265 video in an MP4 cotainer and converted it using <a href="https://www.ffworks.net/">ffWorks</a>, an <a href="https://www.ffmpeg.org/">FFMPEG</a> front-end</a>.</p>
+<p>I’ve also created the AV1 video file using FFMPEG from the command line to validate the command line pipeline but, for the purpose of this article, how we get the video is secondary to actually having it.</p>
+<h2>Using the <code>video</code> element</h2>
+<p>The first way to test how AV1 works in the browser is to load it directly into the page using the video element.</p>
+<p>The example below uses a single <code>source</code> element to illustrate usage. In production you will want multiple sources with different formats that the browser can select from.</p>
+<p>The one thing I did different for this example, and that I will do for most videos using AV1, is to fully specify the <code>type</code> attribute for the source including the <code>codecs</code> portion. I do this becaue there are other formats available in MP4 containers and we want to give browsers as much information as possible to make sure it ownly downloads the AV1 video when it can play it.</p>
+<pre><code class="language-html">&lt;video  controls
+        playsinline
+        class=&quot;video&quot;
+        poster=&quot;images/poster.jpg&quot;&gt;
+  &lt;source src=&quot;footloose.mp4&quot; type='video/mp4; codecs=&quot;avc1.4d401f&quot;'&gt;
+&lt;/video&gt;
+</code></pre>
+<h2>Uploading to YouTube</h2>
+<p>YouTube allows content creators to upload AV1 videos (in MP4 container) without erroring out but, sadly, it seems to convert them to H264 as part of the upload process. I’ve asked YouTube Developers on Twitter if users are allowed to upload AV1 video to the platform and I’m still waiting to hear from them.</p>
+<p>So, instead of using the same video, I’ve chosen to work with a video from YouTube’s <a href="https://www.youtube.com/playlist?list=PLyqf6gJt7KuHBmeVzZteZUlNUQAVLwrZS">AV1 Beta Launch Playlist</a> to see how well it works.</p>
+<pre><code class="language-html">&lt;iframe width=&quot;560&quot; height=&quot;315&quot;
+ src=&quot;https://www.youtube.com/embed/Fmdb-KmlzD8&quot;
+ frameborder=&quot;0&quot;
+ allow=&quot;accelerometer; autoplay;
+ encrypted-media; gyroscope; picture-in-picture&quot;
+  allowfullscreen&gt;&lt;/iframe&gt;
+</code></pre>
+<p>As you can see the iframe embed for an AV1 video is no different than any other YouTube embedded video. The main advantage is that the files tend to be smaller than h264/h265 and slightly smaller than VP9 videos.</p>
+<p><iframe width="560" height="315" src="https://www.youtube.com/embed/Fmdb-KmlzD8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
+<h3>My video experiment</h3>
+<p>When I first started working with this I thought that my video was transcoded to MP4 on upload but wanted to make sure, the embed below plays as AV1 video and MP4a audio, exactly as encoded.</p>
+<p>Once again the embed is no different than the embed we use to play other formats supported in Youtube.</p>
+<pre><code class="language-html">&lt;iframe
+allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope;
+picture-in-picture&quot;
+  allowfullscreen
+  frameborder=&quot;0&quot;
+  height=&quot;315&quot;
+  src=&quot;https://www.youtube.com/embed/ZYidbf5Jtfc&quot;
+  width=&quot;560&quot;&gt;&lt;/iframe&gt;
+</code></pre>
+<p>And, if your browser supports it, you can play the video below:</p>
+<p><iframe allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen
+  frameborder="0"
+  height="315"
+  src="https://www.youtube.com/embed/ZYidbf5Jtfc"
+  width="560"></iframe></p>
+<h2>Notes about support:</h2>
+<p>Currently you can play AV1 video in Chrome (desktop), Firefox (desktop), and Edge, with the following caveats:</p>
+<ul>
+<li>As of this writing, AV1 supports only works in Firefox 63 and newer
+<ul>
+<li>Must enable <code>media.av1.enabled</code> in <code>about:config</code></li>
+</ul>
+</li>
+<li>Works in Chrome 70 and newer
+<ul>
+<li>Must enable the <code>#enable-av1-decoder</code> flag in <code>chrome://flags</code></li>
+</ul>
+</li>
+<li>Supported in Edge but not IE
+<ul>
+<li>Must install the AV1 Video Extension (Beta) from the Microsoft Store</li>
+</ul>
+</li>
+</ul>

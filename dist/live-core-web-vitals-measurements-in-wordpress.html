@@ -1,0 +1,91 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Live Core Web Witals Measurements In WordPress</h1>
+<p>Building the Core Web Vitals measurement into WordPress is a bit more involved as it depends on whether you’ve analytics into your site and how you’ve done it.</p>
+<p>This function depends on Google’s <a href="https://sitekit.withgoogle.com/">Sitekit plugin</a> and relies on values set there. We can run a function that checks if the <code>gtag</code> script has already been enqueued on your site:</p>
+<ul>
+<li>If it’s hasn’t been enqueued, then you add it and configure it</li>
+<li>If it’s already been enqueued, then do nothing, as it’s ready to use</li>
+</ul>
+<p>If you use a different tool to setup your Google Analytics or use a different analytics solution, you’ll need to set it up and configure it yourself.</p>
+<pre><code class="language-php">&lt;?php
+$handle = 'google_gtagjs';
+$list = 'enqueued';
+// Property ID
+$tag_id = 'UA-XXXXXXXX-X';
+$url = 'https://www.googletagmanager.com/gtag/js?id=' . rawurlencode( $tag_id );
+
+
+if (! wp_script_is( $handle, $list )) {
+    wp_enqueue_script( $handle, $url, array(), null, false, 100 );
+    wp_script_add_data( $handle, 'script_execution', 'async' );
+    wp_add_inline_script( $handle, 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}' );
+} else {
+    return;
+}
+</code></pre>
+<p>Once the analytics script is enqueued we can add the web vitals script and configure it to run when the page is ready.</p>
+<p>Because I’m sure that no one has added the <code>web-vitals.js</code> script to the theme, I can go straight to <code>wp_enqueue_script</code> without adding the defensive code to check if it’s already been enqueued</p>
+<p>Originally I thought that I could use <a href="https://developer.wordpress.org/reference/functions/wp_add_inline_script/">wp_inline_script()</a> to handle the inline script that I need to add to the page. However, <code>wp_inline_script()</code> doesn’t allow for module scripts (you can’t add <code>type=&quot;module&quot;</code> to the script tag).</p>
+<p>So, instead, I’m using <a href="https://developer.wordpress.org/reference/functions/wp_footer/">wp_footer</a> and writing the script manually.</p>
+<pre><code class="language-php">&lt;?php
+// Enqueue the web vitals script
+wp_enqueue_script(
+    'web-vitals', 
+    'https://unpkg.com/web-vitals?module',
+    array(),
+    null,
+    true );
+
+function web_vitals_init() {
+  echo '&lt;script type=&quot;module&quot;&gt;
+  import {getCLS, getFID, getLCP} from &quot;https://unpkg.com/web-vitals?module&quot;;
+
+  function sendToGoogleAnalytics({name, delta, id}) {
+    gtag(&quot;event&quot;, name, {
+      event_category: &quot;Web Vitals&quot;,
+      event_label: id,
+      value: Math.round(name === &quot;CLS&quot; ? delta * 1000 : delta),
+      non_interaction: true,
+    });
+  }
+
+  getCLS(sendToGoogleAnalytics);
+  getFID(sendToGoogleAnalytics);
+  getLCP(sendToGoogleAnalytics);
+&lt;/script&gt;';
+}
+
+add_action( 'wp_footer', 'web_vitals_init' );
+</code></pre>
+<p>Collecting this data gives you better feedback on how your site is doing and how your users are experiencing the content.</p>
+<p>Right now I’m adding this to my theme’s <code>functions.php</code>. I should make a plugin out of it but I want to make sure it works and sends the data I want before I make it into one.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

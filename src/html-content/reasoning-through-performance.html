@@ -1,0 +1,112 @@
+<h1>Understanding Performance</h1>
+<p>The hardest thing for me to do when working in the performance space is to understand what the metrics represent and whether we should aim for top performance or where to draw the line of “this is good enough”.</p>
+<p>Part of this is based on the little touches we can put on our sites like animations or elements other than content, how they will affect performance and whether those effects will be felt equally across the users of the site.</p>
+<h2>The metrics I try to meet and what they mean</h2>
+<p>The best performance metrics around, I think, are Google’s <a href="https://web.dev/vitals/">Core Web Vitals</a>. The current metrics tracked in Web Vitals are:</p>
+<ul>
+<li><strong><a href="https://web.dev/lcp/">Largest Contentful Paint (LCP)</a></strong> (<em>loading</em> performance) reports the render time of the largest image or text block visible within the viewport</li>
+<li><strong><a href="https://web.dev/fid/">First Input Delay (FID)</a></strong> (<em>interactivity</em>) reports the time from when a user first interacts with a page to the time when the browser is actually able to begin processing event handlers in response to that interaction.</li>
+<li><strong><a href="https://web.dev/cls/">Cumulative Layout Shift (CLS)</a></strong> (<em>visual stability</em>) reports the sum total of all individual layout shift scores for every unexpected layout shift that occurs during the entire lifespan of the page.</li>
+</ul>
+<p>The table below, taken from <a href="https://web.dev/defining-core-web-vitals-thresholds/">Defining the Core Web Vitals metrics thresholds</a> shows the three different web vitals metrics, their values, and the percentile.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Good</th>
+<th>Poor</th>
+<th>Percentile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Largest Contentful Paint</td>
+<td>≤2500ms</td>
+<td>&gt;4000ms</td>
+<td>75</td>
+</tr>
+<tr>
+<td>First Input Delay</td>
+<td>≤100ms</td>
+<td>&gt;300ms</td>
+<td>75</td>
+</tr>
+<tr>
+<td>Cumulative Layout Shift</td>
+<td>≤0.1</td>
+<td>&gt;0.25</td>
+<td>75</td>
+</tr>
+</tbody>
+</table>
+<p>While it’s true that a 75 percentile in Web Vitals measurements reduces the chance of outliers affecting the result, I have to wonder where the outliers are and if they are outliers at all.</p>
+<p>In Defining the Web Vitals metrics thresholds, Bryan McQuade writes that:</p>
+<blockquote>
+<p>Additionally, to classify the overall performance of a page or site, we use the 75th percentile value of all page views to that page or site. In other words, if at least 75 percent of page views to a site meet the “good” threshold, the site is classified as having “good” performance for that metric. Conversely, if at least 25 percent of page views meet the “poor” threshold, the site is classified as having “poor” performance. So, for example, a 75th percentile LCP of 2 seconds is classified as “good”, while a 75th percentile LCP of 5 seconds is classified as “poor”.</p>
+</blockquote>
+<p><em>But what happens if your users come from places with poor network connectivity or are using lower-end devices? Will that penalize your Web Vitals score?</em></p>
+<p><a href="https://blog.chromium.org/2020/05/the-science-behind-web-vitals.html">The Science Behind Web Vitals</a> discusses the scientific reasoning behind these vital measurements.</p>
+<h2>User timings</h2>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/API/User_Timing_API">User Timing API</a> allows you to create custom measurements for your page.</p>
+<p>This example will create a measure telling us how long did <code>zenscroll.min.js</code> take to load by calculating the difference between the end mark and the starting mark we identified and record it as a measure.</p>
+<pre><code class="language-html">&lt;script&gt;performance.mark('begin zenscroll');&lt;/script&gt;
+&lt;script async src=&quot;./js/zenscroll.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;performance.mark('end zenscroll');&lt;/script&gt;
+&lt;script&gt;performance.measure('zenscroll', 'begin zenscroll', 'end zenscroll');&lt;/script&gt;
+</code></pre>
+<p>These measurements are visible in Lighthouse and the DevTools timeline.</p>
+<h2>Gathering Performance Data</h2>
+<p>We know what performance data we want to gather, let’s look at what tools we can use to gather that data.</p>
+<h3>Lighthouse</h3>
+<p>One of the first tools that I used was Google’s <a href="https://developers.google.com/web/tools/lighthouse">Lighthouse</a> that runs as a <a href="https://github.com/GoogleChrome/lighthouse#using-the-node-cli">Node CLI</a>, <a href="https://developers.google.com/web/tools/lighthouse#devtools">inside DevTools</a>, inside the <a href="https://web.dev/">Web.dev site</a>, as part of <a href="https://developers.google.com/speed/pagespeed/insights/">Pagespeed Insights</a> and <a href="https://www.webpagetest.org/">Webpagetest</a> among others.</p>
+<p>The most frustrating aspect of the experience is that is not consistent. I will get different results running Lighthouse from  Chrome Canary than what I get from running NodeJS Lighthouse from the command line on the same machine under the same network conditions.</p>
+<p>I stopped running Lighthouse in Chrome stable because, as my everyday browser, it uses plugins and It’s prone to Lighthouse failures. However, I don’t run many plugins in Chrome Canary and there are no plugins to slow down Node… so what would cause such a discrepancy between two versions of the software running on the same network with the same hardware?</p>
+<p>The lighthouse project has a Wiki page on <a href="https://github.com/GoogleChrome/lighthouse/blob/master/docs/variability.md">score variability</a> where they go into detail about the different aspects that can impact the results of a Lighthouse run and what impact may they have in different scenarios: user run, PageSpeed Insights, and controlled lab situations.</p>
+<h3>CrUX report</h3>
+<p>This is another frustrating piece of performance data.</p>
+<p>The <a href="https://developers.google.com/web/tools/chrome-user-experience-report">Chrome User Experience</a> (CrUX)  report provides a large set of data about sites on the web. It uses Real User Measurement data, <strong><em>aggregated from users who have opted-in to syncing their Chrome browsing history, have not set up a Sync passphrase, and have usage statistic reporting enabled</em></strong> (according to the <a href="https://developers.google.com/web/tools/chrome-user-experience-report">CrUX page</a> on Google Developers).</p>
+<p>It’s awesome if there is data for your site. Because it’s based on voluntary aggregate data it is possible that your origin is not included in the report because not enough people who meet the criteria for inclusion visit your site.</p>
+<p>No matter the tool I use, if it incorporates CrUX data I will see that little blank space where the data should go and, maybe, the message the CrUX doesn’t have enough data for the origin.</p>
+<p>Furthermore, CrUX only gathers aggregate data per origin and, to my knowledge, it does not give you page-level performance data.</p>
+<h3>Web Vitals Library</h3>
+<p>Google provides a <a href="https://github.com/GoogleChrome/web-vitals">web-vitals</a> library that will measure these vitals statistics for you.</p>
+<p>As with all node packages, the first step is to install it. Run the following command:</p>
+<pre><code class="language-bash">npm i web-vitals
+</code></pre>
+<p>Once it is installed we can use it inside a JS module either created with a bundler or build tool or with a script tag with the <code>type='module'</code> attribute somewhere in your document.</p>
+<p>You can also serve web vitals from a CDN that can serve modules, like <a href="https://unpkg.com/">unpkg</a>.</p>
+<pre><code class="language-html">&lt;script async type='module'&gt;
+import {getCLS, getFID, getLCP} from 'https://unpkg.com/web-vitals?module';
+
+getCLS(console.log);
+getFID(console.log);
+getLCP(console.log);
+&lt;/script&gt;
+</code></pre>
+<p>Once we get the values we can either send them to an analytics account for further processing or do something else with the <a href="https://www.smashingmagazine.com/2018/07/logging-activity-web-beacon-api/">beacon API</a> if we have our own logger.</p>
+<h3>Creating your own measurements</h3>
+<p>The <a href="https://w3c.github.io/user-timing/">User Timing API</a> provides methods in the <code>performance</code> object that would allow you to track the timing of events.</p>
+<p><code>performance.mark()</code> creates a timestamp in the browser’s performance entry buffer with the given name.</p>
+<p><code>performance.measure()</code> creates a named timestamp in the browser’s performance entry buffer between marks. When measuring between two marks, there is a start mark and end mark. The named timestamp is referred to as a measure.</p>
+<p>In this example, there are multiple marks and measures. I’ve grouped them into three categories:</p>
+<ul>
+<li>Begin an event, like <code>begin analytics</code></li>
+<li>End and event, <code>end analytics</code></li>
+<li>A measure recording the delta between the beginning and ending of an event (<code>analytics</code>).</li>
+</ul>
+<p>These marks and measurements will appear in the DevTools performance timeline and provide additional data points for performance analysis.</p>
+<pre><code class="language-html"> &lt;script&gt;performance.mark('begin analytics');&lt;/script&gt;
+  &lt;script async src=&quot;your analytics tracker here&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;
+    // gtag manager configuration goes here
+  &lt;/script&gt;
+  &lt;script&gt;performance.mark('end analytics');&lt;/script&gt;
+  &lt;script&gt;performance.measure('analytics', 'begin analytics', 'end analytics');&lt;/script&gt;
+
+  &lt;script&gt;performance.mark('begin zenscroll');&lt;/script&gt;
+  &lt;script async src=&quot;./js/zenscroll.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;performance.mark('end zenscroll');&lt;/script&gt;
+  &lt;script&gt;performance.measure('zenscroll', 'begin zenscroll', 'end zenscroll');&lt;/script&gt;
+</code></pre>
+<p>This works nicely as all the custom marks and measurements appear in the DevTools timeline but it’s my results and that’s it.</p>
+<p>I’ve asked how we can push these measurements to Google Analytics or some other analytics gathering system. When I get an answer, I will write a new post about it.</p>

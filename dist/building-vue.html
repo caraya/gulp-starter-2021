@@ -1,0 +1,246 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Building components with Vue</h1>
+<p>Originally I was going to build an entire site using <a href="https://nuxtjs.org/">Nuxt.js</a>, the <a href="https://vuejs.org/">Vue</a> to <code>create-react-app</code></p>
+<p>Some of the questions I hope to address</p>
+<ul>
+<li>Where do you draw the line between components and pages?</li>
+<li>Can you create SCSS/CSS for an app as external resources that get processed through the Nuxt.js pipeline</li>
+<li>Does Vue/Nuxt work for content heavy sites?</li>
+</ul>
+<h2>No Nuxt for me and what are the options</h2>
+<p>In the research I discovered that Nuxt has the same problem for me that <code>create-react-app</code> does… it forces you into a paradigm and it makes it harder to reason through processes in the documentation or trying to figure out why something is not working. There is also a mismatch between the version of Nuxt available on NPM and the version documented on the site.</p>
+<p>So, while it may take more work, I’ve decided to go with a barebones <code>vue</code> CLI approach.</p>
+<p>So the questions change slightly:</p>
+<p>Some of the questions I hope to address</p>
+<ul>
+<li>Where do you draw the line between components and pages?</li>
+<li>Will external CSS/SASS work in a Vue component? Will it work in an application?</li>
+<li>Can we integrte Markdown directly into Vue?</li>
+<li>How well does Vue work with content prepared outside the ecosystem?</li>
+<li>Will <code>vue-cli-service</code> throw a fit if I don’t configure all the resources through WebPack?</li>
+<li>Does Vue work for content heavy sites?</li>
+<li>How do we incorporate Vue components into</li>
+</ul>
+<p>But even using the default CLI proved too problematic. Because I expect to have the</p>
+<h2>Getting Vue ready to work</h2>
+<p>Vue is component-based which means that, at a minimum, we need to add a development or production build oof Vue to the page, like so:</p>
+<pre><code class="language-html">&lt;!-- development version --&gt;
+&lt;script
+  src=&quot;https://cdn.jsdelivr.net/npm/vue/dist/vue.js&quot;&gt;
+&lt;/script&gt;
+</code></pre>
+<p>Once we reach a point where we’re comfortable we can use the minimized production build to remove</p>
+<pre><code class="language-html">&lt;!-- production version --&gt;
+&lt;script
+  src=&quot;https://cdn.jsdelivr.net/npm/vue&quot;&gt;
+&lt;/script&gt;
+</code></pre>
+<h2>An example component</h2>
+<p>I know I’ll need a navigation component to use in multiple pages and, normally, I would just put it in the layout file (if working with handlebars or nunjucks) but working on a framework makes you think twice about what makes a component and what makes a page and how to integrate them.</p>
+<p>There are many ways to define a component in Vue, I’m confused as to which method to use in what circumstances. For right now, I’ll stick to the <a href="https://vuejs.org/v2/guide/single-file-components.html">single file component</a> paradigm. This is not ideal as I’d like to be able to reuse CSS outside of scoped components but I’m still learning Vue so this will be it.</p>
+<p>If you have suggestions or comments, ping me on Twitter (<a href="https://twitter.com/elrond25">@elrond25</a>).</p>
+<p>The Vue navigation component template for a navigation menu may look like this.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;nav&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href='/'&gt;Home&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href='/about/'&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+  // data and methods would go here
+&lt;/script&gt;
+
+&lt;style scoped&gt;
+  nav ul {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+  }
+
+  li {
+    list-style: none;
+    margin-left: -3em;
+  }
+&lt;/style&gt;
+</code></pre>
+<p>we then save the component as <code>Navigation.vue</code> and it’s ready to be used in other components and pages.</p>
+<p>For example, the template below saved as index.vue</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;div class=&quot;container&quot;&gt;
+    &lt;Navigation /&gt;
+    &lt;!-- Rest of the page content --&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+import Navigation from './components/Navigation.vue'
+
+export default {
+  name: 'navigation',
+  components: {
+    Navigation,
+  }
+  props: {},
+  data: {},
+  methods: {},
+}
+&lt;/script&gt;
+</code></pre>
+<p>We can then build additional components to integrate into our pages as needed by inserting them into the index.vue template, importing it, and adding it to the components object.</p>
+<h3>Slots</h3>
+<p>Instead of hardcoding the URL and the title we can use slots (first defined in the custom elements specification) as a way to compose our components with content from the parent.</p>
+<p>To illustrate the concept I’ve created a <code>navigation-link</code> element to take advantage of slots. The idea is that all the content in the parent, in this case the text inside each <code>navigation-link</code> element will get added to the child element inside the slot.</p>
+<p>The content inside the <code>navigation-link</code> becomes the text of the element when the parent provides no content. This way we will have a default value regardless of the content in the parent element.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;a v-bind:href=&quot;url&quot;&gt;
+    &lt;slot&gt;Navigation Item&lt;/slot&gt;
+  &lt;/a&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  data() {
+    return {
+      url: '',
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>I then modified the <code>Navigation.vue</code> component to use <code>navigation-link</code> and the slot. The idea is that whatever content is inside the opening and closing <code>navigation-link</code> tags will get pushed into the child element’s slot.  If the child element doesn’t have a slot the content inside the parent will be ignored.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;nav&gt;
+    &lt;navigation-link url='/'&gt;
+      Home
+    &lt;/navigation-link&gt;
+    &lt;navigation-link url='/about/'&gt;
+      About
+    &lt;/navigation-link&gt;
+  &lt;/nav&gt;
+&lt;/template&gt;
+</code></pre>
+<p>This example is used to illustrate slot composition and links don’t necessarily work. For some reason the first link you click works but subsequent links do not. To get fully functioning links look at <a href="https://router.vuejs.org/">Vue Router</a> and the brief description later in the post.</p>
+<h3>Using the data object</h3>
+<p>There are times when we want to create place holders and populate them with data that is exclusive to each component. That’s where the <code>data</code> object for the Vue instance comes in.</p>
+<p>The template uses the double moustache <code>{{}}</code> as a place holder for the corresponding values in the data object for the module. Think of the data object as internal class variables.</p>
+<pre><code class="language-html">&lt;template&gt;
+  &lt;div class=&quot;post&quot;&gt;
+    &lt;h2&gt;{{ title }}&lt;/h2&gt;
+    &lt;h3&gt;{{ author }}&lt;/h3&gt;
+
+    {{ content }}
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  data: {
+    title: 'My awesome blog post',
+    author: 'James T. Kirk',
+    content: 'hello world',
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<h3>Listeners and Methods</h3>
+<h2>Building routes in Vue</h2>
+<pre><code class="language-js">// Imports
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import Home from '@/components/Home.vue'
+import About from '@/components/About.vue'
+import Projects from '@/components/Projects.vue'
+
+// Tell Vue to use the router
+Vue.use(VueRouter)
+
+// Define router parameters
+const router = new VueRouter({
+  mode: 'history',
+  base: __dirname,
+  routes: [
+    { path: '/', component: Home },
+    { path: '/about', component: About},
+    { path: '/projects' component: Projects, }
+  ]
+})
+
+// Define the actual route
+new Vue({
+  router,
+  template: `
+    &lt;div id=&quot;app&quot;&gt;
+      &lt;h1&gt;Data Fetching&lt;/h1&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;router-link to=&quot;/&quot;&gt;/&lt;/router-link&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;router-link to=&quot;/about&quot;&gt;About&lt;/router-link&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;router-link to=&quot;/projects&quot;&gt;Projects&lt;/router-link&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+      &lt;router-view class=&quot;view&quot;&gt;&lt;/router-view&gt;
+    &lt;/div&gt;
+  `
+}).$mount('#app')
+</code></pre>
+<p>Because our router implements the <a href="https://router.vuejs.org/guide/essentials/history-mode.htm">HTML5 history mode</a>, we have to do some additional work on the server for this to work reliably</p>
+<pre><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+&lt;/IfModule&gt;
+</code></pre>
+<pre><code class="language-nginx">location / {
+  try_files $uri $uri/ /index.html;
+}
+</code></pre>
+<pre><code class="language-json">{
+  &quot;hosting&quot;: {
+    &quot;public&quot;: &quot;dist&quot;,
+    &quot;rewrites&quot;: [
+      {
+        &quot;source&quot;: &quot;**&quot;,
+        &quot;destination&quot;: &quot;/index.html&quot;
+      }
+    ]
+  }
+}
+</code></pre>
+<h2>Render a static site with Puppeteer</h2>
+<p><a href="https://github.com/chrisvfritz/prerender-spa-plugin">https://github.com/chrisvfritz/prerender-spa-plugin</a></p>
+<h2>Static Site Generators: Vuepress</h2>
+<p><a href="https://vuepress.vuejs.org/">https://vuepress.vuejs.org/</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

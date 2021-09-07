@@ -1,0 +1,96 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>New research into block development</h1>
+<p>While researching block-based themes I found more information about blocks themselves and how to write them in a way you can submit them for inclusion in the WordPress directory.</p>
+<p>Most, if not all our blocks, will not be dynamic so we won’t cover them in this post, just mention them in case that’s what you’re looking for. See <a href="https://developer.wordpress.org/block-editor/how-to-guides/block-tutorial/creating-dynamic-blocks/">creating dynamic blocks</a> for more information</p>
+<h2>Creating blocks with an external metdata</h2>
+<p><a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">The block type metadata</a> provides an external means to declare our block API that will also be necessary if you decide to submit it to the <a href="https://wordpress.org/support/article/block-directory/">block directory</a>.</p>
+<p>The metadata is stored in a <code>block.json</code> file. An example, taken from a demo I’m working on looks like this:</p>
+<pre><code class="language-json">{
+  &quot;apiVersion&quot;: 2,
+  &quot;name&quot;: &quot;rivendellweb/book&quot;,
+  &quot;title&quot;: &quot;Book&quot;,
+  &quot;category&quot;: &quot;rivendellweb-blocks&quot;,
+  &quot;icon&quot;: &quot;smiley&quot;,
+  &quot;description&quot;: &quot;Example block for a hypothetical book block.&quot;,
+  &quot;supports&quot;: {
+    &quot;html&quot;: true
+  },
+  &quot;textdomain&quot;: &quot;rivendellweb-blocks&quot;,
+  &quot;editorScript&quot;: &quot;file:./build/index.js&quot;,
+  &quot;editorStyle&quot;: &quot;file:./build/index.css&quot;,
+  &quot;style&quot;: &quot;file:./build/style-index.css&quot;
+  }
+</code></pre>
+<p>There are two ways to register the block.</p>
+<p>The first one is to register the block on its own folder using something like the code below:</p>
+<pre><code class="language-php">&lt;?php
+function rivendellweb_book_block_init() {
+  register_block_type_from_metadata( __DIR__ );
+}
+
+add_action( 
+  'init',
+  'rivendellweb_book_block_init'
+);
+</code></pre>
+<p>Then we require the PHP file containing the block registration from the root of the plugin.</p>
+<pre><code class="language-php">&lt;?php
+require 'book/index.php';
+</code></pre>
+<p>The idea is that this block metadata will go together with the content of the block and should match it completely. This will give the team reviewing the block a btter idea of how it works and make the aproval process easier.</p>
+<p>The second way is to register all blocks from an action at the root of the plugin.</p>
+<p>The registration callback contains a list of the blocks that we want to register and then a foreach loop to register each block on the list.</p>
+<p>We then run the <code>init</code> action with the function that we just created. This will register all our custom blocks.</p>
+<pre><code class="language-php">&lt;?php
+function register_core_block_types_from_metadata() {
+  // Lists the blocks we want to register
+  $block_folders = array(
+    'book',
+  );
+
+  // Loop through the list of blocks
+  // and register them individually
+  foreach ( $block_folders as $block_folder ) {
+    register_block_type_from_metadata(
+      plugin_dir_path( __FILE__ ) .  '/' .$block_folder
+    );
+  }
+}
+
+add_action(
+  'init', 
+  'register_core_block_types_from_metadata'
+);
+</code></pre>
+<p>Look at the <a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">Block metadata developer docs</a> for more information about the content of the file and how it works.</p>
+<p>The last item to worry about is adding <code>block.json</code> to existing blocks and then change the registration function. If the block metadata method will be how we register blocks in the future it makes sense to move all block registration to use the same system.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

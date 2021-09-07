@@ -1,0 +1,288 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Custom Material Design Typography</h1>
+<p>In a previous post I created a page using Material Design’s default typography classes and the fonts they are designed to work with. What I didn’t realize is that you can also create custom typographical systems using SASS and the existing typographical infrastructure for material design. I will also explore whether <a href="https://www.recursive.design/">Recursive</a> works well with Material Design</p>
+<h2>Getting started</h2>
+<p>Because we’re using a variable font with custom axes we need to define the default values in the stylesheet’s <code>:root</code> element and then use custom properties to handle inheritance problems in variable fonts as documented in <a href="https://pixelambacht.nl/2019/fixing-variable-font-inheritance/">Boiling eggs and fixing the variable font inheritance problem</a></p>
+<p>We first define the font using the extended <code>@font-face</code> syntax for variable fonts as explained in MDN’s <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide">Variable Fonts Guide</a>.</p>
+<blockquote>
+<p>Note that the latest version of the Google Fonts API supports a small set of variable fonts. See <a href="https://medium.com/web-typography-news/variable-fonts-the-new-google-fonts-api-d442e9a0a255">Variable fonts &amp; the new Google Fonts API</a> and the <a href="https://codepen.io/nlwilliams/full/JjPJewp">initial anouncement in Codepen</a> for more information on hoow to use the new API. Also note that it’s not ofoficial yet so don’t use it in production.</p>
+</blockquote>
+<pre><code class="language-scss">@font-face {
+  font-family: 'Recursive';
+  src:
+    url('../fonts/recursive-2019_11_22-20_38.woff2') format('woff2-variations');
+  font-weight: 300 1000;
+}
+</code></pre>
+<p>Using the extended <code>@font-face</code> syntax we tell the browser that we’re loading a variable font using <code>woff2-variations</code> as the format.</p>
+<p>We also specify the <code>font-weight</code> range to be from 300 to 1000. We’ll leverage this later when we setup classes for predefined instances.</p>
+<p>In the <code>:root</code> element we use classes and variables to handle Open Type features. This section is taken from <a href="https://wakamaifondue.com/">Wakamaifondue</a> stylesheet for Cursive B025 (latest release when the post was written)</p>
+<p>The final</p>
+<pre><code class="language-scss">:root {
+  --recursive-aalt: &quot;aalt&quot;off;
+  --recursive-case: &quot;case&quot;off;
+  --recursive-dlig: &quot;dlig&quot;off;
+  --recursive-dnom: &quot;dnom&quot;off;
+  --recursive-frac: &quot;frac&quot;off;
+  --recursive-numr: &quot;numr&quot;off;
+  --recursive-ordn: &quot;ordn&quot;off;
+  --recursive-pnum: &quot;pnum&quot;off;
+  --recursive-sinf: &quot;sinf&quot;off;
+  --recursive-ss01: &quot;ss01&quot;off;
+  --recursive-ss02: &quot;ss02&quot;off;
+  --recursive-ss03: &quot;ss03&quot;off;
+  --recursive-ss04: &quot;ss04&quot;off;
+  --recursive-ss05: &quot;ss05&quot;off;
+  --recursive-ss06: &quot;ss06&quot;off;
+  --recursive-ss07: &quot;ss07&quot;off;
+  --recursive-ss08: &quot;ss08&quot;off;
+  --recursive-ss09: &quot;ss09&quot;off;
+  --recursive-ss10: &quot;ss10&quot;off;
+  --recursive-ss11: &quot;ss11&quot;off;
+  --recursive-ss20: &quot;ss20&quot;off;
+  --recursive-sups: &quot;sups&quot;off;
+  --recursive-titl: &quot;titl&quot;off;
+  --recursive-zero: &quot;zero&quot;off;
+}
+</code></pre>
+<p>We then create classes for each opentype feature. If class is applied, update custom property and apply modern <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant">font-variant-*</a> when supported.</p>
+<p>In this case it is safe to use <code>@supports</code> because if the browser supports variable fonts I feel coonfident that it supports feature queries.</p>
+<p>The final block of this section takes all the values of the opoen type variables and sets them appropriately using <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings">font-variation-settings</a></p>
+<pre><code class="language-scss">.recursive-aalt {
+  --recursive-aalt: &quot;aalt&quot;on;
+}
+
+.recursive-case {
+  --recursive-case: &quot;case&quot;on;
+}
+
+.recursive-dlig {
+  --recursive-dlig: &quot;dlig&quot;on;
+}
+
+@supports (font-variant-ligatures: discretionary-ligatures) {
+  .recursive-dlig {
+    --recursive-dlig: &quot;____&quot;;
+    font-variant-ligatures: discretionary-ligatures;
+  }
+}
+
+.recursive-dnom {
+  --recursive-dnom: &quot;dnom&quot;on;
+}
+
+.recursive-frac {
+  --recursive-frac: &quot;frac&quot;on;
+}
+
+@supports (font-variant-numeric: diagonal-fractions) {
+  .recursive-frac {
+    --recursive-frac: &quot;____&quot;;
+    font-variant-numeric: diagonal-fractions;
+  }
+}
+
+.recursive-numr {
+  --recursive-numr: &quot;numr&quot;on;
+}
+
+.recursive-ordn {
+  --recursive-ordn: &quot;ordn&quot;on;
+}
+
+@supports (font-variant-numeric: ordinal) {
+  .recursive-ordn {
+    --recursive-ordn: &quot;____&quot;;
+    font-variant-numeric: ordinal;
+  }
+}
+
+.recursive-pnum {
+  --recursive-pnum: &quot;pnum&quot;on;
+}
+
+@supports (font-variant-numeric: proportional-nums) {
+  .recursive-pnum {
+    --recursive-pnum: &quot;____&quot;;
+    font-variant-numeric: proportional-nums;
+  }
+}
+
+.recursive-sinf {
+  --recursive-sinf: &quot;sinf&quot;on;
+}
+
+.recursive-ss01 {
+  --recursive-ss01: &quot;ss01&quot;on;
+}
+
+.recursive-ss02 {
+  --recursive-ss02: &quot;ss02&quot;on;
+}
+
+.recursive-ss03 {
+  --recursive-ss03: &quot;ss03&quot;on;
+}
+
+.recursive-ss04 {
+  --recursive-ss04: &quot;ss04&quot;on;
+}
+
+.recursive-ss05 {
+  --recursive-ss05: &quot;ss05&quot;on;
+}
+
+.recursive-ss06 {
+  --recursive-ss06: &quot;ss06&quot;on;
+}
+
+.recursive-ss07 {
+  --recursive-ss07: &quot;ss07&quot;on;
+}
+
+.recursive-ss08 {
+  --recursive-ss08: &quot;ss08&quot;on;
+}
+
+.recursive-ss09 {
+  --recursive-ss09: &quot;ss09&quot;on;
+}
+
+.recursive-ss10 {
+  --recursive-ss10: &quot;ss10&quot;on;
+}
+
+.recursive-ss11 {
+  --recursive-ss11: &quot;ss11&quot;on;
+}
+
+.recursive-ss20 {
+  --recursive-ss20: &quot;ss20&quot;on;
+}
+
+.recursive-sups {
+  --recursive-sups: &quot;sups&quot;on;
+}
+
+@supports (font-variant-position: super) {
+  .recursive-sups {
+    --recursive-sups: &quot;____&quot;;
+    font-variant-position: super;
+  }
+}
+
+.recursive-titl {
+  --recursive-titl: &quot;titl&quot;on;
+}
+
+@supports (font-variant-caps: titling-caps) {
+  .recursive-titl {
+    --recursive-titl: &quot;____&quot;;
+    font-variant-caps: titling-caps;
+  }
+}
+
+.recursive-zero {
+  --recursive-zero: &quot;zero&quot;on;
+}
+
+@supports (font-variant-numeric: slashed-zero) {
+  .recursive-zero {
+    --recursive-zero: &quot;____&quot;;
+    font-variant-numeric: slashed-zero;
+  }
+}
+
+.recursive-aalt,
+.recursive-case,
+.recursive-dlig,
+.recursive-dnom,
+.recursive-frac,
+.recursive-numr,
+.recursive-ordn,
+.recursive-pnum,
+.recursive-sinf,
+.recursive-ss01,
+.recursive-ss02,
+.recursive-ss03,
+.recursive-ss04,
+.recursive-ss05,
+.recursive-ss06,
+.recursive-ss07,
+.recursive-ss08,
+.recursive-ss09,
+.recursive-ss10,
+.recursive-ss11,
+.recursive-ss20,
+.recursive-sups,
+.recursive-titl,
+.recursive-zero {
+  font-feature-settings: var(--recursive-aalt),
+    var(--recursive-case), var(--recursive-dlig), var(--recursive-dnom), var(--recursive-frac), var(--recursive-numr), var(--recursive-ordn), var(--recursive-pnum), var(--recursive-sinf), var(--recursive-ss01), var(--recursive-ss02), var(--recursive-ss03), var(--recursive-ss04), var(--recursive-ss05), var(--recursive-ss06), var(--recursive-ss07), var(--recursive-ss08), var(--recursive-ss09), var(--recursive-ss10), var(--recursive-ss11), var(--recursive-ss20), var(--recursive-sups), var(--recursive-titl), var(--recursive-zero);
+}
+</code></pre>
+<p>The next block uses pre-defined instances of the Recursive font. Because the values are exclusive to the instance I didn’t think it necessary to deefine them using CSS variables. It’s possible but too time consuming for me.</p>
+<p><code>font-weight</code> is a predefined axis for variable fonts and it’s supported well enough that we can take it out of <code>font-variation-settings</code> and use the CSS property on its own.</p>
+<p>Inside <code>font-variation-settings</code>, the uppercased axes (MONO and CASL) are custom axes to the font we’re using so they will always need to go here as there are no equivalent CSS properties.</p>
+<p>The lowercased axes (slnt and ital) are predefined axes but need to go inside <code>font-variation-settings</code> to avoid confusion.</p>
+<p>These are examples of the instance classes produced by Wakamaifondue. I didn’t want to list all 64 instances here :-)</p>
+<pre><code class="language-scss">// Variable instances.
+.recursive-mono-linear {
+  font-weight:  400;
+  font-variation-settings: &quot;MONO&quot;1, &quot;CASL&quot;0, &quot;slnt&quot;0, &quot;ital&quot;0.5;
+}
+
+.recursive-mono-linear-italic {
+  font-weight:  400;
+  font-variation-settings: &quot;MONO&quot;1, &quot;CASL&quot;0, &quot;slnt&quot;-15, &quot;ital&quot;1;
+}
+
+.recursive-mono-casual {
+  font-weight:  400;
+  font-variation-settings: &quot;MONO&quot;1, &quot;CASL&quot;1, &quot;slnt&quot;0, &quot;ital&quot;0.5;
+}
+
+.recursive-mono-casual-italic {
+  font-weight:  400;
+  font-variation-settings: &quot;MONO&quot;1, &quot;CASL&quot;1, &quot;slnt&quot;-15, &quot;ital&quot;1;
+}
+</code></pre>
+<p>After all the work setting Open Type features and variable font instances we can work with Material Design using our custom font.</p>
+<p>We import the SCSS files for typography and grid to include in the final result.</p>
+<p>The last thing we do is to override the base font family too use Recursive. Because the variable font can be either sans serif or mono spaced you will have to override the font family everywhere the font is mono spaced.</p>
+<pre><code class="language-scss">@import &quot;@material/typography/mdc-typography&quot;;
+@import &quot;@material/layout-grid/mdc-layout-grid&quot;;
+
+$mdc-typography-font-family: unquote(&quot;Recursive, Arial, Helvetica&quot;);
+</code></pre>
+<p>You can see an example in action here: <a href="https://caraya.github.io/mdc-demos/typography-custom/">Towards the Splendid City</a> and the <a href="https://github.com/caraya/mdc-demos/tree/master/typography-custom">code is here</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

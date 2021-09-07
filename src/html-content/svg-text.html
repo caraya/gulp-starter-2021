@@ -1,0 +1,212 @@
+<h1>SVG Text</h1>
+<p>In a previous post we saw how to make text follow a path. Now we’ll look at basic text and elements that will make interacting with the text easier. We’ll also look at how to use Web Fonts with SVG. This is not a replacement for HTML, but an alternative for doing things that are not possible, or not easily possible with HTML and CSS alone.</p>
+<h2>Text</h2>
+<p>The <code>text</code> element allows you to write text as part of your SVG content. It interact well with CSS, either written as a style inside the SVG element or in an external stylesheet.</p>
+<p>The example below uses an internal stylesheet to define three clases to control diffeerent aspect of the text.</p>
+<p>Next, we define a group of text elements and give it an ID of <code>catMessage</code>. Each text block has a class matching the ones we defined in CSS.</p>
+<p>Lastly we use the <code>catMessage</code> group. Because we associated each text block to a CSS class we don’t need to do any further styling.</p>
+<pre><code class="language-svg">&lt;svg viewBox=&quot;0 0 240 80&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;
+     xmlns:xlink&quot;https://www.w3.org/1999/xlink&quot;&gt;
+  &lt;style&gt;
+    .small {
+      font: italic 0.75em sans-serif; fill: blue
+    }
+    .heavy {
+      font: bold 2em sans-serif; fill: rebeccapurple
+    }
+    .Rrrrr {
+      font: italic 3em serif; fill: red;
+    }
+  &lt;/style&gt;
+
+  &lt;defs&gt;
+    &lt;g id=&quot;catMessage&quot;&gt;
+      &lt;text x=&quot;20&quot; y=&quot;35&quot; class=&quot;small&quot;&gt;My&lt;/text&gt;
+      &lt;text x=&quot;40&quot; y=&quot;35&quot; class=&quot;heavy&quot;&gt;cat&lt;/text&gt;
+      &lt;text x=&quot;55&quot; y=&quot;55&quot; class=&quot;small&quot;&gt;is&lt;/text&gt;
+      &lt;text x=&quot;65&quot; y=&quot;60&quot; class=&quot;Rrrrr&quot;&gt;Grumpy!&lt;/text&gt;
+    &lt;/g&gt;
+  &lt;/defs&gt;
+
+  &lt;use xlink:href=&quot;#catMessage&quot;/&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>The example adds <code>class</code> to tell the parser what CSS class we want to use for that particular element.</p>
+<h3>text</h3>
+<p>The <code>text</code> element renders text in the SVG document. This is the only way to render text in SVG. If there is any text in the SVG document that is outside a <code>text</code> element, it won’t render.</p>
+<p><code>x</code> and <code>y</code> are the coordinates where, in the viewport, we want to place the text block.</p>
+<h3>tspan</h3>
+<p><code>tspan</code> allows for changes in only some parts of the text element without changing the complete line of text. It is similar to the HTML <code>span</code> element</p>
+<pre><code class="language-svg">&lt;svg viewBox=&quot;0 0 240 80&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;
+     xmlns:xlink&quot;https://www.w3.org/1999/xlink&quot;&gt;
+  &lt;style&gt;
+    .small {font: italic 0.75em sans-serif; fill: blue}
+    .heavy {font: bold 2em sans-serif; fill: rebeccapurple}
+    .Rrrrr {font: italic 3em serif; fill: red;}
+  &lt;/style&gt;
+
+  &lt;defs&gt;
+    &lt;g id=&quot;catMessage&quot;&gt;
+      &lt;text x=&quot;20&quot; y=&quot;35&quot; class=&quot;small&quot;&gt;My&lt;/text&gt;
+      &lt;text x=&quot;40&quot; y=&quot;35&quot; class=&quot;heavy&quot;&gt;cat&lt;/text&gt;
+      &lt;text x=&quot;55&quot; y=&quot;55&quot; class=&quot;small&quot;&gt;is&lt;/text&gt;
+      &lt;text x=&quot;65&quot; y=&quot;60&quot; class=&quot;Rrrrr&quot;&gt;Gru&lt;tspan style=&quot;font-size: 150%;fill:navy;&quot;&gt;m&lt;/tspan&gt;py!&lt;/text&gt;
+    &lt;/g&gt;
+  &lt;/defs&gt;
+
+  &lt;use xlink:href=&quot;#catMessage&quot;/&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>Loading fonts via CSS</h2>
+<p>Rather than depending on the system fonts, we can load fonts via CSS’ <code>font-face</code> attribute just like we do for our regular web pages.</p>
+<p>The first version of this example uses <a href="https://www.readvisions.com/marvin">Marvin Visions</a> as the font, loaded with <code>@font-face</code>.</p>
+<p>This example uses a single <code>text</code> element for the content of the text.</p>
+<p>The CSS loads the font and sets formatting attributes for the text. The attributes set are:</p>
+<ul>
+<li>Font family</li>
+<li>Font size</li>
+<li>The color of the inside of the font (the fill)</li>
+<li>Text shadow</li>
+</ul>
+<pre><code class="language-svg">&lt;svg viewBox=&quot;0 0 240 360&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;
+     xmlns:xlink&quot;https://www.w3.org/1999/xlink&quot;&gt;
+  &lt;style&gt;
+    @font-face {
+      font-family: &quot;Marvin&quot;;
+      src: url(&quot;MarvinVisionsBig-Bold.woff&quot;) format(&quot;woff&quot;);
+    }
+
+    text {
+      font-family: Marvin;
+      font-size: 3em;
+      fill: #e65f1d;
+      text-shadow: 12px 12px 6px rgba(0, 0, 0, 1);
+    }
+  &lt;/style&gt;
+
+  &lt;defs&gt;
+    &lt;g id=&quot;title&quot;&gt;
+      &lt;text x=&quot;10&quot; y=&quot;40&quot;&gt;Nightfall&lt;/text&gt;
+    &lt;/g&gt;
+  &lt;/defs&gt;
+
+  &lt;use xlink:href=&quot;#title&quot;/&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>A logical, and cumbersome, next step would be to add <code>tspan</code> elements surrounding each letter so we can style them individually, similar to an exercise in the <a href="https://www.linkedin.com/learning/css-advanced-typographic-techniques">CSS: Advanced Typographic Techniques</a> course from LinkedIn Learning.</p>
+<p>The idea is that, by assigning a <code>tspan</code> with an ID attribute to each letter we can style them differently from each other and it works, sort of.</p>
+<p>Because we use a single <code>text</code> element as the container we must make changes to all the <code>tspan</code> children that need to move. In the example below, I moved the word fall into its own line by changing the coordinates of the first letter; all the following elements moved along.</p>
+<p>If we want to play with <code>x</code> and <code>y</code> coordinates we need to keep in mind that if we make changes to one we must make changes to all the subsequent ones. In the example below we use this trick to move the second word to its own line by changing the coordinates for the first letter in that word.</p>
+<p>Because we’ve assigned <code>id</code> attributes to each letter we can style them individually outside the coordinates that we must set in the individual svg <code>spans</code>.</p>
+<pre><code class="language-svg">&lt;svg viewBox=&quot;0 0 240 360&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;
+     xmlns:xlink&quot;https://www.w3.org/1999/xlink&quot;&gt;
+  &lt;style&gt;
+    /* Load the font */
+    @font-face {
+      font-family: &quot;Marvin&quot;;
+      src: url(&quot;path/to/MarvinVisionsBig-Bold.woff&quot;) format(&quot;woff&quot;);
+    }
+
+    text {
+      font-family: Marvin;
+      font-size: 3em;
+      fill: #e65f1d;
+      text-shadow: 12px 12px 6px rgba(0, 0, 0, 1);
+    }
+
+    /* Individual letters styles */
+    #l6 {fill: rebeccapurple;}
+    #l7 {fill: navy;}
+    #l8 {fill: red;}
+    #l9 {fill: limegreen;}
+  &lt;/style&gt;
+
+  &lt;defs&gt;
+  &lt;!--
+    tspan elements broken for readability.
+
+    They should all be in a single line or browsers will
+    insert weird spaces between the characters
+  --&gt;
+    &lt;g id=&quot;title&quot;&gt;
+      &lt;text x=&quot;10&quot; y=&quot;40&quot;&gt;&lt;tspan id=&quot;l1&quot;&gt;N&lt;/tspan&gt;
+      &lt;tspan id=&quot;l2&quot;&gt;i&lt;/tspan&gt;
+      &lt;tspan id=&quot;l3&quot;&gt;g&lt;/tspan&gt;
+      &lt;tspan id=&quot;l4&quot;&gt;h&lt;tspan&gt;
+      &lt;tspan id=&quot;l5&quot;&gt;t&lt;/tspan&gt;
+      &lt;tspan id=&quot;l6&quot; x=&quot;10&quot; y=&quot;80&quot;&gt;f&lt;/tspan&gt;
+      &lt;tspan id=&quot;l7&quot;&gt;a&lt;/tspan&gt;
+      &lt;tspan id=&quot;l8&quot;&gt;l&lt;/tspan&gt;
+      &lt;tspan id=&quot;l9&quot;&gt;l&lt;/tspan&gt;&lt;/text&gt;
+    &lt;/g&gt;
+  &lt;/defs&gt;
+
+  &lt;use xlink:href=&quot;#title&quot;/&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>Rotating text</h2>
+<p>CSS allows you to rotate text in different <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/writing-mode">writing modes</a> but it’s not supported in all browsers. SVG provides an alternative way to rotate and display the text that will work in browsers that support SVG.</p>
+<p>We apply the same attribute/value combination that we use in CSS: <code>writing-mode: vertical-lr</code>. There is a SVG specific attribute <code>writing-mode=&quot;tb&quot;</code> that we can use, but support is not uniform across browser.</p>
+<pre><code class="language-svg">&lt;svg viewBox=&quot;0 0 240 720&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;
+     xmlns:xlink&quot;https://www.w3.org/1999/xlink&quot;&gt;
+  &lt;style&gt;
+    @font-face {
+      font-family: &quot;Marvin&quot;;
+      src: url(&quot;MarvinVisionsBig-Bold.woff&quot;) format(&quot;woff&quot;);
+    }
+
+    text {
+      font-family: Marvin;
+      font-size: 3em;
+      fill: #e65f1d;
+      text-shadow: 12px 12px 6px rgba(0, 0, 0, 1);
+      writing-mode: vertical-lr;
+    }
+  &lt;/style&gt;
+
+  &lt;defs&gt;
+    &lt;g id=&quot;title&quot;&gt;
+      &lt;text x=&quot;40&quot; y=&quot;10&quot;&gt;Nightfall&lt;/text&gt;
+    &lt;/g&gt;
+  &lt;/defs&gt;
+
+  &lt;use xlink:href=&quot;#title&quot;/&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>Text Path</h2>
+<p><code>textPath</code> places text the shape of a path element defined alongside it.</p>
+<p>For <code>textPath</code> to work, the element we use to wrap our content around must be a path. In earlier versions of this example I tried to use a <code>circle</code> but it doesn’t work. Manually creating a circle with SVG is not easy, so I cheated. I created the circle in Adobe Illustrator and then exported it as SVG and copied it to Codepen.</p>
+<p><code>textLength</code> (essentially the circumference of the circle) is used as an alternative to letter-spacing for Firefox, which currently doesn’t support letter-spacing for SVG</p>
+<pre><code class="language-svg">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot;
+      viewBox=&quot;0 0 600 600&quot;&gt;
+
+  &lt;defs&gt;
+    &lt;path d=&quot;M276.14,178C395,178,491.29,259.54,491.29,360.12S395,542.24,276.14,542.24,61,460.7,61,360.12,157.32,178,276.14,178Z&quot; id=&quot;textcircle&quot;/&gt;
+  &lt;/defs&gt;
+
+  &lt;text textLength=&quot;1200&quot;&gt;
+    &lt;textPath xlink:href=&quot;#textcircle&quot;&gt;
+      The fellowship of the ring
+    &lt;/textPath&gt;
+  &lt;/text&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>The CSS portion of this example is simple. It defines the dimensions of the <code>svg</code> element and font attributes.</p>
+<p>In most production cases I would never import the font directly into the CSS file but since this is a demo I’m making an exception. For production, I would likely host the font on the same server and cache it using a service worker.</p>
+<pre><code class="language-css">@import url('https://fonts.googleapis.com/css?family=Fredoka+One');
+
+text {
+  font-size: 38px;
+    font-family: 'Fredoka One', cursive;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 24px;
+    fill: rebeccapurple;
+  opacity: 0.8;
+}
+</code></pre>

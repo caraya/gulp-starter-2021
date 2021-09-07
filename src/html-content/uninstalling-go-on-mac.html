@@ -1,0 +1,25 @@
+<h1>Uninstalling Go on Mac</h1>
+<p>Homebrew is good but it introduces some complexity to your development, particularly if you’ve installed tools manually before they were available via Homebrew.</p>
+<p>One of the really problematic tools to move to Homebrew was Go. Because it is installed as a package, removing it is not trivial and may require a lot of manual ork after the removal is complete.</p>
+<p>Run the following command in a terminal to see if Go was installed using macOS package</p>
+<pre><code class="language-bash">pkgutil --pkgs
+</code></pre>
+<p>Go macOS package is presented as <code>com.googlecode.go</code> in result list. macOS package stores files in the predefined location. For Go version 1.12 these are the files to be deleted:</p>
+<ul>
+<li>file: <code>/etc/paths.d/go</code></li>
+<li>folder <code>usr/local/go</code></li>
+</ul>
+<p>There is a command line to check if files are moved to different location in future Go versions:</p>
+<pre><code class="language-bash">pkgutil --only-files --files com.googlecode.go
+</code></pre>
+<p>Next, we need to remove the system record of Go package:</p>
+<pre><code class="language-bash">sudo pkgutil --forget com.googlecode.go
+</code></pre>
+<h2>Manual cleanup</h2>
+<p>We need to check for and remove the following files manually</p>
+<ul>
+<li><code>/etc/paths.d/go</code>  is added by macOS package</li>
+<li><code>/usr/local/go</code> is where macOS package keeps Go binaries and related files</li>
+<li><code>$HOME/go</code> or <code>$GOPATH</code>, the Go Workspace. Be careful as this is where Go puts your code so back it up before removing it</li>
+</ul>
+<p>Finally, check <code>$PATH</code> for <code>*/go/bin</code> and remove any mentions of Go from the path.</p>

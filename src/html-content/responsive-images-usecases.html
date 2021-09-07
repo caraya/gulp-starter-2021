@@ -1,0 +1,159 @@
+<h1>When To Use Responsive Images</h1>
+<p>Baased on Andreas Bovens’ article <a href="https://dev.opera.com/articles/responsive-images/">Responsive Images: Use Cases and Documented Code Snippets to Get You Started</a> we will look at four use cases for responsive images:</p>
+<ul>
+<li>Change image sizes based on responsive design rules (the sizes use case)</li>
+<li>Optimize for high-dpi screens (the dpi use case)</li>
+<li>Serve images in different image formats to browsers that support them (the mime use case)</li>
+<li>Serve different art depending on certain contextual factors (the art direction use case)</li>
+</ul>
+<p>We’ll look at some example native responsive images and how they apply to these use cases.</p>
+<h2>Viewport Size Based</h2>
+<p>The most basic case is to provide different images based on the width of the viewport.</p>
+<p>The idea is to not load huge images for devices that don’t need or want them. Since we’re only worried about sizes we can use <code>srcset</code> to indicate the sizes that we want to use.</p>
+<pre><code class="language-css">&lt;img
+    srcset=&quot;home-300.jpg 300w,
+            home-400.jpg 400w,
+            home-800.jpg 800w,
+            home-1200.jpg 1200w&quot;&gt;
+    src=&quot;opera-400.jpg&quot; alt=&quot;My House&quot;
+</code></pre>
+<h2>DPR based</h2>
+<p>We can also use responsive images to handle images that will look goood regardless of the DPR factor of the device.</p>
+<p>Some modern displays have up to 5x resolution so the standard imag</p>
+<pre><code class="language-css">&lt;img
+  src=&quot;museum-outside-1x.jpg&quot;
+    alt=&quot;The Oslo Opera House&quot;
+  srcset= &quot;museum-outside-2x.jpg 2x,
+           museum-outside-3x.jpg 3x,
+           museum-outside-4x.jpg 4x,
+           museum-outside-5x.jpg 5x&quot;&gt;
+
+</code></pre>
+<h2>Media Query-like conditions</h2>
+<pre><code class="language-css">&lt;img
+  sizes=&quot;(max-width: 30em) 100vw,
+         (max-width: 50em) 50vw,
+         calc(33vw - 100px)&quot;
+  srcset=&quot;swing-200.jpg 200w,
+          swing-400.jpg 400w,
+          swing-800.jpg 800w,
+          swing-1600.jpg 1600w&quot;/&gt;
+</code></pre>
+<p>When you use the srcset and sizes attributes on an <code>&lt;img&gt;</code> element, you are providing information that the browser can use to make an informed decision about what image is appropriate for the user based on factors you as a developer won’t see or won’t care about.</p>
+<p>If we provide browsers with information via srcset and sizes then browsers can make smarter decisions about the appropriate image source.</p>
+<p>But none of that is possible when you use the <code>&lt;picture&gt;</code> element and its media attributes:</p>
+<pre><code class="language-css">&lt;picture&gt;
+  &lt;source
+    srcset=&quot;large.jpg&quot;
+    media=&quot;(min-width: 45em)&quot;&gt;&lt;/source&gt;
+  &lt;source
+    srcset=&quot;med.jpg&quot;
+    media=&quot;(min-width: 32em)&quot;&gt;&lt;/source&gt;
+  &lt;img
+    src=&quot;small.jpg&quot;
+    alt=&quot;The president giving an award.&quot; /&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>When you use the <code>&lt;picture&gt;</code> element you’re telling the browser that it <strong>must</strong> use the first element where the media matches oor the default element if none do.</p>
+<p>The order of sources matters and you have to be sure that you have enough media conditions to cover all your cases and a good default.</p>
+<h2>Different Images for Portrait or Landscape</h2>
+<p>There are times when we may want to use different images for portrait and landscape modes.</p>
+<p>This picture element will check for the device orientation and use the appropriate source material.</p>
+<p>We could further refine this with viewport or DRP elements in the <code>srcset</code> attribute.</p>
+<pre><code class="language-css">&lt;picture&gt;
+  &lt;source
+    media=&quot;(orientation: portrait)&quot;
+    srcset=&quot;portrait.jpg&quot;&gt;&lt;/source&gt;
+  &lt;source
+    media=&quot;(orientation: landscape)&quot;
+    srcset=&quot;med.jpg&quot;
+    &gt;&lt;/source&gt;
+  &lt;img
+    src=&quot;portrait.jpg&quot;
+    alt=&quot;The president giving an award.&quot; /&gt;
+&lt;/picture&gt;
+</code></pre>
+<h2>Different Formats for Different Browsers</h2>
+<p>Before WebP became <a href="https://caniuse.com/#feat=webp">widely supported</a> (IE and Safari are the only browsers that don’t support it) we had to make sure that we served the right images for the right browsers.</p>
+<p>In this picture element both sources match the media so the browser will take the first source in document order and use that one if the browser supports the format and the second one if it doesn’t.</p>
+<p>Finally, if it doesn’t understand the picture element, the browser will ignore it altogether and use the img element inside the picture.</p>
+<pre><code class="language-css">&lt;picture&gt;
+    &lt;source
+    media=&quot;(min-width: 1280px)&quot;
+    sizes=&quot;50vw&quot;
+    srcset=&quot;museum-fullshot-200.webp 200w,
+      museum-fullshot-400.webp 400w,
+      museum-fullshot-800.webp 800w,
+      museum-fullshot-1200.webp 1200w&quot;
+        type=&quot;image/webp&quot;&gt;
+    &lt;source
+    media=&quot;(min-width: 1280px)&quot;
+    sizes=&quot;50vw&quot;
+    srcset=&quot;museum-fullshot-200.jpg 200w,
+      museum-fullshot-400.jpg 400w,
+      museum-fullshot-800.jpg 800w,
+      museum-fullshot-1200.jpg 1200w&quot;&gt;
+    &lt;img
+    src=&quot;museum-closeup-400.jpg&quot;
+    alt=&quot;Museum Closeup&quot;
+    sizes=&quot;(min-width: 640px) 60vw, 100vw&quot;
+    srcset=&quot;museum-closeup-200.jpg 200w,
+      museum-closeup-400.jpg 400w,
+      museum-closeup-800.jpg 800w,
+      museum-closeup-1200.jpg 1200w&quot;&gt;
+&lt;/picture&gt;
+</code></pre>
+<h2>Combining different techniques</h2>
+<p>This is a more extreme example of combining different techniques. We use multiple sources and multiple formats to make sure we reach as wide a userbase as possible.</p>
+<pre><code class="language-css">&lt;picture&gt;
+    &lt;source
+    media=&quot;(min-width: 1280px)&quot;
+    sizes=&quot;50vw&quot;
+    srcset=&quot;museum-fullshot-200.webp 200w,
+      museum-fullshot-400.webp 400w,
+      museum-fullshot-800.webp 800w,
+      museum-fullshot-1200.webp 1200w&quot;
+        type=&quot;image/webp&quot; /&gt;
+    &lt;source
+    media=&quot;(min-width: 1280px)&quot;
+    sizes=&quot;50vw&quot;
+    srcset=&quot;museum-fullshot-200.jpg 200w,
+      museum-fullshot-400.jpg 400w,
+      museum-fullshot-800.jpg 800w,
+      museum-fullshot-1200.jpg 1200w&quot; /&gt;
+    &lt;source
+    sizes=&quot;(min-width: 640px) 60vw, 100vw&quot;
+    srcset=&quot;museum-closeup-200.webp 200w,
+      museum-closeup-400.webp 400w,
+      museum-closeup-800.webp 800w,
+      museum-closeup-1200.webp 1200w&quot;
+    type=&quot;image/webp&quot; /&gt;
+    &lt;source
+    sizes=&quot;(min-width: 640px) 60vw, 100vw&quot;
+    srcset=&quot;museum-closeup-200.jpg 200w,
+      museum-closeup-400.jpg 400w,
+      museum-closeup-800.jpg 800w,
+      museum-closeup-1200.jpg 1200w&quot; /&gt;
+    &lt;img
+    src=&quot;museum-closeup-400.jpg&quot;
+    alt=&quot;Museum Closeup&quot;
+    sizes=&quot;(min-width: 640px) 60vw, 100vw&quot;
+    srcset=&quot;museum-closeup-200.jpg 200w,
+      museum-closeup-400.jpg 400w,
+      museum-closeup-800.jpg 800w,
+      museum-closeup-1200.jpg 1200w&quot;&gt;
+&lt;/picture&gt;
+</code></pre>
+<p>We have a lot of options regarding responsive images. This barely scratches the surface of leveraging responsive images but it’s a good start and a good tool to add to the arsenal.</p>
+<h2>Links and resources</h2>
+<ul>
+<li><a href="http://usecases.responsiveimages.org/">Use Cases and Requirements for Standardizing Responsive Images</a></li>
+<li><a href="https://www.netvlies.nl/tips-updates/algemeen/algemeen/retina-revolution/">Retina revolution</a></li>
+<li><a href="https://cloudfour.com/thinks/dont-use-picture-most-of-the-time/">Don’t use <picture> (most of the time)</a></li>
+<li><a href="https://dev.opera.com/articles/native-responsive-images/">Native Responsive Images</a></li>
+<li><a href="https://cloudfour.com/thinks/sensible-jumps-in-responsive-image-file-sizes/">https://cloudfour.com/thinks/sensible-jumps-in-responsive-image-file-sizes/</a></li>
+<li><a href="https://timkadlec.com/2013/06/why-we-need-responsive-images/">Why we need responsive images</a></li>
+<li><a href="https://timkadlec.com/2013/11/why-we-need-responsive-images-part-deux/">Why we need responsive images: part deux</a></li>
+<li><a href="https://www.smashingmagazine.com/2014/05/responsive-images-done-right-guide-picture-srcset/">Responsive Images Done Right: A Guide To And srcset</a></li>
+<li><a href="https://ericportis.com/posts/2014/srcset-sizes/">Srcset and sizes</a></li>
+</ul>

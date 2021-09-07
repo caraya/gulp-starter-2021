@@ -1,0 +1,325 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>SVG Animation</h1>
+<p>Perhaps the most interesting and complex topic in SVG, for me, is animations. I have a basic understanding on how to create keyframe animations for CSS content and a very basic understanding of how to use <a href="https://greensock.com/">GSAP</a> to animate HTML elements. I want to explore how to create smaller targeted animations using both CSS and SVG specific animations techniques.</p>
+<h2>SMIL and the animate element</h2>
+<p>SVG comes with its own animation tools in the form of the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate">animate</a> element and SMIL.</p>
+<p>The most basic animation element is <code>animate</code>. It takes the following attributes:</p>
+<ul>
+<li><strong>attributeName</strong>: The name of the attribute we want to animate</li>
+<li><strong>attributeType</strong>: One of CSS, XML or auto
+<ul>
+<li>CSS specifies that the value of attributeName is the name of a CSS property defined as animatable</li>
+<li><strong>XML</strong> represents an XML attribute defined as animatable in the SVG namespace</li>
+<li><strong>auto</strong> tells the browser (in this case) to first search through the list of CSS properties for a matching property name, and if it doesn’t find one, then search the default XML namespace for the element</li>
+</ul>
+</li>
+<li><strong>from</strong> is the initial value of the property we want to animate</li>
+<li><strong>to</strong> is the final value of the property we want to animate</li>
+<li><strong>dur</strong> tells the browser how long we want the animation to last</li>
+<li><strong>repeatCount</strong> tells the user agent how many times we want to run the animation. It can be a positive integer or the keyword <code>indefinite</code></li>
+</ul>
+<p>The example below will animate the movement of the rectangle on the <code>x</code> axis from left to right, lasting 10 seconds and repeating the animation from the beginning 10 times.</p>
+<pre><code class="language-svg">&lt;svg width=&quot;100&quot; height=&quot;100&quot; viewBox=&quot;0 0 100 100&quot; version=&quot;1.1&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+
+  &lt;rect x=&quot;10&quot; y=&quot;10&quot;
+        width=&quot;90&quot; height=&quot;90&quot;
+        fill=&quot;purple&quot; &gt;
+    &lt;animate attributeType=&quot;XML&quot;
+             attributeName=&quot;x&quot;
+             from=&quot;100&quot; to=&quot;-100&quot;
+             dur=&quot;10s&quot;
+             repeatCount=&quot;10&quot;/&gt;
+  &lt;/rect&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>The second example builds on the first one. It adds additional <code>animate</code> elements to animate different properties of the same target element. The second <code>animate</code> element will move the rectangle on the <code>y</code> axis, and the third <code>animate</code> element will animate the color from purple to blue.</p>
+<p>If we wanted to we could give these properties their own duration or repeatCount values but, for this example,</p>
+<pre><code class="language-svg">&lt;svg width=&quot;100&quot; height=&quot;100&quot; viewBox=&quot;0 0 100 100&quot; version=&quot;1.1&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+
+  &lt;rect x=&quot;10&quot; y=&quot;10&quot;
+        width=&quot;90&quot; height=&quot;90&quot;
+        fill=&quot;purple&quot; &gt;
+    &lt;animate attributeType=&quot;XML&quot;
+             attributeName=&quot;x&quot; from=&quot;100&quot; to=&quot;-100&quot;
+             dur=&quot;10s&quot;
+             repeatCount=&quot;10&quot;/&gt;
+    &lt;animate attributeType=&quot;XML&quot;
+             attributeName=&quot;y&quot; from=&quot;100&quot; to=&quot;-100&quot;
+             dur=&quot;10s&quot;
+             repeatCount=&quot;10&quot;/&gt;
+    &lt;animate attributeType=&quot;XML&quot;
+             attributeName=&quot;fill&quot; from=&quot;purple&quot; to=&quot;blue&quot;
+             dur=&quot;10s&quot;
+             repeatCount=&quot;10&quot; /&gt;
+  &lt;/rect&gt;
+&lt;/svg&gt;
+</code></pre>
+<h3>animateMotion</h3>
+<p>The second element is <code>animateMotion</code> and it animates the target element along a pre-defined path.</p>
+<ul>
+<li><strong>calcMode</strong> indicates what interpolation mode to use for animation. It takes one of the following values:
+<ul>
+<li><strong>discrete</strong>: The animation function will jump from one value to the next without any interpolation</li>
+<li><strong>linear</strong>: Simple linear interpolation between values is used to calculate the animation function</li>
+<li><strong>paced</strong>:  Defines interpolation to produce an even pace of change across the animation. This is only supported for values that define a linear numeric range, and for which some notion of “distance” between points can be calculated (e.g. position, width, height, etc.). For <code>animateMotion</code>, this is the default value</li>
+<li><strong>spline</strong>: Interpolates from one value in the values list to the next according to a time function defined by a cubic Bézier spline. The points of the spline are defined in the <code>keyTimes</code> attribute, and the control points for each interval are defined in the <code>keySplines</code> attribute</li>
+</ul>
+</li>
+<li><code>path</code> represent the path the animation will follow</li>
+<li><code>keyPoints</code> takes a semicolon-separated list of floating point values between 0 and 1 and indicates how far along the motion path the object shall move at the moment in time specified by corresponding ‘keyTimes’ value. Each value in the list corresponds to a value in the <code>keyTimes</code> attribute list. The number of <code>keyPoint</code> values must exactly match the values in the ‘keyPoints’ list</li>
+<li><strong>rotate</strong> controls the positioning of the animated object. It can take one of the following values:
+<ul>
+<li><strong>auto</strong>: The object is rotated over time by the angle of the direction (i.e., directional tangent vector) of the motion path</li>
+<li><strong>auto-reverse</strong> The object is rotated over time by the angle of the direction (i.e., directional tangent vector) of the motion path plus 180 degrees.</li>
+<li><strong>number</strong> The target element has a constant rotation transformation applied to it, where the rotation angle is the specified number of degrees.</li>
+<li>The default value is <code>0</code>.</li>
+</ul>
+</li>
+<li><strong>origin</strong> is defined in the <a href="http://www.w3.org/TR/2001/REC-smil-animation-20010904/#MotionOriginAttribute">SMIL Animation Specification</a> and has no effect on SVG</li>
+</ul>
+<p>The <code>mpath</code> sub-element provides the ability to reference an external <code>path</code> element as the definition of a motion path.</p>
+<ol>
+<li>The example creates an ellipses to be used as the path our object will navigate.</li>
+<li>Then we create three circles and place them on the path, one at the beginning, one on the middle and one on the end.</li>
+<li>Finally we create a triangle and animate it along the path we defined in step 1</li>
+</ol>
+<pre><code class="language-svg">&lt;svg  width=&quot;5cm&quot; height=&quot;3cm&quot;
+      viewBox=&quot;0 0 500 300&quot;
+      xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+
+  &lt;path id=&quot;path1&quot;
+        d=&quot;M100,250 C 100,50 400,50 400,250&quot;
+        fill=&quot;none&quot;
+        stroke=&quot;blue&quot;
+        stroke-width=&quot;7.06&quot;  /&gt;
+  &lt;circle cx=&quot;100&quot; cy=&quot;250&quot; r=&quot;12.64&quot; fill=&quot;blue&quot;  /&gt;
+  &lt;circle cx=&quot;250&quot; cy=&quot;100&quot; r=&quot;12.64&quot; fill=&quot;blue&quot;  /&gt;
+  &lt;circle cx=&quot;400&quot; cy=&quot;250&quot; r=&quot;12.64&quot; fill=&quot;blue&quot;  /&gt;
+
+  &lt;path id=&quot;triangle&quot;
+        d=&quot;M-25,-12.5 L25,-12.5 L 0,-87.5 z&quot;
+        fill=&quot;yellow&quot;
+        stroke=&quot;red&quot;
+        stroke-width=&quot;7.06&quot;  &gt;
+    &lt;!-- Define the motion path animation --&gt;
+    &lt;animateMotion  dur=&quot;6s&quot;
+                    repeatCount=&quot;10&quot;
+                    rotate=&quot;auto&quot; &gt;
+       &lt;mpath href=&quot;#path1&quot;/&gt;
+    &lt;/animateMotion&gt;
+  &lt;/path&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>animateTransform</h2>
+<p>The <code>animateTransform</code> element control transform-based animations and does a similar job to the CSS <code>transform</code>. Because it handles different types of transformations there is no single set of paramepters to discuss here. I’ll refer you to the element’s <a href="https://svgwg.org/specs/animations/#AnimateTransformElement">description</a> in the <a href="https://svgwg.org/specs/animations/">SVG Animations</a> specification.</p>
+<pre><code class="language-svg">&lt;svg width=&quot;400&quot; height=&quot;600&quot; viewbox=&quot;0 0 100 100&quot;&gt;
+  &lt;rect id=&quot;Rectangle1&quot; fill=&quot;#3C81C1&quot; x=&quot;0&quot; y=&quot;0&quot; width=&quot;100&quot; height=&quot;125&quot;&gt;
+    &lt;animateTransform   attributeName=&quot;transform&quot;
+                        type=&quot;translate&quot;
+                        from=&quot;0 0&quot;
+                        to=&quot;150 20&quot;
+                        begin=&quot;0s&quot;
+                        dur=&quot;2s&quot;
+                        repeatCount=&quot;indefinite&quot;
+    /&gt;
+  &lt;/rect&gt;
+&lt;/svg&gt;
+</code></pre>
+<h3>Multiple animations</h3>
+<p>One important detail is how to run multiple <code>animateTransform</code> elements for the same target.</p>
+<p>We need to wrap all the SVG children in a <code>g</code> element and then, like in the example, define one inside the target element and one as the last child of the <code>g</code> grouping element.</p>
+<pre><code class="language-svg">&lt;svg width=&quot;600&quot; height=&quot;400&quot; viewbox=&quot;0 0 600 400&quot;&gt;
+  &lt;g&gt;
+    &lt;rect id=&quot;Rectangle1&quot;
+          fill=&quot;#3C81C1&quot;
+          x=&quot;0&quot; y=&quot;0&quot;
+          width=&quot;100&quot; height=&quot;125&quot;&gt;
+        &lt;animateTransform   attributeName=&quot;transform&quot;
+                            type=&quot;scale&quot;
+                            from=&quot;1 1&quot;
+                            to=&quot;3 1.25&quot;
+                            begin=&quot;0s&quot;
+                            dur=&quot;2s&quot;
+                            repeatCount=&quot;5&quot;
+        /&gt;
+    &lt;/rect&gt;
+    &lt;animateTransform   attributeName=&quot;transform&quot;
+                       type=&quot;translate&quot;
+                       from=&quot;0 0&quot;
+                       to=&quot;150 20&quot;
+                       begin=&quot;0s&quot;
+                       dur=&quot;2s&quot;
+                       repeatCount=&quot;5&quot; /&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>Set</h2>
+<p>The ‘set’ element provides a simple means of just setting the value of an attribute for a specified duration. It supports all attribute types, including those that cannot reasonably be interpolated, such as string and boolean values.</p>
+<p>In the example we set the <code>stroke-width</code> attribute, which takes a string to be 5px starting 5 seconds into the animation.</p>
+<pre><code class="language-svg">&lt;svg width=&quot;100&quot; height=&quot;100&quot; viewBox=&quot;0 0 100 100&quot; version=&quot;1.1&quot;
+     xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+
+  &lt;rect x=&quot;10&quot; y=&quot;10&quot;
+        width=&quot;90&quot; height=&quot;90&quot;
+        fill=&quot;blue&quot;
+        stroke=&quot;red&quot;&gt;
+    &lt;animate attributeType=&quot;XML&quot;
+             attributeName=&quot;x&quot;
+             from=&quot;100&quot; to=&quot;-100&quot;
+             dur=&quot;10s&quot;
+             repeatCount=&quot;10&quot;/&gt;
+    &lt;set  attributeName=&quot;stroke-width&quot; to=&quot;10px&quot;
+          begin=&quot;5s&quot;
+          dur=&quot;10s&quot;/&gt;
+  &lt;/rect&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>Discard</h2>
+<p>The ‘discard’ element allows authors to specify the time at which particular elements are to be discarded, thereby reducing the resources required by an SVG user agent. This is particularly useful to help SVG viewers conserve memory while displaying long-running documents. This element will not be processed by static SVG viewers.</p>
+<p>The ‘discard’ element may occur wherever the ‘animate’ element may.</p>
+<pre><code class="language-svg">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;352&quot; height=&quot;240&quot; playbackorder=&quot;forwardonly&quot;&gt;
+
+  &lt;ellipse cx=&quot;98.5&quot; cy=&quot;17.5&quot;
+           rx=&quot;20.5&quot; ry=&quot;17.5&quot;
+           fill=&quot;blue&quot; stroke=&quot;black&quot;
+           transform=&quot;translate(9 252) translate(3 -296)&quot;&gt;
+    &lt;animateTransform attributeName=&quot;transform&quot;
+                      begin=&quot;0s&quot; dur=&quot;2s&quot;
+                      fill=&quot;remove&quot;
+                      calcMode=&quot;linear&quot;
+                      type=&quot;translate&quot;
+                      additive=&quot;sum&quot;
+                      from=&quot;0 0&quot; to=&quot;-18 305&quot;/&gt;
+    &lt;discard begin=&quot;2s&quot;/&gt;
+  &lt;/ellipse&gt;
+
+  &lt;rect x=&quot;182&quot; y=&quot;-39&quot; width=&quot;39&quot; height=&quot;30&quot;
+        fill=&quot;red&quot; stroke=&quot;black&quot;
+        transform=&quot;translate(30 301)&quot;&gt;
+    &lt;animateTransform   attributeName=&quot;transform&quot;
+                        begin=&quot;1s&quot; dur=&quot;2s&quot;
+                        fill=&quot;remove&quot;
+                        calcMode=&quot;linear&quot;
+                        type=&quot;translate&quot;
+                        additive=&quot;sum&quot;
+                        from=&quot;0 0&quot; to=&quot;-26 -304&quot;/&gt;
+    &lt;discard begin=&quot;3s&quot;/&gt;
+  &lt;/rect&gt;
+
+  &lt;polygon points=&quot;-66,83.5814 -43,123.419 -89,123.419&quot;
+           fill=&quot;green&quot; stroke=&quot;black&quot;
+           transform=&quot;matrix(1 0 0 1.1798 0 -18.6096)&quot;&gt;
+    &lt;animateTransform attributeName=&quot;transform&quot;
+                      begin=&quot;2s&quot; dur=&quot;2s&quot;
+                      fill=&quot;remove&quot; calcMode=&quot;linear&quot; type=&quot;translate&quot; additive=&quot;sum&quot;
+                      from=&quot;0 0&quot; to=&quot;460 63.5699&quot;/&gt;
+    &lt;discard begin=&quot;4s&quot;/&gt;
+  &lt;/polygon&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>The downside is that SMIL, the technology behind SVG native animations is not in IE/Edge and never will be; it has been deprecated by Blink (but <a href="https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/5o0yiO440LM/YGEJBsjUAwAJ">the deprecation was withdrawn</a> and will not happen… for now). Check <a href="http://caniuse.com">caniuse.com</a> for <a href="https://caniuse.com/#feat=svg-smil">SMIL support</a> and how it evolves over time.</p>
+<p>There are other options to animate SVG. We’ll explore them</p>
+<h2>CSS Animations</h2>
+<p>Interestingly, most of what you can do natively in SVG you can do with CSS transitions and transformations. We’ll work with CSS inside the SVG element but it could easily be done with an external style sheet that integrates all the styles for the document.</p>
+<p>The example shows how using the <code>style</code> element inside an inline SVG we can control SVG animations the same way we control them in CSS.</p>
+<p>In this example we define the styles for the <code>.rotator</code> element and the keyframes we need for the animation to work.</p>
+<p>The rectangle in the SVG matches the class in the CSS so it gets animated and rotates.</p>
+<pre><code class="language-svg">&lt;svg  xmlns=&quot;http://www.w3.org/2000/svg&quot;
+      xmlns:xlink=&quot;https://www.w3.org/1999/xlink&quot;
+      width=&quot;600&quot; height=&quot;450&quot;
+      viewbox=&quot;0 0 100 100&quot;&gt;
+
+  &lt;style&gt;
+    .rotator {
+      fill: deeppink;
+      animation: hideshow 5s ease-in 10;
+      transform-origin: center;
+    }
+
+    @keyframes hideshow {
+       50% { fill: purple;}
+        to {
+          transform: rotate(360deg);
+          fill: blue;
+      }
+    }
+  &lt;/style&gt;
+
+
+  &lt;rect class=&quot;rotator&quot;
+        x=&quot;50&quot; y=&quot;50&quot;
+        width=&quot;25&quot; height=&quot;25&quot;&gt;&lt;/rect&gt;
+&lt;/svg&gt;
+</code></pre>
+<h2>Web Animations API: One API to rule them all</h2>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/GxOq1bnlZXk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>The last animation technique I want to discuss is the <a href="https://www.w3.org/TR/web-animations-1/">Web Animations API</a>; an attempt to unify all the animations APIs available in CSS and SVG. Yes, it means adding a script to the page and, potentially blocking render if we’re not careful but I think it’s the best way to use animations short of going the GSAP route.</p>
+<p>I <a href="https://publishing-project.rivendellweb.net/web-animations-learning-to-love-the-api/">wrote about Web Animations API</a> in 2016 but it wasn’t until I started looking at SVG that I came back to the API as a one-stop way to animate content.</p>
+<p>This example is broken into two sections. The first one is the SVG rectangle where we assign an ID to the element we want to rotate so we can grab it later from the script.</p>
+<pre><code class="language-svg">&lt;svg  xmlns=&quot;http://www.w3.org/2000/svg&quot;
+      xmlns:xlink=&quot;https://www.w3.org/1999/xlink&quot;
+      width=&quot;600&quot; height=&quot;450&quot;
+      viewbox=&quot;0 0 100 100&quot;&gt;
+  &lt;rect id=&quot;rotator&quot;
+        x=&quot;50&quot; y=&quot;50&quot;
+        fill=&quot;deeppink&quot;
+        width=&quot;50&quot;
+        height=&quot;50&quot;&gt;&lt;/rect&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>This is the first, and only, example that will use Javascript. Web Animation APIs main method is <code>animate</code>; it takes two parameters, an array of objects containing the different animations to run and another object containing the settings for the animation.</p>
+<pre><code class="language-js">const player = document.getElementById('toAnimate').animate([
+    { transform: 'scale(1)', opacity: 1, offset: 0 },
+    { transform: 'scale(.5)', opacity: .5, offset: .3 },
+    { transform: 'scale(.667)', opacity: .667 },
+    { transform: 'scale(.6)', opacity: .6 }
+  ], {
+    // duration in milliseconds
+    duration: 10000,
+    //'linear', a bezier curve, etc.
+    easing: 'ease-in-out',
+    // delay in milliseconds
+    delay: 10,
+    // infinity or a positive integer number
+    iterations: Infinity,
+    //'normal', 'reverse', etc.
+    direction: 'alternate',
+    //'backwards', 'both', 'none', 'auto'
+    fill: 'forwards'
+  });
+</code></pre>
+<p>Yeah, much more verbose, but it’ll work everywhere and it doesn’t require a third party library.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

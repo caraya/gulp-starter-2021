@@ -1,0 +1,105 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Running shell commands from Node.js</h1>
+<p>I run a lot of commands from Node.js and Gulp scripts, the most common is to spawn a new shell to run a command or an application.</p>
+<p>Take the following snippet of a Bash script</p>
+<pre><code class="language-bash">#! /usr/bin/env bash
+
+# Variable holding name of source image.
+SOURCE_IMAGE='STSCI-H-p2022a-f-4398x3982'
+
+# Variables holding names of encoders's binaries
+IMAGE_MAGICK='convert'
+WEBP_ENCODER='cwebp'
+HEIC_ENCODER='heif-enc'
+# DSSIM Binary
+DSSIM_BINARY='dssim'
+
+echo Starting First Encoding Test
+
+if hash ${IMAGE_MAGICK} 2&gt;/dev/null; then
+  echo encoding to PNG
+  ${IMAGE_MAGICK} ${SOURCE_IMAGE}.tif -quality 80 ${SOURCE_IMAGE}.png
+  echo encoding to JPG
+  ${IMAGE_MAGICK} ${SOURCE_IMAGE}.tif -quality 80 ${SOURCE_IMAGE}.jpg
+else
+  echo cannot convert to PNG or JPG
+fi
+
+if hash ${WEBP_ENCODER} 2&gt;/dev/null; then
+  echo encoding to lossy WebP
+  ${WEBP_ENCODER} -q 80 \
+  ${SOURCE_IMAGE}.tif \
+  -o ${SOURCE_IMAGE}.webp
+else
+  echo cannot convert to WEBP
+fi
+
+if hash ${HEIC_ENCODER} 2&gt;/dev/null; then
+  echo encoding to lossy HEIC
+  ${HEIC_ENCODER} --quality 80 \
+  ${SOURCE_IMAGE}.png
+else
+  echo could not encode to HEIC
+fi
+
+</code></pre>
+<p>The script creates variables to hold the name of the image we want to convert and the names of the encoders we want to use. The encoders must already be installed and on the PATH.</p>
+<p>For each image format, the script will check if the encoder is available. If it is the script will use it to encode the image. If the encoder is not available thhe script will print an error message and continue on to the next encoder or exit if it’s on the last one.</p>
+<p>The Bash shell is powerful but it’s not available everywhere out of the box. It is available by default on Linux and macOS, but not on Windows. To get Bash on Windows, you have a few options:</p>
+<ul>
+<li>Install <a href="https://www.cygwin.com/">Cygwin</a></li>
+</ul>
+<p>Another posibility is to run a full script in node using tools like <a href="https://github.com/google/zx">zx</a>. The tools is more complicated to use and does a better job or emulating a shell than ShellJS.</p>
+<p>It requires you to save the files with an <code>.mjs</code> extension to take advantage of top level await syntax.</p>
+<pre><code class="language-js">#!/usr/bin/env zx
+
+let username = await question('What is your GitHub username? ')
+let token = await question('Do you have GitHub token in env? ', {
+  choices: Object.keys(process.env)
+})
+
+let headers = {}
+if (process.env[token]) {
+  headers = {
+    Authorization: `token ${process.env[token]}`
+  }
+}
+let res = await fetch(`https://api.github.com/users/${username}/repos`, {headers})
+let data = await res.json()
+let urls = data.map(x =&gt; x.git_url)
+
+await $`mkdir -p backups`
+cd('./backups')
+
+await Promise.all(urls.map(url =&gt; $`git clone ${url}`))
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

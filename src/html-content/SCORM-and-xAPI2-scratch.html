@@ -1,0 +1,103 @@
+<h1>More examples</h1>
+<p>This is a more complex example of a xAPI statement. It addresses some of the questions</p>
+<pre><code class="language-json">{
+  &quot;actor&quot;: {
+    &quot;objectType&quot;: &quot;person&quot;,
+    &quot;displayName&quot;: &quot;Carlos Araya&quot;
+  },
+  &quot;verb&quot;: {
+    &quot;id&quot;: &quot;https://w3id.org/xapi/dod-isd/verbs/presented&quot;,
+    &quot;display&quot;: {
+      &quot;en-US&quot;: &quot;presented&quot;,
+      &quot;es-CL&quot;: &quot;presentó&quot;
+    },
+    &quot;name&quot;: &quot;present&quot;
+  },
+  &quot;object&quot;: {
+    &quot;id&quot;: &quot;http://ns.rivendellweb.net/activities/conference-presentation&quot;,
+    &quot;objectType&quot;: &quot;Presentation&quot;,
+    &quot;definition&quot;: {
+    &quot;name&quot;: {
+      &quot;en-US&quot;: &quot;Conference presentation&quot;,
+      &quot;es-CL&quot;: &quot;Presentación en conferencia&quot;
+    },
+    &quot;displayName&quot;: {
+      &quot;en-US&quot;: &quot;The what and the why of xAPI&quot;,
+      &quot;es-CL&quot;: &quot;El qué y el por qué de xAPI&quot;
+    }
+  },
+  &quot;context&quot;: {
+    &quot;Conference&quot;: {
+      &quot;name&quot;: &quot;The Conference&quot;,
+      &quot;id&quot;: &quot;https://theconference.com/&quot;
+    },
+  }
+}
+</code></pre>
+<h4>Converting content by hand</h4>
+<p>There are tools that will convert SCORM to cmi5. Tools like TinCanJS, and Rustici (SCORM) Driver require you to open the courses and change the SCORM scripts and API calls to xAPI (when using TinCanJS) and platform neutral calls (when using Rustici Driver)</p>
+<p>The following examples use <a href="http://rusticisoftware.github.io/TinCanJS/">TinCanJS</a> to build the different parts of an xAPI interaction with an LRS.</p>
+<p>The first block attempts to connect to the specified LRS using the credentials given in the user name and password fields.</p>
+<p>Unlike many things on the web today. This code must be run synchronously, nothing else in the page can run until we know if we were able to log in to the LRS.</p>
+<p>In the catch block we could also pop an alert or some other way to notify the user that the connection was unsuccessful.</p>
+<pre><code class="language-js">let lrs;
+
+try {
+  lrs = new TinCan.LRS({
+    endpoint: &quot;https://cloud.scorm.com/tc/public/&quot;,
+    username: &quot;&lt;Test User&gt;&quot;,
+    password: &quot;&lt;Test Password&gt;&quot;,
+    allowFail: false
+  });
+}
+catch (ex) {
+  console.log(&quot;Failed to setup LRS object: &quot;, ex);
+  // TODO: do something with error
+  // can't communicate with LRS
+}
+</code></pre>
+<p>The next section is where we build the statement that we want to send to the LRS. See <a href="#structuring">Structuring the xAPI JSON object</a> for more details of the different parts of the statement we’re building.</p>
+<pre><code class="language-js">var statement = new TinCan.Statement(
+  {
+    actor: {
+        mbox: &quot;mailto:info@tincanapi.com&quot;
+    },
+    verb: {
+        id: &quot;http://adlnet.gov/expapi/verbs/experienced&quot;
+    },
+    target: {
+        id: &quot;http://rusticisoftware.github.com/TinCanJS&quot;
+    }
+  }
+);
+</code></pre>
+<p>We use XHR to save the statement to the LRS. While most modern browsers support fetch, we’re bound to support older systems where fetch is not supported. Rather than using a polyfill, the creators of TinCan.js chose to support the older protocol as it’ll allow older browsers to talk to the LRS.</p>
+<pre><code class="language-js">lrs.saveStatement(statement, {
+    callback: function (err, xhr) {
+      if (err !== null) {
+        if (xhr !== null) {
+          console.log(&quot;Failed to save statement: &quot; + xhr.responseText + &quot; (&quot; + xhr.status + &quot;)&quot;);
+          // TODO: do something with error, didn't save statement
+          return;
+        }
+
+        console.log(&quot;Failed to save statement: &quot; + err);
+        // TODO: do something with error, didn't save statement
+        return;
+      }
+
+      console.log(&quot;Statement saved&quot;);
+      // TODO: do something with success (possibly ignore)
+    }
+  }
+);
+</code></pre>
+<p>There are other portions of the TinCan.js library that we haven’t used because they are not used to send data to the LRS.</p>
+<p>xAPI Quarterly published an article about how to <a href="https://xapiquarterly.com/2016/07/captivate-javascript-xapi-customization-best-practices-xapi/">customize Adobe Captivate to generate xAPI statements</a> that shows how we could make other authoring tools generate xAPI statements even if the tool doesn’t support the API natively.</p>
+<p>Another way to get statements on our content and products is to roll up our slves and code the statement and communication with the LRS ourselves. This would make our content less dependent on third party authoring tools and it would give us more flexibility on how we create and deploy our content.</p>
+<p>We’ll discuss more about one way to add xAPI statements to our content later.</p>
+<h3>What content do we want to track? From what sources?</h3>
+<h3>Do we need an LMS?</h3>
+<h3>Is the LMS budled with an LRS? Do we need it to be?</h3>
+<h3>Are we hosting on premise? private cloud? vendor?</h3>
+<h3>How will learners authenticate?</h3>

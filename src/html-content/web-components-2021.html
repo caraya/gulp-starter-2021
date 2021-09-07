@@ -1,0 +1,318 @@
+<h1>Web Components: what they are and where are they?</h1>
+<p>Web Components are a set of specifications that address one of the biggest shortcomings of HTML. We’re stuck with what the spec says we have and the browser implementors decide to give us…</p>
+<p>At least that’s the theory.</p>
+<p>Web Components allow developers to create their own elements along with the styles and scripts associated with the elements. These custom elements would be treated the same as the built-in elements available on browsers, as long as the browser supports the APIs.</p>
+<p>Early version of the web components family of specifications included the following specifications:</p>
+<ul>
+<li>Custom Elements</li>
+<li>HTML Imports</li>
+<li>Shadow DOM</li>
+<li>HTML Templates</li>
+</ul>
+<p>The initial proposals from Google had a lot of pushback from Apple and Mozilla, particularly the concept of HTML Imports. They wanted to wait what would ECMAScript modules would look like and how they would work with non-HTML resources. We’re still waiting…</p>
+<p>This has changed considerably since the first introduction of the concept.</p>
+<ul>
+<li>Shadow DOM
+<ul>
+<li>Most of the parts are now maintained in <a href="https://dom.spec.whatwg.org/">DOM Standard</a>, and are called shadow trees</li>
+</ul>
+</li>
+<li>Custom Elements
+<ul>
+<li>Custom elements were upstreamed into the <a href="https://html.spec.whatwg.org/multipage/scripting.html#custom-elements">HTML Standard</a> (and bits in the DOM Standard) and are maintained there</li>
+</ul>
+</li>
+<li>HTML Templates
+<ul>
+<li>HTML Templates were upstreamed into the <a href="https://html.spec.whatwg.org/multipage/scripting.html#the-template-element">HTML Standard</a></li>
+</ul>
+</li>
+<li>JSON, <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/css-modules-v1-explainer.md">CSS</a>, <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md">HTML</a> Modules
+<ul>
+<li>Successor to the abandoned HTML Imports, allows JSON, CSS, and HTML markup to be requested by a component</li>
+<li>HTML Modules Spec work is being incubated in the whatwg/html repository (see <a href="https://github.com/whatwg/html/pull/4505">PR</a>)</li>
+<li>See the following docs:
+<ul>
+<li><a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md">HTML Modules explainer</a></li>
+<li><a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-proposal.md">initial proposal</a></li>
+<li><a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/HTML-Imports-and-ES-Modules.md">earlier design ideas</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>CSS changes
+<ul>
+<li>The CSS WG works on <a href="https://drafts.csswg.org/css-scoping/">CSS Scoping</a> and <a href="https://drafts.csswg.org/css-shadow-parts/">CSS Shadow Parts</a>, which help dealing with shadow trees with various selectors</li>
+<li>Various other parts of CSS and its object model are also impacted by shadow trees and directly worked on in the various CSS specificaions</li>
+</ul>
+</li>
+</ul>
+<p>There have also been two versions of the web components specifications.</p>
+<p>V0 was the original version of web components that shipped in older Chromium browsers; it has been deprecated in Chromium browsers and is no longer supported.</p>
+<p>V1 was developed as a replacement for V0 and incorporated feedback from the community and lessons learned from the original designs.</p>
+<p>A component created with <a href="https://polymer-library.polymer-project.org/3.0/docs/devguide/feature-overview">Polymer 3.0</a> looks like this:</p>
+<pre><code class="language-js">import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+
+class XCustom extends PolymerElement {
+
+  // Optional Shadow DOM template
+  static get template() { 
+    return html`
+      &lt;style&gt;
+        /* CSS rules for your element */
+      &lt;/style&gt;
+
+        &lt;!-- shadow DOM for your element --&gt;
+
+      &lt;div&gt;[[greeting]]&lt;/div&gt; &lt;!-- data bindings in shadow DOM --&gt;
+    `;
+  }
+
+  static get properties() {
+    return {
+      greeting: {
+        type: String
+      }
+    }
+  }
+
+  constructor() {
+    super();
+    this.greeting = 'Hello!';
+  }
+  greetMe() {
+    console.log(this.greeting);
+  }
+
+}
+
+customElements.define('x-custom', XCustom);
+</code></pre>
+<p>Then you would add the custom element to your page like any other HTML element</p>
+<pre><code class="language-html">&lt;app-drawer&gt;&lt;/app-drawer&gt;
+</code></pre>
+<p>An example of a web component created using plain Javascript looks like this. Note that the main difference is the element it extends, <code>HTMLElement</code> rather than <code>PolymerElement</code></p>
+<pre><code class="language-js">class VCard extends HTMLElement {
+  constructor() {
+    super();
+
+    this.heading = &quot;&quot;;
+    this.subheading = &quot;&quot;;
+  }
+
+  connectedCallback() {
+    this.heading = this.getAttribute(&quot;heading&quot;);
+    this.subheading = this.getAttribute(&quot;subheading&quot;);
+
+    this.render();
+  }
+
+  render() {
+    this.innerHTML = `
+      &lt;div style=&quot;text-align: center; font-family: sans-serif&quot;&gt;
+        &lt;h1&gt;${this.heading}&lt;/h1&gt;
+        &lt;p&gt;${this.subheading}&lt;/p&gt;
+      &lt;/div&gt;
+      `;
+  }
+}
+
+customElements.define(&quot;v-card&quot;, VCard);
+</code></pre>
+<p>And include the element in HTML passing the values for the fields we want to use as attribute/value pairs.</p>
+<pre><code class="language-html">&lt;v-card
+  heading=&quot;Carlos Araya&quot;
+  subheading=&quot;Technical Writer&quot;
+&gt;&lt;/v-card&gt;
+</code></pre>
+<h2>Shadow DOM</h2>
+<p>The idea has always been that the styles for a web components are encapsulated to the element but that makes it very hard to style elements based on the page’s themes or styles.</p>
+<p>The Shadow DOM V0 specification had several pseudo elements and classes that would allow designers to style the shadow DOM from the host page, but they were deprecated as they defeat the purpose of encapsulating styles to an element.</p>
+<h3>Shadown Parts</h3>
+<p>Since the removal of the piercing combinators, the current best practice is to use the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::part">::part</a> pseudo elements to style custom elements from outside. Using parts requires we add the <code>part</code> attribute in the custom element HTML template. Like the <code>class</code> attribute, <code>part</code> can take a list of values separated from spaces; we’ll be able to match on them individually.</p>
+<pre><code class="language-html">&lt;template id=&quot;tabbed-custom-element&quot;&gt;
+&lt;style type=&quot;text/css&quot;&gt;
+  /* Internal styles go here */
+&lt;/style&gt;
+&lt;div part=&quot;tab active&quot;&gt;Tab 1&lt;/div&gt;
+&lt;div part=&quot;tab&quot;&gt;Tab 2&lt;/div&gt;
+&lt;div part=&quot;tab&quot;&gt;Tab 3&lt;/div&gt;
+&lt;/template&gt;
+
+&lt;tabbed-custom-element&gt;&lt;/tabbed-custom-element&gt;
+</code></pre>
+<p>Then, once we have instantiated the custom element, we can target the parts we defined in it using the <code>::part</code> pseudo element from an external style sheet.</p>
+<p><code>::part</code> takes the value we declared in the markup as the attribute and can be followed by other selectors.</p>
+<p>Using parts would allow authors to add  styles like the ones below to the stylesheet on the host page. To style the component above, we could use styles like the ones below:</p>
+<pre><code class="language-css">tabbed-custom-element::part(tab) {
+  color: #0c0dcc;
+  border-bottom: transparent solid 2px;
+}
+
+tabbed-custom-element::part(tab):hover {
+  background-color: #0c0d19;
+  border-color: #0c0d33;
+}
+
+tabbed-custom-element::part(tab):hover:active {
+  background-color: #0c0d33;
+}
+
+tabbed-custom-element::part(active) {
+  color: #0060df;
+  border-color: #0a84ff !important;
+}
+</code></pre>
+<p>So now we have a component that we can style from the outside with minimal styling coming with the component in the shadow DOM.</p>
+<h3>Slots and composition</h3>
+<p>So far our custom elements are static. We’ve hardcoded the content of our elements and styled them based on what the template offers. Using <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_templates_and_slots">slots</a> we can mix elements from inside and outside the template to create more flexible elements.</p>
+<p>The template below uses two slots by using the <code>slot</code> element with a name attribute. This will allow you to compose your content with both shadow DOM and “Light” or regular DOM.</p>
+<p>In the code below, the shadow DOM provides the slots’ destination using the name attribute and a basic structure if the instance of the custom element doesn’t provide a value for the slot content.</p>
+<pre><code class="language-html">&lt;template id=&quot;element-details-template&quot;&gt;
+  &lt;style&gt;
+    /* 
+      Private styles to the component go here 
+    */
+  &lt;/style&gt;
+  &lt;details&gt;
+    &lt;summary&gt;
+      &lt;span&gt;
+        &lt;code class=&quot;name&quot;&gt;&amp;lt;&lt;slot name=&quot;element-name&quot;&gt;NEED NAME&lt;/slot&gt;&amp;gt;&lt;/code&gt;
+        &lt;i class=&quot;desc&quot;&gt;
+          &lt;slot name=&quot;description&quot;&gt;NEED DESCRIPTION&lt;/slot&gt;
+        &lt;/i&gt;
+      &lt;/span&gt;
+    &lt;/summary&gt;
+    &lt;div class=&quot;attributes&quot;&gt;
+      &lt;h4&gt;&lt;span&gt;Attributes&lt;/span&gt;&lt;/h4&gt;
+      &lt;slot name=&quot;attributes&quot;&gt;
+        &lt;p&gt;None&lt;/p&gt;
+      &lt;/slot&gt;
+    &lt;/div&gt;
+  &lt;/details&gt;
+  &lt;hr&gt;
+&lt;/template&gt;
+</code></pre>
+<p>The instance of the custom element fills the slot in the template using the value of the element with a matching slot value.</p>
+<pre><code class="language-html">&lt;element-details&gt;
+  &lt;span slot=&quot;element-name&quot;&gt;slot&lt;/span&gt;
+  &lt;span slot=&quot;description&quot;&gt;A placeholder 
+  inside a web component that users
+  can fill with their own markup,
+  with the effect of composing
+  different DOM trees together.&lt;/span&gt;
+  &lt;dl slot=&quot;attributes&quot;&gt;
+    &lt;dt&gt;name&lt;/dt&gt;
+    &lt;dd&gt;The name of the slot.&lt;/dd&gt;
+  &lt;/dl&gt;
+&lt;/element-details&gt;
+</code></pre>
+<p>If you leave the instance blank, then the default values from the shadow DOM will be used.</p>
+<h3>Declarative Shadow DOM</h3>
+<p><a href="https://web.dev/declarative-shadow-dom/">Declarative Shadow DOM</a>, first available in Chrome 90, presents an easier way to create shadow trees for custom elements.</p>
+<p>By placing the template inside the custom element and declaring the shadow root using the <code>shadowroot</code> attribute with one of the two possible values for the attribute (open or closed).</p>
+<pre><code class="language-html">&lt;nineties-button&gt;
+  &lt;template shadowroot=&quot;open&quot;&gt;
+    &lt;style&gt;
+      button {
+        background-color: navy;
+        color: white;
+      }
+    &lt;/style&gt;
+    &lt;button&gt;
+      &lt;slot&gt;&lt;/slot&gt;
+    &lt;/button&gt;
+  &lt;/template&gt;
+  I'm Blue
+&lt;/nineties-button&gt;
+</code></pre>
+<p>Using declarative shadow DOM also allows for server side rendering web components. Since you are no longer tied to Javascript to build the element’s shadow root, you can render custom elements on the server and present them to the clients as any other server side rendered element.</p>
+<p>As far as I know only Chromium browsers support declarative shadow DOM (tested in Chrome stable and Canary and Edge Canary) so we should use feature detection for the features.</p>
+<pre><code class="language-js">function supportsDeclarativeShadowDOM() {
+  return HTMLTemplateElement.prototype.hasOwnProperty('shadowRoot');
+}
+
+if (! supportsDeclarativeShadowDOM) {
+  console.log('No support for DSD, boo!')
+} else {
+  console.log('we support DSD, do something')
+}
+</code></pre>
+<p>See <a href="https://web.dev/declarative-shadow-dom/">Declarative Shadow DOM</a> for more information.</p>
+<h2>Importing web components</h2>
+<p>Up to this point we’ve built components that are embedded in the hosting document. They won’t affect performance since the templates themselves are innert and are not processed until they are instantiated but they will still affect the weight of the page.</p>
+<p>The question then becomes: How do we import web components defined outside our document?</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/HTML_Imports">HTML Imports</a> provided a solution that allowed you to import self-contained web components as HTML files. The idea was rejected by Apple and Mozilla and eventually deprecated from Chrome (since version 73). So we’re back at square one.</p>
+<p>There is an interesting thread about HTML Modules in the <a href="https://github.com/WICG/webcomponents/issues/645">WICG Github Repository</a> but it’s still far from having implementations available.</p>
+<p>Here are the HTML Modules <a href="https://github.com/w3c/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md">explainer</a> and the <a href="https://www.chromestatus.com/feature/4854408103854080">Chrome Status Entry</a>.</p>
+<h2>The criticisms</h2>
+<p>The criticisms for web components come from several angles. I’ve chosen to summarize some of them here.</p>
+<h3>Jeremy Keith</h3>
+<p>In <a href="https://adactio.com/articles/12839">Evaluating Technology</a>, Jeremy Keith ask a very interesting question: <strong><em><a href="https://adactio.com/articles/12839#webcomponents">How do web components fail?</a></em></strong> His answer to the question is illustrative of one of the problems with web components.</p>
+<p>Until declarative shadow DOM came into the picture, web components were tied to Javascript to do anything.</p>
+<p>If we created a component and instantiated it like this:</p>
+<pre><code class="language-html">&lt;image-gallery&gt;&lt;/image-gallery&gt;
+</code></pre>
+<p>The assumption is that Javascript will hydrate the document witht content from the shadow DOM and the styles encapsulated in the Template.</p>
+<p>But what happens if we don’t have Javascript enabled? Or if we loose connectivity on our mobile device or WI-FI?</p>
+<p>Take the same element but populate it light DOM elements, in this case the images that will go inside the gallery.</p>
+<p>If Javascript is enabled we’ll get the enhanced version but if we don’t then we get the images inside the custom element (HTML will ignore elements that it doesn’t understand).</p>
+<pre><code class="language-html">&lt;image-gallery&gt;
+  &lt;img src=&quot;...&quot; alt=&quot;...&quot;&gt;
+  &lt;img src=&quot;...&quot; alt=&quot;...&quot;&gt;
+  &lt;img src=&quot;...&quot; alt=&quot;...&quot;&gt;
+&lt;/image-gallery&gt;
+</code></pre>
+<p>The second element will also work for older browsers and provide a basic experience for browsers that don’t support custom elements. <strong>It is up to use to make web components fail well</strong>.</p>
+<h3>Lea Verou</h3>
+<p>Lea Verou expresses her missgivings about web components in <a href="https://lea.verou.me/2020/09/the-failed-promise-of-web-components/">The failed promise of Web Components</a>. Her concerns lie more in the realms of usability and best practices.</p>
+<p>Her first point is reliance on Javascript makes it much harder it makes it to write good web components because people are not as comfortable or proficient in writing JS as they are writing HTML or CSS:</p>
+<blockquote>
+<p>… HTML is a lower barrier to entry language. Far more people can write HTML than JS. Even for those who do eventually write JS, it often comes after spending years writing HTML &amp; CSS.</p>
+<p>Lea Verou — <a href="https://lea.verou.me/2020/09/the-failed-promise-of-web-components/">The failed promise of web components</a></p>
+</blockquote>
+<p>Traditional web components rely on Javascript but that doesn’t mean we need massive amount of Javascript to make them work, or as Lea puts it:</p>
+<blockquote>
+<p>Even when JS is unavoidable, it’s not black and white. A well designed HTML element can reduce the amount and complexity of JS needed to a minimum. Think of the <code>&lt;dialog&gt;</code> element: it usually does require <strong><em>some</em></strong> JS, but it’s usually rather simple JS. Similarly, the <code>&lt;video&gt;</code> element is perfectly usable just by writing HTML, and has a comprehensive JS API for anyone who wants to do fancy custom things.</p>
+<p>Lea Verou — <a href="https://lea.verou.me/2020/09/the-failed-promise-of-web-components/">The failed promise of web components</a></p>
+</blockquote>
+<p>So, if we consider, these criticisms, where are we in the Web Components journey?</p>
+<h2>Still getting there</h2>
+<p>Things have evolved since I last looked at web components but some things remain the same, there are no real models to follow when creating web components or, to my knowledge, discussions about best practices and models we can follow when creating our own.</p>
+<p>It would be nice to have a resource where we can do a best of breed set of components as Lea outlines on her post, particularly <a href="https://lea.verou.me/2020/09/the-failed-promise-of-web-components/#can-we-fix-this">when she discusses possible solutions: Can we fix this?</a>. I will paraphrase some of her solutions and add some of my own</p>
+<ul>
+<li><strong>Plug and play</strong>. No dependencies, no setup beyond including one <code>&lt;script&gt;</code> tag
+<ul>
+<li>Include any essential dependency automatically (like a map library for a map custom element)</li>
+</ul>
+</li>
+<li>Syntax and APIs follow the same design patterns that we see in HTML elements
+<ul>
+<li>See <a href="https://www.smashingmagazine.com/2017/02/designing-html-apis/">HTML APIs: What They Are And How To Design A Good One</a></li>
+<li>You should be honest when deciding if your element needs an API at all</li>
+</ul>
+</li>
+<li><strong>Anything that can be done without the component user writing JS, is doable without JS</strong>, per the <a href="https://www.w3.org/2001/tag/doc/leastPower.html">W3C principle of least power</a>
+<ul>
+<li>We should explore if declarative shadow DOM is a solution</li>
+</ul>
+</li>
+<li><strong>Accessible by default</strong> via sensible ARIA defaults, just like normal HTML elements
+<ul>
+<li>Since we have to add our own ARIA attributes we should teach people how to use ARIA properly</li>
+<li>No ARIA is better than bad ARIA</li>
+<li>See <a href="https://webaim.org/blog/aria-cause-solution/">To ARIA! The Cause of, and Solution to, All Our Accessibility Problems</a></li>
+</ul>
+</li>
+<li><strong>Themable</strong> via <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::part">::part()</a>, and regular CSS properties as much as possible</li>
+<li>Individual elements should be <strong>Composable</strong> using <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_templates_and_slots">slots</a>
+<ul>
+<li>Component users should be able to add content to the custom element without having to edit the component itself</li>
+<li>This user-side content becomes the full content of the element when the browser doesn’t support custom elements or Javascript fails for some reason</li>
+<li>Custom elements should provide sensible default for when no content is added to the light DOM.</li>
+</ul>
+</li>
+</ul>
+<p>While these are all sensible solutions, they only solve part of the problem dealing with web components.</p>
+<p>We also need an education component to make web components successful.</p>
+<p>We’re past the stage where everyone wanted to experiment and create their own versions and see what they could do. We need a central collection of best practices and examples of how to apply them to our own web components.</p>

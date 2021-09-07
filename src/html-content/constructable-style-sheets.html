@@ -1,0 +1,42 @@
+<h1>Constructable style sheets</h1>
+<p>One of the outstanding issues about web components is CSS reuse. Right now we either have to use <code>::part</code> to create an external stylesheet to match the specified parts of the document or encapsulate styles inside each custom element. <code>::part</code> works well if all custom elements use the <code>::part</code> attribute and if all the names are unique accross the document, otherwise we may get unexpected results.</p>
+<p>We’ve always been able to create style sheets in Javascript but it’s not always a straight forward process. It involves creating a <code>style</code> element, using <code>innerHTML</code> to insert a string containing the CSS we want to use and then appending the new <code>style</code> element to the body of the page</p>
+<pre><code class="language-js">const sheet = document.createElement('style');
+
+sheet.innerHTML = &quot;h1 {color: blue;} body {font-family: Verdana}&quot;;
+
+document.body.appendChild(sheet);
+</code></pre>
+<p>This may work fine in some situations but for the most part it doesn’t lend itself well to create reusable code.</p>
+<p><a href="https://developers.google.com/web/updates/2019/02/constructable-stylesheets">Composable style sheets</a> give you an alternative way to create and use stylesheets programmatically and use them in multiple places whether in individual pages or in the shadow DOM of custom elements.</p>
+<p>The first step is to create the stylesheet and add the rules we want to use on it.</p>
+<ol>
+<li>We first create a new style sheet using the style sheet constructor</li>
+<li>The <code>replace</code> method provides a promise-based API</li>
+<li><code>replaceSync</code>, as the name indicates, provides a synchronous API</li>
+</ol>
+<pre><code class="language-js">const sheet = new CSSStyleSheet(); // 1
+
+sheet.replace('h1 { color: blue }') // 2
+  .then(console.log('success'))
+  .catch(console.log('There was a problem'));
+
+sheet.replaceSync('body {font-family: verdana}'); // 3
+</code></pre>
+<p>The second component of composable style sheets allows us to add the stylesheet we just created to an existing document using the <a href="https://wicg.github.io/construct-stylesheets/#using-constructed-stylesheets">adoptedStyeSheets</a> property available in <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM">shadow roots</a> and <a href="https://developer.mozilla.org/en/docs/Web/API/Document">documents</a>.</p>
+<p>One important thing to point out is that we’re working with a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze">frozen</a> array so methods like <code>push()</code> would cause an error. If we want to make sure we keep existing style sheets when adding a new one, we can use concatenate to create an array that contains both the old and new style sheets… this causes no problems if there are no <code>adoptedStyleSheets</code> in the document, the array will be empty.</p>
+<p>This is an example of how to do it for the document style sheets.</p>
+<pre><code class="language-js">document.adoptedStyleSheets = [
+  ...document.adoptedStyleSheets,
+  sheet];
+</code></pre>
+<p>And this is an example of how to do it with a shadow root, inside or outside a custom element.</p>
+<pre><code class="language-js">const node = document.createElement('div');
+const shadow = node.attachShadow({ mode: 'open' });
+shadow.adoptedStyleSheets = [
+  ...shadow.adoptedStyleSheets,
+  sheet
+];
+</code></pre>
+<p>This provides for a way to style elements on the page programmatically without having to change the document using <code>::part</code> to pierce the style boundary but it is Javascript, so it may not fully appeal to everyone… CSS has a different steep learning curve that seems to be easier for most people.</p>
+<p>I’m torn about which system to use as they both have their appeal and their preferred use cases. Will have to do more testing</p>

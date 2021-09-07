@@ -1,0 +1,91 @@
+<h1>Creating a new print stylesheet</h1>
+<p>I don’t hear about this very often but once in a while I will hear about building print stylesheets so that web pages will look exactly the same in print as they do on screen.</p>
+<p>While i think the idea is laughable, it made me think about what it would take to make web content printable. This is different than using all of CSS Paged Media (as documented in <a href="https://publishing-project.rivendellweb.net/creating-printable-content-from-the-web/">Creating printable content from the web</a>), we might test part of the <a href="https://www.w3.org/TR/css-page-3/">Paged Media</a> and <a href="https://drafts.csswg.org/css-content-3/">Generated Content</a> specificiations but I’m not confident that they’ll work in all browsers.</p>
+<p>What we want to do:</p>
+<ol>
+<li>Put consistent margins around the text so it doesn’t print right on the border of the page</li>
+<li>Where possible make the text 80 characters wide and adjust the line height of the text accordingly</li>
+<li>Change the background color to white and the text color to black</li>
+<li>Add the link text to all URLs</li>
+<li>Remove the image and replace it with the content of the figcaption element if it exists</li>
+</ol>
+<p>Something to make clear from the beginning: the ideas in this post will not create a printed document that looks exactly the same as the page on the screen. Quite the opposite; this is meant to create something that is easier to read and doesn’t require a full laser printer toner cartridge to print a page because of the images in it.</p>
+<h2>Getting started</h2>
+<p>HTML has had a way to link stylesheets for different media formats since the early days. The syntax is simple, something like:</p>
+<pre><code class="language-html">&lt;link   href=&quot;print.css&quot;
+        rel=&quot;stylesheet&quot;
+        media=&quot;print&quot;&gt;
+</code></pre>
+<p>In the print stylesheet we can add print-specific items that will enchance the printed page without changing the way the page looks on screens.</p>
+<p>To make sure that the styles in the print stylesheet don’t conflict with our regular styles, we need to wrapp them in a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media">@media print</a> block. <strong>Print styles must be the last declaration on a page or they will be overriden by later declarations.</strong></p>
+<pre><code class="language-css">@media print {
+
+}
+</code></pre>
+<h2>What can we do</h2>
+<p>Here are some ideas of what we can do with CSS to create a better reading experience.</p>
+<h3>Setting page margins</h3>
+<p>By default printed web pages have no margins unless you assign them to it. From Experience, reading things that are hard to read. To account for this we set equal margins for all sides of the page.</p>
+<pre><code class="language-css">body {
+  margin: 2em;
+}
+</code></pre>
+<p>If we expect users to bind the printed pages, then we can use either <code>margin-left</code> and define each margin individually, or the four-value version of <code>margin</code>.</p>
+<pre><code class="language-css">/* These two declarations are equivalent */
+body {
+  margin-top: 1em;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  margin-left: 2em;
+}
+
+body {
+  /* Clockwise: top, right, bottom, left */
+  margin: 1em 1em 1em 2em;
+}
+
+</code></pre>
+<h3>Adding the URL to links</h3>
+<p>There is nothing more frustrating than seeing a link and knowing it is a link but not knowing what the URL is and not being able to copy/paste it to the browser. We can fix this by appending the value of the <code>href</code> attribute to the link it references.</p>
+<pre><code class="language-css">a[href^=&quot;http&quot;]:after {
+  content: &quot; (&quot; attr(href) &quot;)&quot;;
+}
+</code></pre>
+<h3>Hiding images and adding alt text</h3>
+<p>While it would be nice keep images in the printed output there are issues with excesive tuner/ink consumption that can make it so you can’t print the entire document.</p>
+<p>To handle that, we’ll remove images and captions inside figures, and insert the image’s alt attribute where the image would go.</p>
+<pre><code class="language-css">figure &gt; img {
+  display: none;
+}
+
+figure &gt; figcaption {
+  display: none;
+}
+
+/* We might not always want this */
+figure &gt; img:after {
+  content: &quot;Image: &quot; attr(alt) ;
+}
+</code></pre>
+<h3>Handling typography</h3>
+<p>Typography on screen is different than typography in print. I personally like to do the following:</p>
+<ol>
+<li>Replace the font with one of Roboto, Verdana or Helvetica</li>
+<li>Tweak the line height so it’ll be comfortable to read</li>
+<li>Set the top, right, and bottom margins to one inch and the left margin to two inches
+<ul>
+<li>This assumes left-hand binding. As far as I know there’s no way to do alternate page binding with CSS that doesn’t include paged media extensions</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-css">@font-face { /* 1 */
+  font-family: &quot;Roboto&quot;;
+  src: url(&quot;/fonts/Roboto-Regular-webfont.woff2&quot;) format(&quot;woff2&quot;);
+}
+
+body {
+  font-family: &quot;Roboto&quot;, sans-serif; /* 1 */
+  line-height: 1.25; /* 2 */
+  margin: 1in 1in 1in 2in; /* 3 */
+}
+</code></pre>

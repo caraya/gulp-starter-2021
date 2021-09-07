@@ -1,0 +1,53 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>git hooks to keep code clean</h1>
+<pre><code class="language-bash">#!/bin/bash
+files=$(git diff --cached --name-only | grep '\.jsx\?$')
+
+# Prevent ESLint help message if no files matched
+if [[ $files = &quot;&quot; ]] ; then
+  exit 0
+fi
+
+failed=0
+for file in ${files}; do
+  git show :$file | eslint $file
+  if [[ $? != 0 ]] ; then
+    failed=1
+  fi
+done;
+
+if [[ $failed != 0 ]] ; then
+  echo &quot;🚫🚫🚫 ESLint failed, git commit denied!&quot;
+  exit $failed
+fi
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

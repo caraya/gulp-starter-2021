@@ -1,0 +1,122 @@
+<h1>Feature detection in Javascript</h1>
+<p>One thing that makes the web difficult to work with is that a given feature may or may not be available in all your target browsers either because of the version of EcmaScript (the Javascript standard) it was introduced in or because browsers haven’t gotten around to implement them and may not do so at all or worse, they may have poor implementations of a given API (the initial implementation of Indexed DB in Safari comes to mind).</p>
+<p>In the old days we would do browser detection and assume that if the browser was Netscape they would support a given set of features (and not others). This worked in some cases but in others (like IE 3.5) there were differences between operating systems. Code like the one below was fairly common</p>
+<pre><code class="language-js">let ua = navigator.userAgent;
+
+if(ua.indexOf('Firefox') !== -1) {
+  console.log('running Firefox specific code');
+} else if(ua.indexOf('Chrome') !== -1) {
+  console.log('running Chrome specific code');
+}
+</code></pre>
+<p>But this type of browser sniffing has significant drawbacks. The biggest one is that, as written, it’s an all-or-nothing solution, it doesn’t take into account version numbers or that a feature may be supported in some versions of a browser and not others.</p>
+<p>Rather than use browser detection, the current best practice is to use <a href="https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Cross_browser_testing/Feature_detection">feature detection</a> to see if a browser supports a given feature.</p>
+<p>There are several ways to craft your own feature detection tools like <a href="https://github.com/modernizr/modernizr">Modernizr</a>. We’ll cover each method and then we’ll take a quick look at Modernizr and how to use it.</p>
+<p>The first way is to look for a property in a global object like window or navigator. If a browser supports a given feature, one of these globall objects will have methods that implement it. The following example creates a function to test for geolocation and uses it to conditionally use geolocation features:</p>
+<pre><code class="language-js">function supportsGeolocation() {
+  return !!navigatpr.geolocation;
+  // or return 'geolocation' in navigator
+}
+
+if supportsGeolocation() {
+  console.log('Geolocation is supported')
+} else {
+  console.log('Geolocation is NOT supported');
+}
+</code></pre>
+<p>Some times, during development, vendors would prefix a feature to differrentiate it from the standard finalized version. Different vendors used different prefixes:</p>
+<ul>
+<li>Mozilla used <code>mozObject</code></li>
+<li>Chromium browsers and Safari used <code>webkitObject</code></li>
+<li>Microsoft used <code>msObject</code></li>
+</ul>
+<p>In this example, we define Audio context to be either the standard (unprefixed) version or the WebKit prefixed one using a logical <code>or</code> operator.</p>
+<pre><code class="language-js">function supportsAudioContext() {
+  return window.AudioContext 
+    || window.webkitAudioContext;
+}
+
+if (supportsAudioContext()) {
+  const audioCtx = new AudioContext();
+}
+
+</code></pre>
+<p>The next way to test support for an HTML feature is to create an element in memory using <code>document.createElement()</code> and check if a property exists on it.</p>
+<pre><code class="language-js">function supports_canvas() {
+return 
+!!document.createElement('canvas').getContext;
+}
+
+if(supports_canvas()) {
+  console.log('Canvas is suported');
+}
+</code></pre>
+<p>We can test whether a feature is supported and then we can test for individual properties of that object. The functions below first test if the browser supports video at all (<code>supports_video</code>) and then check for each type of populat video used in browsers.</p>
+<pre><code class="language-js">function supports_video() {
+  return !!document.createElement('video').canPlayType;
+}
+
+function supportsH264() {
+  if (!supports_video()) {
+    return false;
+  }
+  
+  var v = document.createElement(&quot;video&quot;);
+  
+  return v.canPlayType('video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;');
+}
+
+function supportsOggTheora() {
+  if (!supports_video()) {
+    return false;
+  }
+
+  var v = document.createElement(&quot;video&quot;);
+  
+  return v.canPlayType('video/ogg;  codecs=&quot;theora, vorbis&quot;');
+}
+
+function supportsWebm() {
+  if (!supports_video()) { 
+    return false;
+  }
+  
+  var v = document.createElement(&quot;video&quot;);
+  
+  return v.canPlayType('video/webm; codecs=&quot;vp8, vorbis&quot;');
+}
+</code></pre>
+<p>We can use the functions in nested if statements to get exactly what we need. Just be aware that you may get unexpected results: I wasn’t expecting Chrome to support OGG video.</p>
+<pre><code class="language-js">// do we support HTML video at all?
+if (supports_video) {
+  // If so let's look at which formats
+  if (supportsH264) {
+    console.log('supports h264 baseline');
+  } 
+  
+  if (supportsOggTheora) {
+    console.log('supports Ogg');    
+  } 
+  
+  if (supportsWebm) {
+    console.log('supports WebM');
+  }
+}
+</code></pre>
+<p>So far we’ve seen that it is possible to create custom detection functions but that it takes more work than it may be necessary.</p>
+<p>Enter <a href="https://github.com/Modernizr/Modernizr">Modernizr</a>, a library that automates CSS and HTML feature detection for you at the cost of adding an additional script to your pages that require feature detection.</p>
+<p>Using Modernizr, we can write the tests for video like this:</p>
+<pre><code class="language-js">if (Modernizr.video) {
+  // let's play some video! but what kind?
+  if (Modernizr.video.webm) {
+    // try WebM
+  } else if (Modernizr.video.ogg) {
+    // try Ogg Theora + Vorbis 
+    // in an Ogg container
+  } else if (Modernizr.video.h264){
+    // try H.264 video + AAC audio 
+    // in an MP4 container
+   }
+}
+</code></pre>
+<p>Which technique you use depends on what you’re trying to accomplish. Most times, writing an if statement with the value of what you want to test will be enough but it’s always good to know you have options :)</p>
