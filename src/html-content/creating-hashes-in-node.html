@@ -1,0 +1,22 @@
+<h1>Creating hashes in Node</h1>
+<p>There are times when we want to create a hash from either a string or an existing file. This has multiple uses. Some that come to mind are:</p>
+<ul>
+<li>Validate the the file has not changed. As long as the file remains the same the hash will remain the same too</li>
+<li>Use it as a unique identifier for a file by combining the hash with the file name</li>
+</ul>
+<p>This is different than creating a UUID with Node. The UUID is random and is not tied to the file. The hash is tied to the file and will produce the same hash if the file hasn’t changed.</p>
+<p>The hash methods are part of the <a href="https://nodejs.org/api/crypto.html">crypto</a> module so they don’t require third party installation.</p>
+<p>Using module syntax (which will require you to save the file with the <code>.mjs</code> extension), it looks like this:</p>
+<pre><code class="language-js">import crypto from 'crypto';
+</code></pre>
+<p>The <a href="https://nodejs.org/api/crypto.html#crypto_crypto_createhash_algorithm_options">createHash</a> will create a hash.</p>
+<p>The <a href="https://nodejs.org/api/crypto.html#crypto_hash_update_data_inputencoding">udpate</a> method will update the hash with the new data, this data will only change if the data (the file) has changed.</p>
+<p>Finally the <a href="https://nodejs.org/api/crypto.html#crypto_hash_digest_encoding">digest</a> will calculate the hash using the specified encoding.</p>
+<pre><code class="language-js">const hashedValue = crypto.createHash('md5')
+    .update(fileName)
+    .digest('hex');
+</code></pre>
+<p>You can then use the hash to create a unique identifier for the file. In the following example we use the hash and the file name to create a unique file name. Changing the content of the file will change the hash, change the file name and bust any caches the file might be stored in</p>
+<pre><code class="language-js">const fullName = 
+    `${fileName}-${hashedValue}.txt`;
+</code></pre>

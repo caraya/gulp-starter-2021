@@ -1,0 +1,68 @@
+<h1>OCR in Node with Tesseract.js</h1>
+<p>I’ve always wanted to do Optical Character Recognition (OCR) in Node.js but the alternatives always seemed too complicated for simple command line and browser use.</p>
+<p>Recently I came accross <a href="https://tesseract.projectnaptha.com/">Tesseract.js</a>, a Javascript port of the <a href="https://github.com/tesseract-ocr/tesseract">Tesseract C++ library</a>.</p>
+<p>Tesseract (any version) will take an image as input and output any text that it finds as part of the image.</p>
+<p>This post presents an example of how to use Tesseract.js to do OCR.</p>
+<p>The first step is to install Tesseract.js.</p>
+<pre><code class="language-bash">npm install tesseract.js
+</code></pre>
+<p>Next, we need to import the packages we need. There are packages that are native to Node and the Tessearct.js package.</p>
+<pre><code class="language-js">// Import node packages
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+
+// Import methods from Tesseract
+import {
+  createWorker,
+} from 'tesseract.js';
+</code></pre>
+<p>Take the content of the the third argument in the argv array as the name of the file to process</p>
+<p>The image location is either the value of imagePath or a string with the path to a default image</p>
+<pre><code class="language-js">const imagePath = process.argv[2];
+
+const image = path.resolve(
+    imagePath || './BrOarL6IMAA8tud.png',
+);
+</code></pre>
+<p>Create a constant holding the hashed value of the path to the image file using the MD5 algorithm and the Hex digest.</p>
+<pre><code class="language-js">const hashedValue = crypto.createHash('md5')
+    .update(image)
+    .digest('hex');
+</code></pre>
+<p>Create a Tesseract worker and assign a default logger that will log the message to the console</p>
+<pre><code class="language-js">console.log(`Recognizing ${image}`);
+
+const worker = createWorker({
+  logger: (m) =&gt; {
+    console.log(m);
+  },
+});
+</code></pre>
+<p>The core of the script is the async IIFE that will execute the recognition process. The steps in the IIFE are:</p>
+<ol>
+<li>Load the worker</li>
+<li>Assume that the image has English text, load and initialize the language</li>
+<li>Run the recognizer on the image and store the result in the <code>text</code> constant</li>
+<li>Write the text to a file with the hashed name and the extension .txt</li>
+<li>Terminate the Tesseract worker</li>
+</ol>
+<pre><code class="language-js">(async () =&gt; {
+  await worker.load(); // 1
+  await worker.loadLanguage('eng'); // 2
+  await worker.initialize('eng');
+
+  const {
+    data: {
+      text,
+    },
+  } = await worker.recognize(image); // 3
+
+  await fs.writeFile(`${image}-${hashedValue}.txt`, text, (err) =&gt; {}); // 4
+  await worker.terminate(); // 5
+})();
+</code></pre>
+<p>This works from the command line by running the following command:</p>
+<pre><code class="language-bash">node index.mjs
+</code></pre>
+<p>If you don’t pass a path to an image as an argument, the script will use the default image. The path to the image can also be a URL, but I chose not to use a URL for the default as I want to be able to work offline.</p>
