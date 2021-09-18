@@ -93,4 +93,4 @@ You can use Composer to install and manage dependencies for your PHP projects. T
 
 Composer is one of those nice-to-have tools until you need it and then you wonder how you could work without it.
 
-We only scratched the surface of what the WordPress CLI can do... there is so much more to explore that it would make this post extremely long. I encourate you to explore the CLI and see what you can do with them.
+We only scratched the surface of what the WordPress CLI can do... there is so much more to explore that covering all of it would make this post extremely long. I encourage you to explore the CLI and see what you can do with the commands in it.
