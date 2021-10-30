@@ -642,10 +642,20 @@ In looking at the documentation all the CSS is inline of the file we're converti
 
 The first issue is that they require a trial license for testing and a full license for production use.
 
-PDFReactor doesn't seem to have a command line interface to generate PDFs in the way that other tools do. That would automatically disqualify it from consideration.
+It is also a Java appliaction so it assumes that you have a JDK or JRE installed on your system. The command is:
+
+```bash
+java -jar path/to/pdfreactor.jar \
+-i example.html \
+-o example.pdf
+```
+
+This should work but, for some reason, it fails to find the jar file. The application doesn't set a CLASSPATH to follow and expects you to run the jar file from the Application directory in macOS or to specify the full path to the jar file if running it from somewhere else in the file system.
+
+The PDF generating command assumes that the CSS is linked to the HTML file. It leads to a lot of code duplication.
 
 ## Conclusion
 
-Because of the choices commercial products make, they are not suited my use case. Even though it doesn't meat all my needs (and there is no timeline for when the footnote support will be added) Weasyprint is my second option behind PrinceXML.
+Because of the choices commercial products make, they are not suited my use case. Even though it doesn't meet all my needs (and there is no timeline for when the footnote support will be added) Weasyprint is my second option behind PrinceXML.
 
 In a future post I'll look at more complex stylesheets, including custom fonts, figures, tables, flexbox, Grid layouts (where supported) and other features.
