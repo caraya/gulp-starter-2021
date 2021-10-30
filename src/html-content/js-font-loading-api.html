@@ -1,0 +1,92 @@
+<h1>JS font loading API</h1>
+<p><a href="https://drafts.csswg.org/css-font-loading/">CSS Font Loading Module Level 3</a> presents a Javascript API for loading fonts in a similar way to how <a href="https://fontfaceobserver.com/">Fontface Observer</a> works.</p>
+<p>This API allows you to do more things than third-party tools can and it’s setup to interact directly with the browser’s font loading process.</p>
+<p>In its most basic application, the API will load the font, add it to the list of available fonts can can, optionally, add it to the document’s stylesheet and cause it to render right away. This may harm CLS but it’s the only way to get the font to render right away.</p>
+<p>The FontFace constructor takes three parameters, the name of the font, the URL for the font wrapper using the url() format and an array of options.</p>
+<pre><code class="language-js">var f = new FontFace(
+  &quot;Roslindale Text&quot;,
+  &quot;url(newfont.woff)&quot;,
+  {}
+);
+</code></pre>
+<p>The optional array of options mirros the options of the CSS <code>@font-face</code> rule.</p>
+<p><code>FontFace.ascentOverride</code>
+: retrieves or sets the ascent metric of the font</p>
+<p><code>FontFace.descentOverride</code>
+:retrieves or sets the descent metric of the font</p>
+<p><code>FontFace.display</code>
+: determines how a font face is displayed based on whether and when it is downloaded and ready to use.</p>
+<p><code>FontFace.family</code>
+retrieves or sets the family of the font.</p>
+<p><code>FontFace.featureSettings</code>
+: retrieves or sets infrequently used font features that are not available from a font’s variant properties. It is equivalent to the font-feature-settings descriptor.</p>
+<p><code>FontFace.lineGapOverride</code>
+: retrieves or sets the line-gap metric of the font</p>
+<p><code>FontFace.stretch</code>
+: retrieves or sets how the font stretches</p>
+<p><code>FontFace.style</code>
+: retrieves or sets the style of the font. This controls the font italics or oblique values</p>
+<p><code>FontFace.unicodeRange</code>
+: retrieves or sets the range of unicode codepoints encompassing the font</p>
+<p><code>FontFace.variant</code>
+: retrieves or sets the variant of the font</p>
+<p><code>FontFace.variationSettings</code>
+: retrieves or sets the variation settings of the font.</p>
+<p><code>FontFace.weight</code>
+: contains the weight of the font</p>
+<p>Once the font has been set up we can call the <code>load()</code> method to start the font loading process. The method returns a promise that will resolve when the font finishes loading.</p>
+<p>When the promise resolves we add the font to the document’s fonts array so it’s available to the page and then we use it by setting the FontFamily attribute on the body element or in any element where we want to use the font.</p>
+<pre><code class="language-js">f.load()
+  .then(function (loadedFace) {
+    document.fonts.add(loadedFace);
+    document.body.style.fontFamily = &quot;Roslindale Text, serif&quot;;
+  });
+</code></pre>
+<p>Rather than set the font family as soon as the promise resolves we can use the <code>ready()</code> method of the FontFace object to wait for the font to complete loading before we take on any action.</p>
+<p>In the following example, the load() method work aas before and is called to load the font, add the font to the fonts array and then set the fontFamily style attribute on the body element.</p>
+<p>The <code>document.fonts.ready()</code> method assumes that the content inside the element with ID of <code>content</code> is hidden by default. Once the font has finished loading and the ready method is called and the content is revealed to the user by changing the visibility of the content.</p>
+<pre><code class="language-js">f.load()
+  .then(function (loadedFace) {
+    document.fonts.add(loadedFace);
+    document.body.style.fontFamily = &quot;Roslindale Text, serif&quot;;
+  });
+
+
+document.fonts.ready
+  .then(function () {
+    const content = document.getElementById(&quot;content&quot;);
+    content.style.visibility = &quot;visible&quot;;
+  });
+</code></pre>
+<p>We can also use <code>document.fonts.ready()</code> to query the fonts available to the browser. The following example will run after the fonts complete loading. It will list the number of fonts available to the browser and for each font it’ll list is attributes.</p>
+<pre><code class="language-js">document.fonts.ready
+  .then(function () {
+  console.log(&quot;fonts are ready&quot;);
+  console.log('There are', document.fonts.size, 'FontFaces loaded.\n');
+
+    // document.fonts has a Set-like interface. 
+    // Here, we iterate over its values.
+    for (var fontFace of document.fonts.values()) {
+      console.log('FontFace:');
+      for (var property in fontFace) {
+        console.log('  ' + property + ': ' + fontFace[property]);
+      }
+      console.log('\n');
+    }
+  });
+</code></pre>
+<p>It is important to note that the fonts available to the browser are most likely not the same fonts that are available to your desktop applications. There are fingerprinting and security concerns for this.</p>
+<p>For example, if we know that a company uses a font called “company font” and it’s only available to employees. If a website queries the list of available fonts and all fonts are available, the site may be able to guess if a user works at the company (or got the font illegally).</p>
+<p>There is one more method on the API, <code>check()</code>. The method checks if a particular font is available to the browser.</p>
+<p>The example below, the variable <code>checked</code> holds the results of testing if the <code>Roslindale Text</code> font is available in 12px size.</p>
+<pre><code class="language-js">document.fonts.ready
+  .then(function () {
+    let checked = document.fonts.check('12px &quot;Roslindale Text&quot;');
+    if (checked) {
+      console.log('Roslindale Text is available');
+    } else {
+      console.log('Roslindale Text is not available');
+    }
+});
+</code></pre>
+<p>We could also populate a font properties sheet with information we get after we ensure the font is available.</p>

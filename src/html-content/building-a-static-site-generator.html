@@ -1,0 +1,306 @@
+<h1>Building my own static site generator</h1>
+<p>In a way, this is the combination of two projects I’ve worked on at different times:</p>
+<ul>
+<li>A static site generator using <a href="https://mozilla.github.io/nunjucks/">Nunjucks</a></li>
+<li>A standalone Markup processor</li>
+</ul>
+<p>After looking at the two projects, I figured out that the next logical step would be to combine them since they both do the same task in similar but slightly different ways.</p>
+<p>The standalone markup generator uses Node built-in methods to write the components of the template and insert the converted HTML fragment into the output file.</p>
+<p>The static site generator uses a Gulp build system to run the Markdown conversion using the Marked parser and the pushes the conversion into a Nunjuks template.</p>
+<h2>Questions about the code</h2>
+<p>As I’ve written the code I’ve also been working in answering these questions. They have dictated the shape of the current code and will likely dictate the shape of future changes.</p>
+<h3>What Markdown parser to use?</h3>
+<p>Since the two projects use different Markdown parsers the first question to ask is which one to use.</p>
+<p>The easiest option would be to use Marked, the parser that is bundled with the Nunjucks Gulp plugins. However, Marked lacks a good plugin ecosystem, or I wasn’t able to find one so I moved on to a different solution.</p>
+<p>I chose to work with Markdown-it, the parser I used for the standalone project. It provides a rich plugin ecosystem and it makes it possible to write a lot more of your content in Markdown, without having to write HTML.</p>
+<h3>Using Gulp to run the system</h3>
+<p>The next issue is whether we want to use a build system. Rather than pick up a new system to experiment with, I will use <a href="https://gulpjs.com/">Gulp</a>.</p>
+<p>This allows me to leverage code from existing projects to build the necessary tasks for the generator and it also allows me to expand beyond just Markdown and take care of other tasks like Javascript, CSS, and image compression.</p>
+<h3>Using Front Matter to customize items</h3>
+<p>One of the things that has always bothered me about generating content from templates is the impossibility of editing individual items like titles, metadata and other items specific to individual pages.</p>
+<p>Front matter solves that problem. Using a combination of metadata and plugins allows you to customize individual items without having to do manual edits.</p>
+<h2>Other than templates, what do we need?</h2>
+<p>I have a set of tasks to accomplish in addition to the Markdown conversion.</p>
+<ul>
+<li>Transpile Javascript with Babel</li>
+<li>Use SASS and Autoprefixer with PostCSS to transpile and add vendor prefixes to CSS</li>
+<li>Convert images to different formats and compress them to reduce file size using Libsquoosh</li>
+<li>Provide a preview server using Browsersync</li>
+</ul>
+<h2>The code</h2>
+<p>Now we’ll look at the code itself and break it into sections to make the narrative more coherent.</p>
+<h3>Configuration and constants</h3>
+<p>The first block defines constant that we’ll use throughout the script to make it easier on ourselves. If there’s anything we need to change then we change it in one place and done.</p>
+<pre><code class="language-js">// Nunjucks consts for file location
+const dist = 'docs';
+const src = 'src';
+const templates = src + '/templates';
+const content = src + '/pages';
+</code></pre>
+<p>The second block defines the Nunjuks environment we will use.</p>
+<pre><code class="language-js">// Where to pull files from?
+const env = new nunjucks.Environment(
+  new nunjucks.FileSystemLoader(templates)
+);
+</code></pre>
+<h3>Markdown</h3>
+<p>The first task uses Markdown-It to convert Markdown files to HTML fragments. The fragments are valid HTML files but are not full pages so they won’t necessarily render correctly on a browser and have no styles of their own.</p>
+<pre><code class="language-js">gulp.task('markdown', function() {
+  const config = {
+    options: {
+      preset: 'commonmark',
+      html: true,
+      xhtmlOut: true,
+      linkify: true,
+      typographer: true,
+    },
+  };
+  return gulp
+      .src('src/md-source/*.md')
+      .pipe(markdown(config))
+      .pipe(gulp.dest('src/html-source/'));
+});
+</code></pre>
+<p>The second task uses custom code to create the template that will work with Nunjucks.</p>
+<p>I created a custom solution because the tool I originally used, <code>nunjucks-markdown</code> did not work as intended. I was not able to convert the Markdown to HTML and get that automatically passed to the template so I added the extra step.</p>
+<p>There are two string literals containing the top and the bottom of the template respectively.</p>
+<p>The top template contains basic front matter and the two tags necessary for Nunjucks to process the file.</p>
+<p>The bottom template contains the closing tag for Nunjucks to work.</p>
+<pre><code class="language-js">gulp.task('assembleTemplate', function(done, layout = 'base') {
+  // string literal for the head of the regular HTML document
+  const documentTop = `---
+title: Default Title
+description: Default Description
+---
+
+{% extends 'layouts/${layout}.njk' %}
+{% block content %}
+
+`;
+
+  // string literal for the footer of the regular HTML document
+  const documentBottom =
+`{% endblock content %}`;
+
+  const fragmentSourceDir = 'src/html-source/';
+</code></pre>
+<p>We read the directory containing the HTML fragments we processed with the <code>markdown</code> task.</p>
+<p>Then for each file in the directory we:</p>
+<ol>
+<li>Build the full path to the file by concatenating the directory and the filename. This is not the full path from root that we’d get from getting the full path from Node.</li>
+<li>Read the file and exit if there is an error</li>
+<li>Concatenate the top of the document template, the HTML content and the bottom template</li>
+<li>Write the file to the file system</li>
+</ol>
+<pre><code class="language-js">  fs.readdir(fragmentSourceDir, 'utf-8', (err, files) =&gt; {
+    if (err) {
+      console.error(err);
+      process.exit(-1);
+    }
+
+    files.forEach((file) =&gt; {
+      const fullPath = fragmentSourceDir + file;
+      const result = file.split('.html')[0];
+      const destination = `${result}.njk`;
+
+      fs.readFile(fullPath, 'utf8', (err, content) =&gt; {
+        // if there's an error, log it to console and bail
+        if (err) {
+          console.error(err);
+          process.exit(-1);
+        }
+
+        // Write the file
+        const output = documentTop + content + documentBottom;
+        fs.writeFileSync(`src/pages/${destination}`, output, (error) =&gt; {});
+      });
+    });
+  });
+  done();
+});
+</code></pre>
+<p>The final task is to actually render full pages based on the templates we just built.</p>
+<p>We take all the template files that end with <code>njk</code> (Nunjucks) or <code>html</code> (for HTML templates), process it through <code>gulp-nunjucks-render</code> and put the result into the <code>docs</code> folder (we use <code>docs</code> rather than <code>dist</code> because <code>docs</code> is the default folder for Github Pages)</p>
+<pre><code class="language-js">gulp.task('renderContent', function() {
+  return gulp.src('./src/pages/**/*.+(html|njk)')
+      .pipe(nunjucksRender({
+        path: ['./src/templates'],
+      }))
+      // output files in app folder
+      .pipe(gulp.dest('./docs'));
+});
+</code></pre>
+<h3>Sass and Autoprefixer</h3>
+<p>To create CSS I use SASS and Autoprefixer to generate correct CSS without having to write the prefixed versions myself.</p>
+<p>The first task runs SASS to generate the corresponding CSS. If you’ve been working with SASS for a while there are some changes th at may catch you by surprise as they did me.</p>
+<p>Dart SASS is now the default version so you probably want to work with Dart SASS on your projects going forward.</p>
+<p>In Dart SASS, synchronous methods work better than asyc methods, for now. So we make sure we run SASS in synchronous mode.</p>
+<p>Remember to run SASS in expanded mode if you will do further proccessing, like we do with the <code>processCSS</code>.</p>
+<pre><code class="language-js">gulp.task('sass', function() {
+  return gulp.src('src/sass/**/*.scss')
+      .pipe(sass.sync({
+        outputStyle: 'expanded',
+      }).on('error', sass.logError))
+      .pipe(gulp.dest('./src/css'));
+});
+</code></pre>
+<p>The <code>processCSS</code> task will take the CSS generated from SASS as the input and then run it through one or more tools to modify the final output.</p>
+<p>Right now, the only tool we use is Autoprefixer to save myself from having to write any vendor prefix by hand.</p>
+<pre><code class="language-js">gulp.task('processCSS', function() {
+  const PROCESSORS = [
+    autoprefixer(),
+  ];
+  return gulp.src('src/css/**/*.css')
+      .pipe(sourcemaps.init())
+      .pipe(postcss(PROCESSORS))
+      .pipe(sourcemaps.write('.'))
+      .pipe(gulp.dest('docs/css'));
+});
+</code></pre>
+<h3>Javascript</h3>
+<p>I don’t expect to use this task often but it is nice to know that I have it available to transpile code into a version that will support all the 2017 and later features I need in my code.</p>
+<pre><code class="language-js">gulp.task('babel', function() {
+  return gulp.src('src/es6/**/*.js')
+      .pipe(gulp.sourcemaps.init())
+      .pipe(gulp.babel({
+        presets: ['@babel/preset-env'],
+      }))
+      .pipe(gulp.sourcemaps.write('.'))
+      .pipe(gulp.dest('src/scripts/**/*'));
+});
+</code></pre>
+<h3>Image Compression</h3>
+<p>Until not too long ago, I used Imagemin to compress all my images. It was tedious to get them to work and the plugin ecosystem has been known to have version-specific issues.</p>
+<p>LibSquoosh is the CLI version of <a href="https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh">Squoosh</a> and <a href="https://www.npmjs.com/package/gulp-libsquoosh">gulp-libsquoosh</a> and it has none of Imagemin’s drawbacks.</p>
+<p>Libsquoosh provides all the encoder libraries as part of the package so there are no additional downloads and the codecs are built on <a href="https://webassembly.org/">WebAssembly</a> so there’s no dependency on Node-Gyp or other third party compilation tools.</p>
+<p>Finally, it also provides acccess to newer image formats like JPEG-XL and AVIF out of the box.</p>
+<pre><code class="language-js">gulp.task('compressImages', function() {
+  return gulp.src(['src/images/**/*.{png,jpg,webp}'])
+      .pipe(
+          squoosh((src) =&gt; {
+            // console.log(src);
+            const extname = path.extname(src.path);
+            let options = {
+              encodeOptions: squoosh.DefaultEncodeOptions[extname],
+            };
+
+            if (extname === '.jpg') {
+              options = {
+                encodeOptions: {
+                  jxl: {},
+                  mozjpeg: {},
+                },
+              };
+            }
+
+            if (extname === '.png') {
+              options = {
+                encodeOptions: {
+                  avif: {},
+                },
+                preprocessOptions: {
+                  quant: {
+                    enabled: true,
+                    numColors: 16,
+                  },
+                },
+              };
+            }
+
+            return options;
+          }),
+      )
+      .pipe(gulp.dest('docs/images/'));
+});
+</code></pre>
+<h2>Utility Functions</h2>
+<p>We have three utility functions to clean the installation to a default state and copy resources to the <code>docs</code> folder.</p>
+<p>I choose to copy resources because we want to be flexible. Rather than change tasks everytime we decide to add something to the process. We could do the same thing with CSS but if I decide to add anything, it will be to the <code>processCSS</code> task, not adding additional tasks to the process.</p>
+<pre><code class="language-js">gulp.task('clean', function() {
+  return del([
+    'docs/',
+    'src/html-source',
+    'src/pages/**/*.html',
+  ]);
+});
+
+gulp.task('copy:scripts', function() {
+  return gulp.src([
+    'src/scripts/**/*.js',
+  ])
+      .pipe(gulp.dest('docs/scripts'));
+});
+
+gulp.task('copy:fonts', function() {
+  return gulp.src([
+    'src/fonts/**/*',
+  ])
+      .pipe(gulp.dest('docs/fonts'));
+});
+</code></pre>
+<h2>Preview server</h2>
+<p>I might want to see the results of the process before I publish it so I set up a <a href="https://browsersync.io/">Browsersync</a>-based preview browser.</p>
+<p>It will pull the content from the <code>docs</code> directory and serve them as a website.</p>
+<pre><code class="language-js">gulp.task('serve', function() {
+  browserSync({
+    port: 2509,
+    notify: false,
+    snippetOptions: {
+      rule: {
+        match: '&lt;span id=&quot;browser-sync-binding&quot;&gt;&lt;/span&gt;',
+        fn: (snippet) =&gt; {
+          return snippet;
+        },
+      },
+    },
+    server: {
+      baseDir: ['.tmp', 'docs'],
+      middleware: [historyApiFallback()],
+    },
+  });
+});
+</code></pre>
+<p>The default task pulls everything together. We run all the tasks we’ve defined so far in sequence, one after the other.</p>
+<p><strong>For some reason running the default task will not write the final files to the target directory. To make sure we get the content, run <code>gulp renderContent</code> again.</strong></p>
+<pre><code class="language-js">gulp.task('default', gulp.series(
+    'clean',
+    'sass',
+    'processCSS',
+    'renderContent',
+    'compressImages',
+    'copy:scripts',
+    'copy:fonts',
+));
+</code></pre>
+<h2>Future work</h2>
+<p>We have a basic static site generator working. It produces the type of code I want and it produces all the assets needed for the static site.</p>
+<p>Yet there is still room for improvement and a lot of things I’d like to do with the code.</p>
+<h3>Add Markdown-it Plugins</h3>
+<p>Markdown-it has a very nice plugin collection that allows you to enhance the output of the Markdown source without having to add HTML to it.</p>
+<p>The standalone parser generator uses a set of these Markdown-it plugins and, in theory, it should be possible to add them to a Gulp plugin. I just need to figure out how to do it.</p>
+<h3>Making The Output Prettier</h3>
+<p><a href="https://prettier.io/">Prettier</a> is a tool that formats code according to parameters and specifications. We can leverage the <a href="https://www.npmjs.com/package/gulp-prettier">Gulp-Prettier</a> plugin to format the HTML output before writing it to file.</p>
+<p>Need to do more research on how to do this. I believe it’s a matter of configuration, but I’m not sure.</p>
+<h3>Customizing Layouts</h3>
+<p>Right now I’ve created SASS and CSS files but I haven’t done much work on the CSS side. I’d like to create a better base layout for the site.</p>
+<p>This will also require a way to set up custom layouts for different types of pages. It might be possible to do it from the front matter but I’m not certain.</p>
+<h3>Move From SASS to PostCSS</h3>
+<p>When I started using SASS it was awesome because it was easy to use and had a lot more features than CSS at the time.</p>
+<p>Over the years, CSS has gained features that were once part of SASS and other preprocessors. Here’s a rundown of my favorite changes:</p>
+<ul>
+<li>Nesting (upcomging) allows you to nest selectors and create more readble CSS</li>
+<li>Variables (using the @property syntax from Houdini) allow you to create and modify variables to use in your CSS. Because the CSS variables are live, you can change them and see immediate results</li>
+<li>Grid and Flexbox</li>
+</ul>
+<p><a href="https://postcss.org/">PostCSS</a> is a Javascript tool that allows you to use future features in your current codebase, just like Babel does for Javascript.</p>
+<p>Changing the process to generate the final CSS means changing some of the code and deciding how much of SASS I want to emulate and how much am I comfortable discarding.</p>
+<h3>Change Browserlists Versions</h3>
+<p>Right now I’m working with a default configuration for Browser List. This will tell the applicatioons that use it, like Babel, PostCSS and others, to only change what’s necessary for the supported versions.</p>
+<p>The idea behind changing the browser list configuration is to make sure that we adhere to a sane configuration as described in <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a>.</p>
+<p>We’ll have to evaluate what impact, if any, the new browserlist has on our CSS and other items that use them.</p>
+<h3>Properly Configure @babel/preset-env</h3>
+<p><a href="https://web.dev/publish-modern-javascript/">@babel/preset-env</a> provides a way to target specific browsers, either by using Browserslist’s list or by providing a list of browsers.</p>
+<p>In the past I would have recommended switching to <a href="https://github.com/babel/preset-modules">@babel/preset-modules</a> because it potentially provides an even smaller file size by not rejecting the entire module if there are issues.</p>
+<p>The features from <code>@babel/preset-modules</code> have been rolled into <code>@babel/preset-env</code> so we should be able to properly configure it to obtain the same result.</p>
+<h3>Automating with Github Actions</h3>
+<p>The final bit I want to work with is to use Github Actions for building the site automatically when we push changes. I know it is possible to do it, I do this with my writing samples. But will it work with this project?</p>
