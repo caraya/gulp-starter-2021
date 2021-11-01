@@ -1,0 +1,3 @@
+# What type of developer experience do we want?
+
+In reading Jeremy Wagner's book , I found a lot of things that I agree with, some I disagree with (not many), and one that I find deeply troublesome.
