@@ -1,0 +1,244 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Native CSS nesting</h1>
+<div class="message info">
+  <p><strong>Note:</strong></p>
+  <p>This feature is under development and there are currently no implementations in browsers, even behind flags. <strong>Do not use this in production unless you transpile with PostCSS or SASS</strong>.</p>
+</div>
+<p>One of the things that drove me to SASS was the ability to nest selectors to make the code easier to reason through and understand.  For the longest time I’ve used something like this to style my links:</p>
+<pre><code class="language-scss">a {
+  color: $color__link;
+  text-decoration: none;
+  text-decoration-skip-ink: auto;
+
+  &amp;:visited {
+    color: $color__link-visited;
+    text-decoration: underline;
+    text-decoration-skip-ink: auto;
+  }
+
+  &amp;:hover,
+  &amp;:focus,
+  &amp;:active {
+    color: $color__link-hover;
+    text-decoration: underline;
+    text-decoration-skip-ink: auto;
+  }
+
+  &amp;:focus {
+    outline: thin dotted;
+  }
+}
+</code></pre>
+<p>Seeing the nested command makes it easier to see that they are related and the <code>&amp;</code> is the character that the SASS developers chose to indicate the relationship between the parent selector and the child. The code will produce the following CSS declarations.</p>
+<pre><code class="language-css">a {
+  color: #000;
+  text-decoration: none;
+  text-decoration-skip-ink: auto;
+}
+
+a:visited {
+  color: #F00D;
+  text-decoration: underline;
+  text-decoration-skip-ink: auto;
+}
+
+a:hover,
+a:focus,
+a:active {
+  color: #F00D;
+  text-decoration: underline;
+  text-decoration-skip-ink: auto;
+}
+
+a:focus {
+  outline: thin dotted;
+}
+</code></pre>
+<p>Native CSS nesting provides the <code>&amp;</code> selector and also a <code>@nest</code> at-rule that provides an explicit way to nest selectors.</p>
+<p>The post will look at both the selector and the at-rule and explain any differences that may be there.</p>
+<h2>The <code>&amp;</code> selector</h2>
+<p>The <code>&amp;</code> selector allows you to nest rules together. This is similar to, but not quite the same as, the way that SASS handles nesting.</p>
+<p>We can use <code>&amp;</code> on their own to indicate that we’re nesting rules.</p>
+<pre><code class="language-css">.foo {
+  color: blue;
+  &amp; &gt; .bar { color: red; }
+}
+/* equivalent to
+  .foo { color: blue; }
+  .foo &gt; .bar { color: red; }
+*/
+</code></pre>
+<p>We can also use it in a compound selector, refining the parent’s selector.</p>
+<pre><code class="language-css">.foo {
+  color: blue;
+  &amp;.bar { color: red; }
+}
+/* equivalent to
+  .foo { color: blue; }
+  .foo.bar { color: red; }
+*/
+</code></pre>
+<p>You can also use <code>&amp;</code> in multiple selectors list but all the selectors on the list must all start with <code>&amp;</code></p>
+<pre><code class="language-css">.foo, .bar {
+  color: blue;
+  &amp; + .baz, &amp;.qux { color: red; }
+}
+/* equivalent to
+  .foo, .bar { color: blue; }
+  :is(.foo, .bar) + .baz,
+  :is(.foo, .bar).qux { color: red; }
+*/
+</code></pre>
+<p>The parent and/or selector can be arbitrarily complicated. Note that the possible equivalencies use the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/:is">:is()</a> pseudo-class to provide a more compact equivalent.</p>
+<pre><code class="language-css">.error, #404 {
+  &amp;:hover &gt; .baz {
+    color: red;
+  }
+}
+/* equivalent to
+  :is(.error, #404):hover &gt; .baz {
+    color: red;
+  }
+*/
+
+.foo {
+  &amp;:is(.bar, &amp;.baz) {
+    color: red;
+  }
+}
+/* equivalent to
+  .foo:is(.bar, .foo.baz) {
+    color: red;
+  }
+*/
+</code></pre>
+<p>Multiple levels of nesting “stack up” the selectors. There is no real limit to how deep you can nest selectors, just make sure you don’t dig so deep that the chains become impossible to read.</p>
+<pre><code class="language-css">figure {
+  margin: 0;
+
+  &amp; &gt; figcaption {
+    background: hsl(0 0% 0% / 50%);
+
+    &amp; &gt; p {
+      font-size: .9rem;
+    }
+  }
+}
+/* equivalent to
+  figure { margin: 0; }
+  figure &gt; figcaption { background: hsl(0 0% 0% / 50%); }
+  figure &gt; figcaption &gt; p { font-size: .9rem; }
+*/
+</code></pre>
+<h2>The @nest at-rule</h2>
+<p>The <code>@nest</code> rule functions identically to a nested style rule: it starts with a selector, and contains a block of declarations that apply to the elements the selector matches. That block is treated identically to a style rule’s block, so anything valid in a style rule (such as additional @nest rules) is also valid here.</p>
+<p>The only difference between @nest and rule using <code>&amp;</code> is that the selector used in a @nest rule is less constrained:</p>
+<ul>
+<li>It only must contains a nesting selector in it somewhere, rather than requiring it to be at the start of each selector</li>
+<li>A list of selectors is nest-containing if all of its individual complex selectors are nest-containing</li>
+</ul>
+<pre><code class="language-css">.foo {
+  color: red;
+  @nest &amp; &gt; .bar {
+    color: blue;
+  }
+}
+/* equivalent to
+  .foo { color: red; }
+  .foo &gt; .bar { color: blue; }
+*/
+</code></pre>
+<p>You can nest <code>@nest</code> rules, just like you do with regular nesting selectors.</p>
+<pre><code class="language-css">figure {
+  margin: 0;
+
+  @nest &amp; &gt; figcaption {
+    background: hsl(0 0% 0% / 50%);
+
+    @nest &amp; &gt; p {
+      font-size: .9rem;
+    }
+  }
+}
+/* equivalent to
+  figure { margin: 0; }
+  figure &gt; figcaption { background: hsl(0 0% 0% / 50%); }
+  figure &gt; figcaption &gt; p { font-size: .9rem; }
+*/
+</code></pre>
+<p><code>@nest</code> allows selectors that don’t start with an &amp;, so the following are also valid:</p>
+<pre><code class="language-css">.foo {
+  color: red;
+  @nest .parent &amp; { color: blue; }
+}
+/* equivalent to
+  .foo { color: red; }
+  .parent .foo { color: blue; }
+*/
+
+.foo {
+  color: red;
+  @nest :not(&amp;) {
+    color: blue;
+  }
+}
+/* equivalent to
+  .foo { color: red; }
+  :not(.foo) { color: blue; }
+*/
+</code></pre>
+<p>You can also combine the two types of nesting in the same rule</p>
+<pre><code class="language-css">.foo {
+  color: blue;
+  @nest .bar &amp; {
+    color: red;
+    &amp;.baz {
+      color: green;
+    }
+  }
+}
+/* equivalent to
+  .foo { color: blue; }
+  .bar .foo { color: red; }
+  .bar .foo.baz { color: green; }
+</code></pre>
+<h2>Browser support and resources</h2>
+<p>As mentioned in the note at the top of the post, there is no support for CSS nesting in any browser yet.</p>
+<p>Check <a href="https://caniuse.com/css-nesting">Caniuse</a> for more information.</p>
+<h3>Additional resources</h3>
+<ul>
+<li><a href="https://drafts.csswg.org/css-nesting/">Specification</a> — <a href="http://drafts.csswg.org">drafts.csswg.org</a></li>
+<li><a href="https://bugs.chromium.org/p/chromium/issues/detail?id=1095675">Chrome support bug</a> — <a href="http://bugs.chromium.org">bugs.chromium.org</a></li>
+<li><a href="https://bugs.webkit.org/show_bug.cgi?id=223497">Safari support bug</a> — <a href="http://bugs.webkit.org">bugs.webkit.org</a></li>
+<li><a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1648037">Firefox support bug</a> — <a href="http://bugzilla.mozilla.org">bugzilla.mozilla.org</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

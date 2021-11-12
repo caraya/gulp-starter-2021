@@ -1,0 +1,84 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <pre><code class="language-php">&lt;?php
+/**
+ * The [wporg] shortcode.
+ *
+ * Accepts a title and will display a box.
+ *
+ * @param array  $atts    Shortcode attributes. Default empty.
+ * @param string $content Shortcode content. Default null.
+ * @param string $tag     Shortcode tag (name). Default empty.
+ * @return string Shortcode output.
+ */
+function wporg_shortcode( $atts = [], $content = null, $tag = '' ) {
+    // normalize attribute keys, lowercase
+    $atts = array_change_key_case( (array) $atts, CASE_LOWER );
+ 
+    // override default attributes with user attributes
+    $wporg_atts = shortcode_atts(
+        array(
+            'title' =&gt; 'WordPress.org',
+        ), $atts, $tag
+    );
+ 
+    // start box
+    $o = '&lt;div class=&quot;wporg-box&quot;&gt;';
+ 
+    // title
+    $o .= '&lt;h2&gt;' . esc_html__( $wporg_atts['title'], 'wporg' ) . '&lt;/h2&gt;';
+ 
+    // enclosing tags
+    if ( ! is_null( $content ) ) {
+        // secure output by executing the_content filter hook on $content
+        $o .= apply_filters( 'the_content', $content );
+ 
+        // run shortcode parser recursively
+        $o .= do_shortcode( $content );
+    }
+ 
+    // end box
+    $o .= '&lt;/div&gt;';
+ 
+    // return output
+    return $o;
+}
+ 
+/**
+ * Central location to create all shortcodes.
+ */
+function wporg_shortcodes_init() {
+    add_shortcode( 'wporg', 'wporg_shortcode' );
+}
+ 
+add_action( 'init', 'wporg_shortcodes_init' );
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
