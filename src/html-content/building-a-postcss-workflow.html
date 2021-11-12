@@ -1,0 +1,66 @@
+<h1>PostCSS Deep Dive: Building a PostCSS workflow</h1>
+<p>For a while, SASS was all we needed. I was OK with it only being available as a Ruby Gem (the original implementation was written in Ruby), then I was happy when LibSASS came around (written in C) and might have even been OK with the Dart implementation becoming the reference implementation and the SASS team deprecating the Ruby and C implementations, eventually stopping work on them altogether.</p>
+<p>But one thing that SASS has never done is give you the possibility of testing new CSS features like Babel does for Javascript.</p>
+<p>I first head of <a href="https://postcss.org/">PostCSS</a> when Autoprefixer became a processor for PostCSS rather than a standalone tool and the tooling used PostCSS to run.</p>
+<p>I’ve always wanted to move my worflow to PostCSS and now think it’s time to do it. Other than the program-like functions (<code>@if</code>/<code>@else</code>, <code>for</code> and others) there is little that we can’t do with a different preprocessor and, eventually, with CSS alone.</p>
+<p>So in this post I will evaluate what it would take to move to PostCSS based on a given set of requirements.</p>
+<h2>Feature set</h2>
+<p>Here’s the feature set I want to implement if possible</p>
+<ul>
+<li>A PostCSS equivalent to Babel’s <code>preset-env</code></li>
+<li>Color manipulation functions equivalent to SASS @lighten and @darken</li>
+<li>Nesting
+<ul>
+<li>Nested selectors</li>
+<li>Relationship notation</li>
+</ul>
+</li>
+<li>Variables
+<ul>
+<li>Houdini-style CSS Custom Properties using @property</li>
+</ul>
+</li>
+</ul>
+<p>There is also a nice to have set of features:</p>
+<ul>
+<li>function-like conditionals and iteraators, similar to what we can do in SASS</li>
+<li>Mixins</li>
+</ul>
+<h2>Implementation</h2>
+<p>The first thing to do is decide what features we want to implement. Based on the feature lists that I want to implement the initial list looks like this</p>
+<p><a href="https://github.com/csstools/postcss-preset-env">postcss-preset-env</a>
+: This is the equivalent to Babel’s <code>preset-env</code>.
+: It has configurable support for a large <a href="https://preset-env.cssdb.org/features">set of features</a> based on four distinct stages
+: <code>preset-env</code> supports Autoprefixer so  I don’t know if it makes sense to leave it as a separate package
+: Chose to leave the default settings (stage 2 and supporting all browsers)</p>
+<p><a href="https://github.com/postcss/autoprefixer">Autoprefixer</a>
+: Adds vendor prefixes to properties that require them based on a specified list of browsers and versions
+: The plugin uses browserslist to create and access the list, and caniuse to provide a list of browsers that support a given feature
+: Because <code>preset-env</code> also supports Autoprefixer, I don’t know if I want to leave it as a separate package</p>
+<p><a href="https://github.com/postcss/postcss-nested">postcss-nested</a>
+: nested rules and at-rules. It provides a close aproximation to what SASS does with nested selectors and relationship notation</p>
+<p><a href="https://github.com/postcss/postcss-color-function">postcss-color-function</a>
+: Provide CSS-native equivalents to SASS lighten and darken functions (tint and shade respectively)
+While the functionality of the plugin has been removed from the CSS Colors Spec, I still think it’s useful to have as it helps not having to add another library to the mix
+: <code>color-mod</code> was removed from the Colors Level 4 spec
+: <code>taint</code> and <code>shade</code> were removed along with the <code>color-adjust()</code> function in the Colors Level 5 spec. According to <a href="https://twitter.com/argyleink">Adam Aargyle</a> (one of the Colors Level 5 spec editors) <a href="https://twitter.com/argyleink/status/1456301298769297408?s=20">tweet</a> the <code>color-mix()</code> function provides equivalent functionality. I’m still working on reasoning through the functionality. It currently only works on Firefox Nightly.</p>
+<p><a href="https://github.com/csstools/postcss-register-property/">postcss-register-property</a>
+: Provides a way for work with Houdini-style custom properties defined in <a href="https://drafts.css-houdini.org/css-properties-values-api/">CSS Properties and Values API Level 1</a>
+: It will require some extra code to make sure we provide adequate feedback for older browsers</p>
+<p><a href="https://github.com/madyankin/postcss-each">postcss-each</a>, <a href="https://github.com/antyakushev/postcss-for">postcss-for</a>, <a href="https://github.com/andyjansson/postcss-conditionals">postcss-conditionals</a>
+: Provide function-like abilities (each, for and if respectively)</p>
+<p><a href="https://github.com/csstools/postcss-normalize">postcss-normalize</a>
+: Selectively applies Normalize.css rules based on your browserslist settings</p>
+<p><a href="https://github.com/hudochenkov/postcss-sorting">postcss-sorting</a>
+: Sorts the rules inside selectors for you so you don’t have to do it yourself manually</p>
+<p><a href="https://github.com/TrySound/postcss-easy-import">postcss-easy-import</a>
+: Inline the contents of imported files reducing the number of request and potentially improving performance
+: This will work with CSS imports and not necessarily with SASS imports.
+: Don’t know if it’s operator error or there is a missing configuraation for the plugin.</p>
+<p><a href="https://github.com/postcss/postcss-fail-on-warn">postcss-fail-on-warn</a>
+: Will stop and fail the build if there are any warnings. This is probably harsher than most would like but I would rather work on errors as they happen rather than have to figure out multiple errors after compilation.</p>
+<h2>Implementation: Gulp task V1</h2>
+<pre><code class="language-js">
+</code></pre>
+<h2>Incorporating into a Fractal design system</h2>
+<h2>Conclusions</h2>
