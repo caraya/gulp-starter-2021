@@ -60,30 +60,6 @@ Another posibility is to run a full script in node using tools like [zx](https:/
 
 It requires you to save the files with an `.mjs` extension to take advantage of top level await syntax.
 
-```js
-#!/usr/bin/env zx
-
-let username = await question('What is your GitHub username? ')
-let token = await question('Do you have GitHub token in env? ', {
-  choices: Object.keys(process.env)
-})
-
-let headers = {}
-if (process.env[token]) {
-  headers = {
-    Authorization: `token ${process.env[token]}`
-  }
-}
-let res = await fetch(`https://api.github.com/users/${username}/repos`, {headers})
-let data = await res.json()
-let urls = data.map(x => x.git_url)
-
-await $`mkdir -p backups`
-cd('./backups')
-
-await Promise.all(urls.map((url) => $`git clone ${url}`))
-```
-
 ZX uses the "shebang" as the first line of the script, like shells, to find the location of the ZX executable.
 
 It also makes Node packages available to the script. The available packages are:
@@ -114,6 +90,8 @@ It also makes Node packages available to the script. The available packages are:
 : Available as global const argv
 
 ## Examples
+
+The following examples present some basic capabilities available to ZX scripts.
 
 ```js
 #!/usr/bin/env zx

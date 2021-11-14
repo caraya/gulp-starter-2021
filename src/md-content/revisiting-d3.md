@@ -18,5 +18,3 @@ I wrote the original visualization with D3 version 1 and upgraded it to work wit
 D3 has changed in significant ways since I first looked at it and worked creating my visualization from an existing example.
 
 This post will look at the latest version of D3, how it works and how to use it to create a visualization. I will re-create the same visualization I created in D3 1.0.
-
-

@@ -67,7 +67,6 @@ The first thing to do is decide what features we want to implement. Based on the
 [postcss-easy-import](https://github.com/TrySound/postcss-easy-import)
 : Inline the contents of imported files reducing the number of request and potentially improving performance
 : This will work with CSS imports and not necessarily with SASS imports.
-: Don't know if it's operator error or there is a missing configuraation for the plugin.
 
 [postcss-fail-on-warn](https://github.com/postcss/postcss-fail-on-warn)
 : Will stop and fail the build if there are any warnings. This is probably harsher than most would like but I would rather work on errors as they happen rather than have to figure out multiple errors after compilation.

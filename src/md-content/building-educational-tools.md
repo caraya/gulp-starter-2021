@@ -6,6 +6,8 @@ The post will discuss some low level infrastructure and learning tools that we c
 
 **_Some of these ideas may be rough and not fully fleshed out._**
 
+Before 
+
 ## Chat, Collaboration and Video Conferencing
 
 Most modern multiuser audio and video systems use [WebRTC](https://webrtc.org/) as the backbone for the system. The technologies are open source and quite powerful but, depending on the use case, they can be quite complex to set up.
