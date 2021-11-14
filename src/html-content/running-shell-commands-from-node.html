@@ -51,28 +51,6 @@ fi
 </ul>
 <p>Another posibility is to run a full script in node using tools like <a href="https://github.com/google/zx">zx</a>. The tools is more complicated to use and does a better job or emulating a shell than ShellJS.</p>
 <p>It requires you to save the files with an <code>.mjs</code> extension to take advantage of top level await syntax.</p>
-<pre><code class="language-js">#!/usr/bin/env zx
-
-let username = await question('What is your GitHub username? ')
-let token = await question('Do you have GitHub token in env? ', {
-  choices: Object.keys(process.env)
-})
-
-let headers = {}
-if (process.env[token]) {
-  headers = {
-    Authorization: `token ${process.env[token]}`
-  }
-}
-let res = await fetch(`https://api.github.com/users/${username}/repos`, {headers})
-let data = await res.json()
-let urls = data.map(x =&gt; x.git_url)
-
-await $`mkdir -p backups`
-cd('./backups')
-
-await Promise.all(urls.map((url) =&gt; $`git clone ${url}`))
-</code></pre>
 <p>ZX uses the “shebang” as the first line of the script, like shells, to find the location of the ZX executable.</p>
 <p>It also makes Node packages available to the script. The available packages are:</p>
 <p><strong>The chalk package</strong>
@@ -94,6 +72,7 @@ await Promise.all(urls.map((url) =&gt; $`git clone ${url}`))
 : The minimist package.
 : Available as global const argv</p>
 <h2>Examples</h2>
+<p>The following examples present some basic capabilities available to ZX scripts.</p>
 <pre><code class="language-js">#!/usr/bin/env zx
 
 // Changes the color of the text displayed to screen
