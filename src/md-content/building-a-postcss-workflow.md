@@ -29,13 +29,10 @@ There is also a nice to have set of features:
 
 ## Implementation
 
-The first thing to do is decide what features we want to implement. Based on the feature lists that I want to implement the initial list looks like this
+The first thing to do is decide what features we want to implement.
 
-[postcss-preset-env](https://github.com/csstools/postcss-preset-env)
-: This is the equivalent to Babel's `preset-env`.
-: It has configurable support for a large [set of features](https://preset-env.cssdb.org/features) based on four distinct stages
-: `preset-env` supports Autoprefixer so  I don't know if it makes sense to leave it as a separate package
-: Chose to leave the default settings (stage 2 and supporting all browsers)
+I realized that, rather than implement every single feature from the start, it would be better to start with the most important ones and work my way down.
+Based on the feature lists that I want to implement the initial list of features looks like this:
 
 [Autoprefixer](https://github.com/postcss/autoprefixer)
 : Adds vendor prefixes to properties that require them based on a specified list of browsers and versions
@@ -45,38 +42,88 @@ The first thing to do is decide what features we want to implement. Based on the
 [postcss-nested](https://github.com/postcss/postcss-nested)
 : nested rules and at-rules. It provides a close aproximation to what SASS does with nested selectors and relationship notation
 
-[postcss-color-function](https://github.com/postcss/postcss-color-function)
-: Provide CSS-native equivalents to SASS lighten and darken functions (tint and shade respectively)
-  While the functionality of the plugin has been removed from the CSS Colors Spec, I still think it's useful to have as it helps not having to add another library to the mix
-  : `color-mod` was removed from the Colors Level 4 spec
-  : `taint` and `shade` were removed along with the `color-adjust()` function in the Colors Level 5 spec. According to [Adam Aargyle](https://twitter.com/argyleink) (one of the Colors Level 5 spec editors) [tweet](https://twitter.com/argyleink/status/1456301298769297408?s=20) the `color-mix()` function provides equivalent functionality. I'm still working on reasoning through the functionality. It currently only works on Firefox Nightly.
-
-[postcss-register-property](https://github.com/csstools/postcss-register-property/)
-: Provides a way for work with Houdini-style custom properties defined in [CSS Properties and Values API Level 1](https://drafts.css-houdini.org/css-properties-values-api/)
-: It will require some extra code to make sure we provide adequate feedback for older browsers
-
-[postcss-each](https://github.com/madyankin/postcss-each), [postcss-for](https://github.com/antyakushev/postcss-for), [postcss-conditionals](https://github.com/andyjansson/postcss-conditionals)
-: Provide function-like abilities (each, for and if respectively)
-
-[postcss-normalize](https://github.com/csstools/postcss-normalize)
-: Selectively applies Normalize.css rules based on your browserslist settings
-
 [postcss-sorting](https://github.com/hudochenkov/postcss-sorting)
 : Sorts the rules inside selectors for you so you don't have to do it yourself manually
 
 [postcss-easy-import](https://github.com/TrySound/postcss-easy-import)
 : Inline the contents of imported files reducing the number of request and potentially improving performance
-: This will work with CSS imports and not necessarily with SASS imports.
-
-[postcss-fail-on-warn](https://github.com/postcss/postcss-fail-on-warn)
-: Will stop and fail the build if there are any warnings. This is probably harsher than most would like but I would rather work on errors as they happen rather than have to figure out multiple errors after compilation.
 
 ## Implementation: Gulp task V1
 
-```js
+The first pass of the Gulp-based workflow is to implement the basic set of features listed in the previous section.
 
+The code below assumes that all the plugins are installed.
+
+The first step, as usual, is to set up the modules that we want to use. Gulp and sourcemaps are at the top and then we import the PostCSS plugins.
+
+```js
+const gulp = require('gulp');
+const sourcemaps = require('gulp-sourcemaps');
+
+const postcss = require('gulp-postcss');
+const autoprefixer = require('autoprefixer');
+const importer = require('postcss-easy-import');
+const nesting = require('postcss-nesting');
+const simpleVars = require('postcss-simple-vars');
+const sorting = require('postcss-sorting');
+```
+
+The next step is to create the list of processors we will use and any necessary configuration.
+
+The importer plugin uses the `glob` attribute to indicate that we're allowing globs to be used in import statements.
+
+The next plugin is Autoprefixer. We define the browserslist attribute in package.json to specify the browsers we want to support. Even though my primary usage is in CSS, I'm following the guidance from [Publish, ship, and install modern JavaScript for faster applications](https://web.dev/publish-modern-javascript/) so that Javascript tools that use Browserslist will work properly.
+
+The next plugin is the sorting plugin. Here we have to be specific about the grouping of different rules, how we want the properties sorted and what to do with properties that are unspecified.
+
+```css
+const processors = [
+  importer({
+    glob: true
+  }),
+  simpleVars,
+  nesting,
+  autoprefixer,
+  sorting({
+    order: [
+      'custom-properties',
+      'dollar-variables',
+      'declarations',
+      'at-rules',
+      'rules',
+    ],
+    'properties-order': 'alphabetical',
+    'unspecified-properties-position': 'bottom',
+  }),
+];
+```
+
+That is the build of the work. The rest is just defining a Gulp task that uses PostCSS, the plugins we just specified and sourcemaps to build the production CSS.
+
+```css
+gulp.task('css', () => {
+  return gulp.src('src/css/main.css')
+    .pipe(sourcemaps.init())
+    .pipe(postcss(processors))
+    .pipe(sourcemaps.write('./'))
+    .pipe(gulp.dest('build/static/css'));
+});
 ```
 
 ## Incorporating into a Fractal design system
 
+To run this task in a Fractal-based design system, we need to complete the following steps:
+
+1. Make sure you have a Gulp-based build system, if not you need to se one up
+2. Copy the code we discussed earlier and modify it to suite your needs
+3. Install the required plugins
+
+Once these steps are completed you can run `gulp -T` to get a list of the tasks. Gulp parses the `gulpfile.js` file before rendering the list of tasks so it will report if there are any syntax errors.
+
+After testing for syntax, you can run `gulp css` to build the CSS. This is where the PostCSS plugin erros are likely to happen. Repeat as necessary until there are no errors and the task completes.
+
 ## Conclusions
+
+Now that we have working code we can look at the next steps and get fancier with what we do with PostCSS.
+
+The next post will look at these additional features, how necessary they are and how to incorporate them into the existing PostCSS Workflow
