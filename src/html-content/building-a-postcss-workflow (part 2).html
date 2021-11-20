@@ -1,0 +1,71 @@
+<h1>Building a PostCSS workflow (part 2)</h1>
+<p>In the last post we built a basic PostCSS workflow using Gulp. This post will cover additional features that are nice to have in a workflow but are not required to run it.</p>
+<p>We will also look in some detail at <a href="https://preset-env.cssdb.org/">postcss-preset-env</a>, what it would allow us to do and how it would work.</p>
+<h2>The plugins (thoughts)</h2>
+<p>The list of plugins that I want to use shows what they are, what I expect them to do and a little research on SASS equivalency.</p>
+<p><code>postcss-color-function</code>
+: <a href="https://github.com/postcss/postcss-color-function">postcss-color-function</a> provides color manipulation functions equivalent to SASS <code>@lighten</code> and <code>@darken</code>.
+: The color functions in this plugin were removed from the CSS Color Module level 5 spec so they are not available in browsers at all, at least not directly.
+: According to <a href="https://twitter.com/argyleink">Adam Argyle</a>, one of the <a href="https://drafts.csswg.org/css-color-5/">CSS Color Module Level 5 spec</a> editors, <a href="https://twitter.com/argyleink/status/1456301298769297408?s=20">tweet</a> <strong><em>“no replacements planned, rather succession via relative color syntax. they had too much overlap, so 1 was removed”</em></strong>
+: See the following <a href="https://codepen.io/argyleink/pen/WNoWadG?editors=1100">Codepen</a> for a demo of the <a href="https://drafts.csswg.org/css-color-5/#color-mix">color-mix()</a> function
+: See this <a href="https://codepen.io/argyleink/pen/poNXLwW?editors=1100">Codepen</a> for a demo of relative color syntax and the <a href="https://drafts.csswg.org/css-color-5/#colorcontrast">color-contrast()</a> function (<strong>this demo only work in Safari Technical Preview 125 and later</strong>)</p>
+<p>Conditional logic
+: <a href="https://www.npmjs.com/package/postcss-conditionals">postcss-conditionals</a> offers an if/else statement equivalent to SASS @if
+: <a href="https://www.npmjs.com/package/postcss-each">postcss-each</a> gives you the ability to loop over an array of values and act on each one
+: <a href="https://github.com/antyakushev/postcss-for">postcss-for</a> allow writing conditional logic in a way that mostly mirror SASS.</p>
+<p><code>postcss-fail-on-warn</code>
+: This plugin will treat warning as errors causing the termination of the script.
+: This is useful when you want to make sure that you actually fix any warnings or errors in your CSS. However, <code>gulp-sass</code> seems to terminate the script on errors and warnings regardless, so this may be less of an issue</p>
+<p><code>postcss-simple-vars</code>
+: <a href="https://www.npmjs.com/package/postcss-simple-vars">postcss-simple-vars</a> allows us to use SASS variables (beginning with $) in our CSS.
+: Even though it was implemented in the initial version of the Gulpfile, I’m documenting here because I’m not sure if this is something I want to use over CSS native custom properties</p>
+<p><code>postcss-define-property</code>
+: <a href="https://www.npmjs.com/package/postcss-define-property">postcss-define-property</a> allows us to use CSS Custom Properties as defined in <a href="https://drafts.css-houdini.org/css-properties-values-api/">CSS Properties and Values API Level 1</a>, a Houdini specification.
+: The definitions of these properties are more complete since they allow you do define the syntax of the property, a default value and whether it inherits or not. The down side is that <code>@property</code> only supported on Chromium browsers so you will likely have to define multiple versions of a given property, likely using <code>@support</code> to target different browsers (chromium browsers and everyone else).
+: The order of the plugins you use matters. See the plugin’s <a href="https://github.com/daleeidd/postcss-define-property/wiki/Compatibility">compatibility wiki</a> for more information.</p>
+<p><code>postcss-at-rules-variables</code>
+: <a href="https://www.npmjs.com/package/postcss-at-rules-variables">postcss-at-rules-variables</a> allows us to use variables in the <code>@media</code> and <code>@supports</code> at-rules.
+: I’ve chosen not to implement this yet as I’m not ceertain this is not taken care of by other plugins.</p>
+<p><code>postcss-preset-env</code>
+: This is the PostCSS equivalent to Babel for Javascript. The idea is that it will allows us to use a set of new CSS features at different level of maturity in the CSS specification process.
+: The problem is that the list is likely to change over time and it doesn’t account for properties that have been removed from the corresponding specification.</p>
+<h2>Adding the plugins to the workflow</h2>
+<p>Because we’ve already created the Gulpfile the process is simpler when adding additional functionalityis a two-step process instead of three steps that we discussed in the previous post.</p>
+<ol>
+<li>Install the plugins and require them at the top of the gulpfile</li>
+<li>Add the plugins to the processors constant</li>
+</ol>
+<p>The additional properties look like this:</p>
+<pre><code class="language-js">const property = require(`postcss-define-property`);
+const condition = require('postcss-conditionals');
+const each = require('postcss-each');
+const pcfor = require('postcss-for');
+const colors = require('postcss-color-function');
+</code></pre>
+<p>The full list of processors, including the new ones, is as follows:</p>
+<pre><code class="language-css">const processors = [
+  importer({
+    glob: true
+  }),
+  property,
+  simpleVars,
+  nesting,
+  autoprefixer,
+  sorting({
+    order: [
+      'custom-properties',
+      'dollar-variables',
+      'declarations',
+      'at-rules',
+      'rules',
+    ],
+    'properties-order': 'alphabetical',
+    'unspecified-properties-position': 'bottom',
+  }),
+  colors,
+  condition,
+  each,
+  pcfor,
+];
+</code></pre>
+<p>The final test is to actually use the styles in selectors that use the functions and rules.</p>
