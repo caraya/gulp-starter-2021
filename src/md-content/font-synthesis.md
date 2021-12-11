@@ -66,4 +66,4 @@ or
 * Extra Bold (weight 900)
 * Extra Bold Italic (weight 900)
 
-Variable fonts reduce the need for many files at the cost of larger font files.
+Variable fonts reduce the need for many files at the cost of larger font files but not all fonts have an italics/slant axis to control italics for the font.

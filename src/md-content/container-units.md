@@ -30,9 +30,9 @@ There are also two compound values that you can use as shorthand for defining mu
 
 An example of a container ready to handle container relative sizes could look like this:
 
-```scss
+```css
 .card-container {
-  contain: layout inline-size style;
+  contain: layout content inline-size style;
 }
 ```
 
@@ -49,25 +49,25 @@ We then define the elements that we want to use inside the container.
   gap: 1rem;
 }
 
-.thumb {
+.card--thumb {
   aspect-ratio: 1 / 1;
   flex: 0 0 150px;
   background-color: #663399;
   border-radius: 7px;
 }
 
-.title {
+.card-title {
   font-weight: bold;
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
 }
 
-.content {
+.card--content {
   flex: 1;
 }
 ```
 
-We then use one or more `@container` elements to define the changes that we want to make based on the size of the container.
+We then use one or more `@container` at-rule to define the changes that we want to make based on the size of the container.
 
 ```css
 @container (min-width: 400px) {
@@ -83,7 +83,7 @@ We then use one or more `@container` elements to define the changes that we want
 
 
 @container (min-width: 600px) {
-  .thumb {
+  .card--thumb {
     flex: 0 0 150px;
   }
 }
@@ -138,19 +138,19 @@ The `container-type` property establishes the element as a query container for t
 The available values are:
 
 `size`
-: Establishes a query container for size queries on both the inline and block axis. Applies layout containment, style containment, and size containment to the principal box.
+: Establishes a query container for size queries on both the inline and block axis. Applies layout, style, and size containment to the principal box.
 
 `inline-size`
-: Establishes a query container for size queries on the container’s own inline axis. Applies layout containment, style containment, and inline-size containment to the principal box.
+: Establishes a query container for size queries on the container’s own inline axis. Applies layout, style, and inline-size containment to the principal box.
 
 `block-size`
-: Establishes a query container for size queries on the container’s own block axis. Applies layout containment, style containment, and block-size containment to the principal box.
+: Establishes a query container for size queries on the container’s own block axis. Applies layout, style, and block-size containment to the principal box.
 
 `style`
 : Establishes a query container for style queries.
 
 `state`
-: Establishes a query container for state queries. They have been pushed  to the next level of the CSS containment specification
+: Establishes a query container for state queries. They have been pushed to the next level of the CSS containment specification
 
 ### Container name
 
@@ -165,7 +165,7 @@ The container-name property specifies a list of query container names. These nam
 `<string>`
 : Specifies a query container name as a `<string>` value; this computes to an identifier with the same value as the given `<string>`.
 
-With `container-name` developers can specify which containers they want to target.
+With `container-name` developers can specify which containers they want to target with `@container` queries and use the same container for multiple child elements.
 
 ```css
 main {
@@ -187,6 +187,20 @@ main {
 }
 ```
 
+### Container
+
+This is a shorthand property to set both `container-type` and `container-name`. The values are separated by a slash `/`.
+
+```css
+main {
+  container: size / page-layout;
+}
+
+.my-component {
+  container: inline-size / component-library;
+}
+```
+
 ## Container relative length units
 
 These units are similar to  viewport units except that they are relative to the dimensions of a the closes element that defined a container with `container-type`.
@@ -204,7 +218,6 @@ We can use these units in a similar way to viewport units, but they will refer t
 
 ```scss
 aside, main {
-  container: inline-size;
   container-type: inline-size;
 }
 
@@ -231,7 +244,7 @@ h2 {
 }
 ```
 
-If there is no container that is defined for the `<h2>`, the browser will consider `3qw` as if it was `3%` of the viewport width, most likely not what you want to do.
+If there is no container that is defined for the `<h2>` or parents, the browser will consider `3qw` as if it was `3%` of the viewport width, most likely not what you want to do.
 
 ## Gotchas
 
@@ -253,6 +266,9 @@ Use the following links to track support on your browser:
   * [Next Gen CSS: @container](https://css-tricks.com/next-gen-css-container/)
   * [Container Queries are actually coming](https://piccalil.li/blog/container-queries-are-actually-coming/)
   * [Container Query Solutions with CSS Grid and Flexbox](https://moderncss.dev/container-query-solutions-with-css-grid-and-flexbox/)
+  * [Container Query Spec](https://goo.gle/3ok42pw )
+  * [CSS Tricks post on @container](https://goo.gle/3rvGkIB)
+  * [Web.dev article on containment](https://goo.gle/3wBMB52)
 * Container Relative Lengths
   * Container Relative Lengths in the [CSS Containment Level 3 specification](https://drafts.csswg.org/css-contain-3/#container-lengths)
   * [Container Units Should Be Pretty Handy](https://css-tricks.com/container-units-should-be-pretty-handy/) &mdash; CSS Tricks
@@ -263,3 +279,7 @@ Use the following links to track support on your browser:
   * [Query Units - Card](https://codepen.io/shadeed/pen/yLXKBqN?editors=0100) &ndash; Ahmad Shadeed
   * [Query Units - Importance](https://codepen.io/shadeed/pen/oNwqvap?editors=0100) &ndash; Ahmad Shadeed
   * [Query Units - Bio](https://codepen.io/shadeed/pen/wvemwNb?editors=0100) &ndash; Ahmad Shadeed
+  * [Simplified Container Query Demo](https://codepen.io/una/pen/MWvzQdR) &mdash; Una
+  * [Podcast Card Demo](https://codepen.io/una/pen/LYbvKpK) &mdash; Una
+  * [Plant Store Demo](https://codepen.io/una/pen/mdOgyVL) &mdash; Una
+  * [Baby Clothes Demo](https://goo.gle/3GdVYwB) &mdash; Una

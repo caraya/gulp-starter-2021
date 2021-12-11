@@ -1,0 +1,21 @@
+# Web Design as Craft or Web Design as Assembly Line
+
+[In Defense of a Fussy Website](https://css-tricks.com/in-defense-of-a-fussy-website/)
+
+<iframe height="300" style="width: 100%;" scrolling="no" title="Compound grid generator" src="https://codepen.io/michellebarker/embed/zYOMYWv?default-tab=result&theme-id=dark" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/michellebarker/pen/zYOMYWv">
+  Compound grid generator</a> by Michelle Barker (<a href="https://codepen.io/michellebarker">@michellebarker</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+
+[Inspired Design Decisions: Pressing Matters](https://www.smashingmagazine.com/2019/07/inspired-design-decisions-pressing-matters/)
+
+<https://www.smashingmagazine.com/author/andy-clarke/>
+
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/eUeoLUjOUHw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/OxrsO4aIjyc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
