@@ -53,8 +53,8 @@
 <li><strong>strict</strong>: This is equivalent to contain: layout paint size style.</li>
 </ul>
 <p>An example of a container ready to handle container relative sizes could look like this:</p>
-<pre><code class="language-scss">.card-container {
-  contain: layout inline-size style;
+<pre><code class="language-css">.card-container {
+  contain: layout content inline-size style;
 }
 </code></pre>
 <p>This container uses the new <code>inline-size</code> and the <code>layout</code> and <code>style</code> containment values from the level 2 specification to indicate the expected behavior for the children of the container.</p>
@@ -67,24 +67,24 @@
   gap: 1rem;
 }
 
-.thumb {
+.card--thumb {
   aspect-ratio: 1 / 1;
   flex: 0 0 150px;
   background-color: #663399;
   border-radius: 7px;
 }
 
-.title {
+.card-title {
   font-weight: bold;
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
 }
 
-.content {
+.card--content {
   flex: 1;
 }
 </code></pre>
-<p>We then use one or more <code>@container</code> elements to define the changes that we want to make based on the size of the container.</p>
+<p>We then use one or more <code>@container</code> at-rule to define the changes that we want to make based on the size of the container.</p>
 <pre><code class="language-css">@container (min-width: 400px) {
   .card {
     flex-direction: row;
@@ -98,7 +98,7 @@
 
 
 @container (min-width: 600px) {
-  .thumb {
+  .card--thumb {
     flex: 0 0 150px;
   }
 }
@@ -148,15 +148,15 @@
 <p>The <code>container-type</code> property establishes the element as a query container for the purpose of container queries, allowing style rules styling its descendants to query various aspects of its sizing, layout, and style and respond accordingly.</p>
 <p>The available values are:</p>
 <p><code>size</code>
-: Establishes a query container for size queries on both the inline and block axis. Applies layout containment, style containment, and size containment to the principal box.</p>
+: Establishes a query container for size queries on both the inline and block axis. Applies layout, style, and size containment to the principal box.</p>
 <p><code>inline-size</code>
-: Establishes a query container for size queries on the container’s own inline axis. Applies layout containment, style containment, and inline-size containment to the principal box.</p>
+: Establishes a query container for size queries on the container’s own inline axis. Applies layout, style, and inline-size containment to the principal box.</p>
 <p><code>block-size</code>
-: Establishes a query container for size queries on the container’s own block axis. Applies layout containment, style containment, and block-size containment to the principal box.</p>
+: Establishes a query container for size queries on the container’s own block axis. Applies layout, style, and block-size containment to the principal box.</p>
 <p><code>style</code>
 : Establishes a query container for style queries.</p>
 <p><code>state</code>
-: Establishes a query container for state queries. They have been pushed  to the next level of the CSS containment specification</p>
+: Establishes a query container for state queries. They have been pushed to the next level of the CSS containment specification</p>
 <h3>Container name</h3>
 <p>The container-name property specifies a list of query container names. These names can be used by <code>@container</code> rules to filter which query containers are targeted.</p>
 <p><code>none</code>
@@ -165,7 +165,7 @@
 : Specifies a query container name as an identifier.</p>
 <p><code>&lt;string&gt;</code>
 : Specifies a query container name as a <code>&lt;string&gt;</code> value; this computes to an identifier with the same value as the given <code>&lt;string&gt;</code>.</p>
-<p>With <code>container-name</code> developers can specify which containers they want to target.</p>
+<p>With <code>container-name</code> developers can specify which containers they want to target with <code>@container</code> queries and use the same container for multiple child elements.</p>
 <pre><code class="language-css">main {
   container-type: size;
   container-name: page-layout;
@@ -182,6 +182,16 @@
 
 @container component-library (inline-size &gt; 30em) {
   .card { margin-inline: 2em; }
+}
+</code></pre>
+<h3>Container</h3>
+<p>This is a shorthand property to set both <code>container-type</code> and <code>container-name</code>. The values are separated by a slash <code>/</code>.</p>
+<pre><code class="language-css">main {
+  container: size / page-layout;
+}
+
+.my-component {
+  container: inline-size / component-library;
 }
 </code></pre>
 <h2>Container relative length units</h2>
@@ -222,7 +232,6 @@
 </table>
 <p>We can use these units in a similar way to viewport units, but they will refer to the closest ancestor that defines a container.</p>
 <pre><code class="language-scss">aside, main {
-  container: inline-size;
   container-type: inline-size;
 }
 
@@ -242,7 +251,7 @@
     font-size: clamp(1.25rem, 3qw, 2rem);
 }
 </code></pre>
-<p>If there is no container that is defined for the <code>&lt;h2&gt;</code>, the browser will consider <code>3qw</code> as if it was <code>3%</code> of the viewport width, most likely not what you want to do.</p>
+<p>If there is no container that is defined for the <code>&lt;h2&gt;</code> or parents, the browser will consider <code>3qw</code> as if it was <code>3%</code> of the viewport width, most likely not what you want to do.</p>
 <h2>Gotchas</h2>
 <p><strong>The @container API is not stable</strong>, and is subject to syntax changes. If you try it out on your own, you may encounter bugs.</p>
 <p><strong>Right now this only works in Chromium browsers</strong> (Chrome, Edge, Opera, and others) if you enable the <code>#enable-container-queries</code> flag in <code>chrome://flags</code>.</p>
@@ -260,6 +269,9 @@
 <li><a href="https://css-tricks.com/next-gen-css-container/">Next Gen CSS: @container</a></li>
 <li><a href="https://piccalil.li/blog/container-queries-are-actually-coming/">Container Queries are actually coming</a></li>
 <li><a href="https://moderncss.dev/container-query-solutions-with-css-grid-and-flexbox/">Container Query Solutions with CSS Grid and Flexbox</a></li>
+<li><a href="https://goo.gle/3ok42pw">Container Query Spec</a></li>
+<li><a href="https://goo.gle/3rvGkIB">CSS Tricks post on @container</a></li>
+<li><a href="https://goo.gle/3wBMB52">Web.dev article on containment</a></li>
 </ul>
 </li>
 <li>Container Relative Lengths
@@ -276,6 +288,10 @@
 <li><a href="https://codepen.io/shadeed/pen/yLXKBqN?editors=0100">Query Units - Card</a> – Ahmad Shadeed</li>
 <li><a href="https://codepen.io/shadeed/pen/oNwqvap?editors=0100">Query Units - Importance</a> – Ahmad Shadeed</li>
 <li><a href="https://codepen.io/shadeed/pen/wvemwNb?editors=0100">Query Units - Bio</a> – Ahmad Shadeed</li>
+<li><a href="https://codepen.io/una/pen/MWvzQdR">Simplified Container Query Demo</a> — Una</li>
+<li><a href="https://codepen.io/una/pen/LYbvKpK">Podcast Card Demo</a> — Una</li>
+<li><a href="https://codepen.io/una/pen/mdOgyVL">Plant Store Demo</a> — Una</li>
+<li><a href="https://goo.gle/3GdVYwB">Baby Clothes Demo</a> — Una</li>
 </ul>
 </li>
 </ul>
