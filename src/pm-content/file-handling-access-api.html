@@ -1,0 +1,87 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>File Handling Access API</h1>
+<p>In <a href="https://web.dev/file-system-access/">The File System Access API: simplifying access to local files</a>, the authorsdescribe how to use the API to create file management functionality for web applications</p>
+<p>The idea is that we’ll be able to open a file from, display it in the browser and then, if desired, save it to a new location in our local file system.</p>
+<p>To open a file we’ll use the following code.</p>
+<p>We define the following constants and variables:</p>
+<ul>
+<li>Capture the button to open a file</li>
+<li>Capture the button to save a file</li>
+<li>Capture the text area where we’ll insert the text</li>
+<li>Capture the content that we’ll save</li>
+<li>Sets up an empty variable for the file handle we want to work with</li>
+</ul>
+<pre><code class="language-js">const openButton = document.querySelector('.openButton');
+const saveButton = document.querySelector('.saveButton');
+const display = document.querySelector('.content-area');
+const dataToSave = display.innerText;
+let fileHandle;
+</code></pre>
+<p>The <code>openFile</code> function is called when the <code>open file</code> button is clicked. It opens the file, reads the content and puts the content in the text area.</p>
+<p>The function runs the following steps:</p>
+<ol>
+<li>We use feature detection to make sure the feature is supported, if not then we bail</li>
+<li>We create a new file handle and show the file picker dialogue</li>
+<li>Open the file</li>
+<li>Read and convert the content of the file to text</li>
+<li>Insert the content of the file into the display text area</li>
+</ol>
+<pre><code class="language-js">async function openFile() {
+  if ('showOpenFilePicker' in window) { // 1
+    [fileHandle] = await window.showOpenFilePicker(); // 2
+    const file = await fileHandle.getFile(); // 3
+    const contents = await file.text(); // 4
+    display.innerText = contents; // 5
+  } else {
+    console.error('filehandle API not supported');
+  }
+}
+</code></pre>
+<h2>Saving a file</h2>
+<p>Saving a file is a little more complicated. We need to create a new file handle, capture the content to save, write the content to the file and then close the file and save it.</p>
+<p>The steps are as follows:</p>
+<ol>
+<li>Use a feature query to detect if showSaveFilePicker is supported. If it’s not then bail</li>
+<li>Show the save file picker</li>
+<li>Create a <code>FileSystemWritableFileStream</code> to write to</li>
+<li>Write the file</li>
+<li>close the file and write the contents to disk.</li>
+</ol>
+<pre><code class="language-js">async function saveFile() {
+  if ('showSaveFilePicker' in window) { // 1
+    const newHandle = await window.showSaveFilePicker(); // 2
+      const writableStream = await newHandle.createWritable(); // 3
+        await writableStream.write(dataToSave); // 4
+      await writableStream.close(); // 5
+  }
+}
+</code></pre>
+<p>Finally we attack the functions to the click event of the corresponding button.</p>
+<pre><code class="language-js">openButton.addEventListener('click', openFile);
+saveButton.addEventListener('click', saveFile);
+</code></pre>
+<h2>Links and resources</h2>
+<ul>
+<li><a href="https://github.com/WICG/file-system-access/blob/main/EXPLAINER.md">Public explainer</a></li>
+<li><a href="https://wicg.github.io/file-system-access/">File System Access</a> and <a href="https://w3c.github.io/FileAPI/">File</a> specifications at WICG</li>
+<li><a href="https://www.chromestatus.com/feature/6284708426022912">ChromeStatus.com entry</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API">File System Access API</a> — MDN</li>
+<li><a href="https://docs.google.com/document/d/1NJFd-EWdUlQ7wVzjqcgXewqC5nzv_qII4OvlDtK6SE8/edit">File System Access API</a> — Chromium Security Model</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

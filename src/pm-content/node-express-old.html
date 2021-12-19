@@ -1,0 +1,445 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Creating Express Applications</h1>
+<p>One thing on my long term to-learn cue is creating node applications using express. I’ve been playing with the idea of also working with GraphQL and this combination gives me the perfect excuse to start with this project.</p>
+<p>I’ll look at the basics of creating a Node application using Express, learn about Middleware and write routes for our application. We’ll look at creating routes for our application API</p>
+<p>As of right now this is the software that I want to use:</p>
+<ul>
+<li>Node</li>
+<li>Express and middleware</li>
+<li>MongoDB</li>
+</ul>
+<h2>Getting started</h2>
+<p>Before we get started we’ll build our application using the <a href="https://expressjs.com/en/starter/generator.html">Express Application Generator</a>. This provides a good starting point and sensible defaults for our application. We’ll configure the application with the following parameters</p>
+<ul>
+<li>Handlebars template engine</li>
+<li>SASS support</li>
+</ul>
+<pre><code class="language-bash">express --hbs --css sass express-demo
+</code></pre>
+<p>After the installation process go to the application directory and install the project’s dependencies:</p>
+<pre><code class="language-bash">cd express-demo
+npm install
+</code></pre>
+<p>The last step in this section is to test that everything is working properly. Run the following command to start the server:</p>
+<pre><code class="language-bash">npm run start
+</code></pre>
+<p>Point your browser to <a href="http://localhost:3000">http://localhost:3000</a></p>
+<h3>Making things easier as a developer</h3>
+<p>The start script, as configured, requires you to stop and start the server every time you make a change. We can create a new way to start the server that will automatically restart it when we make changes.</p>
+<p>To do this install the <a href="https://nodemon.io/">nodemon</a> package to take care to monitor for changes and restart your application if needed.</p>
+<p>Install <code>nodemon</code> globally:</p>
+<pre><code class="language-bash">npm install -g nodemon
+</code></pre>
+<p>Then place a comma on the previous line add the following line to the <code>scripts</code> section of your <code>package.json</code> file.</p>
+<pre><code class="language-json">&quot;devstart&quot;: &quot;nodemon bin/www&quot;
+</code></pre>
+<p>The full script section should now look like this:</p>
+<pre><code class="language-json">  &quot;scripts&quot;: {
+    &quot;start&quot;: &quot;node ./bin/www&quot;,
+    &quot;devstart&quot;: &quot;nodemon bin/www&quot;
+  },
+</code></pre>
+<p>When you start your server using the devstart script, <code>npm run devstart</code>, the server will start as normal but will also watch for changes and automatically reboot as needed.</p>
+<p>There are situations when this will not work and you will have to manually.</p>
+<h2>Understanding The Default Installation</h2>
+<p>When running the Express generator we get a structure like the one below where <code>express-demo</code> is the root of the application and <code>package-lock.json</code> is a new feature of NPM 5.0.</p>
+<pre><code class="language-bash">express-demo/
+├── app.js
+├── bin
+├── node_modules
+├── package-lock.json
+├── package.json
+├── public
+├── routes
+└── views
+</code></pre>
+<p><code>app.js</code> is the main entry point for the application.</p>
+<p><code>bin/</code> is the directory where we hold binary or executable files. In this case it holds the <code>www</code> script that will start the application.</p>
+<p><code>node_modules</code> is where all the plugins and their dependencies are installed.</p>
+<p><code>package.json</code> includes metadata about the application and its dependencies.</p>
+<p><code>package-lock.json</code> is a new feature of NPM 5.0 and is similar in function to <code>yarn.lock</code> generated when running the Yarn package manager.</p>
+<p><code>public</code> holds all our static assets such as images, scripts and style sheets.</p>
+<p><code>routes</code> holds one or more routes for the application. Routes tell express what to do when a request matches a specific route. We’ll discuss routes in a separate chapter as they are a key part of an Express applications.</p>
+<p><code>views</code> hold one or more views for our resources. If a resource matches a route the view iswhat do we show the user? This will also be discussed in more detail in its own chapter.</p>
+<h2>The default application</h2>
+<p>Now that we’ve seen the structure of the application let’s look at <code>app.js</code>, the main entry point for it.</p>
+<pre><code class="language-javascript">var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+
+var routes = require('./routes/index');
+var users = require('./routes/users');
+
+var app = express();
+</code></pre>
+<p>As with all Node applications we have to setup the required plugins for the application using the <code>require</code> syntax. We also require the routes for the application.</p>
+<p>As the last step in this section is to define our Express application by assigning it to a variable. We’ll use the <code>app</code> through the reminder of the script to reference the Express application.</p>
+<pre><code class="language-javascript">// view engine setup
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.set('view engine', 'handlebars');
+
+
+app.use('/', routes);
+app.use('/users', users);
+</code></pre>
+<p>We next use <a href="https://expressjs.com/en/api.html#app.set">set</a> to (pun intended) set parameters, in this case the views and what template engine we want to use (<a href="http://handlebarsjs.com/">Handlebars</a> in this case).</p>
+<pre><code class="language-javascript">// uncomment after placing your favicon in /public
+//app.use(favicon(__dirname + '/public/favicon.ico'));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+</code></pre>
+<p>We continue working with the <code>use</code> command to mount additional pieices of middleware for the application. We only  have to do this once for the whote application so it makes sense to do it here.</p>
+<p>The items we use are:</p>
+<ul>
+<li>A logger using <a href="https://github.com/expressjs/morgan">Morgan</a></li>
+<li>A JSON Parser (using <a href="https://github.com/expressjs/body-parser">bodyParser</a>)</li>
+<li>A URL-Encoded Parser (using <a href="https://github.com/expressjs/body-parser">bodyParser</a>)</li>
+<li>A <a href="https://github.com/expressjs/cookie-parser">cookie parser</a></li>
+<li>The location of the application’s static assets folder</li>
+</ul>
+<p>The last block is our error handlers.</p>
+<p>The first error handler that we use is a page not found error by returning a new error and a status code of 404.</p>
+<p>For any other error we create two handlers. The first one will trigger when the application is in development mode (env === development) where it will show the full stack trace for the error.</p>
+<p>When we’re in production we don’t want stack traces to appear to the users so we disable it. We may want to add a log in that case so that we know something broke.</p>
+<p>Lastly we export the application by using <code>module.exports = app;</code>.</p>
+<pre><code class="language-javascript">// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+// error handlers
+// development error handle will print stacktrace
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error: err
+    });
+  });
+}
+
+// production error handler; no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: {}
+    });
+});
+
+
+module.exports = app;
+</code></pre>
+<p>Now we are really done. Before jumping into routes and views we’ll look at the startup script for the application provided by the generator.</p>
+<h2>The Startup Script</h2>
+<p>The startup script, located in <code>bin/www</code>, does a few things to get the application ready to go:</p>
+<p>It sets the port as the value of the <code>port</code> environment variable or a default of 3000 and it starts the server listening on the port we specified. In addition, if the server is configured in debug mode, it prints a message to console indicating what port the server is listening in.</p>
+<pre><code class="language-javascript">#!/usr/bin/env node
+var debug = require('debug')('express-demo');
+var app = require('../app');
+
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' +
+        server.address().port);
+});
+</code></pre>
+<h1>Routes</h1>
+<p>Routes tell express what to do when the application receives a path. In the table below are some examples of what would happen if I use a given <a href="http://www.restapitutorial.com/lessons/httpmethods.html">HTTP verb</a> with the exception of patch which is a more difficult version of put in my opinion.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Route</th>
+      <th>Verb</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td> / </td>
+      <td>get</td>
+      <td>Returns the content of the default page</td>
+    </tr>
+    <tr>
+      <td>/about</td>
+      <td>get</td>
+      <td>Returns content for the about page</td>
+    </tr>
+    <tr>
+      <td>/files/:name</td>
+      <td>get</td>
+      <td>gets a specific static file </td>
+    </tr>
+    <tr>
+      <td>/projects</td>
+      <td>get</td>
+      <td>Returns a list of all projects</td>
+    </tr>
+    <tr>
+      <td>/projects</td>
+      <td>post</td>
+      <td>Creates a new project</td>
+    </tr>
+    <tr>
+      <td>/projects/:project_id</td>
+      <td>get</td>
+      <td>Gets a single project</td>
+    </tr>
+    <tr>
+      <td>/projects/:project_id</td>
+      <td>put</td>
+      <td>Updates a single project</td>
+    </tr>
+    <tr>
+      <td>/projects/:project_id</td>
+      <td>delete</td>
+      <td>Deletes a project</td>
+    </tr>
+  </tbody>
+  <summary>
+    <p>Sample routes, verbs and expected results</p>
+  </summary>
+</table>
+<p>For most of the routes outside our projects we want to render a view that has already been built with Handlebars and HTML. <a href="https://expressjs.com/en/api.html#app.render">app.render</a> will take care of this for us. It takes 3 parameters:</p>
+<ul>
+<li>A view to render</li>
+<li>An optional object with local parameters for the view to use</li>
+<li>A callback function</li>
+</ul>
+<pre><code class="language-javascript">var express = require('express');
+var router = express.Router();
+
+/* GET home page. */
+router.get('/', function(req, res) {
+  res.render('index', { title: 'Express' });
+});
+
+module.exports = router;
+</code></pre>
+<p>We can also use <a href="https://expressjs.com/en/api.html#router.route">router.route</a> to specify multiple HTTP verbs that apply to the same path.  In the example below the <code>/projects/:project_id</code> use <code>get</code> and <code>put</code> verbs; Rather than create individual routes we create one route using <code>router.route</code> and put the different verbs under it.</p>
+<p>Note that these routes will change when we look at how to add content from a database to the routes.</p>
+<pre><code class="language-javascript">router.route('/projects/:project_id')
+  // get the project with that id
+  // accessed at GET http://localhost:8080/api/projects/:project_id
+  .get((req, res) =&gt; {
+      Project.findById(req.params.project_id, (err, project) =&gt; {
+          if (err)
+              res.send(err);
+          res.json(project);
+      });
+  })
+  // update the project with this id
+  // accessed at PUT http://localhost:8080/api/projects/:project_id
+  .put((req, res) =&gt; {
+    project.findById(req.params.project_id, (err, project) =&gt; {
+      if (err)
+          res.send(err);
+      project.name = req.body.name;
+      project.save(err =&gt; {
+          if (err)
+              res.send(err);
+          res.json({ message: 'project updated!' });
+      });
+    });
+  });
+</code></pre>
+<p>Another static route to look at is one that will send static files, PDF versions of a specific page for example, when so requested.</p>
+<pre><code class="language-javascript">app.get('/file/:name', (req, res, next) =&gt; {
+  var options = {
+    root: __dirname + '/public/files',
+    dotfiles: 'deny',
+    headers: {
+        'x-timestamp': Date.now(),
+        'x-sent': true
+    }
+  };
+  var fileName = req.params.name;
+  res.sendFile(fileName, options, (err) =&gt; {
+    if (err) {
+      next(err);
+    } else {
+      console.log('Sent:', fileName);
+    }
+  });
+});
+</code></pre>
+<p>We’ll revisit routes when we look at using MongoDB and the Mongoose ORM to build database enabled routes.</p>
+<h1>Views</h1>
+<p>Views are how we present the content to the user. We can use full HTML files of we can use templates that combine HTML with special tags that will perform different tasks.</p>
+<p>When working with Express’ routes one of the first things I discovered is that it expects all Express related files in one directory. I’ve gotten used to working with a more modular structure where layouts and partials are directories containing handlebar layouts and partials respectively:</p>
+<pre><code class="language-bash">views
+├── error.hbs
+├── index.hbs
+├── layouts
+└── partials
+</code></pre>
+<p>Instead of working in the single directory structure I’ve installed <code>express-handlebars</code> as a replacement for the standard Handlebars view engine.</p>
+<p>Install it as you would any other package:</p>
+<pre><code class="language-bash">npm install express-handlebars
+</code></pre>
+<p>The configuration looks different too. We specify additional configuration for our default layout, partials and layouts. I’m still experimenting with YAML Front Matter to see if I can specify page specific content</p>
+<pre><code class="language-javascript">// view engine setup
+app.engine('.hbs', exphbs({
+    extname: '.hbs',
+    defaultLayout: 'main',
+    partialsDir: path.join(__dirname, 'views/partials'),
+    layoutsDir: path.join(__dirname, 'views/layouts')
+  }));
+app.set('view engine', '.hbs');
+app.set('views',path.join(__dirname,'views'))
+</code></pre>
+<p>The templates you render can be as simple as this HTML template that creates a 2 column layout with an image on the left and text on the right</p>
+<pre><code class="language-handlebars">---
+title: Rivendellweb Labs
+author: Carlos Araya
+layout: default
+---
+
+&lt;div class=&quot;index-wrapper&quot;&gt;
+&lt;div class=&quot;image&quot;&gt;&lt;/div&gt;
+
+&lt;div class=&quot;text&quot;&gt;
+
+  &lt;h1&gt;{{title}}&lt;/h1&gt;
+  &lt;h2 class=&quot;lead&quot;&gt;These are the things I've been playing with in the last couple years. They center mostly around publishing, multimedia and storytelling.&lt;/h2&gt;
+
+
+  &lt;article&gt;
+
+    &lt;dl&gt;
+      &lt;dt&gt;&lt;a href=&quot;data-vis/&quot;&gt;Data Visualization&lt;/a&gt;&lt;/dt&gt;
+      &lt;dd&gt;How to make data easier to understand&lt;/dd&gt;
+
+      &lt;dt&gt;&lt;a href=&quot;css-vis&quot;&gt;CSS Property Visualization&lt;/a&gt;&lt;/dt&gt;
+      &lt;dd&gt;I create a visualization of CSS properties&lt;/dd&gt;
+
+      &lt;dt&gt;&lt;a href=&quot;layouts&quot;&gt;Layout experiments&lt;/a&gt;&lt;/dt&gt;
+      &lt;dd&gt;Inspired by technology, magazines (Wired, Kinfolk)
+      and people (Jen Simmons, Rachel Andrew)&lt;/dd&gt;
+
+      &lt;dt&gt;&lt;a href=&quot;pages-media&quot;&gt;Paged media&lt;/a&gt;&lt;/dt&gt;
+      &lt;dd&gt;Using tools like PrinceXML or Antenna House
+      Formatter you can create amazing layouts for
+      printed material using only web technologies.&lt;/dd&gt;
+
+      &lt;dt&gt;&lt;a href=&quot;webgl&quot;&gt;AR and VR tests&lt;/a&gt;&lt;/dt&gt;
+      &lt;dd&gt;Content created with WebGL, Three.js and A-Frame
+
+      &lt;dt&gt;&lt;a href=&quot;essays&quot;&gt;Essays&lt;/a&gt;&lt;/dt&gt;
+      &lt;dd&gt;Longer articles that are either a compilation of
+      multiple blog posts or unrelated to my technical blog.&lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/article&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<p>To a template constructed from JSON data from a <code>projects.json</code> file. It uses more advanced Handlebars features and, along with the corresponding CSS and Javascript, produces a fairly rich user experience.</p>
+<pre><code class="language-handlebars">---
+title: Project Archive
+author: Carlos Araya
+layout: default
+---
+&lt;html&gt;
+  &lt;head&gt;
+    {{#&gt;head-content}}{{/head-content}}
+  &lt;/head&gt;
+  &lt;body&gt;
+    {{#&gt;title-block}}{{/title-block}}
+
+    &lt;div id=&quot;card-container&quot;&gt;
+      {{#each projects}}
+        {{&gt; project-single}}
+      {{/each}}
+    &lt;/div&gt;
+
+    {{#&gt;footer-block}}{{/footer-block}}
+    {{#&gt;botttom-scripts}}{{/botttom-scripts}}
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h1>Database Layer: MongoDB and Mongoose</h1>
+<p>To add databases to our application we need to redefine our routes with database information. This should make the routes easier to read but it introduces additional dependencies.</p>
+<pre><code class="language-javascript">// grab the things we need
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+var autoIncrement = require(&quot;mongodb-autoincrement&quot;);
+autoIncrement.setDefaults({
+    field: project_id,       // auto increment field name, default: _id
+    step: 1                  // auto increment step
+});
+
+// create a schema
+var projectSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true
+  }
+  project_id: {
+    type: Number,
+    required: true,
+    unique, true
+  },
+  description: String,
+  notes: String,
+  stage: String,
+  type: String,
+  url: {
+    code: String,
+    other: String,
+    writeup: String
+  },
+  created_at: {
+    type: Date,
+    default: Date.now
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+schema.plugin(autoIncrement.mongoosePlugin);
+
+// the schema is useless so far
+// we need to create a model using it
+var Project = mongoose.model('Project', projectSchema);
+
+// make this available to our users in our Node applications
+module.exports = User;
+</code></pre>
+<pre><code class="language-javascript">
+</code></pre>
+<h1>Static Long Form Content</h1>
+<h1>GraphQL Instead of REST?</h1>
+<p>In a future iteration I may consider experimenting with GraphQL and look at what GraphQL is, how it works and how to create routes that work with GrapQL using GrapQL-js.</p>
+<ul>
+<li><a href="http://danialk.github.io/blog/2014/12/05/express-4-tutorial-simple-server/">http://danialk.github.io/blog/2014/12/05/express-4-tutorial-simple-server/</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

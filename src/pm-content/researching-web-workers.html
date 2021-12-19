@@ -1,0 +1,117 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Researching Wokers</h1>
+<p>One thing that I’ve always been curious about is web workers. I know they are not the same as service workers but I don’t really know what they are.</p>
+<p>So in this post I’ll talk about Web Workers (not service workers) and what I have learned about them.</p>
+<h2>What are Web Workers</h2>
+<p>Web Workers allow scripts to run in the background, in a separate thread of execution, from the main thread running in the browser. In essence, web workers or workers allow for limited multi threading in Javascript.</p>
+<h2>What need to they fill</h2>
+<p>Because JavaScript is single threaded there are times when an app or a page will not be able to execute all the tasks the application needs without degrading the app’s overall performance. Using Workers you can delegate the task to a background thread and get the data when the computation ends without slowing down the main thread and any UI work it does.</p>
+<p>The <a href="https://html.spec.whatwg.org/multipage/workers.html#workers">Web Workers Section</a> of the WHATWG HTML standard specified two types of workers: dedicated and <a href="https://html.spec.whatwg.org/multipage/workers.html#shared-workers-introduction">shared</a>. I’ll concentrate on dedicated modules now and do more research on shared workers.</p>
+<h2>How do they work</h2>
+<p>Dedicated workers are failry simple. In the host page we use the following script.</p>
+<pre><code class="language-javascript">const supportsWorker = 'Worker' in window;
+
+if (supportsWorker) {
+  // Create the worker
+  const worker = new Worker('echoWorker.js');
+  // Grab a reference to the result div
+  const result = document.querySelector('#result');
+
+  // post message to worker
+  worker.postMessage('&lt;h1&gt;This was sent from the main thread&lt;/h1&gt;');
+
+  // This will receive the message from the worker
+  worker.onmessage = event =&gt; {
+    result.innerHTML = event.data;
+  }
+} else {
+  console.log('Web Workers not supported');
+}
+</code></pre>
+<p>This script will test if the browser supports dedicated workers and, if supported, initialize the worker and run the script inside it using the <code>new Worker()</code> constructor.</p>
+<p>Inside <code>echoWorker.js</code> we just return the message that we got from the main script</p>
+<pre><code class="language-javascript">onmessage = e =&gt; {
+  console.log('Echoing message we got from main script');
+  postMessage(e.data);
+}
+</code></pre>
+<p>We can get progressively more complex. In a later section I will explore if we can use a worker to generate HTML from Markdown and then insert it into the parent page.</p>
+<h2>Longer Example</h2>
+<p>Using the echo example I got an idea.</p>
+<p>Can we use workers to inject different chunks of JSON to fetch Markdown and convert it to HTML before puting the converted HTML into the parent document.</p>
+<p>We’ll experiment with pulling a markdown file using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch">Fetch API</a> from a Worker to retrieve a Markdown file and then use <a href="https://www.npmjs.com/package/remarkable">Remarkable</a> to convert the Markdown file we retrieved to HTML. The final step of the experiment, if it works, is to send the HTML content back to the origin page where it’ll be inserted into the <code>#result</code> element.</p>
+<p>The script in the host page looks like this:</p>
+<pre><code class="language-javascript">const supportsWorker = 'Worker' in window;
+
+if (supportsWorker) {
+  // Create the worker
+  const worker = new Worker('./markdownWorker.js');
+  // Grab a reference to the result div
+  const result = document.querySelector('#result');
+
+  // post message to worker
+  worker.postMessage('./content.md');
+
+  // This will receive the message from the worker
+  // and place it inside our result element
+  worker.onmessage = event =&gt; {
+    result.innerHTML = event.data;
+  }
+} else {
+  console.log('Web Workers not supported');
+}
+</code></pre>
+<p>The worker, <code>markdownWorker</code>, does a few things that I hadn’t done before in a worker.  It synchronously imports a third-party script using <a href="https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/importScripts">importScript</a> to make sure we have it before we use it.</p>
+<p>Inside <code>onmmessage</code> we initialize Remarkable, fetch the Markdown file, convert the result as text, process it with Remarkable and post the result back to the “master” page where it will render.</p>
+<pre><code class="language-javascript">importScripts(
+  'https://cdn.jsdelivr.net/npm/remarkable@1.7.1/dist/remarkable.js');
+
+self.onmessage = (event) =&gt; {
+  // Create a remarkable instance and
+  // change some default values
+  const md = new Remarkable('full', {
+    html: true,
+    linkify: true,
+    typographer: true,
+  });
+
+  // Fetch the URL passed as data for the event
+  fetch(event.data)
+  .then((response) =&gt; {
+    // Convert the response to text
+    return response.text();
+  })
+  .then((content) =&gt; {
+    // Transform the text using the Remarkable
+    // instance configured earlier
+    let transformedSource = md.render(content);
+    // Return the transformed text to the
+    // origin page
+    postMessage(transformedSource);
+  })
+  .catch((err) =&gt; {
+    console.log('There\'s been a problem completing your request: ', err);
+  });
+};
+</code></pre>
+<p>There are a few questions that I still have about the markdownWorker. Some of the questions that I may follow up on later posts:</p>
+<p><strong>What’s the impact of fetching files from a remote server?</strong> To validate the question the worker fetches a file from the same directory it lives in. Will changing it to retrieve a file from a third party directory slow the overall process?</p>
+<p>A related question is <strong>how do we make sure that a site’s <a href="https://content-security-policy.com/">content security policy</a> will not prevent a worker from fetching content?</strong></p>
+<p><strong>Will the worker work faster if it uses async / await?</strong> I’ve seen posts in both directions so I started with Promises. I’m thinking about using async/await in a future iteration to see if it actually works faster.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

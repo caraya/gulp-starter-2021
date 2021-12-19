@@ -1,0 +1,67 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Noto Fonts: Same family, multiple languages</h1>
+<p>One of the limitations of the World Wide Web is the lack of fonts for all the world languages. Even if we were to find fonts for all the languages we want to use it’s unlikely that we’ll find fonts that work well together.</p>
+<p>Google has developed and released as open source a family of fonts that cover all the languages covered in the <a href="https://unicode.org/">Unicode standard</a>. They are not quite up to the inteded goal of full Unicoode support but they are getting close.</p>
+<p>The idea is to have a set of fonts for Unicode languages that work well together and look good together.</p>
+<p>This is a different problem than the one Variable fonts solve; variable fonts interpolate font attributes such as weight, slant, and custom attributes between axes meaning that we need fewer font files to represent the same group of characters. However, this doesn’t include all the characters that we need for non western European languages; for that we still need multiple files.</p>
+<h2>Quick note about licenses</h2>
+<p>As we start diving into the Noto family we need to look at the license for the fonts. For a while Google used to license fonts under the <a href="https://opensource.org/licenses/Apache-2.0">Apache 2 license</a>, just like their other software but as of 2015 they moved the license to the <a href="http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&amp;id=OFL">SIL Open Font License 1.1</a></p>
+<h2>Using the fonts</h2>
+<p>I’m working with web content so I’ll concentrate in that aspect of font usage and not worry about local use or bundling them with an app.</p>
+<p>Make sure that the fonts are available as web fonts when you declare them. When you declare the font in your CSS but don’t load them as web fonts, the browser will immediately go to the next option in the stack.</p>
+<p>Compress the fonts using either WOFF or WOFF2 depending on your browser support needs. The same suggestions outlined in <a href="https://publishing-project.rivendellweb.net/improving-font-performance-work-to-control-font-loading">Improving Font Performance: Work to control font loading</a> and <a href="https://publishing-project.rivendellweb.net/improving-font-performance-subset-fonts-using-glyphhanger/">Improving Font Performance: Subset fonts using Glyphhanger</a> apply when working with multiple fonts of the same family.</p>
+<p>I strongly recommend using <a href="https://css-tricks.com/font-display-masses/">font-display</a> to improve performance and keep yourself from Flash of Invisible and Flash of Unstyled Text.</p>
+<p>Serve your fonts from the same domain as your app. Some Noto fonts are available at <a href="https://fonts.google.com/earlyaccess">Google Web Fonts Early Access</a> but they may not be the latest version of Noto or it may only cover a subset of the language.</p>
+<p>In addition, be aware that the web latency for large fonts, such as for Noto Sans CJK or when using multiple languages, can be large. Google Fonts uses <code>font-display: swap</code> to mitigate the problem but the solution may still not be ideal in all cases, particularly when working with slow devices or in areas with pooor connectivity.</p>
+<p>See Zach Leat’s <a href="https://www.zachleat.com/web/google-fonts-display/">Google Fonts Is Adding font-display 🎉</a>,  and this <a href="https://twitter.com/zachleat/status/1127198245376208896">twitter thread</a> for more in-depth analysis of how to best use Google Fonts.</p>
+<h3>Using Noto fonts in the CSS font-family property</h3>
+<p>Because fonts in the Noto family may overlap there are some considerations as written by the Google Fonts team</p>
+<p>Put fonts for the languages/scripts you care about most at the very beginning.</p>
+<p>This should go without saying but don’t include fonts you don’t need to improve Time to First Byte (TTFB), Time To Interactive (TTI), and other performance metrics.</p>
+<p>It is recommended to retain “Noto Sans” in the list. Other Noto fonts usually do not cover Latin letters, digits or punctuation.  If you’re writing content that doesn’t require any Latin language you can forego Noto Sans on your list.</p>
+<p>Put “Noto Sans” before “Noto Sans CJK”. Currently, the Latin characters in the CJK fonts are from <a href="https://fonts.adobe.com/fonts/source-sans">Adobe’s Source Sans Pro</a> so they may not look the same as the other sans serif fonts in the document.</p>
+<p>Wherever possible use “Noto Sans CJK {JP, KR, SC, TC}” rather than “Noto Sans {JP, KR, SC, TC}” (note the difference in the file names).</p>
+<p>Each of the font families “Noto Sans CJK {JP, KR, SC, TC}” supports all four languages, but has a different default language. So depending on the primary language you’re targetting what font you should use.</p>
+<h3>Examples</h3>
+<p>These examples assume that you’ve already loaded using <code>@font-face</code> or, if you’re happy with the restrictions that Google Fonts may add to the fonts it delivers, through Google Fonts.  It also assumes that the names on the @font-face declarations match the names we use in the <code>font-family</code> rules.</p>
+<p>For a Japanese website:</p>
+<pre><code class="language-css">font-family:  &quot;Noto Sans&quot;,
+              &quot;Noto Sans CJK JP&quot;,
+              sans-serif;
+</code></pre>
+<p>For a website targeting Hindi, and then Tamil users</p>
+<pre><code class="language-css">font-family:  &quot;Noto Sans Devanagari&quot;,
+              &quot;Noto Sans Tamil&quot;,
+              &quot;Noto Sans&quot;,
+              sans-serif;
+</code></pre>
+<p>For an Arabic website that needs to use an UI font for UI elements, such as buttons and tabs, that have more strict vertical space:</p>
+<pre><code class="language-css">font-family:  &quot;Noto Naskh Arabic UI&quot;,
+              &quot;Noto Sans UI&quot;,
+              sans-serif;
+</code></pre>
+<p>For a website targeting Armenian and Georgian users who prefer serif style:</p>
+<pre><code class="language-css">font-family:  &quot;Noto Serif Armenian&quot;,
+              &quot;Noto Serif Georgian&quot;,
+              &quot;Noto Serif&quot;,
+              serif;
+</code></pre>
+<h2>Why bother?</h2>
+<p>I like to think that fonts like Noto and other fonts that target specific non Latin (especially ethnic, endangered or minority) languages give people who wouldn’t normally have one a voice on the web. It allows them to communicate in their own language and helps make true the promise of a world wide web.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

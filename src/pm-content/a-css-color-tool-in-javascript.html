@@ -1,0 +1,94 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Color.js A CSS Color Tool in Javascript</h1>
+<p><a href="https://drafts.csswg.org/css-color-4/">CSS Color Module Level 4</a> and <a href="https://drafts.csswg.org/css-color-5/">level 5</a> introduce a lot of new color features but unless you’re really into the guts of working with colors on computers you probably wouldn’t know how to use them. There is also an issue of browser uneven support for colors on the web, which is a large problem for developers.</p>
+<p>When the graphical web first came online it was in low-resolution monitors, 640 x 480 was the norm and RGB was the only color space that we had to worry about. As technology improved, displays got bigger and grew beyond RGB and what it could show us.</p>
+<p>Current monitors can display more colors than those available in the sRGB color space as explained in <a href="https://webkit.org/blog/10042/wide-gamut-color-in-css-with-display-p3/">Wide Gamut Color in CSS with Display-P3</a></p>
+<p>There are other color spaces like LCH / LAB and P3 that do better in presenting color information and don’t have any of the limitations of sRGB as explained in <a href="https://lea.verou.me/2020/04/lch-colors-in-css-what-why-and-how/">LCH colors in CSS: what, why, and how?</a></p>
+<p><a href="https://lea.verou.me/">Lea Verou</a>, an editor of the level 4 and level 5 color specifications wrote <a href="https://colorjs.io/">color.js</a> to convert between different color formats supported in browsers and manipulate colors in a way that is similar to what you can do with SASS (and I imagine other preprocessors too).</p>
+<p>This post will explore different uses of the library and how it can make working with colors on the web easier.</p>
+<p>The first thing to do is explore how to convert colors from one color space to another.</p>
+<p>All these examples assume that we’ve imported the package using any command documented at <a href="https://colorjs.io/get/">Get Color.js</a>. I imported the code from a CDN to make it easier to work in Codepen while exploring the library.</p>
+<pre><code class="language-js">import Color from &quot;https://colorjs.io/dist/color.esm.js&quot;;
+</code></pre>
+<p>The first two examples convert colors between different color spaces or formats. In each case, we first define the starting color, one in RGB and the other in LCH.</p>
+<p>using the <code>.to</code> method we can convert to other color spaces. This will become handy when we work in presenting the color that will work on a given browser.</p>
+<pre><code class="language-js">let color1 = new Color(&quot;rebeccapurple&quot;);
+// We can switch color spaces
+let color1lab = color1.to(&quot;lch&quot;);
+let color1p3 = color1.to(&quot;p3&quot;);
+
+let color4 = new Color(&quot;lch(50% 80 30)&quot;);
+// We can switch color spaces
+let color4srgb = color4.to(&quot;srgb&quot;);
+let color4p3 = color4.to(&quot;p3&quot;);
+</code></pre>
+<div class="message info">
+  <p class="strong">Note:</p>
+  <p></p>
+  <p>These examples purposefully ignore the issues of color gamut mapping and the possibility that, after conversion from a larger color space to a smaller one like sRGB, the resulting colors may be outside the smaller colorspace visible colors. Color.js provides tools and functions to deal with this; check <a href="https://colorjs.io/docs/gamut-mapping.html">gamut mapping</a> for more information.</p>
+</div>
+<p>Once we define the color we can adjust different properties of the color that will change the color in place or will change it to a different color.</p>
+<p>The first color just gets a lightness adjustment. and will remain mostly the same.</p>
+<pre><code class="language-js">let color1Mod1 = new Color(&quot;rebeccapurple&quot;);
+color1Mod1.to(&quot;p3&quot;);
+color1Mod1.lightness *= 2;
+</code></pre>
+<p>The second color starts from an LCH color and adjusts the lightness, chroma, and hue.</p>
+<pre><code class="language-js">let color4Mod1 = new Color(&quot;lch(50% 80 30)&quot;);
+color4Mod1.lightness *= 1.2;
+color4Mod1.chroma = 40;
+color4Mod1.hue += 30;
+</code></pre>
+<p>If we use Color.js directly on the browser we can use the most appropriate color space for the browser.</p>
+<p>We first define the color and, optionally, convert it to the initial color space and make it into a string.</p>
+<p>We then test if the browser supports the CSS color in the format we defined. If the browser doesn’t support the color then we move on to the next color space and repeat the process.</p>
+<p>We use sRGB as the final format because it’s the only format we know all browsers will support.</p>
+<p>We log the value to the console to see the color space that the browser supports during development. We will also use the value of <code>cssColor</code> to create CSS variables that we can use in the CSS styles.</p>
+<p>I could have chosen to start from a color space other than sRGB but I am not familiar with the syntax of those other color spaces and that probably will take longer than I would like.</p>
+<pre><code class="language-js">let color = new Color(&quot;rebeccapurple&quot;);
+let cssColor = color.to(&quot;p3&quot;).toString();
+if (!CSS.supports(&quot;color&quot;, cssColor)) { 
+  cssColor = color.to(&quot;lch&quot;).toString();
+}
+if (!CSS.supports(&quot;color&quot;, cssColor)) {
+  cssColor = color.to(&quot;srgb&quot;).toString();
+}
+cssColor;
+// console.log(cssColor);
+</code></pre>
+<p>The final step is to use the color we got from testing in the browser into a CSS variable so we can use it in multiple locations throughout the stylesheets.</p>
+<p>We first capture a reference to the document element, this will save typing and reduce the possibility of errors.</p>
+<p>For each color, we want to define we use <a href="https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration/setProperty">setProperty</a> to add the property to the style object of the root element.</p>
+<pre><code class="language-js">let root = document.documentElement;
+
+root.style.setProperty(&quot;--color4-lch&quot;, color4);
+root.style.setProperty(&quot;--color4-srgb&quot;, color4srgb);
+root.style.setProperty(&quot;--color4-p3&quot;, color4p3);
+root.style.setProperty(&quot;--color4-mod1&quot;, color4Mod1);
+</code></pre>
+<p>In browsers that support Houdini’s <a href="https://drafts.css-houdini.org/css-properties-values-api/">CSS Properties and Values API</a> we can use <a href="CSS.registerProperty">CSS.registerProperty</a> to register a more flexible version of the variable.</p>
+<p>As with everything on the web the power comes at the cost of flexibility. What I call <code>Houdini Variables</code> are only supported in Chromium browsers with partial support in Safari as of Safari TP (Technology Preview) 67 (for what it’s worth, the current Safari TP version is 128).</p>
+<pre><code class="language-js">window.CSS.registerProperty({
+  name: '--color4-modified',
+  syntax: '&lt;color&gt;',
+  inherits: false,
+  initialValue: cssColor,
+});
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

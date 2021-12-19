@@ -1,0 +1,60 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>prefers-color-scheme in CSS and Javascript</h1>
+<p><code>prefers-color-scheme</code> is geared towards acommodating user preferences.</p>
+<p>With <code>prefers-color-scheme</code> we can control the color scheme we use based on the operating system preferences for the user. It supports three values:</p>
+<ul>
+<li><code>no-preference</code>: The user has not specified a preference. This keyword value evaluates as false</li>
+<li><code>light</code>: The user has indicated that uses a light theme (dark text on light background)</li>
+<li><code>dark</code>: The user has notified the system that they prefer a page that has a dark theme (light text on dark background).</li>
+</ul>
+<p>The example below taken from <a href="https://web.dev/prefers-color-scheme/">prefers-color-scheme: Hello darkness, my old friend</a> shows one way to use <code>prefers-color-scheme</code> to prirotize download and use of a given color scheme stylesheet.  We’re guaranteed to have a light scheme if the media query is not supported.</p>
+<p>The browser will load the light or dark stylesheet based on what media query matches. They are mutually exclusive so only one will be active at a time.</p>
+<pre><code class="language-html">&lt;script&gt;
+  if (window.matchMedia('(prefers-color-scheme: dark)').media === 'not all') {
+    document.documentElement.style.display = 'none';
+    document.head.insertAdjacentHTML(
+        'beforeend',
+        '&lt;link rel=&quot;stylesheet&quot; href=&quot;/light.css&quot; onload=&quot;document.documentElement.style.display = \'\'&quot;&gt;'
+    );
+  }
+&lt;/script&gt;
+
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/css/dark.css&quot; media=&quot;(prefers-color-scheme: dark)&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/css/light.css&quot; media=&quot;(prefers-color-scheme: no-preference), (prefers-color-scheme: light)&quot;&gt;
+&lt;!-- The main stylesheet will always load --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/css/style.css&quot;&gt;
+</code></pre>
+<p>Then we have our traditional CSS way of styling using media queries. In this example the light color scheme is the default and we don’t need to change it manually, whenever the browser detects that the operating system changed to dark mode it will automatically change the color scheme to match.</p>
+<pre><code class="language-css">.circle {
+  height: 100px;
+  width: 100px;
+  border-radius: 50%;
+  background-color: yellow;
+  border: 3px solid black;
+}
+
+@media (prefers-color-scheme: dark) {
+  .circle {
+    background-color: black;
+    border: 5px solid red;
+  }
+}
+</code></pre>
+<p>For more information see <a href="https://web.dev/prefers-color-scheme/">prefers-color-scheme: Hello darkness, my old friend</a></p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Using GetText based translations in node</h1>
+<p>When working with WordPress, one of the things I enjoyed was how easy it made it to use Gettext-based translation tooling and functionality to localize themes and plugins.</p>
+<p>I was thinking that it would be nice if there was an equivalent toolset for Javascript.</p>
+<p><a href="https://www.npmjs.com/package/node-gettext">node-gettext</a> seems to fit the bill nicely.</p>
+<p>It provides facilities to load and work with existing PO files and it provides the basic tooling that we need to work directly with PO files generate with other tools.</p>
+<p>Even though Node now supports ESM and their related methodss I’m sticking to CommonJS for a while longer so I can learn how to use them properly.</p>
+<p>The first step is to load the modules that we’ll use accross the demo,  in this case</p>
+<ul>
+<li>the <code>fs</code> native Node file system module</li>
+<li>the native <code>path</code> Node module</li>
+<li><code>node-gettext</code></li>
+<li><code>gettext-parser</code></li>
+</ul>
+<p>we then create a new instance of <code>node-gettext</code> that we’ll use to add the translation file (<code>addTranslations</code>), set the locale (<code>setLocale</code>) and then use the translated strings (<code>gettext</code>)</p>
+<p>On first impression, it doesn’t look like we’re actually using the translated strings. The <code>gettext</code> method is using English!</p>
+<p>No, it is not. What appears in English is actually the ID for the string we’re localizing. What <code>node-gettext</code> will do behind the scenes is take the ID, find the matching text in the locale we are using and then present that as the result of <code>gettext</code>.</p>
+<p>We then define the translations and their charcteristics. This example uses a single translation for Spanish but could accommodate multiple translations by adding them to the locales array.</p>
+<p>Next, we start loading the locale data. For each of our existing locales:</p>
+<ul>
+<li>We define the name of the file: the name of the locale with the <code>.po</code> extension</li>
+<li>We create the full path to the translation file by joining the <code>translationDir</code>, the name of the locale and the name of the translation file. For the Spanish thranslation this would be come <code>languages/es/es.po</code></li>
+</ul>
+<p>We then parse the translation file using <code>gettext-parser</code>'s parse method.</p>
+<p>The final step is to load the parsed translations into memory using <code>node-gettext</code>'s <code>addTranslations</code>.</p>
+<pre><code class="language-js">const fs = require('fs');
+const path = require('path');
+const Gettext = require('node-gettext');
+const { po } = require('gettext-parser');
+
+// In this example, our translations are found at
+// path/to/languages/locale/locale.po
+const translationsDir = 'languages'
+const locales = ['es']
+const domain = 'messages'
+
+const gt = new Gettext()
+
+locales.forEach((locale) =&gt; {
+    const fileName = `${locale}.po`
+    const translationsFilePath = path.join(translationsDir, locale, fileName)
+    const translationsContent = fs.readFileSync(translationsFilePath)
+
+    const parsedTranslations = po.parse(translationsContent)
+    gt.addTranslations(locale, domain, parsedTranslations)
+})
+</code></pre>
+<p>When we’re ready to use the translations, we set the locale that we want to work with and then use the <code>gettext</code> method to retrieve the translations that we want. If you’ve worked with WordPress i10n tools, this is equivalent to the <code>__()</code> way of writing localizable strings.</p>
+<p>The parameter for gettext is not the string in English but the value of the ID attribute for the entry we want to use in the <code>.po</code> translation file.</p>
+<p>The result looks like this:</p>
+<pre><code class="language-js">gt.setLocale('es')
+
+console.log(gt.gettext('Newer'));
+// --&gt; Más nuevos
+console.log(gt.gettext('Older'));
+// --&gt; Mas antiguos
+console.log(gt.gettext('Most Used Categories'));
+// --&gt; Categorías más usadas
+</code></pre>
+<p>If you’re working with WordPress, this technique allows you to use the same translation file for both regular themes, written in PHP and HTML, and front ends written with other technologies and frameworks.</p>
+<p><code>node-gettext</code> is supposed to be an isomorphic library, it should work on Node and on the browser. I am still figuring out how to make it work directly on the browser.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

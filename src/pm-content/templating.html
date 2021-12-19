@@ -1,0 +1,178 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Templating the web</h1>
+<p>There are times when writing the same thing oveer and over again gets to be really tedious. Think of populating large bulleted lists, select statements and other repetitive elements.</p>
+<p>We’ve been able to do this for a while using libraries… We’ll look at it handlebars.js and then we’ll look at using the <code>template</code> tag built into the HTML specification.</p>
+<p>We’ll also look at why we might want to keep working with libraries to support older browsers and browsers with incomplete support.</p>
+<h2>The current way: Template Libraries</h2>
+<p>When I first looked at Handlebars it appeared to be too much work for the result I was looking for. As I started working with WordPress, particularly when they released their REST API, I ralized that templating would be key to build custom interfaces.</p>
+<p>The most basic example shows how to use Handlebars to populate a template with information stored in the same script. The HTML contains both the placeholder element where we’ll store the content and the script containing the actual template.</p>
+<pre><code class="language-html">&lt;div id=&quot;entries&quot;&gt;&lt;/div&gt;
+
+&lt;script id=&quot;entry-template&quot; type=&quot;text/x-handlebars-template&quot;&gt;
+  &lt;div class=&quot;entry&quot;&gt;
+    &lt;h1&gt;{{title}}&lt;/h1&gt;
+    &lt;div class=&quot;body&quot;&gt;
+      {{body}}
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/script&gt;
+</code></pre>
+<p>The script element captures the content of the templae in the <code>source</code> variable and defines a shorthand for template compilation on <code>renderEntry</code>.</p>
+<p>We then define the content we want to insert. In this case it’s a variable holding an array of data we want to populate the content with.</p>
+<p>Finally we use <code>renderEntry</code> to rendeer the template, populated with the data, into HTML and insert it into our placeholder element.</p>
+<pre><code class="language-javascript">let source = document.getElementById('entry-template').innerHTML;
+let renderEntry = Handlebars.compile(source);
+
+let blogEntry = {
+  title: 'My New Post',
+  body: 'This is my first post!'
+};
+
+document.getElementById('entries').innerHTML = renderEntry(blogEntry);
+</code></pre>
+<p>A next iteration could be used to pull from an array of values stored locally. For this we use a helper method, <code>#each</code> to loop through the values on the array and provide the data to populate the template.</p>
+<p>The HTML is almost identical except that we wrap the content we’ll iterate over with an #each helper (<code>{{#each cats}}</code> and <code>{{/each}}</code>. cats is a reference to the data we will pass on Javascript.</p>
+<pre><code class="language-html">&lt;div id=&quot;cat-list&quot;&gt;&lt;/div&gt;
+
+&lt;template id=&quot;cat-list-template&quot;&gt;
+  {{#each cats}}
+    &lt;div class=&quot;cat&quot;&gt;
+      &lt;h1&gt;{{name}}&lt;/h1&gt;
+      &lt;p&gt;Age: {{age}}&lt;/p&gt;
+    &lt;/div&gt;
+  {{/each}}
+&lt;/template&gt;
+</code></pre>
+<p>The Javascript is also similar to the prior example. The differences are:</p>
+<ul>
+<li>The data we’re passing is now an array</li>
+<li>When we instantiate the template we wrap the data we pass in an array to make sure the helper works as intended</li>
+</ul>
+<pre><code class="language-javascript">var myCats = [
+  { name: 'Fiona', age: 4 },
+  { name: 'Spot', age: 12 },
+  { name: 'Chestnut', age: 4 },
+  { name: 'Frisky', age: false },
+  { name: 'Biscuit', age: 4 }
+];
+
+var template = document.getElementById('cat-list-template').innerHTML;
+var renderCats = Handlebars.compile(template);
+document.getElementById('cat-list').innerHTML = renderCats({
+  cats: myCats
+});
+</code></pre>
+<p>The last bit of Handlebars magic we’ll look at is how to use it to render templates with external data from a REST API; in this case Wordpress.</p>
+<p>The template is pretty similar to the cat example. The main difference is the use of nested values (<code>title.rendered</code> and <code>content.rendered</code>) and the use of the triple mustache around <code>content.rendered</code> to tell Handlebars that we don’t want to escape HTML values for this variable.</p>
+<p>If you don’t own the content then please <strong>don’t do this!</strong> In this case, since it’s my blog and I’m pretty sure I don’t write malware (bad code, maybe but definitely not malware) I’ve accepted the risk.</p>
+<pre><code class="language-html">&lt;div id=&quot;myContent&quot;&gt;&lt;/div&gt;
+
+  &lt;template id=&quot;post-list-template&quot;&gt;
+
+    {{#each posts}}
+    &lt;div class=&quot;post&quot;&gt;
+      &lt;h1&gt;{{title.rendered}}&lt;/h1&gt;
+      &lt;div&gt;
+        {{{content.rendered}}}
+      &lt;/div&gt;
+    &lt;/div&gt;
+    {{/each}}
+
+  &lt;/template&gt;
+</code></pre>
+<p>The Javascript is different. I’ve chosen to use fetch and promises to make the code look nicer. We could go with async and await but that would limit the code to newer browsers (yes, I know they are evergreen but I also know of IT departments that block updates or choose to use LTS/ESR versions that lag behind in features), even more so than promises do.</p>
+<p>The code starts with a <a href="https://developers.google.com/web/fundamentals/primers/promises">fetch request</a> to the <a href="https://developer.wordpress.org/rest-api/">Wordpress REST API</a> requesting the 4 more recent posts of my blog. You can change the value by changing the value of the <code>per_page</code> parameter. This will generate a promise that <strong>resolves</strong> when the fetch request completes and the data download is finished and <strong>rejects</strong> otherwise.</p>
+<p>Once the promise resolves we move to the next step and convert it to JSON data using the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">response</a> object’s <a href="https://developer.mozilla.org/en-US/docs/Web/API/Body/json">json</a> method.</p>
+<p>Once the promise of <code>response.json()</code> fulfills we move to the next, and final, step. We compile the template and render it using the data we just fetched. These are the same command that were at the bottom of the cat example. Since we are working with promises we must move them into the promise chain; otherwise the fetch request will complete before we reach the part of the script where we compile and render the template.</p>
+<p>If any of the promises rejects the code will jump to the catch statement. In this case we’re only logging the error to console. we might also want to display something to the user to indicate the failure. No blank pages, please.</p>
+<pre><code class="language-javascript">let myPosts = fetch(
+  'https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts?per_page=4'
+)
+  .then(response =&gt; {
+    return response.json();
+  })
+  .then(myJson =&gt; {
+    let template = document.getElementById('post-list-template').innerHTML;
+    let renderPosts = Handlebars.compile(template);
+    document.getElementById('myContent').innerHTML = renderPosts({
+      posts: myJson
+    });
+  })
+  .catch(err =&gt; {
+    console.log(&quot;There's been an error getting the data&quot;, err);
+  });
+</code></pre>
+<p>This was meant as a proof of concept and is in now way, shape or form production code. Some areas of further work:</p>
+<ul>
+<li>Caching the fetch results to improve load times after first visit</li>
+<li>Pagination</li>
+</ul>
+<h2>The template element</h2>
+<p>Rather than use a library, wouldn’t it be nice if we could use native HTML to create templates and then insantiate them with Javaascript without having to add libraries and additional HTTP request.</p>
+<p>We can!</p>
+<p>HTML templates were first proposed as part of the web components family of specifications. They have since moved to the <a href="https://html.spec.whatwg.org/multipage/scripting.html#the-template-element">HTML Specification</a> itself.</p>
+<p>The idea behind the template element is that it holds content on the page without the content being active… we can activate the template at any time using Javascript.</p>
+<p>Again it’s worth repeating some of the characteristics of natie HTML templates:</p>
+<ol>
+<li>Its content is effectively inert until activated. Essentially, your markup is hidden DOM and does not render. This means that script won’t run, images won’t load, audio won’t play until the template is used</li>
+<li>Content is considered not to be in the document. Using document.getElementById() or querySelector() in the main page won’t return child nodes of a template</li>
+<li>Templates can be placed anywhere inside of <code>&lt;head&gt;</code>, <code>&lt;body&gt;</code>, or <code>&lt;frameset&gt;</code> and can contain any type of content which is allowed in those elements
+<ul>
+<li>Note that “anywhere” means that <code>&lt;template&gt;</code> can safely be used in places that the HTML parser disallows…all but content model children. It can also be placed as a child of <code>&lt;table&gt;</code> or <code>&lt;select&gt;</code></li>
+</ul>
+</li>
+</ol>
+<p>The following template can be anywhere on the page but, for consistency sake, let’s put it at the bottom of the page. Notice that we’re ok with having an empty <code>src</code> attribute for the image element</p>
+<pre><code class="language-html">&lt;template id=&quot;mytemplate&quot;&gt;
+  &lt;img src=&quot;&quot; alt=&quot;great image&quot;&gt;
+  &lt;div class=&quot;comment&quot;&gt;&lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+<p>In your application script use the following script to stamp the template into the live DOM.</p>
+<p>We first create a function to make feature detection for templates easier.</p>
+<p>We then use the function in an if statement. Inside the if block we do the following:</p>
+<ul>
+<li>Select the template element and store the result in a variable</li>
+<li>Insert the path to the image inside the source attribute. We use the template’s <code>content</code> method to traverse inside the inert template</li>
+<li>We create a cloned compy of the template content using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/importNode">document.importNode</a></li>
+<li>We append the cloned node into the document.</li>
+</ul>
+<p>If the user agent doesn’t support templates we can fallback to using a library like Handlebars.</p>
+<pre><code class="language-javascript">function supportsTemplate() {
+  return 'content' in document.createElement('template');
+}
+
+if (supportsTemplate()) {
+  var t = document.querySelector('#mytemplate');
+  // Populate the src at runtime.
+  t.content.querySelector('img').src = 'logo.png';
+  var clone = document.importNode(t.content, true);
+  document.body.appendChild(clone);
+} else {
+  // Use old templating techniques or libraries.
+}
+</code></pre>
+<p>The one thing I’m still working on figuring out is how you can create multiple copies of the same template and populate it with different data, like the Wordpress/Handlebars example we discussed earlier. I will update the post once I mfigure it out :)</p>
+<h2>Links and Resources</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template">Template Element Description</a> at MDN</li>
+<li>Older <a href="https://www.html5rocks.com/en/tutorials/webcomponents/template/">Template Tutorial</a> from HTML5 Rocks</li>
+<li><a href="https://handlebarsjs.com/">Handlebars.js</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

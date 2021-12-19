@@ -1,0 +1,47 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Working with scripts directly in Gulp</h1>
+<p>This is an interesting trick to help consolidate assets and reduce the number of network requests you need to make.</p>
+<p>Let’s assume that your project depends on one big library like jQuery or Backbone to work properly. Instead of depending on the network (which may or may not be available) or caches (where you’re at the mercy of the user and the browser) you want to have control of the entire dependency tree for the build.</p>
+<p>The explanaiton for the code below is as follows:</p>
+<ol>
+<li>We request the latest jQuery version from the jQuery CDN using the <code>request</code> library. What we get is a readable stream.</li>
+<li>We create a valid vinyl file object with <code>vinyl-source-stream</code>. This makes it compatible with Gulp</li>
+<li>Our main file is selected from the file system as usual using <code>gulp.src</code></li>
+<li>The <code>merge2</code> package allows us to combine both streams</li>
+<li>The contents of both streams are converted to text buffers so <code>gulp-concat</code> can handle them.</li>
+</ol>
+<p><code>gulp-concat</code> and <code>gulp.dest</code> work normally</p>
+<pre><code class="language-javascript">var gulp = require('gulp');
+var source = require('vinyl-source-stream');
+var request = require('request');
+var merge = require('merge2');
+var concat = require('gulp-concat');
+var buffer = require('gulp-buffer');
+
+gulp.task('js', function() {
+    var jquery = request('http://code.jquery.com/jquery-latest.js') /* 1 */
+      .pipe(source('jquery.js'));     /* 2 */
+      var main = gulp.src('main.js'); /* 3 */
+      return merge(jquery, main)      /* 4 */
+      .pipe(buffer())                 /* 5 */
+      .pipe(concat('concat.js'))
+      .pipe(gulp.dest('dist'));})
+</code></pre>
+<p>Yes, there are few use cases where this is 100% necessary. I still think this is cool to have because, while it may not reduce the amount of work we have to do, it packages it all in one place.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

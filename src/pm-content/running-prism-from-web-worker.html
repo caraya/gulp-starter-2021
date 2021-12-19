@@ -1,0 +1,53 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Running Prism.js from a web worker</h1>
+<p>I’ve spent a lot of time trying to figure out if Prism.js will run inside a worker to highlight syntax on the web page.</p>
+<p>The answer is sort of.</p>
+<p>Given the way that Prism uses web workers, it still would not work in AMP pages. You still need to call this snippet of Javascript in the page that needs syntax highlighting.</p>
+<pre><code class="language-js">Prism.highlightAll(true, function() {
+  console.log('Syntax highlight completed');
+});
+</code></pre>
+<p>Furthermore, the async functionality of Prism.js is off by default.  The Prism.js FAQ <a href="https://prismjs.com/faq.html#why-is-asynchronous-highlighting-disabled-by-default">explains why</a>:</p>
+<blockquote>
+<p>[…]]Furthermore, using Web Workers is actually slower than synchronously highlighting, due to the overhead of creating and terminating the Worker. It just appears faster in these cases because it doesn’t block the main thread.[…] Lastly, Web Workers cannot interact with the DOM and most other APIs (e.g. the console), so they are notoriously hard to debug.</p>
+</blockquote>
+<p>So we can’t run Prism inside a worker, can we?</p>
+<p>No, we cannot. As far as I can tell, Prism will build a worker to execute the highlight portion of the work and then return that work to the main thread.</p>
+<p>The relevant portion of the code is in <a href="https://github.com/PrismJS/prism/blob/master/components/prism-core.js#L250-L265">prism-core.js, lines 250 to 265</a>.</p>
+<pre><code class="language-js">if (async &amp;&amp; _self.Worker) {
+  const worker = new Worker(_.filename);
+
+  worker.onmessage = function(evt) {
+    insertHighlightedCode(evt.data);
+  };
+
+  worker.postMessage(JSON.stringify({
+    language: env.language,
+    code: env.code,
+    immediateClose: true
+  }));
+}
+else {
+  insertHighlightedCode(_.highlight(env.code,
+    env.grammar, env.language));
+}
+</code></pre>
+<p>If I’m understanding the code correctly if we’ve called Prism with <code>highlightAll</code> method with true as the first parameter, Prism will create a worker and delegates the highlighting to the worker that returns the highlighted code when the task completes.</p>
+<p>I don’t know enough about workers to understand if we can put the <code>Prism.highlightAll</code> code in a worker and let it handle it in a sub-worker and whether that would be too much of a performance hit to be worth the effort.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

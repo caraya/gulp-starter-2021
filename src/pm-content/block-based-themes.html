@@ -1,0 +1,414 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Gutenberg Full Site Editing and Block-Based Themes</h1>
+<div class="message info">
+<h3>Note</h3>
+<p>Right now block-based themes and full site editing are still work in progress. I write about it because, sooner rather than later, themes will take advantage of full site editing and they will become a new tool in the arsenal for WordPress developers.</p>
+<p>These features are not part of Core WordPress, they require the latest Gutenberg plugin (not the version that is bundled with WordPress) and the APIs discussed in this post may change before they are merged into core and become official parts of WordPress.</p>
+</div>
+<p>An experimental feature available in recent versions of Gutenberg is the ability to <a href="https://developer.wordpress.org/block-editor/how-to-guides/block-based-theme/">create block-based themes</a></p>
+<p>The idea is that themes will leverage blocks, patterns and other Gutenberg features to enable easier development and customization of a theme.</p>
+<p>A related feature, also under development, is <a href="https://wpengine.com/blog/full-site-editing-future-of-building-with-wordpress/">Full site editing</a> (<code>fse</code>). According to the <a href="https://make.wordpress.org/design/handbook/focuses/full-site-editing/">fse page</a> in the WordPress Design Handbook:</p>
+<blockquote>
+<p>The goal of the full site editing project is to utilize the power of Gutenberg’s block model in an editing experience beyond post or page content. In other words, the idea is to make the entire site customizable. This editing mode will understand the structure of the site and provide ways to modify global elements like headers and footers.</p>
+</blockquote>
+<p>In the current model, different parts of the ecosystem provide different functionality: themes provide the logical structure of a site, plugins extend the functionality of the site and the editor (classic or Gutenberg) allow you to create content for the site within the boundaries of the theme and with the functionality provided by the core WordPress and plugins.</p>
+<p>With <code>fse</code> things change. We now can use blocks to create other types of content like headers, footers and sidebars.</p>
+<p>With these changes, the way we create themes also changes. In this post I will talk about block-based themes and full site editing, how it works now, and what we can expect in the future</p>
+<h2>Basic Requirements</h2>
+<p>A block based theme requires an <code>index.php</code> file, an <code>index template file</code>, a <code>style.css</code> file, and a <code>functions.php</code> file.</p>
+<p>The theme may optionally include an <a href="https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/">experimental-theme.json</a> file to manage global styles.</p>
+<p>The basic requirement to edit a block theme is to have a theme that is already configured to work with blocks.</p>
+<p>For these examples, I generated an empty theme with the <a href="https://github.com/WordPress/theme-experiments#generating-your-own-starter-theme">block theme generator</a>. I then copied the <code>experimental-theme.json</code> styles from the<a href="https://github.com/WordPress/theme-experiments/tree/master/tt1-blocks">tt1-block theme</a> to make sure that the styles work while I research the new syntax and whether that’s absolutely necessary or I can still work with CSS on a global CSS file.</p>
+<h2>Templates and template parts</h2>
+<p>Block-based themes replace templates written in PHP and HTML with HTML files that contain HTML and Gutenberg markup.</p>
+<p>Templates are placed inside the <code>block-templates</code> folder, and template parts go in the <code>block-template-parts</code> folder:</p>
+<pre><code class="language-text">theme
+|__ style.css
+|__ functions.php
+|__ index.php
+|__ experimental-theme.json
+|__ block-templates
+    |__ index.html
+    |__ single.html
+    |__ archive.html
+    |__ ...
+|__ block-template-parts
+    |__ header.html
+    |__ footer.html
+    |__ sidebar.html
+</code></pre>
+<p>Each template is made of the raw markup for one or more blocks and HTML.</p>
+<p>To create the raw HTML blocks you need to either learn their syntax or copy them from the editor.</p>
+<p>In the following example, the comments containing <code>wp:</code> indicate the opening and closing instruction for a Gutenberg block.</p>
+<p>The following example has three elements</p>
+<ul>
+<li>A <code>columns</code> container that will hold the child column elements and their content</li>
+<li>Two <code>column</code> (singular) elements for each content and its column
+<ul>
+<li>The column on the left has an embed element for Youtube content</li>
+<li>The column on the right has a paragraph</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-html">&lt;!-- wp:columns --&gt;
+&lt;div class=&quot;wp-block-columns&quot;&gt;
+
+&lt;!-- wp:column --&gt;
+&lt;div class=&quot;wp-block-column&quot;&gt;
+&lt;!-- wp:embed {&quot;providerNameSlug&quot;:&quot;youtube&quot;,&quot;responsive&quot;:true} /--&gt;&lt;/div&gt;
+&lt;!-- /wp:column --&gt;
+
+&lt;!-- wp:column --&gt;
+&lt;div class=&quot;wp-block-column&quot;&gt;&lt;!-- wp:paragraph --&gt;
+&lt;p&gt;The idea is to have text and a video&lt;/p&gt;
+&lt;!-- /wp:paragraph --&gt;&lt;/div&gt;
+&lt;!-- /wp:column --&gt;&lt;/div&gt;
+&lt;!-- /wp:columns --&gt;
+</code></pre>
+<p>This part addresses the structure, not the style. We’ll discuss styling later, when we talk about <code>experimenta-theme.json</code> styles and CSS styles.</p>
+<h2>(experimental-)theme.json</h2>
+<p>The experimental-theme.json presents a unified (although harder to understand) way to present styles for a block-based theme.</p>
+<p>According to the <a href="https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/">documentation</a>:</p>
+<blockquote>
+<p>The Block Editor API has evolved at different velocities and there are some growing pains, specially in areas that affect themes. Examples of this are: the ability to control the editor programmatically, or a block style system that facilitates user, theme, and core style preferences.</p>
+<p>This describes the current efforts to consolidate the various APIs related to styles into a single point – a experimental-theme.json file that should be located inside the root of the theme directory.</p>
+</blockquote>
+<pre><code class="language-json">{
+  &quot;templateParts&quot;: {
+    &quot;header&quot;: {
+      &quot;area&quot;: &quot;header&quot;
+    },
+    &quot;footer&quot;: {
+      &quot;area&quot;: &quot;footer&quot;
+    }
+  },
+  &quot;settings&quot;: {
+    &quot;defaults&quot;: {
+      &quot;color&quot;: {
+        &quot;palette&quot;: [
+          {
+            &quot;slug&quot;: &quot;black&quot;,
+            &quot;color&quot;: &quot;#000000&quot;,
+            &quot;name&quot;: &quot;Black&quot;
+          },
+          // More colors defined here
+        ],
+        &quot;gradients&quot;: [
+          {
+            &quot;slug&quot;: &quot;purple-to-yellow&quot;,
+            &quot;gradient&quot;: &quot;linear-gradient(160deg, var(--wp--preset--color--purple), var(--wp--preset--color--yellow))&quot;,
+            &quot;name&quot;: &quot;Purple to Yellow&quot;
+          },
+          // More gradients defined here
+        ]
+      },
+      &quot;typography&quot;: {
+        &quot;customLineHeight&quot;: true,
+        &quot;fontSizes&quot;: [
+          {
+            &quot;slug&quot;: &quot;extra-small&quot;,
+            &quot;size&quot;: &quot;16px&quot;,
+            &quot;name&quot;: &quot;Extra small&quot;
+          },
+          // More fonts sizes defined here
+        ],
+        &quot;fontFamilies&quot;: [
+          {
+            &quot;fontFamily&quot;: &quot;-apple-system,BlinkMacSystemFont,\&quot;Segoe UI\&quot;,Roboto,Oxygen-Sans,Ubuntu,Cantarell,\&quot;Helvetica Neue\&quot;,sans-serif&quot;,
+            &quot;slug&quot;: &quot;system-font&quot;,
+            &quot;name&quot;: &quot;System Font&quot;
+          },
+          // More  font stacks defined here
+        ]
+      },
+      &quot;spacing&quot;: {
+        &quot;customPadding&quot;: true
+      },
+      &quot;custom&quot;: {
+        &quot;font-primary&quot;: &quot;-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif&quot;,
+        &quot;line-height&quot;: {
+          &quot;body&quot;: 1.7,
+          &quot;heading&quot;: 1.3,
+          &quot;page-title&quot;: 1.1
+        },
+        &quot;responsive&quot;: {
+          &quot;aligndefault-width&quot;: &quot;610px&quot;,
+          &quot;alignwide-width&quot;: &quot;1240px&quot;
+        },
+        &quot;spacing&quot;: {
+          &quot;unit&quot;: &quot;20px&quot;,
+          &quot;horizontal&quot;: &quot;25px&quot;,
+          &quot;vertical&quot;: &quot;30px&quot;
+        }
+      }
+    }
+  },
+  &quot;styles&quot;: {
+    &quot;root&quot;: {
+      &quot;color&quot;: {
+        &quot;background&quot;: &quot;var(--wp--preset--color--green)&quot;,
+        &quot;text&quot;: &quot;var(--wp--preset--color--dark-gray)&quot;,
+        &quot;link&quot;: &quot;var(--wp--preset--color--dark-gray)&quot;
+      },
+      &quot;typography&quot;: {
+        &quot;fontSize&quot;: &quot;var(--wp--preset--font-size--normal)&quot;,
+        &quot;lineHeight&quot;: &quot;var(--wp--custom--line-height--body)&quot;
+      }
+    },
+    &quot;core/heading/h1&quot;: {
+      &quot;typography&quot;: {
+        &quot;fontSize&quot;: &quot;var(--wp--preset--font-size--gigantic)&quot;,
+        &quot;lineHeight&quot;: &quot;var(--wp--custom--line-height--page-title)&quot;
+      }
+    },
+    // More block styles defined here
+  },
+  &quot;customTemplates&quot;: {
+    &quot;page-home&quot;: {
+      &quot;title&quot;: &quot;Page without title&quot;
+    }
+  }
+}
+</code></pre>
+<p>Both settings and styles can contain subsections for any registered block. As a general rule, the names of these subsections will be the namespaced block names or “block selectors”.</p>
+<p>For example, the paragraph block or can be addressed in the settings using the block selector <code>core/paragraph</code></p>
+<pre><code class="language-json">{
+  &quot;styles&quot;: {
+    &quot;core/paragraph&quot;: {}
+  }
+}
+</code></pre>
+<p>There are a few cases like the heading block where the block represents <code>h1</code> to <code>h6</code> HTML elements. In these cases, the block will have as many block selectors as different markup variations ― <code>core/heading/h1</code>, <code>core/heading/h2</code>, etc, so they can be addressed separately.</p>
+<pre><code class="language-json">{
+  &quot;styles&quot;: {
+    &quot;core/heading/h1&quot;: {},
+    &quot;core/heading/h6&quot;: {},
+  }
+}
+</code></pre>
+<p>The question about these blocks defining types of an element is whether you can define common properties and then define item specific ones, like this block of CSS:</p>
+<pre><code class="language-css">/* We define the font-family for all the fonts */
+h1, h2, h3, h4, h5, h6 {
+  font-family: &quot;Recursive&quot;, Verdana, sans-serif
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2.5em
+}
+</code></pre>
+<p>Additionally, there are two other block selectors: <code>root</code> and <code>defaults</code>.</p>
+<ul>
+<li>The <code>root</code> block selector represents the root of the site.</li>
+<li>The <code>defaults</code> block selector represents the defaults to be used by blocks if they don’t declare anything.</li>
+</ul>
+<p>One final note. As far as I can tell, the values in <code>experimental-theme.json</code> will override values in CSS or defined in <code>functions.php</code>.</p>
+<h3>(experimental-)theme.json: Settings</h3>
+<p>We’ll cover the settings and styles separately. We will not go into details about individual settings, if you want to dive into them, the theme.json <a href="https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/">documentation</a> goes into a lot more detail about the invididual settings.</p>
+<p>This example contains all the settings with their default values. The only change I made was to move the custom blocks of the defaults to the top; I will explain why later.</p>
+<pre><code class="language-json">{
+  &quot;settings&quot;: {
+    &quot;defaults&quot;: {
+      &quot;custom&quot;: {},
+      &quot;layout&quot;: { /* Default layout to be used in the post editor */
+        &quot;contentSize&quot;: &quot;800px&quot;,
+        &quot;wideSize&quot;: &quot;1000px&quot;,
+      }
+      &quot;border&quot;: {
+        &quot;customRadius&quot;: false /* true to opt-in */
+      },
+      &quot;color&quot;: {
+        &quot;custom&quot;: true, /* false to opt-out, as in add_theme_support('disable-custom-colors') */
+        &quot;customGradient&quot;: true, /* false to opt-out, as in add_theme_support('disable-custom-gradients') */
+        &quot;gradients&quot;: [], /* gradient presets, as in add_theme_support('editor-gradient-presets', ... ) */
+        &quot;link&quot;: false, /* true to opt-in, as in add_theme_support('experimental-link-color') */
+        &quot;palette&quot;: [], /* color presets, as in add_theme_support('editor-color-palette', ... ) */
+      },
+      &quot;spacing&quot;: {
+        &quot;customPadding&quot;: false, /* true to opt-in, as in add_theme_support('custom-spacing') */
+        &quot;units&quot;: [ &quot;px&quot;, &quot;em&quot;, &quot;rem&quot;, &quot;vh&quot;, &quot;vw&quot; ], /* filter values, as in add_theme_support('custom-units', ... ) */
+      },
+      &quot;typography&quot;: {
+        &quot;customFontSize&quot;: true, /* false to opt-out, as in add_theme_support( 'disable-custom-font-sizes' ) */
+        &quot;customFontWeight&quot;: true, /* false to opt-out */
+        &quot;customFontStyle&quot;: true, /* false to opt-out */
+        &quot;customLineHeight&quot;: false, /* true to opt-in, as in add_theme_support( 'custom-line-height' ) */
+        &quot;dropCap&quot;: true, /* false to opt-out */
+        &quot;fontFamilies&quot;: [], /* font family presets */
+        &quot;fontSizes&quot;: [], /* font size presets, as in add_theme_support('editor-font-sizes', ... ) */
+      }
+    }
+  }
+}
+</code></pre>
+<p>The custom section of the default settings allows you to create custom properties for the values inside the section.</p>
+<p>For example the following custom settings in the default settings:</p>
+<pre><code class="language-json">{
+  &quot;settings&quot;: {
+    &quot;defaults&quot;: {
+      &quot;custom&quot;: {
+        &quot;base-font&quot;: 16,
+        &quot;line-height&quot;: {
+          &quot;small&quot;: 1.2,
+          &quot;medium&quot;: 1.4,
+          &quot;large&quot;: 1.8
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<p>Will produce the following custom properites in the CSS <code>:root</code> element.</p>
+<p>Note the structure of the custom properties:</p>
+<ul>
+<li>the <code>--wp</code> prefix</li>
+<li>the path to the property separated by <code>--</code></li>
+<li>The value of the property</li>
+</ul>
+<pre><code class="language-css">:root {
+  --wp--custom--base-font: 16;
+  --wp--custom--line-height--small: 1.2;
+  --wp--custom--line-height--medium: 1.4;
+  --wp--custom--line-height--large: 1.8;
+}
+</code></pre>
+<p>The second thing I want to point out is that these defaults can also be added to individual blocks by adding defaults to the corresponding block selector. This gives us a finer level of control over the settings for our blocks and themes.</p>
+<h2>Styles: CSS all the things</h2>
+<p>Having the <code>experimental-theme.json</code> provides a centralized way to style a theme but it’s not the only way and may not be the best way.</p>
+<p>You can use CSS to style blocks and themes as a two step process. The first one is to add PHP with the palette definition to your theme’s <code>functions.php</code>.</p>
+<p>This will show the colors in the editor while you’re adding content.</p>
+<pre><code class="language-php">&lt;?php
+add_theme_support( 'editor-color-palette', array(
+  array(
+    'name' =&gt; esc_attr__( 'strong magenta', 'themeLangDomain' ),
+    'slug' =&gt; 'strong-magenta',
+    'color' =&gt; '#a156b4',
+  ),
+  array(
+    'name' =&gt; esc_attr__( 'light grayish magenta', 'themeLangDomain' ),
+    'slug' =&gt; 'light-grayish-magenta',
+    'color' =&gt; '#d0a5db',
+  ),
+  array(
+    'name' =&gt; esc_attr__( 'very light gray', 'themeLangDomain' ),
+    'slug' =&gt; 'very-light-gray',
+    'color' =&gt; '#eee',
+  ),
+  array(
+    'name' =&gt; esc_attr__( 'very dark gray', 'themeLangDomain' ),
+    'slug' =&gt; 'very-dark-gray',
+    'color' =&gt; '#444',
+  ),
+) );
+</code></pre>
+<p>The next step is to add CSS that will handle each color as a background and text color.</p>
+<pre><code class="language-css">.has-strong-magenta-background-color {
+    background-color: #a156b4;
+}
+ 
+.has-strong-magenta-color {
+    color: #a156b4;
+}
+</code></pre>
+<p>The documentation for <a href="https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-support/">theme_support</a> outlines other areas where we can use this combination to style blocks and block content.</p>
+<h3>Styles: which one to use?</h3>
+<p>When working with block-based themes it appears that the <code>experimental-theme.json</code> way is the way to go but it is not intuitive and there is no good documentation for it or, at least, no documentation that would make sense to beginners.</p>
+<p>I will continue to research alternatives but, for now, the <code>theme.json</code> file seems to be the best alternative regarding theme styles for a block-based theme.</p>
+<p>And since <code>theme.json</code> will supersede other styles, it’s worth diving deeper into the format and some outstanding questions:</p>
+<ul>
+<li>How do you incorporate local custom fonts?</li>
+<li>How do you incorporate variable font definitions into the theme.json syntax?</li>
+</ul>
+<h2>Creating blocks with an external declaration</h2>
+<p><a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">The block type metadata</a> provides an external means to declare our block API that will also be necessary when (and if) you decide to submit it to the <a href="https://wordpress.org/support/article/block-directory/">block directory</a>.</p>
+<p>The metadata is stored in a <code>block.json</code> file. An example, taken from the <a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">Block metadata developer docs</a> looks like this:</p>
+<pre><code class="language-json">{
+  &quot;apiVersion&quot;: 2,
+  &quot;name&quot;: &quot;my-plugin/notice&quot;,
+  &quot;title&quot;: &quot;Notice&quot;,
+  &quot;category&quot;: &quot;text&quot;,
+  &quot;parent&quot;: [ &quot;core/group&quot; ],
+  &quot;icon&quot;: &quot;star&quot;,
+  &quot;description&quot;: &quot;Shows warning, error or success notices…&quot;,
+  &quot;keywords&quot;: [ &quot;alert&quot;, &quot;message&quot; ],
+  &quot;rivendellweb-blocks&quot;: &quot;my-plugin&quot;,
+  &quot;attributes&quot;: {
+    &quot;message&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;source&quot;: &quot;html&quot;,
+      &quot;selector&quot;: &quot;.message&quot;
+    }
+  },
+  &quot;providesContext&quot;: {
+    &quot;my-plugin/message&quot;: &quot;message&quot;
+  },
+  &quot;usesContext&quot;: [ &quot;groupId&quot; ],
+  &quot;supports&quot;: {
+    &quot;align&quot;: true
+  },
+  &quot;styles&quot;: [
+    { &quot;name&quot;: &quot;default&quot;, &quot;label&quot;: &quot;Default&quot;, &quot;isDefault&quot;: true },
+    { &quot;name&quot;: &quot;other&quot;, &quot;label&quot;: &quot;Other&quot; }
+  ],
+  &quot;example&quot;: {
+    &quot;attributes&quot;: {
+      &quot;message&quot;: &quot;This is a notice!&quot;
+    }
+  },
+  &quot;editorScript&quot;: &quot;file:./build/index.js&quot;,
+  &quot;script&quot;: &quot;file:./build/script.js&quot;,
+  &quot;editorStyle&quot;: &quot;file:./build/index.css&quot;,
+  &quot;style&quot;: &quot;file:./build/style.css&quot;
+}
+</code></pre>
+<p>We then register the block</p>
+<pre><code class="language-php">&lt;?php
+register_block_type_from_metadata(
+    __DIR__ . '/notice',
+    array(
+        'render_callback' =&gt; 'render_block_core_notice',
+    )
+);
+</code></pre>
+<p>Look at the <a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">Block metadata developer docs</a> for more information about the content of the file and how it works.</p>
+<p>I’ve moved a section about block development and integration via metadata JSON files to a separate post as it needs more reseach before deciding if I want to use it or not but there are some thoughts that go hand-in-hand with creating a theme: Do we create plugins for individual blocks or create block libraries for a single theme.</p>
+<h3>Single block plugins or block libraries?</h3>
+<p>When writing blocks we can take one of two paths:</p>
+<ul>
+<li>We use the <a href="https://en.wikipedia.org/wiki/Single-responsibility_principle">single-responsibility principle</a> to write single-purpose blocks that perform a single tasks.</li>
+<li>Build larger library plugins that contain multiple blocks and related functionality in a single package.</li>
+</ul>
+<p>Each of these options presents tradeoffs.</p>
+<p>If we do a plugin for each block, we get smaller plugins but we get more of them… if they are all loaded in sequence we might get some slowdown because they each have to be loaded by the browser, parsed by WordPress and loaded by WordPress.</p>
+<p>If we choose a library plugin approach for the blocks you design you subject yourself to many more updates and having to update the plugin if any of the components bundled in it change.</p>
+<p>When working on a plugin library I treat each block as its own NPM package (since it uses Javascript in addition to PHP) and manage them with <a href="https://www.npmjs.com/package/lerna">Lerna</a> to build all children packages together or jump into a single repository to build only that package.</p>
+<p>As with many of these choices, what you need to do will depend on the needs for your project. I tend to work on libraries since I build collections of blocks neither as testing environments or for production.</p>
+<h3>Third party libraries, in-house development or a mix of both?</h3>
+<p>Blocks will soon become the new revenue generator for WordPress developers. You can search the <a href="https://wordpress.org/plugins/search/blocks/">WordPress plugin repository for blocks</a> although I recommend you check the results to make sure they are Gutenberg blocks and not blocks for other tools.</p>
+<p>But as a theme developer you have to ask yourself what would work better, have all your blocks developed in-house or if we should bring in blocks like these into our themes and development environments:</p>
+<ul>
+<li><a href="https://www.studiopress.com/genesis-blocks/">Genesis Blocks</a> from Studio Press, the same people who created the <a href="https://my.studiopress.com/themes/genesis/">Genesis Framework</a></li>
+<li><a href="https://wordpress.org/plugins/coblocks/">CoBlocks</a> by GoDaddy</li>
+</ul>
+<p>For me this is a two-pronged issue. On the one hand I don’t want to reinvent the wheel but on the other hand I like to have control over what goes on my themes and, even though I have access to the source code for these plugins, I’m not confident that extracting the code for specific functionality on these plugins will work without any technical and non-technical problems later on.</p>
+<p>There is another type of block generator that presents a different set of issues. The <a href="https://www.advancedcustomfields.com/resources/blocks/">Advanced Custom Fields (ACF) Blocks</a> will only work if you have the ACF Pro plugin enabled on your system. This is a paid upgrade to the traditional <a href="https://www.advancedcustomfields.com/">ACF plugin</a> and I’m not totally sure that the blocks would work in a theme without the ACF Pro plugin installed.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

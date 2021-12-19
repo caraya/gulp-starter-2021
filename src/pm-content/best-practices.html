@@ -1,0 +1,84 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Best practices</h1>
+<p>I posted this as an answer to <a href="https://www.quora.com/What-are-the-best-practices-for-optimizing-resources-JavaScript-CSS-images-used-by-an-HTML-page/">this question</a> in Quora and I thought I would post it here and expand on it a little bit with things I thought about after I wrote the answer.</p>
+<p>This is not an exhaustive list of performance best practices. It’s what I use and how I use them. You may have others and some of these may not apply to you. I’d love to hear what works for you… you can contact me via Twitter (<a href="https://twitter.com/elrond25">https://twitter.com/elrond25</a>).</p>
+<p>The question:</p>
+<p><strong>What are the best practices for optimizing resources (JavaScript, CSS, images) used by an HTML page?</strong></p>
+<ul>
+<li>In general
+<ul>
+<li>Use <a href="https://developers.google.com/web/tools/lighthouse/">Lighthouse</a> (available in Chrome as part of the DevTools audits menu or as an extension)
+<ul>
+<li>The performance score is a good sign of how your app/site is doing</li>
+<li>There are other audits you can run separately or at the same time</li>
+</ul>
+</li>
+<li>Always try to serve content via HTTP2.
+<ul>
+<li>HTTP2 solves a lot of the performance issues in older versions of HTTP. <a href="https://medium.com/@factoryhr/http-2-the-difference-between-http-1-1-benefits-and-how-to-use-it-38094fa0e95b">See this article</a> for the nerdy details</li>
+<li>If you want to take the time to test it, <a href="https://www.smashingmagazine.com/2017/04/guide-http2-server-push/">http2 push</a> may also help increase your site’s performance. <strong>It is imperative that you test this because, if poorly implemented, you can wreck performance with push</strong></li>
+</ul>
+</li>
+<li>Use a CDN like <a href="https://www.akamai.com/">Akamai</a> or <a href="https://www.cloudflare.com/">Cloudflare</a> to host and serve your static assets. Even basic services are good enough based on my experience</li>
+<li>Consider using a <a href="https://developers.google.com/web/fundamentals/primers/service-workers/">service worker</a> even if you’re not creating a PWA.
+<ul>
+<li>Service workers will improve performance on second and subsequent visits because of the browser will fetch content from your local computer</li>
+<li>A service worker is the entry point to advanced features like <a href="https://web-push-book.gauntface.com/">web push notifications</a>, <a href="https://developers.google.com/web/updates/2015/12/background-sync">background sync</a> and <a href="https://developers.google.com/web/updates/2018/12/background-fetch">background fetch</a> among others</li>
+<li>You can configure different caching strategies based on the needs of your site or app</li>
+<li>If the browser doesn’t support service workers then it won’t get the performance boost and you will loose access to the advanced features but it will still display content for your users</li>
+</ul>
+</li>
+<li>Consider <a href="https://developers.google.com/web/updates/2016/03/link-rel-preload">preloading resources</a></li>
+</ul>
+</li>
+<li>For your images
+<ul>
+<li>Use <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images">responsive images</a> rather than create a single version of the image. Using a single small image means that it’ll look like crap in retina displays for desktop and higher-end mobile devices</li>
+<li>Create responsive images as part of your build process. I use Gulp and <a href="https://www.npmjs.com/package/gulp-responsive">gulp-responsive</a></li>
+<li>Serve <a href="https://developers.google.com/speed/webp/">WebP</a> images to browsers that support them.
+<ul>
+<li>You can incorporate WebP support in your responsive images</li>
+<li>WebP is significantly smaller than JPG or PNG but <a href="https://caniuse.com/#search=webp">not all browsers support the format</a></li>
+</ul>
+</li>
+<li>If you can’t or don’t want to use responsive images you can compress the images with Imagemin. I also do this as part of my build process with Gulp and <a href="https://github.com/sindresorhus/gulp-imagemin">gulp-imagemin</a></li>
+<li>Use an image CDN like <a href="https://cloudinary.com/">Cloudinary</a> or Photon if you use Wordpress to host your assets. They’ll do all the work for you</li>
+</ul>
+</li>
+<li>For your scripts and stylesheets
+<ul>
+<li>Consider minimizing your scripts. I use gulp and <a href="https://www.npmjs.com/package/uglify-es">uglify-es</a></li>
+<li>If you will use a lot of Javascript consider using a Bundler like <a href="https://webpack.js.org/">Webpack</a> or <a href="https://rollupjs.org/guide/en">Rollup</a>
+<ul>
+<li>I’m one of the few developers who doesn’t think you need to bundle all your assets (CSS, Javascript and images) when building your site or app</li>
+<li>Test if a bundler improves performance for the content you’re using it for before you decide to adopt it</li>
+</ul>
+</li>
+<li>Consider minimizing your stylesheets. I use sass/scss and normally create a <a href="https://web-design-weekly.com/2014/06/15/different-sass-output-styles/">compressed</a> version either from CLI or using <a href="https://www.npmjs.com/package/gulp-sass">gulp-sass</a> during the build process</li>
+<li>I don’t concatenate them because I cache on the client using service workers and they work better as separate items</li>
+</ul>
+</li>
+<li>HTML
+<ul>
+<li>I don’t normally minimize my HTML until the size hits 75K or so. <strong><em>I’m old school and a lot of what I learned when I first started working on the web was by looking at other people’s code, duplicating it locally and then tweaking it to see what happened. I think it’s still useful to learn that way</em></strong>.</li>
+<li>With the performance optimizations for scripts, images and stylesheets I think I’ve made up for not removing whitespace from my HTML content</li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Adding async/defer to WordPress site</h1>
+<p>WordPress doesn’t add <code>async</code> or <code>defer</code> attributes to scripts by default and there is no easy way to do it without customization. This post will discuss how to add the attributes and why it’s important.</p>
+<p>This gets complicated by the fact that not all scripts need to have <a href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-defer">defer</a> or <a href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-async">async</a> either because they were moved to the footer, because it already have the necessary one, or because of special requirements. So there is no one size fits all solution.</p>
+<p>WordPress <a href="https://developer.wordpress.org/reference/hooks/script_loader_tag/">script_loader_tag</a> hook allows us to tweak individual script tags to add attributes or other items before they are printed to the page.</p>
+<p>In this example we add the defer attribute using the <code>script_loader_tag</code>.</p>
+<p>Inside <code>rivendellweb_js_defer_attr</code> we do the following:</p>
+<ol>
+<li>Stores the script we want to add the attribute to in a variable <code>$scripts to include</code></li>
+<li>For each script in <code>$scripts to include</code></li>
+<li>Test if the script to include matches the script we’re currently processing
+<ul>
+<li>If it does, then replace it with a versioon containing the defer attribute</li>
+</ul>
+</li>
+<li>If it doesn’t the if statement will end and we’ll return the script without changes.</li>
+</ol>
+<pre><code class="language-php">function rivendellweb_js_defer_attr($tag){
+
+    // List scripts to work with
+    $scripts_to_include = array(
+      'hoverintent-js.min.js',
+      'lazy-images.min.js'); // 1
+
+    foreach($scripts_to_include as $include_script) { // 2
+        if(true == strpos($tag, $include_script )) // 3
+        // Add defer attribute
+        return str_replace( ' src', ' defer src', $tag );
+    }
+
+    # Return original tag for all scripts not included
+    return $tag; // 4
+
+}
+add_filter( 'script_loader_tag', 'rivendellweb_js_defer_attr', 10 );
+</code></pre>
+<p>The <a href="https://developer.wordpress.org/reference/functions/add_filter/">add_filter</a> function takes two parameters: The filter hook that we want to operate on and a function detaling what we want to do, in this case <code>rivendellweb_js_defer_attr</code>.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

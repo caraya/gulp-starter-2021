@@ -1,0 +1,77 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Fetch versus Axios: When and Where</h1>
+<p>Fetch, the replacement for XmlHTTPRequest object (xhr for short) has been around <a href="https://caniuse.com/#feat=fetch">long enough</a> for me to consider it well baked into the platform and safe to use.</p>
+<p>As a quick refresher, this script will fetch the latest 10 posts from my blog in JSON format that we can then feed into a framework or templating engine.</p>
+<p>We’re using async/await to make the code easier to read.</p>
+<pre><code class="language-js">const url = &quot;https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts&quot;;
+const getData = async (url) =&gt; {
+  try {
+    const response = await fetch(url);
+    const json = await response.json();
+    console.log(json);
+  } catch (error) {
+    console.log(error);
+  }
+};
+getData(url);
+</code></pre>
+<p>While this is widely supported in browsers this is not the case with Node. There is no built-in equivalent so we have to go the module route.</p>
+<p>The easiest way to do it is to install <a href="https://www.npmjs.com/package/node-fetch">node-fetch</a> which provides a syntax identical to native fetch.</p>
+<p>After you install it in your project use async/await with the same syntax as the native fetch example.</p>
+<pre><code class="language-js">const fetch = require(&quot;node-fetch&quot;);
+
+const urlToFetch = &quot;https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts&quot;;
+const getData = async (urlToFetch) =&gt; {
+  try {
+    const response = await fetch(urlToFetch);
+    const json = await response.json();
+    console.log(json);
+  } catch (error) {
+    console.log(error);
+  }
+};
+getData(urlToFetch);
+</code></pre>
+<p>There are some drawbackks to the fetch methods of retrieving data. The biggest one is that there is now way to cancela fetch request already in process.</p>
+<p>There are third party libraries that work with and enchance the native fetch functionality, I’ve chosen to work with <a href="https://www.npmjs.com/package/axios">Axios</a> as a replacement for native fetch.</p>
+<p>The two differences between the <code>axios</code> version, below, and the <code>node-fetch</code> from the previous examples:</p>
+<ul>
+<li>Axios uses <code>get</code> instead of <code>fetch</code></li>
+<li>The data payload appears in <code>response.data</code> instead of <code>response.json</code></li>
+</ul>
+<p>Otherwise the codde is the same.</p>
+<pre><code class="language-js">const axios = require(&quot;axios&quot;);
+const urlToFetch = &quot;https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts&quot;;
+
+const getData = async urlToFetch =&gt; {
+  try {
+    const response = await axios.get(urlToFetch);
+    const data = response.data;
+    console.log(data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+getData(url);
+</code></pre>
+<h2>So, which one do we use?</h2>
+<p>It depends on who are your target users, what browsers they use and whether you’re working client-side only or with Node.</p>
+<p>But as with everything else on the web, test for performance and test for support in your target platforms; if it ain’t broken, don’t fix it.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

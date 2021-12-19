@@ -1,0 +1,331 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Thiking about design</h1>
+<p>The hardest part of front-end design, for me, is how to put all the little pieces together, whether to use a build system and how to best address performance as a holistic concern.</p>
+<p>This article will explore things we can do to put all the disparate elements together and some areas where we need to evaluate options before moving forward.</p>
+<div class="message info">
+<h2>Note</h2>
+  <p>The article assumes that you're familiar with HTML, CSS and Javascript and, if necessary, can write it by hand.</p>
+</div>
+<p>To illustrate the techniques, we’ll use a static site for a hypothetical conference.</p>
+<p>The site will have the following areas:</p>
+<ol>
+<li>About the conference.
+<ul>
+<li>What it is</li>
+<li>When will it happen</li>
+</ul>
+</li>
+<li>A list of presentations linked to the speakers</li>
+<li>A list of speakers linked to their presentation abstracts</li>
+<li>Information about the venue</li>
+<li>The skeleton of a registration page</li>
+</ol>
+<p>We will consider the following items as we discuss building the site.</p>
+<ol>
+<li>Before we write code
+<ul>
+<li>Where do we want to host our projects</li>
+<li>Understanding the W3C processs</li>
+<li>Understanding the TC39 process</li>
+<li><a href="http://Caniuse.com">Caniuse.com</a> is your friend, trust him</li>
+</ul>
+</li>
+<li>Responsive Web Design</li>
+<li>CSS Grid and Flexbox</li>
+<li>Media Queries: Still the way to go</li>
+<li>Variable Fonts
+<ul>
+<li>Typography with variable fonts</li>
+</ul>
+</li>
+<li>CSS Variables</li>
+<li>Responsive images</li>
+<li>Keeping ourselves honest with client hints</li>
+<li>Performance suggestions
+<ul>
+<li>Working with Javascript</li>
+<li>Performance budgets</li>
+<li>Performance measurement tools
+<ul>
+<li>Lighthouse</li>
+<li>CrUX Report</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Node and NPM
+<ul>
+<li>Gulp as a Node-based build tool</li>
+</ul>
+</li>
+<li>Putting it all together</li>
+</ol>
+<p>Not all the issues are directly related to design but they all affect design in one way or another.</p>
+<h1>Before we write code</h1>
+<p>Something that I always tend to forget when starting a new web project is to slow down and think about hosting and related items before I write code.</p>
+<p>I know that for some this sounds like putting the horses before the cart but hear me out.</p>
+<p>A lot of times the host we choose will dictate or influence how we publish our work or how we configure additional assets.</p>
+<p>For example: Different servers and cloud providers have different ways to <a href="https://webplatform.github.io/docs/tutorials/configuring_mimetypes_on_the_server/">add mime types</a> for new file formats so depending on where we choose to host a project we will have different ways to do the configuration.</p>
+<p>Another example: If you’re creating a site with <a href="https://jamstack.org/">Jamstack</a> technologies, will you pay for a full fledged hosting provider or will you go with a free-tier plan from <a href="https://www.netlify.com/">Netlify</a> or <a href="https://firebase.google.com/docs/hosting">Firebase Hosting</a>. Will you use cloud functions from the same provider?</p>
+<p>One final example: You need a database for your application and you’ve selected <a href="https://www.postgresql.org/">Postgresql</a>. You now have to decide what version to use and make sure that the version you’re developing with matches the version of Postgres matches what’s on the server or you will have unexpected results.</p>
+<p>These are the items you should figure out ahead of time. There’s nothing more stressful than having things not working and only 10 minutes to figure out why before the site goes live.</p>
+<p>There are other external factors we need to understand before we move forward. How does the W3C (the group that implements HTML, CSS and related standards) and TC39 (the group that implements Javascript and Javascript internationalization standards) work?</p>
+<p>Understanding this will help us better target the technologies we use.</p>
+<h2>Understanding the W3C processs</h2>
+<p>The World Wide Web Consortium (W3C)</p>
+<h2>Understanding the TC39 processs</h2>
+<h2><a href="http://Caniuse.com">Caniuse.com</a> is your friend, trust him</h2>
+<h1>Responsive Web Design</h1>
+<p>Responsive Web Design is not a new thing in and of itself. When <a href="https://ethanmarcotte.com/">Ethan Marcotte</a> wrote <a href="https://alistapart.com/article/responsive-web-design/">Responsive Web Design</a> in <a href="https://alistapart.com/">A List Apart</a> he didn’t invent a brand new technology from scratch. He combined existing techniques and APIs like media queries and fluid images to accomplish good design for all form factors.</p>
+<p>We’ve come a long way since then.</p>
+<p>Media queries have become more flexible and powerful and are now supported in all major browsers.</p>
+<p>Media Queries (the <a href="https://www.w3.org/TR/css3-mediaqueries/">original specification</a>, and <a href="https://www.w3.org/TR/mediaqueries-4/">Media Queries Level 4</a>) present the existing work in media queries that has been ratified as recommendations (or candidate recommendations by the W3C) while <a href="https://drafts.csswg.org/mediaqueries-5/">Media Queries Level 5</a> represents the next set of iterations for Media Queries.</p>
+<p>Fluid images still work as intended but for better performance we can use responsive images to provide the best experience for our users.</p>
+<h1>CSS Grids and Flexbox working together</h1>
+<p>One of the first things I thought about when CSS grids became a thing was how to incorporate it to my existing workflows without breaking what’s already there.</p>
+<p>The conclusion was to put the grid at the very bottom and place other design elements on top of it. Contrary to what some believe, Flexbox and CSS grids can work together and are not in competition.</p>
+<p>Think of Flexbox as a one-dimensional layout, either row or column-based, not both.</p>
+<p>CSS Grids, on the other hand, can place content in a two-dimensional grid, both column and row at the same time so it’s more flexible. However, that doesn’t mean we don’t need Flexbox anymore.</p>
+<h1>Media Queries: Still the way to go</h1>
+<p>In the past people use to have separate sites for mobile and dekstop browsers. They also used to do browser detection instead of feature detection but that’s another story.</p>
+<p>Having mutliple sites was hard on everyone. People had to remember the name of the mobile site, usually <em><a href="http://m.site.com">m.site.com</a></em> and developers had to worry about keeping content synchronized</p>
+<h1>Variable Fonts</h1>
+<p>I’ve written a lot about <a href="https://web.dev/variable-fonts/">variable fonts</a>. To me, they are a wonderful addition to the web typography arsenal, even with their OS/Browser limitations.</p>
+<p>It is not enough that a browser support variable fonts. The underlying operating system also has to support them or they won’t work at all.</p>
+<p>We also need to keep in mind that a variable font is usually larger than the single font. For example: Recursive is larger than Roboto Regular but it contains all the styles available to the font and will contain them even if you don’t use them yet it is smaller than using the four files that I normally use when working on the web:</p>
+<ul>
+<li>Regular</li>
+<li>Italic</li>
+<li>Bold</li>
+<li>Bold Italic</li>
+</ul>
+<p>Taking the regular Roboto font from <a href="https://github.com/googlefonts/roboto/releases/download/v2.138/roboto-unhinted.zip">Github</a>, we will take the four font files that we’ll need for a page. If we know we don’t have italics or bold we can eliminate them but, in most cases, these are the files we’ll need.</p>
+<p>We compressed the font files with <code>woff2_compress</code>, part of the <a href="https://github.com/google/woff2">Woff2 reference implementation</a> arriving at the following values.</p>
+<table>
+<thead>
+<tr>
+<th>Font</th>
+<th>Size</th>
+<th>format</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Roboto Regular</td>
+<td>136KB</td>
+<td>WOFF2</td>
+<td></td>
+</tr>
+<tr>
+<td>Roboto Italic</td>
+<td>159KB</td>
+<td>WOFF2</td>
+<td></td>
+</tr>
+<tr>
+<td>Roboto Bold</td>
+<td>137KB</td>
+<td>WOFF2</td>
+<td></td>
+</tr>
+<tr>
+<td>Roboto BoldItalic</td>
+<td>161KB</td>
+<td>WOFF2</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>We then took the Google-commissioned Roboto Variable Font from <a href="https://github.com/TypeNetwork/Roboto/releases/tag/v3.002">Github</a>. The first value on the table is the original True Type Font, for reference.</p>
+<p>Like we did with the individual instances we compressed the font with <code>woff2_compress</code> for a 50% reduction on the weight of the font.</p>
+<p>It is important to note that the compressed font has 36 named instances (combinations of weight, italics and width) and 22 Open Type Layout features.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Font</th>
+      <th>Size</th>
+      <th>Format</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Roboto Variable Font</td>
+      <td>786KB</td>
+      <td>TTF</td>
+      <td>Baseline for Variable font comparison </td>
+    </tr>
+    <tr>
+      <td>Roboto Variable Font</td>
+      <td>340KB</td>
+      <td>WOFF2</td>
+      <td>Carries all condensed, bold italic and regular instances of the font</td>
+    </tr>
+    <tr>
+      <td>Roboto VF Subset</td>
+      <td>330.9KB</td>
+      <td>WOFF2</td>
+      <td>Subset of Latin characters </td>
+    </tr>
+  </tbody>
+</table>
+<p>We can further reduce the size of the variable font by subsetting using tools like <a href="https://www.npmjs.com/package/glyphhanger">Glyphhanger</a> to remove the characters from languages that we know we won’t use.</p>
+<pre><code class="language-bash">glyphhanger --latin \
+--subset=Roboto-VF.ttf  \
+--formats=woff2
+</code></pre>
+<p>Rather than figure out everything on your own, you can use tools like <a href="https://wakamaifondue.com/">Wakmaifondue</a> (a play on the phrase <em>what can my font do?</em>) to see the type of font is (variable or not), the languages it supports, the instancces it has built in if it’s a variable font, and, most important to me, the number of Open Type features that the font makes available.</p>
+<p>Wakamaifondue also generates a CSS stylesheet that you can use as is or by incorporating it to your existing CSS styles.</p>
+<h2>Google fonts way of serving variable fonts</h2>
+<p>One of the biggest pain points of variable fonts was that they were not available in font CDNs like Google Fonts.</p>
+<p>In October, 2019, Google released the new version of their font API that supported variable fonts. I wrote about it in <a href="https://publishing-project.rivendellweb.net/variable-fonts-from-google-fonts/">Variable Fonts from Google Fonts</a></p>
+<p>The way we import the fonts from Google Fonts changes when working with version 2 of the Google font API. To use Roboto Variable Font, the link we insert in HTML looks like this:</p>
+<pre><code class="language-html">&lt;!--
+  The link should be in a single line.
+  Broken down for readability
+--&gt;
+&lt;link
+  href=&quot;https://fonts.googleapis.com/css2?
+  family=Roboto+Slab:ital,wght@0,400;
+  0,700;1,400;1,700&amp;display=swap&quot;
+  rel=&quot;stylesheet&quot;&gt;
+</code></pre>
+<p>and the CSS <code>@import</code> command changes in a similar way:</p>
+<pre><code class="language-css">/*
+  The link should be in a single line.
+  Broken down for readability
+*/
+@import url('https://fonts.googleapis.com/css2?
+  family=Roboto+Slab:ital,wght@0,400;
+  0,700;1,400;1,700&amp;display=swap');
+</code></pre>
+<p>The downside of using Variable Fonts from Google Fonts is that they don’t have all the axes available to the font so if you’ve done work with the font before it may not do what you would expect, at least not without major work.</p>
+<p>For example, <a href="https://www.recursive.design/">Recursive</a> from Google Fonts only provides the <code>wght</code> axis and none of the other axes the font provides when you use it locally.</p>
+<p>They also lose all the named instances because in this example, each axis request individual values.</p>
+<p>We can ask for value ranges by changing the values and replacing the single value with a range of values separated by two periods:</p>
+<pre><code class="language-html">&lt;!--
+  This should be all in a single line
+  Broken down for readability
+--&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?
+family=Roboto+Slab:ital,wght@0,100..700;
+1,100..700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+</code></pre>
+<p>What this will do is request the full range of weights for both regular and italic versions of Roboto Slab and modify the CSS <code>@font-face</code> declaration to include the range.</p>
+<p>With these modifications we get the full power of variable fonts. We can animate them, we can use values other than multiples of 100 and actually be creative with how we use them.</p>
+<h2>How to use variable fonts</h2>
+<p>Once we have loaded the font we need to register it for use using the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face">@font-face at-rule</a>.</p>
+<p>In most examples you will see something like this:</p>
+<pre><code class="language-css">@font-face {
+  font-family: &quot;Open Sans&quot;;
+  src:
+    url(&quot;/fonts/OpenSans-Regular-webfont.woff2&quot;)
+    format(&quot;woff2&quot;),
+    url(&quot;/fonts/OpenSans-Regular-webfont.woff&quot;)
+    format(&quot;woff&quot;);
+}
+</code></pre>
+<p>This will load the specified font, associating it with the value of the <code>font-family</code> attribute and using defaults for everything else.</p>
+<p>While it’s possible to load fonts from the user’s file system using <code>local</code> instead of <code>url</code>, you must be careful doing that as it may be used to fingerprint the user by identifying those users that have the font in question. This is a problem because the font may be a corporate resource only available to people who work at a given organization or have other restrictions to use.</p>
+<p>To provide the browser with a hint as to what format a font resource is — so it can select a suitable one — it is possible to include a format type inside a <code>format()</code> function</p>
+<p>The available types are:</p>
+<ul>
+<li>WOFF</li>
+<li>WOFF2</li>
+<li>True Type</li>
+<li>embedded-opentype</li>
+<li>svg</li>
+</ul>
+<p>The browser will load the first font it can use so the order of the children in the <code>src</code> attribute matter. For example, if you have <code>woff2</code> and <code>ttf</code> versions of the font, you should load them like this:</p>
+<pre><code class="language-css">@font-face {
+  font-family: &quot;Open Sans&quot;;
+  src:
+    url(&quot;/fonts/OpenSans-Regular-webfont.woff2&quot;)
+    format(&quot;woff2&quot;),
+    url(&quot;/fonts/OpenSans-Regular-webfont.ttf&quot;)
+    format(&quot;true type&quot;);
+}
+</code></pre>
+<p>For mordern browsers you will be working primarily with <a href="https://www.w3.org/TR/WOFF2/">WOFF2</a> and, possibly, <a href="https://www.w3.org/TR/WOFF/">WOFF</a> formats.</p>
+<p>There are also a series of descriptors we can use to customize the font we’re loading.</p>
+<dl>
+  <dt><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch"><code>font-stretch</code></a></dt>
+  <dd>The <code>font-stretch</code></a> value selects the width of the font,meaning if the font is condensed, regular or wide.  Most modern browsers will also accepts two values to specify a range that is supported by a variable font, for example <code>font-stretch: 50% 200%;</code></dd>
+  <dt><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight"><code>font-weight</code></a></dt>
+  <dd>The <code>font-weight</code></a> value select the weight of the displayed font (how bold it is). Most modern browsers also accepts two values to specify a range that is supported by a variable font-face, for example <code>font-weight: 100 900;</code></dd>
+  <dt><code>font-variant</code></dt>
+  <dd><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant"><code>font-variant</code></a> is the shorthand for <code>font-variant-*</code> attributes as defined in <a href="https://drafts.csswg.org/css-fonts-3/">CSS Fonts Module Level 3</a> and <a href="https://drafts.csswg.org/css-fonts-3/">CSS Fonts Module Level 4</a> specifications</dd>
+  <dt><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-feature-settings"><code>font-feature-settings</code></a></dt>
+  <dd>Allows control over advanced typographic features in OpenType fonts. The specification recommends that you use <code>font-variant-*</code> where possible and use <code>font-feature-settings</code> as a last resort if the equivalent font-variant attribute is not available</dd>
+  <dt><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-variation-settings"><code>font-variation-settings</code></a></dt>
+  <dd>Allows low-level control over OpenType or TrueType font variations, by specifying the four letter axis names of the features to vary, along with their variation values.</dd>
+  <dt><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range"><code>unicode-range</code></a></dt>
+  <dd>The range of Unicode code points to use from the font.</dd>
+</dl>
+<h1>CSS Variables</h1>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties">CSS Variables</a>, also known as CSS Custom Properties, and its <a href="https://drafts.css-houdini.org/css-properties-values-api/">Houdini big siblings</a> create live custom properties for our pages to use.</p>
+<p>That’s the main difference between CSS variables and preprocessor variable like SASS or LESS.</p>
+<p>Preprocessor variables are executed once at runtime; Every time we want to change the values of the properties we have to recompile the stylesheet</p>
+<p>CSS Variables, on the other hand, are live. Every time we change the value, the new value will be reflected on the page elements that use it.</p>
+<p>Houdini’s <a href="https://drafts.css-houdini.org/css-properties-values-api/">CSS Properties and Values API</a> takes CSS Variables a step further by addressing the shortcomings of the CSS-only solution. The downside is that Houdini Custom Properties are not supported everywhere yet.</p>
+<p>You can use Houdini Custom Properties, where supported, either via Javascript or CSS. The Javascript declaration looks like this:</p>
+<pre><code class="language-js">CSS.registerProperty({
+  name: &quot;--my-color&quot;,
+  syntax: &quot;&lt;color&gt;&quot;,
+  initialValue: &quot;black&quot;,
+  inherits: false
+});
+</code></pre>
+<p>The CSS declaration is very similar but it follows CSS syntax:</p>
+<pre><code class="language-css">@property --my-color {
+  syntax: &quot;&lt;color&gt;&quot;;
+  initial-value: black;
+  inherits: false;
+}
+</code></pre>
+<h1>Responsive Images</h1>
+<p>Images are the biggest portion, file size wise, of any webpage. Users download more images than any other component of the page; Javascript comes close but it’s not quite the same.</p>
+<p>The problem is that, using a one size fits all approach, the images will look awful in retina displays and will download unneccesary pixels in smaller form factor devices, potentially consuming a large portion of the user’s metered bandwidth allocation.</p>
+<p>While it’s true that they require more work upfront in preparing the images that we want to use, responsive images provide a better user experience, particularly for people on lower-end mobile devices.</p>
+<p>There are two things we can do and one thing we <strong>definitely</strong> should not to to improve image size and performance.</p>
+<h1>Keeping ourselves honest with client hints</h1>
+<h1>Performance suggestions</h1>
+<h2>Performance budgets</h2>
+<h2>Performance measurement tools</h2>
+<h3>Lighthouse</h3>
+<h3>CrUX Report</h3>
+<h1>Node and NPM</h1>
+<p>Development has sadly gotten to the point where every little web project needs a build system of some sort or another. This section will discuss one such build system in the context of what we’ve discussed so far.</p>
+<h2>Gulp as our build tool</h2>
+<h2>Putting it all together</h2>
+<p>As discussed in the introduction we’ll build a static site for a hypothetical conference with the following items</p>
+<ol>
+<li>About the conference.
+<ul>
+<li>What it is</li>
+<li>When will it happen</li>
+</ul>
+</li>
+<li>A list of presentations linked to the speakers</li>
+<li>A list of speakers linked to their presentation abstracts</li>
+<li>Information about the venue</li>
+<li>The skeleton of a registration page</li>
+</ol>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

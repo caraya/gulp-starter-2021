@@ -1,0 +1,129 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Cutting the mustard: then and now</h1>
+<p><a href="http://responsivenews.co.uk/post/18948466399/cutting-the-mustard">Cutting the mustard</a> is a term first defined by the BBC to explain how to test if a browser supported the features needed to run a web application.  In the example below we need to make sure that the browser supports query selectors, local storage and event listeners before we can build the app with these features. The traditional code works like this:</p>
+<pre><code class="language-js">if('querySelector' in document
+     &amp;&amp; 'localStorage' in window
+     &amp;&amp; 'addEventListener' in window) {
+     // bootstrap the javascript application
+}
+</code></pre>
+<p>I’ve also seen it converted to a function for ease of writing. We first define the items that make the browser cut the mustard and make them the return value of our check function</p>
+<pre><code class="language-js">function cutsMustard() {
+  return 'querySelector' in document
+     &amp;&amp; 'localStorage' in window
+     &amp;&amp; 'addEventListener' in window;
+}
+
+if (cutsMustard()) {
+  console.log('We cut the mustard!!1');
+}
+</code></pre>
+<h2>Cutting the mustard today</h2>
+<p>in <a href="https://fettblog.eu/cutting-the-mustard-2018/">Cutting the mustard - 2018 edition</a> Stefan Baumgartner suggests different strategies for “cutting the mustard” with current browsers.</p>
+<p>Using feature detection is still important but, perhaps the best way to test features according to Baumgartner, is to write modules instead of scripts and then use the <code>type=&quot;module&quot;</code> attribute of the script tag, like this.</p>
+<pre><code class="language-html">&lt;script type=&quot;module&quot;&gt;
+  import { init } from './client.js';
+
+  init();
+&lt;/script&gt;
+</code></pre>
+<p>The browsers that don’t support modules will not undertand the script tag above and skip it, and the code inside, completely. Problem solved, right?</p>
+<p>Not so fast, cowboy.</p>
+<p>We don’t need to serve identical content to all devices but we need to ensure that our core experiences are inclusive of as many people as possible with as good an experience as we can. From my perspective, cutting the mustard should not include ES2017 features until they are more widely supported both in desktop and mobile.</p>
+<p>Interestingly, when I asked Stephan whether his strategy includes mobile the answer sounded very much like “who cares”.</p>
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">What&#39;s mobile but a set of browsers with a set of features :-) If your mobile browser supports modules, it cuts the mustard.</p>&mdash; Stefan Baumgartner (@ddprrt) <a href="https://twitter.com/ddprrt/status/1068029781764116481?ref_src=twsrc%5Etfw">November 29, 2018</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Because a lot of mobile browsers do not support modules they “don’t cut the mustard” if we apply the strict definition of his mustard test.</p>
+<p>This works great for people who have the latest and greatest browsers and operaating systems but what happens if they don’t? I like Bruce Lawson’s idea of the <strong><em>World Wide Web</em></strong> not the <strong><em>Wealthy Western Web</em></strong> so a lot of the following ideas go towards wide-spread access rather than developer comfort and ergonomics.</p>
+<h2>Do we need to transpile?</h2>
+<p>Inside the module we can be more confident about support for modern features like spread operators, async/await and other powerful features of the web platform. But it’s an all-or-nothing deal. What happens if we have to support older browsers like those on the following list, some of which may support some of the capabilities we need for our applications but not others?</p>
+<ul>
+<li>Opera Mobile</li>
+<li>Samsung Internet</li>
+<li>QQ Browser</li>
+<li>Baidu</li>
+<li>Android Webview</li>
+<li>Older versions of Chrome for Android</li>
+</ul>
+<p>Sure, the browsers are evergreen and should update automatically, unless there is a corporate policy in place that prevents updated or the users in mobile devices are wary of bandwidth financial cost or storage to upgrade the browser to one that supports modules.</p>
+<p><strong><em>So I’ll start with the assumption that we need to transpile our code and that “latest and greatest” features are a progressive enhancement for those who can afford it.</em></strong></p>
+<p>One way to do it is to provide the transpiled bundle only to those browsers that don’t support modules.</p>
+<p>As discussed earlier, browsers that don’t support modules will skip scripts with <code>type=&quot;module&quot;</code> and ignore all their contents.</p>
+<p>We can use the <code>nomodule</code> attribute to do the reverse. Browsers that understand modules will ignore script elements with <code>nomodule</code> attribute.</p>
+<p>The code below will load scripts based on whether the browser supports modules or not.</p>
+<pre><code class="language-html">&lt;script type=&quot;module&quot;
+        src=&quot;./ecmascript-modules-main.js&quot;&gt;&lt;/script&gt;
+
+&lt;script nomodule src=&quot;./bundled-main.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>This example will do the same thing with inline code.</p>
+<pre><code class="language-html">&lt;script type=&quot;module&quot;&gt;
+  alert('The browser DOES support ES modules');
+&lt;/script&gt;
+&lt;script nomodule&gt;
+  alert('The browser DOES NOT support ES modules');
+&lt;/script&gt;
+</code></pre>
+<p>We can also just work with feature detection for those features that we actually need rather than assuming that because we have modules we have everything else we need.</p>
+<p>In this example we need to be sure the browser supports async functions and await keywords, service worker, local storage and indexedDB.</p>
+<p>I’m using a proposal by <a href="https://twitter.com/jouni_kantola">Jouni</a> for doing <a href="https://github.com/jouni-kantola/webpack-promote-modern-browsers/blob/master/ViewTemplates/modern-script-view-template.tmpl">feature tests for async functions</a>.</p>
+<p>The local storage detection code is from <a href="https://mathiasbynens.be/notes/localstorage-pattern">How I detect and use localStorage: a simple JavaScript pattern</a> by Mathias Bynens.</p>
+<p>The idea remains the same: we test for each feature and, if needed, we configure the test to account for vendor prefixes or different syntax for the same API (shouldn’t happen in evergreen browsers but it wouldn’t be uncommon for a browser to support prefixed and unprefixed versions of the same API)</p>
+<pre><code class="language-js">// Feature detect local storage
+var storage;
+var fail;
+var uid;
+try {
+  uid = new Date;
+  (storage = window.localStorage).setItem(uid, uid);
+  fail = storage.getItem(uid) != uid;
+  storage.removeItem(uid);
+  fail &amp;&amp; (storage = false);
+} catch (err) {
+  // empty by design
+}
+
+// Feature detect for async function
+var __modernScript__;
+try {
+  eval(&quot;typeof Object.getPrototypeOf(async function() {}).constructor === 'function'&quot;);
+  __modernScript__ = document.createElement('script');
+  __modernScript__.type = 'text/javascript';
+  __modernScript__.src = '##URL##';
+  document.getElementsByTagName('head')[0].appendChild(__modernScript__);
+} catch (err) {
+  // empty by design
+}
+
+function cutsMustard() {
+  return 'serviceWorker' in navigator
+    &amp;&amp; window.indexedDB
+    &amp;&amp; storage
+    &amp;&amp; __modernScript__
+    &amp;&amp; 'addEventListener' in window;
+}
+
+if (cutsMustard()) {
+  console.log('We cut the mustard!!1');
+}
+</code></pre>
+<p>Yes, feature detection means more work both in the scripts themselves and in tooling but it ensures that we provide our core experience to as wide an audience as possible.</p>
+<p>To me this is all a matter of willingness to put the effort into creating engaging experiences that are progressively enhanced for the latest and greatest. If it means adding tooling or extra code to make things work, then so be it.</p>
+<p>And cutting the mustard is not a static process. It may be that our next project can leverage wider support for those features we’d like to use to cut the mustard today.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

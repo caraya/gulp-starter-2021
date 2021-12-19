@@ -1,0 +1,43 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Adding JWT to WordPress</h1>
+<p>One of the things I’ve struggled with when working with headless WordPress is getting stuff that I need to be authenticated to accomplish; for example, I can get a list of posts and get an individual post but I can’t create, update and delete posts from a remote client.</p>
+<p>While reviewing a Udemy Course on the subject (Zach Gordon’s <a href="https://www.udemy.com/course/headless-wordpress-rest-api-authentication-course/l">Headless WordPress REST API Authentication</a> I discovered that the reason this happens is that WordPress doesn’t provide third party clients authentication by default. SO if you want to authenticate you have to set up your own authentication infrastructure in WordPress.</p>
+<p>This post will cover how to implement <a href="https://jwt.io/">JSON Web Token (JWT)</a> authentication on a WordPress installation.</p>
+<p>I chose JWT as my login solution not just because it’s what the course I took used but because other options are too cumbersome and do way more than what I need them to, opening too many potential security holes.</p>
+<p>I will use the <a href="https://hr.wordpress.org/plugins/jwt-authentication-for-wp-rest-api/">JWT Authentication for WP REST API</a> plugin as suggested in Gordon’s course. It hasn’t been tested in about a year but it works, for now, so I’ll continue using it.</p>
+<p>The first step is to download and install the plugin. You can do so from inside your WordPress installation by going to the plugins menu and selecting add new, searching for JWT authentication and then installing the plugin. <strong>Don’t activate it yet, we still need to configure it</strong>.</p>
+<p>The next steps are done outside of the administrator’s GUI.</p>
+<p>We first need to add</p>
+<pre><code class="language-apacheconf">RewriteEngine on
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule ^(.*) - [E=HTTP_AUTHORIZATION:%1]
+</code></pre>
+<p>CONFIGURATE THE SECRET KEY
+The JWT needs a secret key to sign the token this secret key must be unique and never revealed.</p>
+<p>To add the secret key edit your wp-config.php file and add  JWT_AUTH_SECRET_KEY constant</p>
+<pre><code class="language-php">define('JWT_AUTH_SECRET_KEY', 'your-top-secret-key');
+</code></pre>
+<p>You can use a string from the <a href="https://api.wordpress.org/secret-key/1.1/salt/">WordPress Salt Generator</a> as the value for the key.</p>
+<p>The <code>wp-api-jwt-auth</code> plugin has the option to activate CORs support.</p>
+<p>To enable the CORs Support edit your <code>wp-config.php</code> file and add a <code>JWT_AUTH_CORS_ENABLE</code> constant</p>
+<pre><code class="language-php">define('JWT_AUTH_CORS_ENABLE', true);
+</code></pre>
+<p>Finally activate the plugin. The best way to test it is to point your browser to <code>https://&lt;your-server-ulr&gt;/wp-json/jwt-auth/v1</code>. It should return a list of the available endpoints.</p>
+<p>We’re ready to begin working with WordPress as a headless CMS</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

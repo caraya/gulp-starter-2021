@@ -1,0 +1,134 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>XQuery for fun and profit</h1>
+<p>I’ve always liked the idea of being able to serve serialized content on-demand whenever a user requests it. It wasn’t until I read about XQuery that I started thinking about it being possible.</p>
+<p>In this post I will explore <a href="https://www.w3.org/XML/Query/">XQuery</a>, <a href="http://exist-db.org/exist/apps/homepage/index.html">eXistdb</a> as a specialized XML database and one possible way to serve serialized content created with <a href="http://docbook.org/">Docbook XML</a>, an XML vocabulary created for technical documentation, that has also been used to create books and other types of content.</p>
+<h2>Introducing XQuery</h2>
+<p>XQuery is a query language for structured and semi structured data. It uses a syntax similar to SQL with added tweak that we can use it with HTML tags to build our content.</p>
+<p>Using the following XML content:</p>
+<pre><code class="language-xml">&lt;catalog&gt;
+  &lt;product dept=&quot;WMN&quot;&gt;
+    &lt;number&gt;557&lt;/number&gt;
+    &lt;name language=&quot;en&quot;&gt;Fleece Pullover&lt;/name&gt;
+    &lt;colorChoices&gt;navy black&lt;/colorChoices&gt;
+  &lt;/product&gt;
+  &lt;product dept=&quot;ACC&quot;&gt;
+    &lt;number&gt;563&lt;/number&gt;
+    &lt;name language=&quot;en&quot;&gt;Floppy Sun Hat&lt;/name&gt;
+  &lt;/product&gt;
+  &lt;product dept=&quot;ACC&quot;&gt;
+    &lt;number&gt;443&lt;/number&gt;
+    &lt;name language=&quot;en&quot;&gt;Deluxe Travel Bag&lt;/name&gt;
+  &lt;/product&gt;
+  &lt;product dept=&quot;MEN&quot;&gt;
+    &lt;number&gt;784&lt;/number&gt;
+    &lt;name language=&quot;en&quot;&gt;Cotton Dress Shirt&lt;/name&gt;
+    &lt;colorChoices&gt;white gray&lt;/colorChoices&gt;
+    &lt;desc&gt;Our &lt;i&gt;favorite&lt;/i&gt; shirt!&lt;/desc&gt;
+  &lt;/product&gt;
+&lt;/catalog&gt;
+</code></pre>
+<p>We can query the XML to insert the resulting content into a <code>ul</code> element.</p>
+<pre><code class="language-xml">&lt;ul&gt;{
+  for $prod in doc(&quot;catalog.xml&quot;)/catalog/product
+  where $prod/@dept='ACC'
+  order by $prod/name
+  return $prod/name
+}&lt;/ul&gt;
+</code></pre>
+<p>And produces the following HTML/XML content.</p>
+<pre><code class="language-html">&lt;ul&gt;
+  &lt;name language=&quot;en&quot;&gt;Deluxe Travel Bag&lt;/name&gt;
+  &lt;name language=&quot;en&quot;&gt;Floppy Sun Hat&lt;/name&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>Rather than go through an entire XQuery Syntax Course, I’ll cover one basic syntax construct, the <code>FLOWR</code> expression and any additional syntax as needed.</p>
+<pre><code class="language-xquery">for $prod in doc(&quot;catalog.xml&quot;)//product
+let $prodDept := $prod/@dept
+where $prodDept = &quot;ACC&quot; or $prodDept = &quot;WMN&quot;
+return $prod/name
+</code></pre>
+<p>The basic structur of a <code>FLOWR</code> expression has the following elements:</p>
+<dl>
+<dt><strong>for</strong></dt>
+<dd>This clause sets up an iteration through the product elements returned by the path expression. The variable <code>$prod</code> is bound, in turn, to each product in the sequence. The rest of the FLWOR is evaluated once for each product, in this case, four times</dd>
+<dt><strong>let</strong></dt>
+<dd>This clause binds the <code>$prodDept</code> variable to the value of the dept attribute</dd>
+<dt><strong>where</strong></dt>
+<dd>This clause selects elements whose dept attribute is equal to ACC or WMN.</dd>
+<dt><strong>return</strong></dt>
+<dd>This clause returns the name child of each of the three product elements that pass the where clause.</dd>
+</dl>
+<p>The first clause in a <code>FLWOR</code> must be a <code>for</code>, <code>let</code>, or <code>window</code> clause. After that, any number of any of the clauses listed may appear, in any order. The final clause is the required <code>return</code> clause.</p>
+<h3>The <code>for</code> clause</h3>
+<p>The <code>for</code> clause sets up an iteration that allows the rest of the FLWOR to be evaluated multiple times, once for each item in the sequence returned by the expression after the in keyword. This sequence, also known as the binding sequence, can evaluate to any sequence of zero, one, or more items. In our example, it was a sequence of product elements, but it could also be atomic values, attribute nodes, or indeed items of any kind, or a mixture of items. If the binding sequence is the empty sequence, the rest of the FLWOR is simply not evaluated (it iterates zero times).</p>
+<p>You can use multiple for clauses in a FLWOR, which is similar to nested loops in a programming language. The result is that the rest of the FLWOR is evaluated for every combination of the values of the variables.</p>
+<h3>The <code>let</code> clause</h3>
+<p>A let clause is a convenient way to bind a variable to a value. Unlike a for clause, a let clause does not result in iteration; it binds the whole sequence to the variable rather than binding each item in turn. The let clause serves as a programmatic convenience that avoids repeating the same expression multiple times. With some implementations, it may improve performance, because the expression is evaluated only once instead of each time it is needed.</p>
+<p>One or more let clauses can be intermingled with one or more for clauses. Each of the let and for clauses may reference a variable bound in any previous clause.</p>
+<h3>The <code>where</code> clause</h3>
+<p>The where clause is used to specify criteria that filter the results of the FLWOR.</p>
+<p>Starting in XQuery 3.0, it is also possible to have multiple where clauses in the same FLWOR. In previous versions, only one was allowed.</p>
+<p>Note that when using paths within the where clause, they need to start with an expression that sets the context. For example, it has to say $prod/number &gt; 100 rather than just number &gt; 100. Otherwise, the processor does not know where to look for the number child.</p>
+<p>The effective boolean value of the where clause is calculated. This means that if the where clause evaluates to a Boolean value false a zero-length string, the number 0 or NaN, or the empty sequence it is considered false, and the return clause of the FLWOR is not evaluated for that iteration.</p>
+<h3>The <code>return</code> clause</h3>
+<p>The return clause consists of the return keyword followed by the single expression that is to be returned. It is evaluated once for each iteration, assuming the where clause evaluated to true. The result value of the entire FLWOR is a sequence of items returned by each evaluation of the return clause.</p>
+<h3>Further Reading</h3>
+<p>For more thorough coverage of the subject I’ll refer you to Priscilla Walmsley’s <a href="http://www.datypic.com/books/xquery/">XQuery (2nd Edition)</a> from O’Reilly.</p>
+<h2>The project</h2>
+<p>The idea for this project is to test if we can create custom serialized content on demand using XQuery and <a href="http://exist-db.org/">eXists-DB</a> a nosql database that provides tools to create XML based web applications.</p>
+<p>The hypothesis for the project are:</p>
+<ul>
+<li>I’ve defined multiple use cases for the tool</li>
+<li>I can create a database of XML serialized stories one of the following:
+<ul>
+<li><a href="http://docbook.org/">Docbook</a></li>
+<li><a href="http://www.tei-c.org/index.xml">TEI</a></li>
+<li>XHTML as defined in the <a href="https://html.spec.whatwg.org/multipage/introduction.html#html-vs-xhtml">HTML</a> specification</li>
+<li>A <a href="https://github.com/caraya/xml-workflow/">custom vocabulary</a></li>
+</ul>
+</li>
+<li>I can run queries against the database to generate tailored XML documents containing the body of all documents matching the query</li>
+<li>I can convert those documents to HTML and PDF using XML technologies</li>
+</ul>
+<h3>Use Cases</h3>
+<p>These are the use cases I’ve come up with.</p>
+<ul>
+<li>Course packets of supplementary material for college courses</li>
+<li>Serial magazines for short story content. Think Analog, Isaac Asimov or Ellery Queen Mystery magazines</li>
+<li>Material updated periodically where we can build updated copies based on search results</li>
+</ul>
+<h3>Which Syntax?</h3>
+<p>Which syntax to use depends on a few things:</p>
+<ul>
+<li>Are we starting from scratch?</li>
+<li>What format is our legacy content in?</li>
+<li>How easy are the transformation processes?</li>
+<li>Do we have an existing workflow to process content?</li>
+</ul>
+<p>Because we’re starting from scratch I will work with a customized version of Docbook with an additional metadata set to provide the custom metadata we’ll search by.</p>
+<h3>Query interfaces</h3>
+<p>eXist provides full application development tools, including front-end and server. We’ll leverage these tools to build the UI for the application.</p>
+<h3>Format Conversion</h3>
+<p>One of the reasons why I chose Docbook is that it has a powerful set of XSLT stylesheets to convert XML documents to both HTML(using <a href="https://www.saxonica.com/welcome/welcome.xml">Saxon</a> or <a href="http://xmlsoft.org/XSLT/">XSLTProc</a>) and PDF (using <a href="https://xmlgraphics.apache.org/fop/">Apache FOP</a> or <a href="https://www.antennahouse.com/antenna1/">AntennaHouse</a>) without having to create new stylesheets. It should also be possible to create Paged Media stylesheets but I wonder if the effort is worth it when you already have FOP alternatives.</p>
+<h2>Setting up eXist</h2>
+<aside class="message info">
+  <p>The rest of the document assumes you've installed eXist for your platform.</p>
+  <p>I'm also assuming that you've prepared your editor to work with eXist. I'm using <a href="https://www.oxygenxml.com/">oXygen XML</a>.</p>
+</aside>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

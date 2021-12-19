@@ -1,0 +1,852 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <p><a id="markdown-using-aria" name="using-aria"></a></p>
+<h1>Using ARIA</h1>
+<!-- TOC -->
+<ul>
+<li><a href="#using-aria">Using ARIA</a>
+<ul>
+<li><a href="#what-is-aria">What is ARIA</a></li>
+<li><a href="#best-practices">Best practices</a>
+<ul>
+<li><a href="#the-code">The Code</a></li>
+</ul>
+</li>
+<li><a href="#test-the-results">Test the results</a>
+<ul>
+<li><a href="#lighthouse-accessibility-test">Lighthouse Accessibility Test</a></li>
+<li><a href="#axe-and-axe-coconut-browser-extensions">aXe and aXe Coconut Browser Extensions</a></li>
+<li><a href="#testing-with-a-screenreader">Testing With A Screenreader</a></li>
+</ul>
+</li>
+<li><a href="#its-not-just-the-tech">It’s Not Just The Tech</a></li>
+<li><a href="#links-and-resources">Links and Resources</a></li>
+</ul>
+</li>
+</ul>
+<!-- /TOC -->
+<p>Accessibility is one of the most important aspects of development and one that we don’t pay as much attention as we should.</p>
+<p>We will look at ARIA (Accessible Rich Internet Applications), what it is and how we can use it in our content to help improve the accessibility of web applications and pages. we will also discuss When it’s better to use native elements and DOM interactions rather than create our own.</p>
+<p>we will also look at ARIA best practices and authoring guidelines. These are particularly suited to custom elements and components we create using Polymer or React-based applications.</p>
+<p>As a last step we will look at a page using Voice Over, the screen reader bundled as part of MacOS. This will give us an idea of what a user with visual disabilities experiences when they read the content.</p>
+<p><a id="markdown-what-is-aria" name="what-is-aria"></a></p>
+<h2>What is ARIA</h2>
+<p><a href="https://www.w3.org/TR/wai-aria-1.1/">ARIA</a> is a W3C specification that describes how to increase the accessibility of web pages, in particular, dynamic content, and user interface components developed with Ajax, HTML, JavaScript, and related technologies.</p>
+<p>The specification provides a set of roles, states, and properties that define accessible user interface elements and can be used to improve the accessibility and interoperability of web content and applications. These semantics are designed to allow an author to properly convey user interface behaviors and structural information to assistive technologies in document-level markup</p>
+<p>HTML provides a full suite of accessibility affordances for the built in HTML elements; for example, a button is given the implicity role of button without assiging a <code>role</code> or <code>aria-role</code> attribute. This is the main reason why we should always use them when possible. Where we have to create our own elements we can use ARIA to provide cues for assistive technology devices on how to handle the custom elements.</p>
+<p>One use for ARIA elements and attributes is to give assistive technology devices an association between title and its content.</p>
+<pre><code class="language-html">&lt;h2 id=&quot;table1-desc&quot;&gt;Table title&lt;/h2&gt;
+
+&lt;div class=&quot;content&quot; aria-labelledby=&quot;table1-desc&quot;&gt;
+  &lt;p&gt;Content&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+<p>The example below compares a native button HTML element with a custom element.</p>
+<p>The HTML button element looks like this</p>
+<pre><code class="language-html">&lt;button name=&quot;button&quot;&gt;Click me&lt;/button&gt;
+</code></pre>
+<p>This has many built in accessibility considerations:</p>
+<ul>
+<li>It’s focusable</li>
+<li>It’s part of the navigation order for the page</li>
+<li>Can be navigated with keyboard</li>
+<li>It creates a focus ring around it when you click on it</li>
+</ul>
+<p>But there are times when we have to create our own element to represent a button either because it’s generated dynamically or because we need specific functionality. However, that doesn’t meant we can get away with not providing accessibility acommodations.</p>
+<p>In the example below we’re making a clickable button based on an HTML <code>a</code> element with an SVG image as the text. We’ve also added <code>tabindex</code> and <code>aria-pressed</code> attributes and assigned a <code>role</code> attribute.</p>
+<p>Using Javascript we can change the value of aria-pressed attribute. we will look at it when we explore the Javascript portion of our custom element</p>
+<p><h3 id="rps_label">Role, Property, State, and Tabindex  Attributes</h3></p>
+<table aria-labelledby="rps_label" class="data attributes">
+  <thead>
+    <tr>
+      <th scope="col">Role</th>
+      <th scope="col">Attribute</th>
+      <th scope="col">Element</th>
+      <th scope="col">Usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">`button`</th>
+      <td></td>
+      <td>
+        `a`
+      </td>
+      <td>
+        <ul>
+          <li>Identifies the element as a `button` widget.</li>
+          <li> Accessible name for the button is defined by the text content of the element.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <th scope="row">
+        `tabindex="0"`
+      </th>
+      <td>
+        `a`
+      </td>
+      <td>
+        <ul>
+          <li>Includes the element in the tab sequence.</li>
+          <li>Needed on the `a` element because it does not have a `href` attribute.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <th scope="row">`aria-pressed="false"`</th>
+      <td>`a`</td>
+      <td>
+        <ul>
+          <li>Identifies the button as a toggle button.</li>
+          <li>Indicates the toggle button is not pressed.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <th scope="row">`aria-pressed="true"`</th>
+      <td>`a`</td>
+      <td>
+      <ul>
+          <li>Identifies the button as a toggle button.</li>
+          <li>Indicates the toggle button is pressed.</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p> </p>
+<pre><code class="language-html">&lt;a tabindex=&quot;0&quot; role=&quot;button&quot; id=&quot;toggle&quot; aria-pressed=&quot;false&quot;&gt;
+  Mute
+  &lt;svg aria-hidden=&quot;true&quot;&gt;
+    &lt;use xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot;
+    xlink:href=&quot;images/mute.svg#icon-sound&quot;&gt;&lt;/use&gt;
+  &lt;/svg&gt;
+&lt;/a&gt;
+</code></pre>
+<p>The CSS will style using <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Attribute_selectors">attribute selectors</a> for the role attribute and aria-pressed attributes and the SVG element.  The code below provides the following functionality:</p>
+<ul>
+<li>A base state</li>
+<li>A hover state</li>
+<li>A focus state that removes the default focus ring</li>
+<li>A custom focust state unsing the <code>::before</code> pseudo element that replaces the default focus we removed</li>
+<li>The same four states for a button with the <code>aria-pressed</code> attribute</li>
+<li>Styling for the SVG element</li>
+</ul>
+<pre><code class="language-css">[role=&quot;button&quot;] {
+  display: inline-block;
+  position: relative;
+  padding: .4em .7em;
+  border: 1px solid hsl(213, 71%, 49%);
+  border-radius: 5px;
+  box-shadow: 0 1px 2px hsl(216, 27%, 55%);
+  overflow: visible;
+  color: #fff;
+  text-shadow: 0 -1px 1px hsl(216, 27%, 25%);
+  background: hsl(216, 82%, 51%);
+  background-image: linear-gradient(to bottom, hsl(216, 82%, 53%), hsl(216, 82%, 47%));
+}
+
+[role=&quot;button&quot;]:hover {
+  border-color: hsl(213, 71%, 29%);
+  background: hsl(216, 82%, 31%);
+  background-image: linear-gradient(to bottom, hsl(216, 82%, 33%), hsl(216, 82%, 27%));
+    cursor: default;
+  outline: none;
+}
+
+[role=&quot;button&quot;]:focus {
+  outline: none;
+}
+
+[role=&quot;button&quot;]:focus::before {
+  position: absolute;
+  z-index: -1;
+  /* button border width - outline width - offset */
+  top: calc(-1px - 3px - 3px);
+  right: calc(-1px - 3px - 3px);
+  bottom: calc(-1px - 3px - 3px);
+  left: calc(-1px - 3px - 3px);
+  border: 3px solid hsl(213, 71%, 49%);
+  /* button border radius + outline width + offset */
+  border-radius: calc(5px + 3px + 3px);
+  content: '';
+}
+
+[role=&quot;button&quot;]:active {
+  border-color: hsl(213, 71%, 49%);
+  background: hsl(216, 82%, 31%);
+  background-image: linear-gradient(to bottom, hsl(216, 82%, 53%), hsl(216, 82%, 47%));
+  box-shadow: inset 0 3px 5px 1px hsl(216, 82%, 30%);
+}
+
+[role=&quot;button&quot;][aria-pressed] {
+  border-color: hsl(261, 71%, 49%);
+  box-shadow: 0 1px 2px hsl(261, 27%, 55%);
+  text-shadow: 0 -1px 1px hsl(261, 27%, 25%);
+  background: hsl(261, 82%, 51%);
+  background-image: linear-gradient(to bottom, hsl(261, 82%, 53%), hsl(261, 82%, 47%));
+}
+
+[role=&quot;button&quot;][aria-pressed]:hover {
+  border-color: hsl(261, 71%, 29%);
+  background: hsl(261, 82%, 31%);
+  background-image: linear-gradient(to bottom, hsl(261, 82%, 33%), hsl(261, 82%, 27%));
+    cursor: default;
+}
+
+[role=&quot;button&quot;][aria-pressed=&quot;true&quot;] {
+  padding-top: .5em;
+  padding-bottom: .3em;
+  border-color: hsl(261, 71%, 49%);
+  background: hsl(261, 82%, 31%);
+  background-image: linear-gradient(to bottom, hsl(261, 82%, 63%), hsl(261, 82%, 57%));
+  box-shadow: inset 0 3px 5px 1px hsl(261, 82%, 30%);
+}
+
+[role=&quot;button&quot;][aria-pressed=&quot;true&quot;]:hover {
+  border-color: hsl(261, 71%, 49%);
+  background: hsl(261, 82%, 31%);
+  background-image: linear-gradient(to bottom, hsl(261, 82%, 43%), hsl(261, 82%, 37%));
+  box-shadow: inset 0 3px 5px 1px hsl(261, 82%, 20%);
+}
+
+[role=&quot;button&quot;][aria-pressed]:focus::before {
+  border-color: hsl(261, 71%, 49%);
+}
+
+[role=&quot;button&quot;] svg {
+  margin: .15em auto -.15em;
+  height: 1em;
+  width: 1em;
+  pointer-events: none;
+}
+</code></pre>
+<aside class="message info">
+  <p>The script below is licensed according to the <a href="https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document">W3C Software License</a></p>
+</aside>
+<p>The Javascript takes care of the user interaction with our button.</p>
+<p>We first deefine constants for the icon images and create an <code>init</code> functions to capture the button and set up event listeners for click and keydown events.</p>
+<pre><code class="language-javascript">const ICON_MUTE_URL  = 'images/mute.svg#icon-mute';
+const ICON_SOUND_URL = 'images/mute.svg#icon-sound';
+
+function init () {
+  const toggleButton = document.getElementById('toggle');
+
+  // Add event listeners to the various buttons
+  toggleButton.addEventListener('click', toggleButtonEventHandler);
+  toggleButton.addEventListener('keydown', toggleButtonEventHandler);
+}
+</code></pre>
+<p>The next function handle events for the button both keyboard and click events.</p>
+<p>The <code>keydown</code> event will handle pressing either the space key (keycode 32) or the enter key (keycode 13) to trigger the button state.</p>
+<p>the <code>click</code> event handles both elements with a role of button or are a button element (the tag name is button).</p>
+<pre><code class="language-javascript">function toggleButtonEventHandler (event) {
+  const type = event.type;
+
+  // Grab the keydown and click events
+  if (type === 'keydown') {
+    // If either enter or space is pressed, execute the funtion
+    if (event.keyCode === 13 || event.keyCode === 32) {
+      toggleButtonState(event);
+
+      event.preventDefault();
+    }
+  }
+  else if (type === 'click') {
+    // Only allow this event if either role is correctly set
+    // or a correct element is used.
+    if (event.target.getAttribute('role') === 'button' || event.target.tagName === 'button') {
+      toggleButtonState(event);
+    }
+  }
+}
+</code></pre>
+<p>The next function is the heart of the script and changes attributes in the <code>a</code> element and the <code>svg</code> child.</p>
+<p>We set up variables to hold information about the event we’re holding, the <code>aria-pressed</code> attribute and the value we want to start with (<code>true</code>)</p>
+<p>We get the icon we want by catching the first use element inside the button and set it to the mute version of the icon.</p>
+<p>IF the aria-pressed attribute has a <code>true</code> value then we change it to false and swap the icon to the unmuted version.</p>
+<p>Finally we set the <code>aria-pressed</code> attribute to the new value and the <code>xlink:href</code> value to the new ICON.</p>
+<p>The <code>xlink:href</code> attribute inside the svg element needs a little explanation. Because SVG is an XML-based language the regular href attribute will not work and we have to use <a href="https://www.w3.org/TR/xlink11/">XLINK</a>, a vocabulary designed to link XML-based resourceas.</p>
+<pre><code class="language-javascript">function toggleButtonState (event) {
+  let button = event.target;
+  let currentState = button.getAttribute('aria-pressed');
+  let newState = 'true';
+
+  let icon = button.getElementsByTagName('use')[0];
+  let newIconState = ICON_MUTE_URL;
+
+  // If aria-pressed is set to true, set newState to false
+  if (currentState === 'true') {
+    newState = 'false';
+    newIconState = ICON_SOUND_URL;
+  }
+
+  // Set the new aria-pressed state on the button
+  button.setAttribute('aria-pressed', newState);
+  icon.setAttribute('xlink:href', newIconState);
+}
+</code></pre>
+<p>We set up the <code>init</code> function to run when the window is loaded. We could also use <code>domContentLoaded</code> instead but in this particular example either event works.</p>
+<pre><code class="language-javascript">window.onload = init;
+</code></pre>
+<p>As you can see, implementing our own controls, even one as simple as a button, is a fairly complex task that requires a lot of scripting that the native button element gives you for free. This is always worth considering.</p>
+<p><a id="markdown-best-practices" name="best-practices"></a></p>
+<h2>Best practices</h2>
+<p>Rather than reinvent the wheel I’ll look at two collections of accessibility best practices: <a href="https://www.w3.org/TR/wai-aria-practices-1.1/">WAI-ARIA Authoring Practices 1.1</a> and Ebay’s  <a href="https://ebay.gitbooks.io/mindpatterns/">MIND Patterns: Accessibility Patterns for the Web</a> (suggested by Rob Dodson).</p>
+<p>we will take the accordion example from the ARIA Authoring Practices and explore what we need to have in an accessible component. Note that, as of this writing, MIND does not have suggestions for an accordion element.</p>
+<p>This is a longer exercise than the one we did for the button demo earlier. Longer because of the element complexity, because there are many more moving parts and because there is no native equivalent on the web platform.</p>
+<p>Before we get started there are a couple terminology items we need to get out of the way: headers and panels as they refer to the according object.</p>
+<dl>
+  <dt><strong>Accordion Header</strong></dt>
+  <dd>Label for or thumbnail representing a section of content that also serves as a control for showing, and in some implementations, hiding the section of content. </dd>
+  <dd>&nbsp;</dd>
+  <dd>In some accordions, there are additional elements that are always visible adjacent to the accordion header. For instance, a menubutton may accompany each accordion header to provide access to actions that apply to that section. And, in some cases, a snippet of the hidden content may also be visually persistent.</dd>
+  <dt><strong>Accordion Panel</strong></dt>
+  <dd>Section of content associated with an accordion header.</dd>
+</dl>
+<p>Next we look at the keyboard interactions that we need and should have for our
+<strong>Keyboard Interaction</strong></p>
+<ul>
+<li>Required elements
+<ul>
+<li><kbd>Enter</kbd> or <kbd>Space</kbd>:
+<ul>
+<li>When focus is on the accordion header for a collapsed panel, expands the associated panel. If the implementation allows only one panel to be expanded, and if another panel is expanded, collapses that panel</li>
+<li>When focus is on the accordion header for an expanded panel, collapses the panel if the implementation supports collapsing. Some implementations require one panel to be expanded at all times and allow only one panel to be expanded; so, they do not support a collapse function</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Optional Elements
+<ul>
+<li><kbd>Down Arrow</kbd>: If focus is on an accordion header, moves focus to the next accordion header. If focus is on the last accordion header, either does nothing or moves focus to the first accordion header</li>
+<li><kbd>Up Arrow</kbd>: If focus is on an accordion header, moves focus to the previous accordion header. If focus is on the first accordion header, either does nothing or moves focus to the last accordion header.</li>
+<li><kbd>Home</kbd>: When focus is on an accordion header, moves focus to the first accordion header</li>
+<li><kbd>End</kbd>: When focus is on an accordion header, moves focus to the last accordion header.</li>
+<li><kbd>Control + Page Down</kbd>: If focus is inside an accordion panel or on an accordion header, moves focus to the next accordion header. If focus is in the last accordion header or panel, either does nothing or moves focus to the first accordion header</li>
+<li><kbd>Control + Page Up</kbd>: If focus is inside an accordion panel, moves focus to the header for that panel. If focus is on an accordion header, moves focus to the previous accordion header. If focus is on the first accordion header, either does nothing or moves focus to the last accordion header.</li>
+</ul>
+</li>
+</ul>
+<p><strong>ARIA Roles, States, and Properties:</strong></p>
+<ul>
+<li>The title of each accordion header is contained in an element with role <a href="https://www.w3.org/TR/wai-aria-1.1/#button" class="role-reference">button</a></li>
+<li>Each accordion header <code>button</code> is wrapped in an element with role <a href="https://www.w3.org/TR/wai-aria-1.1/#heading" class="role-reference">heading</a> that has a value set for <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-level" class="property-reference">aria-level</a> that is appropriate for the information architecture of the page
+<ul>
+<li>If the native host language has an element with an implicit <code>heading</code> and <code>aria-level</code>, such as an HTML heading tag, a native host language element may be used</li>
+<li>The <code>button</code> element is the only element inside the <code>heading</code> element. That is, if there are other visually persistent elements, they are not included inside the <code>heading</code> element</li>
+</ul>
+</li>
+<li>If the accordion panel associated with an accordion header is visible, the header <code>button</code> element has <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-expanded" class="state-reference">aria-expanded</a> set to <code>true</code>. If the panel is not visible, <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-expanded" class="state-reference">aria-expanded</a> is set to <code>false</code></li>
+<li>The accordion header <code>button</code> element has <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-controls" class="property-reference">aria-controls</a> set to the ID of the element containing the accordion panel content</li>
+<li>If the accordion panel associated with an accordion header is visible, and if the accordion does not permit the panel to be collapsed, the header <code>button</code> element has <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-disabled" class="state-reference">aria-disabled</a> set to <code>true</code></li>
+<li>Optionally, each element that serves as a container for panel content has role
+<a href="https://www.w3.org/TR/wai-aria-1.1/#region" class="role-reference">region</a> and
+<a href="https://www.w3.org/TR/wai-aria-1.1/#aria-labelledby" class="property-reference">aria-labelledby</a> with a value that refers to the button that controls display of the panel
+<ul>
+<li>Avoid using the <code>region</code> role in circumstances that create landmark region proliferation, e.g., in an accordion that contains more than approximately 6 panels that can be expanded at the same time</li>
+<li>Role <code>region</code> is especially helpful to the perception of structure by screen reader users when panels contain heading elements or a nested accordion</li>
+</ul>
+</li>
+</ul>
+<p><a id="markdown-the-code" name="the-code"></a></p>
+<h3>The Code</h3>
+<p>As with the button example we will look at the HTML, CSS and Javascript separately to get an idea of what is involved to build this accessible component.</p>
+<p>The HTML uses a description list to group together headers (using the <code>dt</code> element) and panels (using <code>dd</code>)</p>
+<p>The code introduces the following ARIA attributes, some of them seen in the button demo:</p>
+<ul>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#usage_intro">role</a> provides a way to clasify elements according to function, similar to the <a href="https://www.w3.org/TR/role-attribute/">Role 1.0 Recommendation</a>. The semantics provided in ARIA are specific to accessibility roles, the Roles Recommendation provides more generic use caases</li>
+<li><a href="https://www.w3.org/TR/role-attribute/">aria-disabled</a> Indicates that the element is perceivable (we can see it and read it in the page) but disabled (we can’t interact with it, so it is not editable or otherwise operable)
+<ul>
+<li>Used in conjunction with the <code>disabled</code> attribute</li>
+<li>This is different than being hidden using the <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-hidden">aria-hidden</a> or being read-only using the <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-readonly">aria-readonly</a></li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-level">aria-level</a> defines the position of the element within the page hierarchy
+<ul>
+<li>Multiple elements in a set may have the same value for this attribute</li>
+<li>This attribute can be used to provide an explicit indication of the level when that is not possible to calculate from the document structure or the aria-owns attribute</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-expanded">aria-expanded</a> indicates whether the element, or another grouping element it controls, is currently expanded or collapsed
+<ul>
+<li>If the element with the <code>aria-expanded</code> attribute controls the expansion of another grouping container that is not ‘owned by’ the element, the author should reference the container by using the <code>aria-controls</code> attribute.</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-controls">aria-controls</a> Identifies the element (or elements) whose contents or presence are controlled by the current element
+<ul>
+<li>For the accordion we’ll use the heading to control the associated panels</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-labelledby">aria-labelledby</a> identifies the element (or elements) that labels the current element</li>
+</ul>
+<pre><code class="language-html">  &lt;h1 id=&quot;page-title&quot;&gt;Accordion Demo&lt;/h1&gt;
+  &lt;dl id=&quot;accordionGroup&quot; role=&quot;presentation&quot; class=&quot;Accordion&quot;&gt;
+    &lt;dt role=&quot;heading&quot; aria-level=&quot;3&quot;&gt;
+      &lt;button   aria-expanded=&quot;true&quot;
+                class=&quot;Accordion-trigger&quot;
+                aria-controls=&quot;sect1&quot;
+                id=&quot;accordion1id&quot;&gt;
+        &lt;span class=&quot;Accordion-title&quot;&gt;Personal Information&lt;/span&gt;
+        &lt;span class=&quot;Accordion-icon&quot;&gt;&lt;/span&gt;
+      &lt;/button&gt;
+    &lt;/dt&gt;
+    &lt;dd   id=&quot;sect1&quot;
+          role=&quot;region&quot;
+          aria-labelledby=&quot;accordion1id&quot;
+          class=&quot;Accordion-panel&quot;&gt;
+      &lt;div&gt;
+        &lt;fieldset&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;cufc1&quot;&gt;Name
+              &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;:&lt;/label&gt;
+            &lt;input  type=&quot;text&quot;
+                    value=&quot;&quot;
+                    name=&quot;Name&quot;
+                    id=&quot;cufc1&quot;
+                    class=&quot;required&quot;
+                    aria-required=&quot;true&quot;&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;cufc2&quot;&gt;Email
+              &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;:&lt;/label&gt;
+            &lt;input  type=&quot;text&quot;
+                    value=&quot;&quot;
+                    name=&quot;Email&quot;
+                    id=&quot;cufc2&quot;
+                    aria-required=&quot;true&quot;&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;cufc3&quot;&gt;Phone:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; value=&quot;&quot; name=&quot;Phone&quot; id=&quot;cufc3&quot;&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;cufc4&quot;&gt;Extension:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; value=&quot;&quot; name=&quot;Ext&quot; id=&quot;cufc4&quot;&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;cufc5&quot;&gt;Country:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; value=&quot;&quot; name=&quot;Country&quot; id=&quot;cufc5&quot;&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;cufc6&quot;&gt;City/Province:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; value=&quot;&quot; name=&quot;City_Province&quot; id=&quot;cufc6&quot;&gt;
+          &lt;/p&gt;
+        &lt;/fieldset&gt;
+      &lt;/div&gt;
+    &lt;/dd&gt;
+    &lt;dt role=&quot;heading&quot; aria-level=&quot;3&quot;&gt;
+      &lt;button   aria-expanded=&quot;false&quot;
+                class=&quot;Accordion-trigger&quot;
+                aria-controls=&quot;sect2&quot;
+                id=&quot;accordion2id&quot;&gt;
+        &lt;span class=&quot;Accordion-title&quot;&gt;Billing Address&lt;/span&gt;
+        &lt;span class=&quot;Accordion-icon&quot;&gt;&lt;/span&gt;
+      &lt;/button&gt;
+    &lt;/dt&gt;
+    &lt;dd   id=&quot;sect2&quot;
+          role=&quot;region&quot;
+          aria-labelledby=&quot;accordion2id&quot;
+          class=&quot;Accordion-panel&quot; hidden&gt;
+      &lt;div&gt;
+        &lt;fieldset class=&quot;billing flex&quot;&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;b-add1&quot;&gt;Address 1:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;b-add1&quot; id=&quot;b-add1&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;b-add2&quot;&gt;Address 2:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;b-add2&quot; id=&quot;b-add2&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;b-city&quot;&gt;City:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;b-city&quot; id=&quot;b-city&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;b-state&quot;&gt;State:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;b-state&quot; id=&quot;b-state&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;b-zip&quot;&gt;Zip Code:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;b-zip&quot; id=&quot;b-zip&quot; /&gt;
+          &lt;/p&gt;
+        &lt;/fieldset&gt;
+      &lt;/div&gt;
+    &lt;/dd&gt;
+    &lt;dt role=&quot;heading&quot; aria-level=&quot;3&quot;&gt;
+      &lt;button   aria-expanded=&quot;false&quot;
+                class=&quot;Accordion-trigger&quot;
+                aria-controls=&quot;sect3&quot;
+                id=&quot;accordion3id&quot;&gt;
+        &lt;span class=&quot;Accordion-title&quot;&gt;Shipping Address&lt;/span&gt;
+        &lt;span class=&quot;Accordion-icon&quot;&gt;&lt;/span&gt;
+      &lt;/button&gt;
+    &lt;/dt&gt;
+    &lt;dd   id=&quot;sect3&quot;
+          role=&quot;region&quot;
+          aria-labelledby=&quot;accordion3id&quot;
+          class=&quot;Accordion-panel&quot; hidden&gt;
+      &lt;div&gt;
+        &lt;fieldset&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;m-add1&quot;&gt;Address 1:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;m-add1&quot; id=&quot;m-add1&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;m-add2&quot;&gt;Address 2:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;m-add2&quot; id=&quot;m-add2&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;m-city&quot;&gt;City:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;m-city&quot; id=&quot;m-city&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;m-state&quot;&gt;State:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;m-state&quot; id=&quot;m-state&quot; /&gt;
+          &lt;/p&gt;
+          &lt;p&gt;
+            &lt;label for=&quot;m-zip&quot;&gt;Zip Code:&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;m-zip&quot; id=&quot;m-zip&quot; /&gt;
+          &lt;/p&gt;
+        &lt;/fieldset&gt;
+      &lt;/div&gt;
+    &lt;/dd&gt;
+  &lt;/dl&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>The CSS controls the layout and animation for the different items we’ve defined in markup</p>
+<pre><code class="language-css">.Accordion {
+    border: 1px solid hsl(0, 0%, 82%);
+    border-radius: .3em;
+    box-shadow: 0 1px 2px hsl(0, 0%, 82%);
+}
+
+.Accordion &gt; * + * {
+    border-top: 1px solid hsl(0, 0%, 82%);
+}
+
+.Accordion-trigger {
+    background: none;
+    border: 0;
+    color: hsl(0, 0%, 13%);
+    display: block;
+    font-size: 1rem;
+    font-weight: normal;
+    margin: 0;
+    padding: 1em 1.5em;
+    position: relative;
+    text-align: left;
+    width: 100%;
+}
+
+.Accordion dt:first-child .Accordion-trigger {
+    border-radius: .3em .3em 0 0;
+}
+
+.Accordion-trigger:focus,
+.Accordion-trigger:hover {
+    background: hsl(0, 0%, 93%);
+}
+
+.Accordion-icon {
+    border: solid hsl(0, 0%, 62%);
+    border-width: 0 2px 2px 0;
+    height: .5rem;
+    position: absolute;
+    right: 1.5em;
+    top: 50%;
+    transform: translateY(-60%) rotate(45deg);
+    width: .5rem;
+}
+
+.Accordion-trigger:focus .Accordion-icon,
+.Accordion-trigger:hover .Accordion-icon {
+    border-color: hsl(0, 0%, 13%);
+}
+
+.Accordion-trigger[aria-expanded=&quot;true&quot;] .Accordion-icon {
+    transform: translateY(-50%) rotate(-135deg);
+}
+
+.Accordion-panel {
+    margin: 0;
+    padding: 1em 1.5em;
+}
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+input {
+    border: 1px solid hsl(0, 0%, 62%);
+    border-radius: .3em;
+    display: block;
+    font-size: inherit;
+    padding: .3em .5em;
+}
+</code></pre>
+<p>I’ve broken the Javascript in sections to make sure I’m not inundating readers with bunches of terminology that I’m working on understanding myself.</p>
+<p>For all the elements that have the class <code>Accordion</code> we create an array anf run the instructions below.</p>
+<p>We set up constant holding information about the array, if allows toggle (has the attribute <code>data-allow-toggle</code>) and whether it allows multiple panels (has the attribute <code>data-allow-multiple</code>).</p>
+<p>Then we create arrays for elements inside the accordion; the triggers (<code>Accordion-trigger</code> class) and the panel (<code>Accordion-panel</code> class).</p>
+<pre><code class="language-javascript">Array.from(document.querySelectorAll('.Accordion')).forEach(function (accordion) {
+
+  // Allow for each toggle to both open and close individually
+  const allowToggle = accordion.hasAttribute('data-allow-toggle');
+  // Allow for multiple accordion sections to be expanded at the same time
+  const allowMultiple = accordion.hasAttribute('data-allow-multiple');
+
+  // Create the array of toggle elements for the accordion group
+  const triggers = Array.from(accordion.querySelectorAll('.Accordion-trigger'));
+  const panels = Array.from(accordion.querySelectorAll('.Accordion-panel'));
+</code></pre>
+<p>I’ve broken the <code>click</code> event into two sections to handle the case where we don’t allow multiple panels and the two cases for <code>allowToggle</code> and <code>isExpanded</code>.</p>
+<p>The idea for the first block is that, if we don’t allow multiple panes to be open we want the open panes to close when we open a new one.</p>
+<pre><code class="language-javascript">  accordion.addEventListener('click', function (event) {
+    const target = event.target;
+
+    if (target.classList.contains('Accordion-trigger')) {
+      const isExpanded = target.getAttribute('aria-expanded') == 'true';
+
+      if (!allowMultiple) {
+        triggers.forEach(function (trigger) {
+          if (trigger.getAttribute('aria-expanded') == 'true') {
+            document.getElementById(trigger.getAttribute('aria-controls'))
+                    .setAttribute('hidden', '');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+</code></pre>
+<p>Then we test if we allow toggle events and whether the panel is expanded. If we allow both of these then we remove the <code>hidden</code> attribute and switch the value of the <code>aria-expanded</code> attribute to false.</p>
+<p>If we don’t allow toggle and the element is not expanded we remove the <code>hidden</code> attribute from the element with <code>aria-control</code> and set the <code>aria-expanded</code> attribute to true</p>
+<pre><code class="language-javascript">      if (allowToggle &amp;&amp; isExpanded) {
+
+        document.getElementById(target.getAttribute('aria-controls'))
+                .setAttribute('hidden', '');
+        target.setAttribute('aria-expanded', 'false');
+      }
+      else if (!allowToggle &amp;&amp; !isExpanded) {
+        document.getElementById(target.getAttribute('aria-controls')).removeAttribute('hidden');
+        // Set the expanded state on the triggering element
+        target.setAttribute('aria-expanded', 'true');
+      }
+
+      event.preventDefault();
+    }
+  });
+</code></pre>
+<p>The keyboard navigation for the accordion is more complicated as we have to consider where we are in the accordion or inside one of its children.</p>
+<p>The keydown event listener intoruces control modifiers to keyboard events. <code>ctrlModifier</code> only returns true if its assigned keys <strong>and</strong> the control key (represented by <code>event.ctrlKey</code>) are pressed.</p>
+<p>The accordion works with the following key codes:</p>
+<ul>
+<li>33 = Page Up</li>
+<li>34 = Page Down</li>
+<li>38 = Up,</li>
+<li>40 = Down</li>
+<li>35 = End</li>
+<li>36 = Home</li>
+</ul>
+<p>If the element we’re testing for has the class <code>Accordion-trigger</code> then we test which element are we over. If it’s an element the key wwe pressed were the <code>up</code> or <code>down</code> key or the <code>control + PageUp</code> or <code>control + PageDown</code> combinations.</p>
+<pre><code class="language-javascript">  // Bind keyboard behaviors on the main accordion container
+  accordion.addEventListener('keydown', function (event) {
+    const target = event.target;
+    const key = event.which.toString();
+      const ctrlModifier = (event.ctrlKey &amp;&amp; key.match(/33|34/));
+
+    // Is this coming from an accordion header?
+    if (target.classList.contains('Accordion-trigger')) {
+      // Up/ Down arrow and Control + Page Up/ Page Down keyboard operations
+      if (key.match(/38|40/) || ctrlModifier) {
+        const index = triggers.indexOf(target);
+        const direction = (key.match(/34|40/)) ? 1 : -1;
+        const length = triggers.length;
+        const newIndex = (index + length + direction) % length;
+
+        triggers[newIndex].focus();
+
+        event.preventDefault();
+      }
+</code></pre>
+<p>If we match ehter <code>home</code> or <code>end</code> we move to the first or last panel respectively.</p>
+<pre><code class="language-javascript">      else if (key.match(/35|36/)) {
+        // 35 = End, 36 = Home keyboard operations
+        switch (key) {
+          // Go to first accordion
+          case '36':
+            triggers[0].focus();
+            break;
+          // Go to last accordion
+          case '35':
+            triggers[triggers.length - 1].focus();
+            break;
+        }
+
+        event.preventDefault();
+      }
+    }
+</code></pre>
+<p>If we use <code>control + PageUp</code> or <code>control + PageDown</code> then we want to make sure we do two things: prevent the default browser behavior and focus on the panel that we want to.</p>
+<pre><code class="language-javascript">    else if (ctrlModifier) {
+      // Control + Page Up/ Page Down keyboard operations
+      // Catches events that happen inside of panels
+      panels.forEach(function (panel, index) {
+        if (panel.contains(target)) {
+          triggers[index].focus();
+
+          event.preventDefault();
+        }
+      });
+    }
+  });
+});
+</code></pre>
+<p>An accordion is useful but it’s a lot of work to make it accessible. Still, it’s a good example of how to build accessible components.</p>
+<p><a id="markdown-test-the-results" name="test-the-results"></a></p>
+<h2>Test the results</h2>
+<p>Now that we’ve created accessible components. Now we get to test them.</p>
+<p>To test accessible components we’ll use 3 tools:</p>
+<ul>
+<li>The Accessibility Audit built into Chrome Dev Tools</li>
+<li>aXe and aXe Coconut from <a href="https://www.deque.com/">Deque Systems</a></li>
+<li>Screen Readers</li>
+</ul>
+<p><a id="markdown-lighthouse-accessibility-test" name="lighthouse-accessibility-test"></a></p>
+<h3>Lighthouse Accessibility Test</h3>
+<p>In recent versions of Google Chrome there is a new <strong>Audits</strong> panel in Dev Tools. I start here because it uses Lighthouse to run the test and aXe Core under the hood so, unless you have specific requirements why aXe Core or Coconut are required, this may be the only tool you need outside of a screen reader.</p>
+<p>To get started open Dev Tools (<code>Control+Shift+I</code> in Windows, <code>Command+option+i</code> on Mac). You will see something similar to the image below. Click on <code>Audits</code>.</p>
+<figure>
+  <img src="images/audits-panel-devtool.png" alt="">
+  <figcaption>Audit Panel in Chrome Dev Tools</figcaption>
+</figure>
+<p>This will present you with a list of possible audits to run. In this case we want to uncheck all audits except accessibility. Then we click <code>Run Audit</code>.</p>
+<figure>
+  <img src="images/devtools-avilable-audits.png" alt="">
+  <figcaption>Available Audits in Chrome Dev Tools</figcaption>
+</figure>
+<p>Chrome will run its tests and give you a score and a list of items to change shown below.</p>
+<figure>
+  <img src="images/devtools-accessibility-audit-result.png" alt="">
+  <figcaption>Accessibility Audits Results</figcaption>
+</figure>
+<p>It’s important to realize that, while automated testing is good and will get you most of the way there, manual testing and decision making are still important.</p>
+<p>In the results shown in figure 3 I know that the constrast issues are the colors that I use for syntax highlighting (using Prism.js against the theme background). It’s up to me to decide if I want to change the theme to provide better contrast or keep the theme and the score of 91.</p>
+<p><a id="markdown-axe-and-axe-coconut-browser-extensions" name="axe-and-axe-coconut-browser-extensions"></a></p>
+<h3>aXe and aXe Coconut Browser Extensions</h3>
+<p>aXe browser extension for <a href="https://chrome.google.com/webstore/detail/aXe/lhdoppojpmngadmnindnejefpokejbdd">Chrome</a>and <a href="https://github.com/dequelabs/aXe-firefox-devtools">Firefox</a> automates testing and evaluation of your page’s accessibility.</p>
+<aside class="message info">
+  <p>if you're using Firefox, be aware that the Firefox Extension may not work with the latest vesions. Deque provides an <a href="https://www.deque.com/blog/understanding-axe-attest-extension-compatibility-firefox/">explanation</a> about what version of aXe supports what version of the browser.</p>
+</aside>
+<div class="youtube-player" data-id="FW1giWW5M9I"></div>
+<!-- <div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/FW1giWW5M9I?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+</div> -->
+<p>If you need the latest functionality, for example you’re working with ShadowDOM and Custom Elements you can use <a href="https://chrome.google.com/webstore/detail/aXe-coconut/iobddmbdndbbbfjopjdgadphaoihpojp">aXe Coconut Chrome Extension</a> to use the latest aXe features and tests. The instructions are the same for both and they can be installed concurrently; think of Coconut as the aXe version of Chrome Canary.</p>
+<p>For Chrome the process is simple:</p>
+<p><strong>Download the appropriate extension from the Chrome Web Store</strong></p>
+<p><strong>Install the extension when prompted</strong></p>
+<p><strong>Open DevTools and select aXe or aXe Coconut (Figure 4 is open with aXe)</strong></p>
+<figure>
+  <img src="images/axe-after-install.png" alt="">
+  <figcaption>aXe ready to run</figcaption>
+</figure>
+<p><strong>Click Analyze on the left-hand frame</strong></p>
+<p><strong>Axe will prodeuce a report with all accessibility violations (figure 5 shows aXe Coconut)</strong></p>
+<figure>
+  <img src="images/axe-coconut-report.png" alt="">
+  <figcaption>aXe Coconut report</figcaption>
+</figure>
+<p>As with the Lighthouse report there are things that we’ll have to manually decide if there are errors or not and whether we need to change the code to fix the problems aXe reported.</p>
+<p><a id="markdown-testing-with-a-screenreader" name="testing-with-a-screenreader"></a></p>
+<h3>Testing With A Screenreader</h3>
+<p>The last part of the accessibility evaluation is to use a screen reader to read the page back to you. This will not catch accessibility violations like Lighthouse or aXe do but it’ll give you an idea of easy it is for screen readers to understand the content of your page or app.</p>
+<p>Rather than try to walk you through using a screen reader I’ll link to two awesome introductory tutorials from Rob Dodson, part of his <a href="https://www.youtube.com/playlist?list=PLNYkxOF6rcICWx0C9LVWWVqvHlYJyqw7g">A11ycasts series</a> in Youtube: one for Voice Oveer (built into macOS) and NVDA (free for Windows).</p>
+<div class="youtube-player" data-id="Jao3s_CwdRU"></div>
+<!-- <div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/Jao3s_CwdRU?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+</div> -->
+<div class="youtube-player" data-id="5R-6WvAihms"></div>
+<!--
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/5R-6WvAihms?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+</div>
+-->
+<p>It has been an eye opening experience to hear my content read back to me as an editor would; someone who doesn’t understand the content as well as I do and who doesn’t read what he meant to write rather than what’s actually written.</p>
+<p><a id="markdown-its-not-just-the-tech" name="its-not-just-the-tech"></a></p>
+<h2>It’s Not Just The Tech</h2>
+<p>When we think about accessibility most of us think about screen readers but there’s a lot more. The automated and manual techniques are a starting point. After you make all the changes suggested by the tools you still have to make decisions about your content.</p>
+<div class="youtube-player" data-id="hRS_Uxq_LJ8"></div>
+<!-- <div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/hRS_Uxq_LJ8?rel=0" frameborder="0" allowfullscreen></iframe>
+</div> -->
+<p>This is the beginning of my learning accessibility. Will report back along the learning path.</p>
+<p><a id="markdown-links-and-resources" name="links-and-resources"></a></p>
+<h2>Links and Resources</h2>
+<ul>
+<li>Accessibility
+<ul>
+<li><a href="https://www.youtube.com/watch?v=qdB8SRhqvFc">ARIA, Accessibility APIs and coding like you give a damn! – Léonie Watson</a></li>
+<li><a href="https://www.youtube.com/watch?v=gQADBOsjBTM">Leonie Watson: Using ARIA to solve everyday accessibility problems</a></li>
+<li><a href="https://github.com/WICG/inert">Inert Attribute</a></li>
+</ul>
+</li>
+<li>ARIA
+<ul>
+<li><a href="https://w3c.github.io/using-aria/">Using ARIA</a></li>
+<li>Best Practices
+<ul>
+<li><a href="https://www.w3.org/TR/wai-aria-practices-1.1/">WAI-ARIA Authoring Practices 1.1</a></li>
+<li><a href="https://ebay.gitbooks.io/mindpatterns/">MIND Patterns: Accessibility Patterns for the Web</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Voice Over
+<ul>
+<li><a href="https://help.apple.com/voiceover/info/guide/10.12/">Voice Over Getting Started Guide</a></li>
+<li><a href="http://lab.dotjay.com/notes/voiceover-commands/">Voice Over Commands</a></li>
+</ul>
+</li>
+<li>aXe and aXe Coconut
+<ul>
+<li><a href="https://www.deque.com/blog/test-leading-edge-accessibility-aXe-coconut-aXe-core-3-0/">Test the leading edge of accessibility with aXe Coconut and aXe-core 3.0-alpha</a></li>
+<li>Browser Extensions
+<ul>
+<li><a href="https://chrome.google.com/webstore/detail/aXe/lhdoppojpmngadmnindnejefpokejbdd">aXe Chrome Extension (Stable)</a></li>
+<li><a href="https://chrome.google.com/webstore/detail/aXe-coconut/iobddmbdndbbbfjopjdgadphaoihpojp">aXe Coconut Chrome Extension</a></li>
+<li><a href="https://chrome.google.com/webstore/detail/wave-evaluation-tool/jbbplnpkjmmeebjpijfedlgcdilocofh">WAVE</a></li>
+<li><a href="https://github.com/dequelabs/aXe-firefox-devtools">Firefox Devtools Integration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Chrome specific
+<ul>
+<li><a href="https://developers.google.com/web/fundamentals/accessibility/how-to-review">How To Do an Accessibility Review</a></li>
+<li><a href="https://www.youtube.com/watch?v=b0Q5Zp_yKaU">The new way to test accessibility with Chrome DevTools - A11ycasts #23</a></li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

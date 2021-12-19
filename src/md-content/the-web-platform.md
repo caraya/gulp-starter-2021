@@ -63,9 +63,9 @@ HTML version 2.0 was developed in 1995 with basic intention of improving HTML ve
 * [RFC 1980](https://datatracker.ietf.org/doc/html/rfc1980) (client-side image maps)
 * [RFC 2070](https://datatracker.ietf.org/doc/html/rfc2070) (internationalization)
 
-It is at this time where we have more than one (graphical) browser. Mosaic had been released in 1993 and Netscape was released by some of the same egineers in 1994.
+At this time where we have more than one (graphical) browser. Mosaic had been released in 1993 and Netscape was released by some of the same egineers in 1994.
 
-Mosaic is the grandfather of Internet Explorer. NSCA licensed the code from Spyglass and used it to build the original version of Internet Explorer.
+Mosaic is the grandfather of Internet Explorer. NSCA licensed the code from Spyglass and used it to build the original version of Internet Explorer although it wasn't long before all the code from Mosaic was removed from Internet Explorer and replaced with Microsoft written code.
 
 Because the different browsers had the goal of attracting people they introduced tags as they felt they were needed, regardless of whether there waas a standard or not. Most of these talks were introduced as messages in the `www-talk` mailing list.
 
@@ -128,7 +128,7 @@ Microsoft didn't stay behind and developed their own proprietary tags for Intern
 | &lt;table bordercolor=color bordercolordark=color bordercolorlight=color> | Sets colors for 3-D table borders in the &lt;table>, &lt;td>, &lt;th>, and &lt;tr> tags |
 | &lt;table frame=value> | Controls the display of the outer borders of a table in the &lt;table> tag
 
-So most of the work of the W3C, created in 1994, was to shepard the new version of HTML forwaard while navigating the conflicting defacto tags introduced by Netscape and Microsoft.
+So most of the work of the W3C, created in 1994, was to shepard the new version of HTML forward while navigating the conflicting defacto tags introduced by Netscape and Microsoft.
 
 ### HTML 4.0 and 4.01
 
@@ -474,7 +474,7 @@ While the following teemplate is used to define the HTML structure of the custom
 </template>
 ```
 
-With these two elements we can create as many web components as we need for our page. We can also have as many different web components as we want.
+With these two elements we can create as many copies of a web components as we need for our page. We can also have as many different web components as we want.
 
 SO why is this important? It makes it easier for developers to create web components that are made for purpose and can integrate with other web components in a similar fashion to the atomic design philosophy: atom &rarr; molecule &rarr; organism.
 
@@ -491,7 +491,7 @@ Web components have an interesting story.
 Alex Russell first introduced Web Components at the Fronteers Conference in 2011.
 
 <div class="video">
-  <iframe src="https://player.vimeo.com/video/33430613?h=9eb534aa5d&portrait=0" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+  <iframe src="https://player.vimeo.com/video/33430613?h=9eb534aa5d&portrait=0" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
 </div>
 
 [Polymer](https://polymer-library.polymer-project.org/3.0/docs/devguide/feature-overview), a library based on Web Components was released by Google in 2013. Polymer also provides a set of ready-made components that you can drop into your project.
@@ -504,7 +504,7 @@ Over the years things have changed and other important libraries have come into 
 
 x-tags is now a Microsoft project since the lead developer left Mozilla and moved to Microsoft. The Bricks library is in maintenance mode and, as far as I can tell, it is no longer under development (the last tweet on the [@mozbrick](https://twitter.com/mozbrick/) was in 2014).
 
-Polymer had multiple versions that acommodated the different iterations of the web component specs (0.5, 0.8, 1, 2, and 3) before being replaced by the [Lit](https://lit.dev/) element as a replacement.
+Polymer had multiple versions that acommodated the different iterations of the web component specs (0.5, 0.8, 1, 2, and 3) before being replaced by the [Lit](https://lit.dev/) element.
 
 Salesforce introduced [Lightning Web Components](https://lwc.dev/), the latest commercially supported web components library.
 
@@ -529,6 +529,12 @@ How can we tell?
 Frameworks that have submitted data to [Custom Elements Everywhere](https://custom-elements-everywhere.com/) give you a measure of well they support web components. We can combine web components from different libraries and our own custom web components to create exactly what we need.
 
 This sort of fulfill the promise of write once and use everywhere. It may also be possible to use multiple Polymer/Lit components alongside x-tags and Lightning Web Components. It will also require a lot of javascript to do so... whether you choose to or not is up to you.
+
+### Accessibility of web components
+
+One of the biggest concerns about web components is accessibility. Because all custom elements must inherit from `HTMLElement` and not the more specific subclasses like `HTMLButtonElement`, `HTMLLinkElement`, `HTMLInputElement`, or similar. This means that custom elements will not inherit accessibility properties from their parent elements.
+
+This means that whatever accessibility wins we get from built in elements are not available to custom elements... unless we put them back ourselves.
 
 # CSS
 
@@ -584,7 +590,7 @@ The rest of the specification is in the [Cascading Style Sheets, level 1](https:
 
 ## CSS 2.0 and 2.1
 
-Cascading Style Sheets Level 2 and the later [Cascading Style Sheets Level 2 Revision 1 (CSS 2.1) Specification](https://www.w3.org/TR/CSS21/) update expand on the original CSS 1 specification.
+Cascading Style Sheets Level 2 and the later [Cascading Style Sheets Level 2 Revision 1 (CSS 2.1)](https://www.w3.org/TR/CSS21/) specification update expand on the original CSS 1 specification.
 
 CSS 2:
 
@@ -603,9 +609,9 @@ Because CSS 2 expanded the capabilities of CSS, the specification is significant
 
 As good as CSS 1 and 2 were at the time they presented a difficult dilemma for browser makers: Features mature at different rates but because they are all part of one standard document they can't be considered complete until the full specification is deemed complete.
 
-Rather than one monolithic specification, the CSS working group decided that work on what would have been the CSS 3 specification would be broken down into modules.
+Rather than one monolithic specification, the CSS working group decided that work on what would have been the CSS 3 specification would be broken down into modules. This would allow the different features to mature at their own pace and be published as specifications when they were ready rather than having to wait for the full specification to be completed.
 
-The following modules have completed the specification process and are no recommendations from the W3C
+The following modules have completed the specification process and are now recommendations from the W3C
 
 | Specification | Status |
 | --------------|--------|
@@ -663,8 +669,10 @@ Take the following example of a mixin that changes the colors on the element it'
 @mixin stripes($length: 10) {
   @for $i from 1 through $length {
     @if $i % 2 == 0 {
+      background-color: #ff00ff;
+      color: #ffffff;
     } @else {
-      background-color: #ff0000;
+      background-color: #0000ff;
       color: #ffffff;
     }
   }
@@ -677,12 +685,12 @@ This code will alternative colors between rown in the table body.
 
 ```css
 tbody tr:nth-child(odd) {
-  background-color: #00ff00;
+  background-color: #ff00ff;
   color: #000000;
 }
 
 tbody tr:nth-child(even) {
-  background-color: #ff0000;
+  background-color: #0000ff;
   color: #ffffff;
 }
 ```
@@ -712,14 +720,14 @@ This will produce the following CSS
 
 CSS will let you write nested rules in three different ways:
 
-Write the nested selectors by hand.
+Write the nested selectors by hand as separate rules.
 
 ```css
 .foo { color: red; }
 .foo > .bar { color: blue; }
 ```
 
-Write the nested selectors using the `&` selector defined in the [CSS Nesting Module](https://drafts.csswg.org/css-nesting-1/)
+Write the nested selectors using the `&` CSS selector defined in the [CSS Nesting Module](https://drafts.csswg.org/css-nesting-1/)
 
 ```css
 .foo {
@@ -779,7 +787,7 @@ $warn: #dfa612;
   --accent: #{$accent};
   --warn: #{$warn};
 
-  // This is valid CSS so it's not evaluated.
+  // This is valid CSS
   --consumed-by-css: $primary;
 }
 ```
@@ -876,7 +884,7 @@ So, why is this important?
 A lot of of times we can use the cascade and the rules for specificity to improve our CSS code.
 
 ```css
-.foo { color: red; }
+.bar { color: red; }
 .foo > .bar { color: blue; }
 ```
 
@@ -904,12 +912,15 @@ Houdini has a list of APIs that are currently under development at [drafts.css-h
 
 While not strictly part of Houdini (it is part of the HTML specification), [Worklets](https://html.spec.whatwg.org/multipage/worklets.html) are important for Houdini to work.
 
+<div class="video">
+  <iframe src="https://ishoudinireadyyet.com/" width="100%" height="800" loading="lazy"></iframe>
+</div>
+
 I will concentrate on the following Houdini APIs:
 
 * [CSS Properties and Values API 1](https://drafts.css-houdini.org/css-properties-values-api/)
-* [CSS Typed OM 1](https://drafts.css-houdini.org/css-typed-om/)
 * [CSS Painting API 1](https://drafts.css-houdini.org/css-paint-api/)
-* [CSS Layout API 1](https://drafts.css-houdini.org/css-layout-api/)
+* [CSS Typed OM 1](https://drafts.css-houdini.org/css-typed-om/)
 
 Properties and Values provides an enhanced API for working with CSS custom properties.
 
@@ -932,7 +943,7 @@ window.CSS.registerProperty({
   name: '--my-color',
   syntax: '<color>',
   inherits: false,
-  initialValue: 'c0ffee'
+  initialValue: 'c0ffee',
 });
 ```
 
@@ -954,7 +965,7 @@ Sets the initial value for the property.
 
 By having these fields, we can:
 
-* Use the property without defining a value (if the property has an initial value)
+* Use the property's initial value (if one is defined) when the property has no value defined
 * Animate the property
 * Use the property in a transition
 * Provide a clear explanation of the property and how we want to use it to people reading the code
@@ -971,14 +982,435 @@ While it's true that using the houdini versions of custom properties limits us t
 }
 ```
 
+The Painting and Layout APIs use worklets, now part of the HTML specification, as their language.
+
+Yes, this is another case where we use Javascript to write what we will use in CSS but, in this case, the ends justify the means.
+
+This example, taken from the Chrome Teams [Circle Paint API demo](https://github.com/GoogleChromeLabs/houdini-samples/tree/master/paint-worklet/circle) shows how to use the Paint API.
+
+The code uses the following HTML
+
+```html
+<div class="circle"></div>
+```
+
+In the main script load the worklet. We only load the paint worklet if the browser supports it; otherwise we notify the user.
+
+```html
+<script>
+  if ('paintWorklet' in CSS) {
+    CSS.paintWorklet.addModule('paintworklet.js');
+  } else {
+    document.body.innerHTML = 'You need support for <a href="https://drafts.css-houdini.org/css-paint-api/">CSS Paint API</a> to view this demo :(';
+  }
+</script>
+```
+
+In the CSS portion of the example we define the custom property using the `@property` at rule and then we use the property and we use the `paint()` function to tell the browser that we want to use the paint worklet as the background image.
+
+```css
+@property '--circle-color'{
+    syntax: '<color>',
+    inherits: true,
+    initialValue: '#00ff00'
+}
+
+.circle {
+  --circle-color: green;
+  background-image: paint(circle);
+  height: 80vh;
+  width: 100vw;
+}
+```
+
+The worklet itself uses a subset of the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) syntax to do the work.
+
+```js
+registerPaint('circle', class {
+  static get inputProperties() { return ['--circle-color']; }
+  paint(ctx, size, properties) {
+    // Get fill color from property
+    const color = properties.get('--circle-color');
+
+    // Determine the center point and radius.
+    const xCircle = size.width / 2;
+    const yCircle = size.height / 2;
+    const radiusCircle = Math.min(xCircle, yCircle) - 2.5;
+
+    // Draw the circle o/
+    ctx.beginPath();
+    ctx.arc(xCircle, yCircle, radiusCircle, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+});
+```
+
+The final bit of Houdini I want to talk about is the Typed OM API.
+
+The Typed OM is an extension to the existing CSS Object Model (CSSOM) that exposes CSS values as typed JavaScript objects, instead of a simple strings like they are today. Trying to convert strings in to meaningful types and back today can have a big performance overhead, so this will allow us to work with CSS values in a much more performant way
+
+With the Typed OM, CSS values are now members of a new base class, `CSSStyleValue`. The subclasses of `CSSStyleValue` more precisely describe a type of CSS Value:
+
+**CSSKeywordValue**
+: CSS Keywords and other identifiers (like inherit or grid)
+
+**CSSPositionValue**
+: Position (x and y) values
+
+**CSSImageValue**
+: An object representing the value properties for an image
+
+**CSSUnitValue**
+: Numeric values that can be expressed as a single value with single unit (like 50px) or a single value or percentage without a unit
+
+**CSSMathValue**
+: Complicated numeric values, like you would find with calc, min, and max. This includes subclasses `CSSMathSum`, `CSSMathProduct`, `CSSMathMin`, `CSSMathMax`, `CSSMathNegate`, and `CSSMathInvert`
+
+**CSSTransformValue**
+: A list of CSS transforms consisting of `CSSTransformComponents`, including `CSSTranslate`, `CSSRotate`, `CSSScale`, `CSSSkew`, `CSSSkewX`, `CSSSkewY`, `CSSPerspective`, and/or `CSSMatrixComponent`
+
+There are methods for working with Typed OM:
+
+You set the elements via on elements for working with the Typed OM:
+
+* You set and get the attributes via `attributeStyleMap`.set and get
+* You get the element's full typed OM styles via `computedStyleMap`
+
+For the example below we use the typed OM to set and retrieve the value for font-size for the given attribute
+
+```js
+const myElement = document.querySelector(".plum-crazy");
+
+myElement.attributeStyleMap.set("font-size", CSS.em(1.2));
+
+const fontSize = myElement.attributeStyleMap.get("font-size");
+
+console.log(fontSize);
+// CSSUnitValue { value: 1.2, unit: 'em' }
+```
+
+`computerStyleMap` returns a `CSSStyleDeclaration` object that can be used to get and set the values of the CSS properties. We can then get different values for different properties.
+
+```js
+const myBox = document.querySelector(".color-box").computedStyleMap();
+
+console.log(myBox.get("font-size"));
+console.log(myBox.get("width"));
+console.log(myBox.get("height"));
+console.log(myBox.get("display"));
+```
+
+<div class="message info">
+<p><strong>Note:</strong></p>
+<p>It is important to note that the browsers that implements Typed OM don't support all HTML elements.</p>
+</div>
+
+Even if the support is not complete it still provides a powerful way to work with CSS properties via Javascript. This will make worklets and other APIs that work with CSS more powerful and performant.
+
 # Javascript
 
-## Coffeescript, Typescript, Dart, Elm, Reason, Flow, oh my
+Out of the tree component technologies that make up the web, Javascript has gone through the worst growing pains of all the three.
+
+We've probabley heard the story of how Javascript was created in ten days to coincide with the release of Navigator 2.0 and it was meant as a dynamic language that could be parsed by the browser but that's not the whole story.
+The history of Javascript is worth reviewing, if for no other reason than understanding the past may help us understand why we are where we are.
+
+THe table below tracks three parallel strands of Javascript development:
+
+* The original Javascript developed at Netscape and released as part of Netscape product line
+* JScript, the Microsoft version of Javascript released with Internet Explorer
+* Ecmascript, the standard version of Javascript that resulted from Netscape's Javascript submission to ECMA (then the European Computer Manufacturers Association)
+
+| Official Name |  Year Released |Javascript Version | Ecmascript Version | Description |
+| ------------ | ------------------ | ------------------ | -------------- | ------------ |
+| **Javascript 1.0** | 1995 |JavaScript 1.0 | N.A | Released with Netscape Navigator 2.0 |
+| **JScript 1.0** | 1996 | JavaScript 1.0 (JScript 1.0) | N/A | Released with Internet Explorer 3.0 |
+| **Javasacript 1.1** | 1996 | JavaScript 1.1 | N/A | Released with Netscape Navigator 3.0 |
+| **Javascript 1.2** | 1997 | JavaScript 1.2 | N/A | Released with Netscape Navigator 4.0 |
+| **JScript 3.0** | 1997 | JavaScript 1.2 (JScript 3.0) | N/A | Released with Microsoft Internet Explorer 4.0 |
+| **EcmaScript 1** | 1997 | N/A | ES1 | First edition of the stadardized language |
+| **Javascript 1.3** | 1998 | JavaScript 1.3 | N/A | Released with Netscape Navigator 4.5 |
+| **ECMAScript 2** | 1998 | N/A | ES2 | Editorial changes |
+| **ECMAScript 3** | 1999 | N/A | ES3| Added regular expressions and try/catch |
+| **Javascript 1.4** | 1999 | N/A | Javascript 1.4 | |
+| **JScript 5.0** | 1999 | JScript 5.0 | N/A | Released with Microsoft Internet Explorer 5.0 |
+| **Javascript 1.5** | 2000 | N/A | Javascript 1.5 | Released with Netscape 6.2 and Firefox 1.0 |
+| **ECMAScript 4** | | N/A | ES4 | Not released |
+| **Javasacript 1.6** | 2005 | N/A | Javascript 1.6 | Released in Firefox 1.5.<br/><br/>Matches ECMASCript 3 and ECMAScript for XML |
+| **Javascript 1.7** | 2006 | N/A | Javascript 1.7 | Released in Firefox 2.0<br/><br/>Includes Features not part of the then current ECMAScript Standard |
+| **Javascript 1.8** | 2008 | N/A | Javascript 1.8 | Released in Firefox 3.0<br/><br/>Includes Features not part of the then current ECMAScript Standard |
+| **ECMAScript 5** | 2009 | N/A | ES5 |  Added “strict mode”, JSON support, String.trim(), Array.isArray(), & Array iteration methods |
+| **Javascript 1.8.5** | 2011 | N/A | Javascript 1.8.5 | Released in Firefox 4.0<br/><br/>This was the last version of Javascript released. In future versions, Mozilla would implement the ECMAScript specification |
+| **ECMAScript 2015** | 2015| N/A | ES6 / ES2015 | Added let and const, default parameter values, Array.find(), & Array.findIndex()
+| **ECMAScript 2016** | 2016 | N/A | ES7 / ES2016  | Added exponential operator & Array.prototype.includes
+| **ECMAScript 2017** | 2017 | N/A | ES8 / ES2017| Added string padding, Object.entries, Object.values, async functions, and shared memory |
+| **ECMAScript 2018** | 2018 | N/A | ES9 / ES2018 | Added rest / spread properties, asynchronous iteration, Promise.finally(), and RegExp
+
+## In the beginning
+
+> In 1995, the Web and Web browsers were new technologies bursting onto the world, and Netscape Communications Corporation was leading Web browser development. JavaScript was initially designed and implemented in May 1995 at Netscape by Brendan Eich, one of the authors of this paper. It was intended to be a simple, easy to use, dynamic languageg that enabled snippets of code to be included in the definitions of Web pages. The code snippets were interpreted by a browser as it rendered the page, enabling the page to dynamically customize its presentation and respond to user interactions
+>
+> [Javascript: The first 20 years](https://dl.acm.org/doi/10.1145/3386327).
+
+As the authors of the paper cited above note the first version of Javascript was created to fill a very narrow niche on the web. If there was any heavy lifting programming to be done it would be done on the server using CGI scripts written in Perl or C or it would be written in Java and run through the Java plugin available for Netscape browsers.
+
+This is CGI program written in Perl using the [CGI.pm](https://metacpan.org/pod/CGI) module.
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use CGI::Simple;
+my $q = CGI::Simple->new;
+print $q->header;
+
+print "Hello World!";
+```
+
+And the same program written in C that requires you to compile the script and place it in the cgi-bin directory of your server:
+
+```c
+#include <stdio.h>
+
+int main(void)
+{
+  printf("Content-type: text/html\n\n");
+  printf("<html><title>Hello</title><body>\n");
+  printf("Hello World!\n");
+  printf("</body></html>");
+
+  return 1;
+}
+```
+
+You would link to these CGI scripts from a form's action attribute or directly in a hyperlink. The browser would then execute the script and send the results back to the browser to render.
+
+In contrast, one of the first uses of Javascript that I remember was to do image rollovers.
+
+```js
+function move_image(img_name,img_src) {
+  document[img_name].src=img_src;
+}
+
+function move_out(img_name,img_src) {
+  document[img_name].src=img_src;
+}
+```
+
+With the two functions in place we would use the `onMouseOver` and `onMouseOut` attributes to change the image source, creating the roll over.
+
+```html
+<a href="link.html"
+  OnMouseOver="move_in('image1','image_on.gif')"
+  OnMouseOut="move_out('image1','image_out.gif')">
+
+<img src="image_out.gif"
+  alt="Move your mouse over here!" name="image1">
+
+</a>
+```
+
+There was no notion of Javasacript as the language to write full appplications with, at least not yet. If anything there was a way to connect Javascript with Java on Netscape browsers through a proprietary technology called LiveConnect. The tecnology still survives but the plugin necessary to make it work does not so the technology itself is defunct.
+
+There was also no standard to follow. Javascript (Netscape) and JScript (Microsoft) were not always compatible which led to problems for developers and the ugly "better viewed in Netscape" or "Best viewed in Internet Explorer" messages.
+
+Through the late 1990s, around the time ESCript version 3 was released, there was a perceived stagnation in the development of ECMAScript. It wasn't that there was no work being done but that the people who were woking on the specification couldn't really agree on what the specification should be and do.
+
+> As the end of the 1990s neared, it was clear that the Internet and in particular the World Wide Web was having a phenomenal impact upon the world [Miniwatts Marketing Group 2019]. The rapid growth of the Web had been enabled by the incremental pragmatic enhancement of browser technologies by Netscape, Microsoft, and other browser developers. The success of the Web and the necessity of coordinating the ongoing evolution gave rise to standards groups such as Ecma TC39 and W3C working groups. Some of the participants in those groups were subject matter experts who were not directly involved with browser development. Their interest was focused on an idealized futureWeb. From that perspective, the existing pragmatically developedWeb technologies were viewed as an impediment to that future.
+>
+> In May 1998, the W3C held a workshop titled: “Shaping the Future of HTML.” The conclusions in the record of the workshop say:
+> >In discussions, it was agreed that further extending HTML 4.0 would be difficult, as would converting 4.0 to be an XML application. The proposed way to break free of these restrictions is to make a fresh start with the next generation of HTML based upon a suite of XML tag-sets. The workshop expressed a need for a better match to database and workflow applications, and for the widely disparate capabilities of small/mobile devices. Modularizing HTML will provide the flexibility needed for this. [W3C 1998]
+>
+> David Singer [1998], representing IBM, was more blunt in a workshop presentation: “The Future of
+HTML as we know it should be: Nasty, Brutish, and Short.”
+>
+> As ES3 approached completion, TC39 found itself in a similar situation. With ES3, ECMAScript had caught up with the JavaScript features provided by the Netscape and Microsoft browsers and, at least initially, the browser vendors weren’t providing much guidance regarding what to do next. Unlike Netscape in 1995, TC39 was not constrained to avoid Java-like capabilities. Some TC39 participants saw a need for a second-generation browser scripting language that corrected mistakes made in the original JavaScript design and that offered features [Raggett 1999b; TC39 1999c; Appendix J] catering to the needs and sensibilities of professional software developers rather than non-professiional script writers. This new generation of ECMASript was targeted to be the 4th edition of of ECMA-262. Within TC39, it was initially called “E4” and later “ES4.”
+>
+> [Javascript: The first 20 years](https://dl.acm.org/doi/10.1145/3386327).
+
+In 1999 there were people working towards the next iteration of Java/Ecmascript after ES3. See in particular the work of Valdemar Horwat (then at Netscape) and his paper [JavaScript 2.0: Evolving a Language for Evolving Systems](https://www-archive.mozilla.org/js/language/evolvingJS.pdf) and how it already reflects some of the thoughts and ideas discussed for ES4 and that we’d see in ES6 and subsequent drafts of the specification.
+
+> The first major proposal came from Dave Raggett who was a W3C Fellow sponsored by Hewlett-Packard. At the W3C, Raggett was developing a proposal named “Spice” to improve the integration of HTML, CSS, and JavaScript. An early version of the proposal [Raggett 1998c] was submitted to TC39 in February 1998. In addition to HTML and CSS integration features, Raggett’s initial proposal included a construct for declaring prototype objects which was similar to the Borland class declaration proposal. It added the ability to declaratively associate event handlers with prototype
+objects.
+>
+> [Javascript: The first 20 years](https://dl.acm.org/doi/10.1145/3386327).
+
+See [Javascript: The first 20 years](https://dl.acm.org/doi/10.1145/3386327) for further discussion on Spice, the different proposals and their eventual rejection.
+
+Another proposal for this early stage of work on ECMAScript 4 was Valdemar Horwat's proposal for [Javascript 2.0](https://www-archive.mozilla.org/js/language/js20-1999-02-18/index.html). This proposal was also not compatible with then current ECMAScript implementations. The solution was to provide multiple interpreters
+
+> JavaScript 2.0 was not an attempt to be fully backward compatible with original JavaScript or even with the still-not-completed ECMAScript 3. When introducing JavaScript 2.0 to TC39, Waldemar Horwat said: “At a bare minimum you should be able to write code that works in ECMAScript 1.0 and 2.0 [ES4]. Full backwards [sic] compatibility would be rather painful.” [Raggett 1999c] For example, the syntactic complications of the optional type annotations precluded supporting automatic semicolon insertions on line breaks. Horwat’s solution to backward compatibility was for implementations to provide multiple compilers. He believed that switching compilers according to the language version was preferable to a single language with strict forward compatibility.
+>
+> [Javascript: The first 20 years](https://dl.acm.org/doi/10.1145/3386327).
+
+Even though we came to see [Macromedia/Adobe Flash](https://en.wikipedia.org/wiki/Adobe_Flash) as the evil competitor against the web, we have to remember that when Macromedia first introduced the technology, the web was a far less capable platform than what it is today.
+
+Eearlier versions of Actionscript tracked development of and implemented most of the features in ECMAScript 3. The problems started when applications started hitting performance bottlenecks.
+
+>
+> In 2003, the wide adoption of Flash for Web development was leading to the creation of large and complex ActionScript applications and some of them were encountering performance issues. Like most ECMAScript language designers and implementors at that time, the Macromedia team believed that dynamic typing (particularly of primitive types) was the main performance bottleneck, and were exploring ways to add static typing to the ActionScript runtime. Around this same time, Jeff Dyer, who had been a TC39 delegate since 1998, joined Macromedia. Dyer confirmed that TC39 shared that same perspective about static typing. This widely shared view of static typing in virtual-machine-based languages was strongly influenced by the design of the statically typed Java Virtual Machine (JVM). Jonathan Gay’s and Lee Thornason’s Maelstrom project was a Macromedia experiment to see if a JVM could be integrated into Flash and used as the runtime for a statically typed version of ActionScript. The experiment was successful enough that Macromedia approached Sun about licensing the Java 2 Micro Edition (J2ME) JVM for use in Flash. They wanted to use J2ME because the standard edition Java runtime was too large to embed within a Flash Web download. But Macromedia’s proposed use of Java Micro Edition technologies did not align with Sun’s Java licensing strategy. Edwin Smith, in a skunkworks effort, created a series of proof-of-concept virtual machines. Those VMs helped to convince Macromedia to build their own statically typed JVM-like virtual machine called AVM2 [Adobe 2007], and a new version of ActionScript to run on it. The new language was designed by Gary Grossman, Jeff Dyer, and Edwin Smith, and was heavily influenced by Horwat’s draft ES4<sub>1</sub>/JS2 specifications. However, like JScript.NET, ActionScript 3.0 was a simplification of the ES4<sub>1</sub> design. It was less dynamic than JS2 and, unlike JScript.NET, it was not constrained by the .NET type model. ActionScript 3.0 was also similar to JScript.NET in that it was not heavily constrained by legacy compatibility concerns. Flash would ship with both AVM2 to support ActionScript 3.0 and AVM1 to support ActionScript 1.0 and 2.0. This effort to create a new version of ActionScript and a new virtual machine took over three years to complete. It was announced in 2006 as a component of Flash Player 9, which ultimately shipped in 2007. By the time the effort was completed, Adobe had acquired Macromedia and Flash had become Adobe Flash.
+>
+> [Javascript: The first 20 years](https://dl.acm.org/doi/10.1145/3386327).
+
+Allen Wirfs-Brock from Microsoft and Douglas Crockford (from Yahoo) were not sold on ES4 as proposed and locked the committee into two separate releases for the specification:
+
+* An incremental release (3.1) that improves the existing ECMAScript specification
+* The continued work on the ECMAScript 4 specification
+
+But in June 2008 Adobe anounced their withdrawal of support for ES4, mostly due to their perception that support for ES3.1 would make it impossible to incorporate things like the static type system from Actionscript 3 into the ECMAScript 4 specification.
+
+The majority of the TC39 July 2008 meeting was spent explaining and socializing the concept of harmonization of TC39 around a common set of obtainable goals.
+
+The overall plan was to focus the entire committee on completing the ES3.1 release during 2009 while simultaneously collaborating in planning a more significant follow-on edition, code named “Harmony”. This new release would not be constrained by the previous ten years of ES4 design decisions.
+
+According to this [email from Brendan Eich to es-discuss](https://mail.mozilla.org/pipermail/es-discuss/2008-August/003400.html) the objectives agreed upon at a meeting in Oslo on 2008 included:
+
+1. Focus work on ES3.1 with full collaboration from all parties, and target two interoperable implementations by early next year.
+2. Collaborate on the next step beyond ES3.1, which will include syntactic extensions but which will be more modest than ES4 in both semantic and syntactic innovation
+3. Some ES4 proposals have been deemed unsound for the Web, and are off the table for good: packages, namespaces and early binding. This conclusion is key to Harmony
+4. Other goals and ideas from ES4 are being rephrased to keep consensus in the committee; these include a notion of classes based on existing ES3 concepts combined with proposed ES3.1 extensions
+
+For further reference see the [white paper](http://archives.ecma-international.org/2008/TC39/tc39-2008-074.pdf) outlinining the agreements from the meeting.
+
+During this time the work was first on getting ES3.1 off the ground and then ES5 ready for shipping as the next evolution of the language without all the major baggage of ES4.
+
+Once this work was completed and the ECMAScript 5 specification was out the door, work could begin on ECMAScript Harmony.
+
+There were multiple strawman proposals for what should be included in the specification. In July 2009, Brendan Eich published an updated version of the [Harmony Goals Statement](https://web.archive.org/web/20090818153447/http://wiki.ecmascript.org:80/doku.php?id=harmony:harmony) expanded from the one written for ES3.1.
+
+Harmony is important because all the Harmony strawman proposals that were accepted became part of ES2015, accepted by the ECMA General Assembly in June 2015 and published as the *ECMAScript 2015 Language Specification*.
+
+Even before the publication of ES2015 the comittee had to address the question of how to publish specifications without keeping features from being implemented in browsers until the whole specification was approved as a standard.
+
+Unlike the CSS working group that decided to break features into their own specification or WHATWG that decided to keep HTML as a living standard, TC39 adopted an annual release cycle where new features (those that reach stage 4 of the TC39 process) ready for publication in December are added to the standard and the standard is presented to the general assembly in June of the following year for ratification.
+
+The different stages for an ECMAScript proposals are shown below and further explained in the [TC39 process document](https://tc39.es/process-document/).
+
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1639342823/publishing-project.rivendellweb.net/tc39-process/tc39-process-png?_i=AA' alt='TC39 Process' width='560px'>
+  <figcaption>TC39 process divided into 5 stages</figcaption>
+</figure>
 
 ## One language to rule them all?
 
+It used to be that Javascript was the only way to write code that was guaranteed to run on every browser out there. This was a good thing because it was easy to write and easy to read. It also forced developers to work within the boundaries (good and bad) of the langauge.
+
+But in the early 2000s the web was getting bigger and the need for languages that worked around the limitations of Javascript became necessary to work in these increasingly complex environments. Javasacript went from being the only language to write web applications to becoming the only target compilation languages for creating web applications.
+
+Below is a selection of languages that can output Javascript code. I've listed versions, initial and latest release date along with the language's website for reference.
+
+| Language (source) | Version | Website | Initial Release Date | Last Update |
+|-------------------|---------|----------|------------------|----------|
+| CoffeeScript | 2.6.1  | <https://coffeescript.org/> | 12/13/2009 | 10/04/2021 |
+| Elm | 0.19.1 | <https://elm-lang.org/>| 03/30/2012| 10/21/2019|
+| TypeScript | 4.5.2 | <https://www.typescriptlang.org/> | 10/01/2012 | 11/17/2021 |
+| Nim | 1.6.0 | <https://nim-lang.org/>| 2008 | |
+| Kotlin | 1.6.0 | <https://kotlinlang.org/> | 07/22/2011 | 11/16/2021|
+| Haxe | 4.2.4 | <https://haxe.org/> | 2005 | 10/22/2021 |
+| PureScript | 0.14.5 |<https://www.purescript.org/> | 04/27/2014 | 10/22/2021 |
+| Dart | 2.15 | <https://dart.dev> | 10/10/2011 | |
+| Ceylon | 1.3.3 | <https://ceylon-lang.org/> | 2011 | 08/21/2017 |
+| Opal (Ruby) | 1.3.2 | <https://opalrb.com/> | 7/7/2011 | 11/10/2021 |
+| Fable (F#) | 3.6.3 | <https://fable.io/> | 03/31/2017| 11/30/2021 |
+| GWT (Java) | 2.9.0 | <http://www.gwtproject.org/> | 05/16/2006| 05/02/2020|
+| ClojureScript | 1.10.891 | <https://clojurescript.org/> | 03/07/2015| 12/03/2021 |
+| Reason ML (OCaml)| 3.6.0 | <https://reasonml.github.io/> | 05/16/2016 | 03/05/2020 |
+| Scala.js (Scala) | 1.8.0 | <https://www.scala-js.org/> | 11/29/2013| 12/09/2021 |
+| Amber (Smalltalk) | 0.29.8 | <https://amber-lang.net/> | | 02/23/2021|
+
+Taking Opal as an example, we write code in Ruby that is then compiled to Javascript.
+
+Install the Opal CLI Ruby Gem:
+
+```bash
+gem install opal
+```
+
+Then take the following Ruby code;
+
+```ruby
+require 'ostruct'
+
+greeting = OpenStruct.new(
+  type: :Hello,
+  target: :World,
+  source: :Opal
+)
+
+puts "#{greeting.type} #{greeting.target} from #{greeting.source}!"
+```
+
+and compile it to Javascript:
+
+```bash
+opal -c hello_world.js.rb > hello_world.js
+```
+
+If you run the resulting `hello_world.js` file with Node, you will see the following output:
+
+```bash
+node hello_world.js
+# &rarr; Hello World from Opal!
+```
+
+While it is possible to use other languages to create Javascript code, it is not always the best solution. Toolk like Opal will add a lot of overhead to the code with Opal-specific libraries necessary to duplicate Ruby code. I would assume this is the same for other languages that compile to Javacript.
+
 ## WebAssembly all the things?
 
+While it has been possible to write code that will transpile to Javascript for more than a decade it hasn't been possible to write fast code that will run on current browsers.
+
+A proprietary attempt at creating a sandbox for compiled code was the NaCl / PNaCl client.
+
+> Native Client [NaCl] allows you to harness a client machine’s computational power to a fuller extent than traditional web technologies. It does this by running compiled C and C++ code at near-native speeds, and exposing a CPU’s full capabilities, including SIMD vectors and multiple-core processing with shared memory.
+>
+> While Native Client provides operating system independence, it requires you to generate architecture-specific executables (nexe) for each hardware platform. This is neither portable nor convenient, making it ill-suited for the open web.
+>
+> Source: [NaCl and PNaCl](https://developer.chrome.com/docs/native-client/nacl-and-pnacl/)
+
+The successor to NaCl was the Portable Native Client (PNaCl).
+
+> PNaCl solves the portability problem by splitting the compilation process into two parts:
+>
+> 1. compiling the source code to a bitcode executable (pexe), and
+> 2. translating the bitcode to a host-specific executable as soon as the module loads in the browser but before any code execution.
+> 
+> This portability aligns Native Client with existing open web technologies such as JavaScript. You can distribute a pexe as part of an application (along with HTML, CSS, and JavaScript), and the user’s machine is simply able to run it.
+>
+> Source: [NaCl and PNaCl](https://developer.chrome.com/docs/native-client/nacl-and-pnacl/)
+
+The PNaCl architecture was [deprecated](https://blog.chromium.org/2017/05/goodbye-pnacl-hello-webassembly.html) for operating systems other than CrhomeOS in 2017 in favor of WebAssembly. And as good as it was it locked you to a single group of browsers since Safari and Firefox would not support it.
+
+The first attempt to create a crossplatform way to compile strongly typed languages like C/C++ to Javascript was [Asm.js](https://en.wikipedia.org/wiki/Asm.js).
+
+Asm.js started as a project by Mozilla and first implemented in Firefox in 2013. It is a strict subset of Javascript designed as a compilation target for C/C++ code using tools like Emscripten.
+
+in 2015, the successor to asm.js, WebAssembly was first announced in 2015 with the MVP release happening in 2017.
+
+Unlike asm.js, WebAseembly is not a subset of Javascript but a separate bytecode format that can be targeted from multiple languages (a list of languages can be found at [Awesome WebAssembly Languages](https://github.com/appcypher/awesome-wasm-langs))
+
+Also unlike ASM.js, WebAssembly will also run on runtimes outside the browser using the [WASI](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-intro.md) standard when the final version of the specification is released.
+
+Having the tools to run your favorite language in the browser, it is tempting to build full blown applications in the compiled language that will replace Javascript and all the web tooling, isn't it?
+
+Not quite... at least not according to the people who created WebAssembly. According to the WebAssembly [FAQ](https://webassembly.org/docs/faq/)
+
+>Is WebAssembly trying to replace JavaScript?
+> No! WebAssembly is designed to be a complement to, not replacement of, JavaScript. While WebAssembly will, over time, allow many languages to be compiled to the Web, JavaScript has an incredible amount of momentum and will remain the single, privileged (as described above) dynamic language of the Web. Furthermore, it is expected that JavaScript and WebAssembly will be used together in a number of configurations:
+>
+> * Whole, compiled C++ apps that leverage JavaScript to glue things together.
+> * HTML/CSS/JavaScript UI around a main WebAssembly-controlled center canvas, allowing developers to leverage the power of web frameworks to build accessible,
+> * web-native-feeling experiences.
+Mostly HTML/CSS/JavaScript app with a few high-performance WebAssembly modules (e.g., graphing, simulation, image/sound/video processing, visualization, animation, compression, etc., examples which we can already see in asm.js today) allowing developers to reuse popular WebAssembly libraries just like JavaScript libraries today.
+> * When WebAssembly [gains the ability to access garbage-collected objects](https://github.com/WebAssembly/proposals/issues/16), those objects will be shared with JavaScript, and not live in a walled-off world of their own.
+
+While you can do it, it is not always the best solution. Take, for example, [Squoosh](https://squoosh.app/) an image compression tool running on the web.
+
+Rather than building the full application in C or Rust or any language, they built the core of the application in Javascript and only used WebAssembly to create web versions of the codec libraries they use written in C/C++ and Rust.
+
+That's where I see the heaviest use of WebAssembly: writing bottlenecks in your application whether they are performance or functionality related. We'll be able to integrate your favorite libraries, regardless of the language they are written in into your web applications.
+
+<!--
 # Moving the web forward
 
 ## Getting new toys to play with
@@ -994,7 +1426,7 @@ While it's true that using the houdini versions of custom properties limits us t
 # Web Design as Craft or Web Design as Assembly Line
 
 <div class="video">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZNpn7FBp_9U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  <iframe width="100vw" height="315" src="https://www.youtube.com/embed/ZNpn7FBp_9U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 
 <div class="video">
@@ -1033,5 +1465,4 @@ Ever since we've had a commercial web the talk has been "the web is not print" o
 
 # Accessibility is a real concern
 
-[a11myths](https://a11ymyths.com/)
-
+[a11myths](https://a11ymyths.com/) -->

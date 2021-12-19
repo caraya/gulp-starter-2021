@@ -1,0 +1,43 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Finally learning how to uses gulp-newer</h1>
+<p>One of the nice things about Gulp workflows if that you cam minimize the amount of work that you have to do if you use the tools correctly.</p>
+<p>I just discovered to day that I wasn’t using <a href="https://www.npmjs.com/package/gulp-newer">gulp-newer</a> properly. It’s almost an RTFM moment so I’m documenting it to prevent it from happening to me again :(</p>
+<p>The idea behind gulp-newer is to reduce the number of files that we work on in a Gulp task by only passing around the files that are newer than the same file on the destination directory. For this to work you have to tell Newer what are you comparing with and yes, you guessed it, I never did.</p>
+<p>The working example below taken from <a href="https://github.com/tschaub/gulp-newer#readme.md">gulp-newer</a>'s Readme shows how the plugin works.</p>
+<pre><code class="language-js">const gulp = require('gulp');
+const newer = require('gulp-newer');
+const imagemin = require('gulp-imagemin');
+
+const imgSrc = 'src/img/**';
+const imgDest = 'build/img';
+
+// Minify any new images
+gulp.task('images', function() {
+
+  // Add the newer pipe to pass through newer images only
+  return gulp.src(imgSrc)
+      .pipe(newer(imgDest))
+      .pipe(imagemin())
+      .pipe(gulp.dest(imgDest));
+
+});
+</code></pre>
+<p>The plugin will take all images in the src directory and compare them with the same images in the destination directory.  If any of the sources images are newer, they will be processed with Imagemin but if they are not, they will be skiped.</p>
+<p>The key is the parameter to newer that tells it where to look for the files to compare with. Without it it can’t do it work.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

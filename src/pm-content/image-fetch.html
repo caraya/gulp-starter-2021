@@ -1,0 +1,52 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Quick Note: fetching and displaying images</h1>
+<p>In the old days you could get away with fetching an image, assigning the file to the <code>src</code> attribute of your image and then proudly display your Javascript chops to the rest of the world.</p>
+<p>The times are changing, young padawan.</p>
+<p>Now you have to do several things.</p>
+<ol>
+<li>Fetch the image (using the fetch API)</li>
+<li>If the reponse was successful convert it to a BLOB using the method on the response object. If the response was not ok throw an error and pass to the catch block</li>
+<li>Create a URL from the block using <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL">createObjectUrl</a></li>
+<li>Create an image element</li>
+<li>Attach the URL to the image’s <code>src</code> attribute</li>
+<li>Append the image to the body</li>
+</ol>
+<pre><code class="language-javascript">fetch(
+  'https://i0.wp.com/rivendellweb.net/blog/wp-content/uploads/2017/12/afs.png?w=730&amp;ssl=1'
+) // 1
+  .then(response =&gt; {
+    if (response.ok) {
+      // 2
+      return response.blob();
+    } else {
+      throw new Error('Network response was not ok.');
+    }
+  })
+  .then(myBlob =&gt; {
+    let objectURL = URL.createObjectURL(myBlob); // 3
+    let myImage = document.createElement('img'); // 4
+    myImage.src = objectURL; // 5
+    document.body.appendChild(myImage); // 6
+  })
+  .catch(error =&gt; {
+    console.log('There has been a problem: ', error.message);
+  });
+</code></pre>
+<p>This is good for single images but may not lend itself to multiple images. In this case we might use the URL/path to the image in the JSON we fetch from an API. Working on a Codepen to validate this assertion.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

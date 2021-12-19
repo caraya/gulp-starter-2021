@@ -1,0 +1,276 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>HTTP/2 Server Push, Link Preload And Resource Hints</h1>
+<p>We’ve become performance obsessed, it’s important and the obsession shows. Firtunately we’re also given the tools to acommodate the need for speed.  We’ll look at three ways of helping our servers give us the resources we need before we actually need them.</p>
+<p>We’re not covering service workers in this post. Even thoough they are very much a performance feature they are client-side and we want to discuss server side performance improvements or improvements t hat are used directly from the HTML code, not Javascript.</p>
+<h2>What is Server Push</h2>
+<p>Accessing websites has always followed a request and response pattern. The user sends a request to a remote server, and with some delay, the server responds with the requested content.</p>
+<p>The initial request to a web server is usually for an HTML document. The server returns the requested HTML resource. The browser parses the HTML and discoversreferences to other assets (style sheets, scripts, fonts and images). The browser requests these new assets which runs the process again (a stylesheet may have links to fonts or to images being used as background).</p>
+<p>The problem with this mechanism is that users must wait for the browser to discover and retrieve critical assets until after an HTML document has been downloaded. This delays rendering and increases load times.</p>
+<h2>What problem does server push solve?</h2>
+<p>With server push we now have a way to preemptively “push” assets to the browser before the browser explicitly request them. If we do this carefully then we can increase perceived performance by sending things we know users are going to need.</p>
+<p>Let’s say that our site uses the same fonts throughout and it uses one common stylesheet named <code>main.css</code>.  When the user requests our site’s main page, <code>index.html</code> we can push these files we know we’ll need  right after we send the reponse for <code>index.html</code>.</p>
+<p>This push will increase perceived speed because it enables the browser to rende the page faster than waiting for the server to respond with the HTML file and then parsing it to discover additional resources that it must request and parse.</p>
+<p>Server push also acts as a suitable alternative for a number of HTTP/1-specific optimizations, such as inlining CSS and JavaScript directly into HTML, as well as using the data URI scheme to embed binary data into CSS and HTML.</p>
+<p>If you inline CSS into an HTML document within <code>&lt;style&gt;</code> tags, the browser can begin applying styles immediately to the HTML without waiting to fetch them from an external source. This concept holds true with inlining scripts and inlining binary data with the data URI scheme.</p>
+<p>However the big pitfall of these techniques is that they can’t be cached outside of the page they are embedded in and, if the same code is used in more than one page, we end up with duplicated code in our pages.</p>
+<p>Say, for example, that we want to push a CSS style sheet and a Javascript file for all requests that are HTML pages. In an Apache HTTP Server (version 2.4.17 and later) you can configure the server to push with something like this:</p>
+<pre><code class="language-apacheconf">&lt;If &quot;%{DOCUMENT_URI} =~ /\.html$/&quot;&gt;
+  H2PushResource add css/site.css
+  H2PushResource add js/site.js
+&lt;/If&gt;
+</code></pre>
+<p>We can then configure push resources that are specific to each section of our site, for example:</p>
+<pre><code class="language-apacheconf">&lt;If &quot;%{DOCUMENT_URI} == '/portfolio/index.html'&quot;&gt;
+  H2PushResource add /css/dist/critical-portfolio.css?01042017
+&lt;/If&gt;
+
+&lt;If &quot;%{DOCUMENT_URI} == '/code/index.html'&quot;&gt;
+  H2PushResource add /css/dist/critical-code.css?01042017
+&lt;/If&gt;
+</code></pre>
+<p>Yes, this means we have to play with server configurations, either the default configuration, a virtual host or on a directory basis using <code>.htaccess</code>. I still consider this an effort worth making.</p>
+<p>It’s not all positive. Some things to be aware of:</p>
+<p><strong>YOU CAN PUSH TOO MUCH STUFF</strong></p>
+<p>Just like when building an application shell with a service worker, we need to be extemely careful about the size of the assets we choose to push. Too many files or files that are too large will defeat the purpose of pushing assets to improve performance as they’ll delay rendering.</p>
+<p><strong>YOU CAN PUSH SOMETHING THAT’S NOT ON THE PAGE</strong></p>
+<p>This is not necessarily a bad thing if you have visitor analytics to back up this strategy or you know that the asset will be used elsewhere on your site. When in doubt don’t push. Remember that you may be costing people real money whe pushing unnecessary resources to people who are on restricted mobile data plans.</p>
+<p><strong>CONFIGURE YOUR HTTP/2 SERVER PROPERLY</strong></p>
+<p>Some servers give you a lot of server push-related configuration options. Apache’s mod_http2 has some options for configuring how assets are pushed. Check your server’s configuration for details about what options can be configured and how to do it.</p>
+<p><strong>PUSHES MAY NOT BE CACHED</strong></p>
+<p>There has been some questions on whether server push could cause assets to be unnecessarily pushed to users when they return to our site. One way to control this is to only push assets when a cookie indicating the assets were pushed is not present.</p>
+<p>An example of this technique is in Jeremy Wagner’s article <a href="https://css-tricks.com/cache-aware-server-push/">Creating a Cache-aware HTTP/2 Server Push Mechanism</a> at <a href="https://css-tricks.com/">CSS Tricks</a>. It provides an example of a way to create cookies to check against when pushing files from the server.</p>
+<h2>Link Preload</h2>
+<p>The <a href="https://w3c.github.io/preload/">Preload Specification</a> aims at improving performance and providing more granular loading control to web developers. We can customize loading behavior in a way that doesn’t incur the penalites of loader scripts.</p>
+<p>With preload the browser can do things that are just no possible with H2 Push:</p>
+<ul>
+<li>The browser can set a resource’s priority, so that it will not delay more important resources, or lag behind less important resources</li>
+<li>The browser can enforce the right <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP">Content-Security-Policy</a> directives, and not go out to the server if it shouldn’t</li>
+<li>The browser can send the appropriate <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept">Accept headers</a> based on the resource type</li>
+<li>The browser knows the resource type so it can determine if the resource could be reused</li>
+</ul>
+<p>Preload has a functional onload event that we can leverage for additional functionality. It will not block the <code>window.onload</code> event unless the resource is blocked by a resource that blocks the event elsewhere in your content.</p>
+<h3>Loading late-loading resources</h3>
+<p>The basic way you could use preload is to load late-discovered resources early.  Not all resources that make a web page are visible in the initial markup. For example, an image or font can be hidden inside a style sheet or a script. The browser can’t know about these resources until it parses the containing style sheet or script and that may end up delaying rendering or loading entire sections of your page.</p>
+<p>Preload is basically telling the browser “hey, you’re going to need this later so please start loading it now”.</p>
+<p>Preload works as a new <code>rel</code> attribute of the <code>link</code> element. It has three attributes:</p>
+<ul>
+<li><strong>rel</strong> indicates the type of link, for preload links we use the <code>preload</code> value</li>
+<li><strong>href</strong> is the relative URL for the asset we’re preloading.</li>
+<li><strong>as</strong> indicates the kind of resource we’re preloading. It can be one of the following:
+<ul>
+<li>“script”</li>
+<li>“style”</li>
+<li>“image”</li>
+<li>“media”</li>
+<li>“document”</li>
+</ul>
+</li>
+</ul>
+<p>Knowing what the attributes we can look at how to use it responsibly.</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot; href=&quot;late_discovered_thing.js&quot; as=&quot;script&quot;&gt;
+</code></pre>
+<h3>Early loading fonts and the crossorigin attribute</h3>
+<p>Loadinng fonts is just the same as preloading other types of resources with some additional constraints</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot;
+      href=&quot;font.woff2&quot;
+      as=&quot;font&quot;
+      type=&quot;font/woff2&quot;
+      crossorigin&gt;
+</code></pre>
+<p>You must add a crossorigin attribute when fetching fonts, since they are fetched using anonymous mode CORS. Yes, even if your fonts are on the same origin as the page.</p>
+<p>The type attribute is there to make sure that this resource will only get preloaded on browsers that support that file type. Only Chrome supports preload and it also supports WOFF2, but not all browsers that will support preload in the future may support the specific font type. The same is true for any resource type you’re preloading and which browser support isn’t ubiquitous.</p>
+<h3>Markup-based async loader</h3>
+<p>Another thing you can do  is to use the onload handler in order to create some sort of a markup-based async loader. Scott Jehl was the first to experiment with that, as part of his loadCSS library. In short, you can do something like:</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot;
+      as=&quot;style&quot;
+      href=&quot;async_style.css&quot;
+      onload=&quot;this.rel='stylesheet'&quot;&gt;
+</code></pre>
+<p>The same can also work for async scripts.</p>
+<p>We already have <code>&lt;script async&gt;</code> you say? Well, <code>&lt;script async&gt;</code> is great, but it blocks the window’s onload event. In some cases, that’s exactly what you want it to do, but in other cases it might not be.</p>
+<h3>Responsive Loading Links</h3>
+<p>Preload links have a media attribute that we can use to conditionally load resources based on a media query condition.</p>
+<p>What’s the use case? Let’s say your site’s large viewport uses an  interactive map, but you only show a static map for the smaller viewports.</p>
+<p>You want to load only one of those resources. The only way to do that would be to load them dynamically using Javascript. If you use a script to do this you hide those resources from the preloader, and they may be loaded later than necessary, which can impact your users’ visual experience, and negatively impact your SpeedIndex score.</p>
+<p>Fortunately you can use preload to load them ahead of time, and use its <code>media</code> attribute so that only the required script will be preloaded:</p>
+<pre><code class="language-html">&lt;link rel=&quot;preload&quot;
+      as=&quot;image&quot;
+      href=&quot;map.png&quot;
+      media=&quot;(max-width: 600px)&quot;&gt;
+
+&lt;link rel=&quot;preload&quot;
+      as=&quot;script&quot;
+      href=&quot;map.js&quot;
+      media=&quot;(min-width: 601px)&quot;&gt;
+</code></pre>
+<h2>Resource Hints</h2>
+<p>In addition to preload and server push we can also ask the browser to help by providing hints and instructions on how to interact with resources.</p>
+<p>For this section we’ll discuss</p>
+<ul>
+<li>DNS Prefetching</li>
+<li>Preconnect</li>
+<li>Prefetch</li>
+<li>Prerender</li>
+</ul>
+<h3>DNS prefetch</h3>
+<p>This hint tells the browser that we’ll need assets from a domain so it should resolve the DNS for that domain as quickly as possible. If we know we’ll need assets from <code>example.com</code> we can write the following in the head of the document:</p>
+<pre><code class="language-html">&lt;link rel=&quot;dns-prefetch&quot; href=&quot;//example.com&quot;&gt;
+</code></pre>
+<p>Then, when we request a file from it, we’ll no longer have to wait for the DNS lookup. This is particularly useful if we’re using code from third parties or resources from social networks where we might be loading a widget from a <code>&lt;script&gt;</code>.</p>
+<h3>Preconnect</h3>
+<p>Preconnect is a more complete version of DNS prefetch. IN addition to resolving the DNS it will also do the TCP handshake and, if necessary, the TLS negotiation. It looks like this:</p>
+<pre><code class="language-html">&lt;link rel=&quot;preconnect&quot; href=&quot;//example.net&quot;&gt;
+</code></pre>
+<p>For more information, <a href="https://www.igvita.com/2015/08/17/eliminating-roundtrips-with-preconnect/">Ilya Grigorik wrote a great post</a> about this handy resource hint:</p>
+<h3>Prefetching</h3>
+<p>This is an older version of preload and it works the same way. If you know you’ll be using a given resource you can request it ahead of time using the prefetch hint. For example an image or a script, or anything that’s cacheable by the browser:</p>
+<pre><code class="language-html">&lt;link rel=&quot;prefetch&quot; href=&quot;image.png&quot;&gt;
+</code></pre>
+<p>Unlike DNS prefetching, we’re actually requesting and downloading that asset and storing it in the cache. However, this is dependent on a number of conditions, as prefetching can be ignored by the browser. For example, a client might abandon the request of a large font file on a slow network. Firefox will only prefetch resources when <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Link_prefetching_FAQ">“the browser is idle”</a>.</p>
+<p>Since we know have the preload API I would recommend using that API (discussed earlier) instead.</p>
+<h3>Prerender</h3>
+<p>Prerender is the nuclear option, since it will load all of the assets for a given document like so:</p>
+<pre><code class="language-html">&lt;link rel=&quot;prerender&quot; href=&quot;http://css-tricks.com&quot;&gt;
+</code></pre>
+<p>Steve Souders wrote a great explanation about this technique:</p>
+<blockquote>
+<p>This is like opening the URL in a hidden tab – all the resources are downloaded, the DOM is created, the page is laid out, the CSS is applied, the JavaScript is executed, etc. If the user navigates to the specified href, then the hidden page is swapped into view making it appear to load instantly. Google Search has had this feature for years under the name Instant Pages. Microsoft recently announced they’re going to similarly use prerender in Bing on IE11.</p>
+</blockquote>
+<p>But beware! You should probably be certain that the user will click that link, otherwise the client will download all of the assets necessary to render the page for no reason at all. It is hard to guess what will be loaded but we can make some fairly educated guesses as to what comes next:</p>
+<ul>
+<li>If the user has done a search with an obvious result, that result page is likely to be loaded next.</li>
+<li>If the user navigated to a login page, the logged-in page is probably coming next.</li>
+<li>If the user is reading a multi-page article or paginated set of results, the page after the current page is likely to be next.</li>
+</ul>
+<h2>Combining h2 push and client side technologies</h2>
+<div class="message warning">
+  <p>Please make sure you test the code in the sections below in your own setup. This may improve your site's performance or it may degrade beyond acceptable levels.</p>
+  <p>You've been warned</p>
+</div>
+<p>We can combine server and client side teechnologies to further increase performance. Some of the things we can do include:</p>
+<h3>Gzip the content you serve</h3>
+<p>One way we can further reduce the size of our payloads is compressing them while in transit. This way we make our files smaller in transite and they are expanded by the browser when they receive them.</p>
+<p>How we compress data depends on the server we’re using. The first example works with Apache <a href="http://httpd.apache.org/docs/current/mod/mod_deflate.html">mod_deflate</a> and the configuration goes in the global Apache server configuration, inside a  virtual host directive or an <code>.htaccess file</code>.</p>
+<p>We’re not compressing images as I’m not 100% certain that they’ll survive the trip as other resources will and I already compress them before uploading them to the server.</p>
+<p>We also skip files that already have a <code>Content-Encoding</code> header. We don’t need to compress them if they are already compressed :)</p>
+<pre><code class="language-apacheconf">&lt;ifModule mod_gzip.c&gt;
+  mod_gzip_on Yes
+  mod_gzip_dechunk Yes
+  mod_gzip_item_include file .(html?|txt|css|js|php|pl)$
+  mod_gzip_item_include handler ^cgi-script$
+  mod_gzip_item_include mime ^text/.*
+  mod_gzip_item_include mime ^application/x-javascript.*
+  mod_gzip_item_exclude mime ^image/.*
+  mod_gzip_item_exclude rspheader ^Content-Encoding:.*gzip.*
+&lt;/ifModule&gt;
+</code></pre>
+<p>Using <a href="http://nginx.org/en/docs/http/ngx_http_gzip_module.html">Nginx HTTP GZip Module</a> the code looks like this.</p>
+<p>Nginx compression will not work with versions of IE before 6. But, honestly, if you’re still serving browsers that old you have more serious issues)</p>
+<p>We also add a <code>vary</code> header to stop proxy servers from sending gzippedd files to IE6 and older.</p>
+<pre><code class="language-nginx">gzip on;
+gzip_comp_level 2;
+gzip_http_version 1.1;
+gzip_proxied any;
+gzip_min_length 1100;
+gzip_buffers 16 8k;
+gzip_types text/plain text/html text/css
+  application/x-javascript text/xml application/xml
+  application/xml+rss text/javascript;
+
+# Disable for IE &lt; 6 because there are some known problems
+gzip_disable &quot;MSIE [1-6].(?!.*SV1)&quot;;
+
+# Add a vary header for downstream proxies
+# to avoid sending cached gzipped files to IE6
+gzip_vary on;
+</code></pre>
+<h3>Preload resources and cache them with a service worker cache</h3>
+<div class="message info">
+  <p>The code below is written in PHP. I'm working on coverting it to Javascript/Node. If you have such an example, please share it :-)</p>
+</div>
+<p>There has been some questions on whether server push could cause assets to be unnecessarily pushed to users when they return to our site. One way to control this is to only push assets when a cookie indicating the assets were pushed is not present; we then store those assets in the service worker.</p>
+<p>An example of this technique is in Jeremy Wagner’s article <a href="https://css-tricks.com/cache-aware-server-push/">Creating a Cache-aware HTTP/2 Server Push Mechanism</a> at <a href="https://css-tricks.com/">CSS Tricks</a>. It provides an example of a way to create cookies to check against when pushing files from the server.</p>
+<pre><code class="language-php">function pushAssets() {
+  $pushes = array(
+    &quot;/css/styles.css&quot; =&gt; substr(md5_file(&quot;/var/www/css/styles.css&quot;), 0, 8),
+    &quot;/js/scripts.js&quot; =&gt; substr(md5_file(&quot;/var/www/js/scripts.js&quot;), 0, 8)
+  );
+
+  if (!isset($_COOKIE[&quot;h2pushes&quot;])) {
+    $pushString = buildPushString($pushes);
+    header($pushString);
+    setcookie(&quot;h2pushes&quot;, json_encode($pushes), 0, 2592000, &quot;&quot;, &quot;.myradwebsite.com&quot;, true);
+  } else {
+    $serializedPushes = json_encode($pushes);
+
+    if ($serializedPushes !== $_COOKIE[&quot;h2pushes&quot;]) {
+        $oldPushes = json_decode($_COOKIE[&quot;h2pushes&quot;], true);
+        $diff = array_diff_assoc($pushes, $oldPushes);
+        $pushString = buildPushString($diff);
+        header($pushString);
+        setcookie(&quot;h2pushes&quot;, json_encode($pushes), 0, 2592000, &quot;&quot;, &quot;.myradwebsite.com&quot;, true);
+    }
+  }
+}
+
+function buildPushString($pushes) {
+  $pushString = &quot;Link: &quot;;
+
+  foreach($pushes as $asset =&gt; $version) {
+    $pushString .= &quot;&lt;&quot; . $asset . &quot;&gt;; rel=preload&quot;;
+
+    if ($asset !== end($pushes)) {
+      $pushString .= &quot;,&quot;;
+    }
+  }
+  return $pushString;
+}
+// Push those assets!
+pushAssets();
+</code></pre>
+<p>This function (taken from Jeremy’s article) checks to see if there is a <code>h2pushes</code> cookie stored in the user’s browser. If there isn’t one then it uses the <code>buildPushString</code> helper function to generates preload links for the resources specified in the <code>$pushes</code> array and send them over as headers for the page and adds the <code>h2pushes</code> cookie to the browser with a representation of the paths that were preloaded.</p>
+<p>If the user has been here before we need to decide if there’s anything to preload. Because we want to re-push assets if they change, we need to fingerprint them for comparison later on. For example, if you’re serving a styles.css file, but you change it, you’ll use a cache busting strategy like adding a random string to the file name at build time  at bor <a href="http://twosixcode.com/notes/view/simple-cache-busting-for-css-and-js">appending a value to the query string</a> to ensure that the browser won’t serve a stale version of the resource.</p>
+<p>The function will decode the values stored on the cookie and compare the values with what you want to preload. If they are the same then it does nothing and moves forward, if the values are different then the function will take the new values, create preload links and update the cookie with the new values.</p>
+<p>If you preload too many files this function may have detrimental effects on performance. As we discussed earlier you need to be mindful of what you preload and how large are the files you preload. But with this method at least we can be confident we’re not pushing duplicate assets to the page</p>
+<h2>Links and resources</h2>
+<ul>
+<li>Server Push
+<ul>
+<li><a href="https://www.smashingmagazine.com/2017/04/guide-http2-server-push/">https://www.smashingmagazine.com/2017/04/guide-http2-server-push/</a></li>
+<li><a href="https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/">https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/</a></li>
+<li><a href="https://blogs.akamai.com/2017/03/http2-server-push-the-what-how-and-why.html">https://blogs.akamai.com/2017/03/http2-server-push-the-what-how-and-why.html</a></li>
+<li><a href="https://webapplog.com/http2-server-push-node-express/">https://webapplog.com/http2-server-push-node-express/</a></li>
+<li><a href="https://24ways.org/2016/http2-server-push-and-service-workers/">https://24ways.org/2016/http2-server-push-and-service-workers/</a></li>
+</ul>
+</li>
+<li>Link Preload
+<ul>
+<li><a href="https://developers.google.com/web/updates/2016/03/link-rel-preload">https://developers.google.com/web/updates/2016/03/link-rel-preload</a></li>
+<li><a href="https://www.smashingmagazine.com/2016/02/preload-what-is-it-good-for">https://www.smashingmagazine.com/2016/02/preload-what-is-it-good-for</a></li>
+</ul>
+</li>
+<li>Resource Hints
+<ul>
+<li><a href="https://w3c.github.io/resource-hints/">https://w3c.github.io/resource-hints/</a></li>
+<li><a href="https://www.keycdn.com/blog/resource-hints/">https://www.keycdn.com/blog/resource-hints/</a></li>
+<li><a href="https://www.keycdn.com/blog/resource-hints/">https://css-tricks.com/prefetching-preloading-prebrowsing/</a></li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

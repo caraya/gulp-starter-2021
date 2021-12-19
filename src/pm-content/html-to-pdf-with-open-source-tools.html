@@ -1,0 +1,567 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Revisting HTML To PDF with CSS Paged Media</h1>
+<p>I’ve looked at CSS Paged Media in the past. IMO it’s an awesome technology that allows you to create stunning end products from your HTML, CSS and, optionally Javascript.</p>
+<p>The layouts for the printed material can be very simple, or they can be as complex as the book <a href="https://www.oreilly.com/library/view/css-secrets/9781449372736/">CSS Secrets</a> by <a href="https://twitter.com/LeaVerou/">Lea Verou</a>.</p>
+<p>I’ve worked with a two different CSS Paged Media processors: <a href="https://www.princexml.com/">PrinceXML</a> and <a href="https://www.antennahouse.com/">Antenna House</a>. They are both good products but they require a license purchase before you can use their full capabilities.</p>
+<p>The new products I want to review are:</p>
+<ul>
+<li><a href="https://www.pdfreactor.com/">PDFreactor</a></li>
+<li><a href="https://weasyprint.org/">Weasyprint</a></li>
+<li><a href="https://typeset.sh/en">typeset.sh</a></li>
+</ul>
+<p>When I discuss individual products I will look at the following:</p>
+<ul>
+<li>Can they create a PDF from the combination of HTML and CSS Paged Media?</li>
+<li>Do they support Javascript?</li>
+<li>Do they support equivalent features to PrinceXML for what the stylesheet already does?</li>
+<li>What license do they use and what limits does it impose on production use?</li>
+</ul>
+<h2>The CSS</h2>
+<p>Before we start looking at individual tools, I want to show what the CSS Paged Media stylesheet is.</p>
+<p>We should start by poiniting out that this only deals with the structured of the printed pages. It doesn’t deal with styles, fonts and other layout elements.</p>
+<p>Use the following links for quick references to Paged Media CSS and Generated Content for CSS:</p>
+<ul>
+<li><a href="https://www.w3.org/TR/css-page-3/">CSS Paged Media Module Level 3</a></li>
+<li><a href="https://www.w3.org/TR/css-content-3/">CSS Generated Content Module Level 3</a></li>
+</ul>
+<p>Now, let’s dive into the code.</p>
+<p>In order to understand the CSS that comes next we need to understand a few terms:</p>
+<ul>
+<li><a href="https://www.w3.org/TR/css-page-3/#page-selectors">Page Selectors</a>, particularly <a href="https://www.w3.org/TR/css-page-3/#spread-pseudos">Spread pseudo-classes</a> to better understand the different values of page that we use</li>
+<li><a href="https://www.w3.org/TR/css-page-3/#margin-boxes">Page-Margin Boxes</a> to understand the boxes you have available to work with and what layout possibilities they open for you.</li>
+</ul>
+<p>The table below, shows the different page boxes available per the Paged Media Specification.</p>
+<table style="margin-left:0px;border-collapse:collapse;border-width:1px;border-style:solid">
+<colgroup>
+<col style="width:108px;border-width:1px;border-style:solid">
+<col style="width:108px;border-width:1px;border-style:solid">
+<col style="width:108px;border-width:1px;border-style:solid">
+<col style="width:108px;border-width:1px;border-style:solid">
+<col style="width:108px;border-width:1px;border-style:solid">
+</colgroup>
+<tbody>
+<tr style="height:75px;border-width:1px;border-style:solid;text-align:center">
+<td>top-left-corner</td>
+<td>top-left</td>
+<td>top-center</td>
+<td>top-right</td>
+<td>top-right-corner</td>
+</tr>
+<tr style="height:75px;border-width:1px;border-style:solid;text-align:center">
+<td>left-top</td>
+<td colspan="3" rowspan="3">main page area</td>
+<td>right-top</td>
+</tr>
+<tr style="height:75px;border-width:1px;border-style:solid;text-align:center">
+<td>left-middle</td>
+<td>right-middle</td>
+</tr>
+<tr style="height:75px;border-width:1px;border-style:solid;text-align:center">
+<td>left-bottom</td>
+<td>right-bottom</td>
+</tr>
+<tr style="height:75px;border-width:1px;border-style:solid;text-align:center">
+<td>bottom-left-corner</td>
+<td>bottom-left</td>
+<td>bottom-center</td>
+<td>bottom-right</td>
+<td>bottom-right-corner</td>
+</tr>
+</tbody>
+</table>
+<p>The first thing we do is set up our default page type using the <a href="https://www.w3.org/TR/css-page-3/#at-page-rule">@page</a> rule.</p>
+<p>Since the @page declaration doesn’t have a name attached to it, it will apply to all pages in the document.</p>
+<p>We’ve added the dimensions of the page, margins, using the single value syntax (all margins will be the same size) and information about the footnotes placement on the page.</p>
+<pre><code class="language-css">@page {
+  size: 8.5in 11in;
+  margin: 1in;
+  /* Footnote related attributes */
+  @footnote {
+    counter-increment: footnote;
+    float: bottom;
+    column-span: all;
+    height: auto;
+    }
+  }
+}
+</code></pre>
+<p>Because we don’t know if the book will be printed as duplex or single sided, we need to make sure that the margins closes to the binding are slightly larger, otherwise we might not be able to read the content. However, if you’re just printing the document in a single sided format you can remove these rules and let all margins be the same on all pages.</p>
+<pre><code class="language-css">@page :right {
+  margin-left: 1.5in;
+}
+
+@page :left {
+  margin-right: 1.5in;
+}
+</code></pre>
+<p>We then define the page to be used for chapters. The page rule contains a positioned block of content, in this case the chapter heading or title.</p>
+<p>The first block defines items that are common to all chapter pages:</p>
+<pre><code class="language-css">@page chapter {
+  @bottom-center {
+    vertical-align: middle;
+    text-align: center;
+    content: element(heading);
+  }
+}
+</code></pre>
+<p>We then define items specific to left and right pages. We want to alternate page numbers on right and left pages.</p>
+<pre><code class="language-css">/* Right Side*/
+@page chapter:right  {
+  @bottom-right-corner {
+    content: counter(page)
+  }
+  @bottom-left-corner {
+    content: normal
+  }
+}
+
+/* Left Side */
+@page chapter:left {
+  @bottom-left-corner {
+    content: counter(page)
+  }
+  @bottom-right-corner {
+    content: normal
+  }
+}
+</code></pre>
+<p>We don’t want page numbering on the title page so we make sure we reset both left and right bottom corners to be empty. Not putting the page number on a page doesn’t change the page count, the page counter will increase for each page regardless.</p>
+<pre><code class="language-css">@page titlepage { 
+  @bottom-right-corner { content: normal }
+  @bottom-left-corner { content: normal }
+}
+</code></pre>
+<p>Most of the other types of pages (appendix, glossary, bibliography and index) use the same page defiition style as the chapter pages. We assign the page number to the corresponding bottom corner.</p>
+<p>We could do it in the generic <code>page:right</code> and <code>page:left</code> declarations but that makes it easy to forget that we can customize each page type independently.</p>
+<p>Some page types (toc, foreword, and preface) further customize the page numbering by using lowercase Roman numberals</p>
+<pre><code class="language-css">@page appendix:right  {
+  @bottom-right-corner {
+    content: counter(page)
+    }
+  @bottom-left-corner {
+    content: normal
+  }
+}
+
+@page appendix:left {
+  @bottom-left-corner {
+    content: counter(page)
+  }
+  @bottom-right-corner {
+    content: normal
+  }
+}
+
+@page glossary:right,  {
+  @bottom-right-corner {
+    content: counter(page)
+    }
+  @bottom-left-corner {
+    content: normal
+  }
+}
+
+@page glossary:left, {
+  @bottom-left-corner {
+    content: counter(page)
+  }
+  @bottom-right-corner {
+    content: normal
+  }
+}
+
+@page bibliography:right  {
+  @bottom-right-corner {
+    content: counter(page)
+    }
+  @bottom-left-corner {
+    content: normal
+  }
+}
+
+@page bibliography:left {
+  @bottom-left-corner {
+    content: counter(page)
+  }
+  @bottom-right-corner {
+    content: normal
+  }
+}
+
+@page index:right  {
+  @bottom-right-corner {
+    content: counter(page)
+  }
+  @bottom-left-corner {
+    content: normal
+  }
+}
+
+@page index:left {
+  @bottom-left-corner {
+    content: counter(page)
+  }
+  @bottom-right-corner {
+    content: normal
+  }
+}
+
+@page toc:right {
+  @bottom-right-corner {
+    content: counter(page, lower-roman)
+  }
+  @bottom-left-corner {
+    content: normal 
+  }
+}
+
+@page toc:left  {
+  @bottom-left-corner {
+    content: counter(page, lower-roman)
+  }
+  @bottom-right-corner {
+    content: normal 
+  }
+}
+
+@page foreword:right {
+  @bottom-right-corner {
+    content: counter(page, lower-roman)
+  }
+  @bottom-left-corner {
+    content: normal 
+  }
+}
+
+@page foreword:left  {
+  @bottom-left-corner {
+    content: counter(page, lower-roman)
+  }
+  @bottom-right-corner {
+    content: normal 
+  }
+}
+
+@page preface:right {
+  @bottom-right-corner {
+    content: counter(page, lower-roman)
+  }
+  @bottom-left-corner {
+    content: normal 
+  }
+}
+
+@page preface:left  {
+  @bottom-left-corner {
+    content: counter(page, lower-roman)
+  }
+  @bottom-right-corner {
+    content: normal 
+  }
+}
+</code></pre>
+<p>To define the structure of the book in markup we use the <code>data-type</code> attributes. The root of the book example is in the <code>body</code> element.</p>
+<p>The body element defines the default color for the document in both CMYK (for print) and HSL for online viewing and as a fallback in case the processor doesn’t support CMYK.</p>
+<p>It also defines the hyphenation default behavior. We set it up to hyphenate by default (the <code>auto</code> value)</p>
+<pre><code class="language-css">body[data-type=&quot;book&quot;] {
+  color: cmyk(0%,0%,0%,100%);
+  color: hsl(0,0%,0%);
+  hyphens: auto;
+}
+</code></pre>
+<p>Next we look at counters. To me, this is the trickiest part of creating paged media with CSS.</p>
+<p>We look at the title page next. This will follow a similar pattern to other parts of the book in that we first tell it what <code>@page</code> we want to use and then, if needed, add any custom settings. For the title page the custom settings are:</p>
+<ul>
+<li>The <code>h1</code> element with the <code>bookTitle</code> class 200% larger</li>
+<li>Center everything</li>
+<li>The <code>h2</code> element or elements with the class <code>author</code> 150% of the default size and italicized.</li>
+</ul>
+<pre><code class="language-css">/* Title Page*/
+section[data-type=&quot;titlepage&quot;] {
+  page: titlepage
+}
+
+section[data-type=&quot;titlepage&quot;] * {
+   text-align: center
+}
+h1.bookTitle {
+  font-size: 200%;
+}
+
+h2.author {
+  font-size: 150%;
+  font-style: italic;
+}
+</code></pre>
+<p>The copyright section just asigns the <code>copyright</code> page to the section elements with the <code>data-type=&quot;copyright&quot;</code> attribute. We could also use an <code>id</code> attribute since we only expect to have one copyright page per publication but I like consistency and this will make the markup less error prone.</p>
+<pre><code class="language-css">section[data-type=&quot;copyright&quot;] {
+  page: copyright
+}
+</code></pre>
+<p>The dedication section customizes the text inside by centering it and italicizing it.</p>
+<pre><code class="language-css">section[data-type=&quot;dedication&quot;] {
+  page: dedication
+}
+section[data-type=&quot;dedication&quot;] * {
+  font-style: italic;
+  text-align: center
+}
+</code></pre>
+<p>The table of contents is associate with the <code>toc</code> page.</p>
+<p>We make the TOC from a <code>section</code> element with a <code>data-type=&quot;toc&quot;</code> attribute with an ordered list of <code>li</code> elements as the children. We remove the numbers for the list elements.</p>
+<p>It also uses <a href="https://www.w3.org/TR/css-content-3/#leaders">leaders</a> to associate the TOC with page numbers.</p>
+<p>The <code>leader</code> function defines a literal string, which expands to fill the available space on the line like justified text, by repeating the string as many times as necessary making it appear as if the text was left aligned and the page number was right aligned on the same line.</p>
+<pre><code class="language-css">section[data-type=&quot;toc&quot;] {
+  page: toc
+}
+
+section[data-type=&quot;toc&quot;] ol {
+  list-style-type: none
+}
+
+/* Leader for toc page */
+section[data-type='toc'] nav ol li a:after {
+  content: leader(space) ' ' target-counter(attr(href, url), page);
+}
+</code></pre>
+<p>The following sections associate the different page structures (defined with <code>data-type</code> attributes) with the corresponding <code>@page</code> rules.</p>
+<p>We also make sure that we always have a page break before any new section.</p>
+<pre><code class="language-css">/* Foreword  */
+section[data-type=&quot;foreword&quot;] {
+  page: foreword;
+  page-break-before: always;
+}
+
+/* Preface*/
+section[data-type=&quot;preface&quot;] {
+  page: preface;
+  page-break-before: always;
+}
+
+/* Part */
+div[data-type=&quot;part&quot;] {
+  page: part;
+  page-break-before: always;
+}
+
+/* Chapter */
+section[data-type=&quot;chapter&quot;] {
+  page: chapter;
+  page-break-before: always;
+}
+
+/* Appendix */
+section[data-type=&quot;appendix&quot;] {
+  page: appendix;
+  page-break-before: always;
+}
+
+/* Glossary*/
+section[data-type=&quot;glossary&quot;] {
+  page: glossary
+}
+
+/* Bibliography */
+section[data-type=&quot;bibliography&quot;] {
+  page: bibliography;
+  page-break-before: always;
+}
+
+/* Index */
+section[data-type=&quot;index&quot;] {
+  page: index;
+  page-break-before: always;
+}
+
+/* Colophon */
+section[data-type=&quot;colophon&quot;] {
+  page: colophon;
+  page-break-before: always;
+}
+</code></pre>
+<p>We now customize elements within the page. We’re not including any font-related styles. we might do that on a later iteration of the stylesheet.</p>
+<p>All headings are aligned left and will not be hyphenated.</p>
+<pre><code class="language-css">/*  Block Elements*/
+
+h1, h2, h3, h4, h5, h6 {
+  hyphens: none;
+  text-align: left;
+}
+</code></pre>
+<p>We’re not using Prism in this example so we just make the code blocks use the default monospace font. We could take some of the CSS from Prism to make the code blocks and inline code blocks look better.</p>
+<pre><code class="language-css">code {
+  font-family: monospace
+}
+</code></pre>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/orphans">orphans</a> property constrols the minimum number of lines in a block container that must be shown at the bottom of a page, region, or column.</p>
+<p>In typography, an orphan is the first line of a paragraph that appears alone at the bottom of a page. (The paragraph continues on a following page).</p>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/widows">widows</a> property sets the minimum number of lines in a block container that must be shown at the top of a page, region, or column.</p>
+<p>In typography, a widow is the last line of a paragraph that appears alone at the top of a page. (The paragraph is continued from a prior page).</p>
+<p>Both properties take a single integer value to indicate the number of columns to measure.</p>
+<pre><code class="language-css">p {
+  orphans:4;
+  widows:2;
+}
+</code></pre>
+<p>Next we tackle running headers. For all elements with <code>rh</code> class, we use <code>position: running(heading)</code> and style the content of the element.</p>
+<p>This rule will remove the matching element from the normal document flow, to be inserted in a page margin region. See the PrinceXML documentation for <a href="https://www.princexml.com/doc/gen-content/#taking-elements-from-the-document">Taking elements from the document</a> for more details.</p>
+<pre><code class="language-css">p.rh {
+  position: running(heading);
+  text-align: center;
+  font-style: italic;
+
+}
+</code></pre>
+<p>If an element has the property float: footnote then it will be floated into the footnote area of the page and a reference will be placed in the text.</p>
+<p>The example stylesheet uses the <code>footnote</code> class to represent footnotes.</p>
+<pre><code class="language-css">.footnote {
+  float: footnote;
+}
+</code></pre>
+<p>The <code>::footnote-marker</code> pseudo-element will style foot note markers. Footnote markers are the numbers used in front of the footnote text. They are similar to list item markers.</p>
+<p>The example uses the <code>::after</code> pseudo element to add a period and a space after the marker.</p>
+<pre><code class="language-css">::footnote-marker {
+  content: counter(footnote);
+  list-style-position: inside;
+}
+
+::footnote-marker::after {
+  font-weight: bold;
+  content: '. ';
+}
+</code></pre>
+<p>Prince will generate footnote calls using the ::footnote-call pseudo-element. Footnote calls are the numeric anchors in the text that refer to the footnotes.</p>
+<p>The example CSS styles will display the current value of the footnote counter in square brackets and a superscript position in a slightly smaller font than the main text.</p>
+<pre><code class="language-css">*::footnote-call {
+  content: &quot;[&quot; counter(footnote) &quot;]&quot;;
+  font-size: inherit;
+  vertical-align: inherit;
+}
+</code></pre>
+<p>This code will be used to generate crossreferences to the specified link destination. This requires having links with href attributes. The rule will take the location of the link in the URL and use it to generate a page number to use in the cross reference generated text.</p>
+<pre><code class="language-css">a[href].xref::after {
+  content: &quot; [See page &quot; 
+  target-counter(attr(href), page) &quot;]&quot;
+}
+</code></pre>
+<p>The final section is PDF-specific and deals with bookmarks. These are the links that appear on the bookmarks pannel in Acrobat products that will help you navigate to different places of the document.</p>
+<p>There are three parts to a PDF bookmark:</p>
+<ul>
+<li>The bookmark level (in our case an integer from 1 to 6)
+<ul>
+<li>Lower numbered bookmark levels can contain higher levels bookmarks</li>
+</ul>
+</li>
+<li>The bookmark state (open or close)
+<ul>
+<li>Hides (if closed) or shows (if open) any child bookmarks</li>
+</ul>
+</li>
+<li>The bookmark label
+<ul>
+<li>What the PDF reader will display when showing the bookmark</li>
+</ul>
+</li>
+</ul>
+<p>Yes, there is a lot of repetition in the code. Prince and AntennaHouse have their own vendor prefixes for bookmarks so, in order to remain as compatible as possible, we use the vendor prefixed versions and an unprefixed. The hope is that all vendors will eventually move to the unprefixed version.</p>
+<pre><code class="language-css">section[data-type=&quot;chapter&quot;]  h1 {
+  -ah-bookmark-level: 1;
+  -ah-bookmark-state: open;
+  -ah-bookmark-label: content();
+  prince-bookmark-level: 1;
+  prince-bookmark-state: open;
+  prince-bookmark-label: content();
+  bookmark-level: 1;
+  bookmark-state: open;
+  bookmark-label: content();
+}
+
+section[data-type=&quot;chapter&quot;]  h2 {
+  -ah-bookmark-level: 2;
+  -ah-bookmark-state: closed;
+  -ah-bookmark-label: content();
+  prince-bookmark-level: 2;
+  prince-bookmark-state: closed;
+  prince-bookmark-label: content();
+  bookmark-level: 2;
+  bookmark-state: closed;
+  bookmark-label: content();
+}
+
+section[data-type=&quot;chapter&quot;]  h3 {
+  -ah-bookmark-level: 3;
+  -ah-bookmark-state: closed;
+  -ah-bookmark-label: content();
+  prince-bookmark-level: 3;
+  prince-bookmark-state: closed;
+  prince-bookmark-label: content();
+  bookmark-level: 3;
+  bookmark-state: closed;
+  bookmark-label: content();
+}
+
+section[data-type=&quot;chapter&quot;] h4 {
+  -ah-bookmark-level: 4;
+  prince-bookmark-level: 4;
+  bookmark-level: 4;
+}
+
+section[data-type=&quot;chapter&quot;] h5 {
+  -ah-bookmark-level: 5;
+  prince-bookmark-level: 5;
+  bookmark-level: 5;
+}
+
+section[data-type=&quot;chapter&quot;] h6 {
+  -ah-bookmark-level: 6;
+  prince-bookmark-level: 6;
+  bookmark-level: 6;
+}
+</code></pre>
+<h2>The HTML</h2>
+<p>Rather than disecting the HTML, I’ve linked to the Github repository associated with this post:</p>
+<p><a href="https://github.com/caraya/paged-media-review/blob/main/peter-pan-clean.html">peter-pan-clean.html</a></p>
+<h2>Testing with multiple processors</h2>
+<p>Below are notes from running the CSS and HTML files against different processors, PrinceXML as a baseline and the new processors as comparison.</p>
+<h3>Baseline: PrinceXML</h3>
+<p>Because the stylesheet was originally developed to test PrinceXML and AntennaHouse formatters, the first thing to do is to make sure that the current version of PrinceXML is installed and works as intended.</p>
+<pre><code class="language-bash">prince -s paged-media.css -o peterpan.pdf peter-pan-clean.html
+</code></pre>
+<h3>Weasyprint</h3>
+<p><a href="https://weasyprint.org/">Weasyprint</a> bills itself as an open source alternative to PrinceXML and AntennaHouse but it appears to be lacking on some features. It works with the basic test document and CSS stylesheet but it appears to do some kind of black box magic to add bookmarks to the document.</p>
+<p>There is no support for footnotes. The issue is known and documented in <a href="https://github.com/Kozea/WeasyPrint/issues/296">issue 296</a> and <a href="https://github.com/Kozea/WeasyPrint/issues/298">issue #298</a> on their issue tracker.</p>
+<p>For testing I created a Homebrew formula for Weasyprint and added it to a custom tap I use for research and development.</p>
+<h3>Typeset .sh</h3>
+<p><a href="https://typeset.sh/en">typeset.sh</a> is another paid service written in PHP, unlike PrinceXML, which as far as I understand, requires a single license payment, Typeset requires an anual subscription that can be for one year or permament.</p>
+<p>The product has a very restrictive free tier that ties in with very limited use of their API. If I understood correctly, If you want to use command line tools then you must purchase either the anual (€89 per year) or perpetual (€449, one time) license. This is similar to what PrinceXML charges but you can download and test Prince before comitting to license and future maintenance costs.</p>
+<p>In looking at the documentation all the CSS is inline of the file we’re converting to, if we’re converting many files with the same stylesheet, it adds unnecessary code duplication.</p>
+<h3>PDFReactor</h3>
+<p><a href="https://www.pdfreactor.com/">PDFreactor</a> seems like an interesting tool but, since it’s not open source, I haven’t been able to tell if it’ll work with the current CSS and HTML to create PDF like PrinceXML and AntennaHouse do.</p>
+<p>The first issue is that they require a trial license for testing and a full license for production use.</p>
+<p>It is also a Java appliaction so it assumes that you have a JDK or JRE installed on your system. The command is:</p>
+<pre><code class="language-bash">java -jar path/to/pdfreactor.jar \
+-i example.html \
+-o example.pdf
+</code></pre>
+<p>This should work but, for some reason, it fails to find the jar file. The application doesn’t set a CLASSPATH to follow and expects you to run the jar file from the Application directory in macOS or to specify the full path to the jar file if running it from somewhere else in the file system.</p>
+<p>The PDF generating command assumes that the CSS is linked to the HTML file. It leads to a lot of code duplication.</p>
+<h2>Conclusion</h2>
+<p>Because of the choices commercial products make, they are not suited my use case. Even though it doesn’t meet all my needs (and there is no timeline for when the footnote support will be added) Weasyprint is my second option behind PrinceXML.</p>
+<p>In a future post I’ll look at more complex stylesheets, including custom fonts, figures, tables, flexbox, Grid layouts (where supported) and other features.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Portals: New ways to view the web</h1>
+<p><a href="https://en.wikipedia.org/wiki/Web_portal">(Web) Portals</a> as a technology are not new. Java has used <a href="https://en.wikipedia.org/wiki/Java_Portlet_Specification">portlets</a> (as defined in JSR 362 for the latest edition) in containers for a long time. Teams have used other languages to use Portals.</p>
+<p>Chrome has (re)introduced the <a href="https://wicg.github.io/portals/">concept of portals</a> in a different context. They are meant to navigate from page to page and give you a preview of the content before you navigate to it. According to the specification:</p>
+<blockquote>
+<p>This specification extends HTML to define a new kind of <a href="https://html.spec.whatwg.org/multipage/browsers.html#top-level-browsing-context">top-level browsing context</a>, which can be embedded in another document, and a mechanism for replacing the contents of another top-level browsing context with the previously embedded context.</p>
+</blockquote>
+<p>The feature and it’s acompanying specification are still under development and have limited browser support. As of this writing (Late November 2019) the feature is only available in Chrome (stable and canary) with the <code>chrome://flags/#enable-portals</code> flag enabled.</p>
+<p>We have multiple options for creaating portals in a page.</p>
+<p>The first option is to use the <code>portal</code> tag to setup the portals that we want to use. The HTML code looks like this:</p>
+<pre><code class="language-html">&lt;portal src=&quot;https://css-tricks.com/&quot;&gt;
+&lt;h2&gt;Your browser doesn't support Portals&lt;/h2&gt;
+
+&lt;p&gt;Here's the link:
+  &lt;a href=&quot;https://css-tricks.com/&quot;&gt;
+    CSS Tricks&lt;/a&gt;
+&lt;/portal&gt;
+</code></pre>
+<p>We can also create portal elements programmatically. To create an equivalent example to the HTML element programmatically we would do something like this:</p>
+<pre><code class="language-js">const style = document.createElement('style');
+style.innerHTML = `
+  portal {
+    width: 40%;
+    height: 600px;
+    opacity: 0;
+    box-shadow: 0 0 20px 10px #999;
+    transform: scale(0.4);
+    transform-origin: bottom left;
+    bottom: 20px;
+    left: 20px;
+    animation-name: fade-in;
+    animation-duration: 1s;
+    animation-delay: 2s;
+    animation-fill-mode: forwards;
+  }
+  .portal-transition {
+    transition: transform 0.4s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .portal-transition {
+      transition: transform 0.001s;
+    }
+  }
+  .portal-reveal {
+    transform: scale(1.0) translateX(-20px) translateY(20px);
+  }
+  @keyframes fade-in {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+`;
+const portal = document.createElement('portal');
+// page we want to navigate to
+portal.src = 'https://css-tricks.com';
+// Add a class that defines the transition.
+portal.classList.add('portal-transition');
+portal.addEventListener('click', evt =&gt; {
+  // Animate the portal once user interacts
+  portal.classList.add('portal-reveal');
+});
+portal.addEventListener('transitionend', evt =&gt; {
+  if (evt.propertyName == 'transform') {
+    portal.activate();
+  }
+});
+document.body.append(style, portal);
+</code></pre>
+<p>We could create individual portals using the code above but it gets tedious to repeat code over and over so we wrap it around a function to make reuse easier.</p>
+<p>In this case we also move the CSS code outside the Javascript to make sure that we can reuse for all the portals we create. We’ll have to play with the CSS based on both the size of the portals we want to create and how we want to animate them when they open.</p>
+<pre><code class="language-js">function createPortal(url) {
+  const portal = document.createElement('portal');
+  portal.src = url;
+  portal.classList.add('portal-transition');
+  portal.addEventListener('click', evt =&gt; {
+    portal.classList.add('portal-reveal');
+  });
+  portal.addEventListener('transitionend', evt =&gt; {
+    if (evt.propertyName == 'transform') {
+      portal.activate();
+    }
+  });
+  document.body.append(portal);
+}
+</code></pre>
+<h2>Why would we use portals?</h2>
+<p>While it takes longer for portals to appear when you render the page it gives you something that links, on their own, cannot. A live preview of the target page</p>
+<p>I put together a quick demo of <a href="https://caraya.github.io/portal-demos/portfolio.html">using portals to create a porfolio</a> so you can see both how portals work and the difference that it has with building the same type of page with Flexbox.</p>
+<h2>What’s left?</h2>
+<p>As awesome as they are Portals are not a complete solution (or I haven’t fully figured how to make it one yet).</p>
+<p>The first, and most important, thing is that portal navigation is broken in Chrome right now. Once you click on a portal the history and back nagivation are lost.</p>
+<p>According to <a href="https://twitter.com/KenjiBaheux/">KenjiBaheux</a>:</p>
+<blockquote>
+<p>The team is working on making back navigation work (it’s currently broken, as in it doesn’t do anything at the moment).</p>
+<p>From: <a href="https://twitter.com/KenjiBaheux/status/1199527117676933122">Twitter</a></p>
+</blockquote>
+<p>The second issue for me is that I can’t reliably style portals that I create programmatically.  I don’t want to duplicate the style inside evevery portal element and I don’t want to be forced into using the HTML version where creating them programmatically is more appropriate.</p>
+<p>This may be the use case for <a href="https://web.dev/hands-on-portals/#customize-the-style-when-embedded-as-a-lessportalgreater-element">customizing the styles when embedded as a portal</a> and I’m not understanding the examples I’ve seen or the specification well enough to implement it.</p>
+<p>There is no way, to my knowledge, to polyfill the feature which means that you’ve got to come up with an alternative for browsers that don’t support the feature.</p>
+<p>For an early stage API, portals offer an intriguing posibility for navigating across pages, either same domain or cross domains.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

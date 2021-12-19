@@ -1,0 +1,89 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Dropcaps in CSS</h1>
+<p>Dropcaps have always been a pain in terms of implementation and cross browser support. Perhaps you’ve seen somehting like this in CSS style sheets bebfore:</p>
+<pre><code class="language-css">p::first-letter {
+  color: #FE742F;
+  float: left;
+  font-size: 5em;
+  margin: 0 .2em 0 0;
+}
+</code></pre>
+<p>This will create a 5em first letter for paragraph elements. Which is good if you only have one paragraph worth of text but, as <a href="https://codepen.io/caraya/pen/WaGyqN">this codepen</a> illustrates, longer text gets more drop caps than intended.</p>
+<p>There is a pseudo-selector that will help with this. <code>first-of-type</code> selects the first child of the chosent type inside its parent. So, for our drop cap example, we can say that we want the first-of-type paragrah and then the first letter of that element.</p>
+<p>The result works as intended, like<a href="https://codepen.io/caraya/pen/jeMKgb">version 2 of the codepen</a></p>
+<pre><code class="language-css">p:first-of-type::first-letter {
+  color: #FE742F;
+  float: left;
+  font-size: 5em;
+  margin: 0 .2em 0 0;
+}
+</code></pre>
+<p>It would be nice to have something in CSS that would let us just use drop caps. There sorta is one… the <code>::first-letter</code> select the first letter of the content of the parent element and make it as tall as the specified numbers of rows of text.</p>
+<p><a href="https://codepen.io/caraya/pen/PyGBwv">Version 3</a> of the code shows how the code looks like.</p>
+<pre><code class="language-css">p::first-letter {
+    -webkit-initial-letter: 4;
+    initial-letter: 4;
+    color: #FE742F;
+    font-weight: bold;
+    margin-right: 0.5em;
+}
+</code></pre>
+<p>It only works in Safari (MacOS and iOS) so we need to make sure to wrap it in a feature query to ensure that browsers that don’t support the feature don’t behave all weird on us.</p>
+<p>So we wrap the <code>initial-letter</code> call with a <code>@support</code> feature query that will only run if the browser supports either the unprefixed propery or the property with a webkit vendor prefix.</p>
+<p>If the browser doesn’t support it, then we fall back to the old way to doing drop caps.</p>
+<pre><code class="language-css">@supports (initial-letter: 4)
+       or (-webkit-initial-letter: 4) {
+  p::first-letter {
+     -webkit-initial-letter: 4;
+     initial-letter: 4;
+     color: #FE742F;
+     font-weight: bold;
+     margin-right: 0.5em;
+  }
+}
+
+p::first-letter {
+  color: #FE742F;
+  float: left;
+  font-size: 5em;
+  font-weight: bold;
+  margin: 0 .5em 0 0;
+}
+</code></pre>
+<p>The code from example three adds dropcaps to all paragraphs. So we need our old friend <code>:first-of-type</code> to make sure that only the first paragraph gets the drop cap.</p>
+<p>The <a href="https://codepen.io/caraya/pen/NORBJd">final version</a> of the Codepen shows the code similar to the one below, where we wrap the feature in a feature query and the original code in case the feature is not supported.</p>
+<pre><code class="language-css">@supports (initial-letter: 4)
+       or (-webkit-initial-letter: 4) {
+  p:first-of-type::first-letter {
+     -webkit-initial-letter: 4;
+     initial-letter: 4;
+     color: #FE742F;
+     font-weight: bold;
+     margin-right: 0.5em;
+  }
+}
+
+p:first-of-type::first-letter {
+  color: #FE742F;
+  float: left;
+  font-size: 5em;
+  margin: 0 .2em 0 0;
+}
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

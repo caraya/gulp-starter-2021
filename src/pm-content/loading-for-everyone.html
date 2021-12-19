@@ -1,0 +1,45 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Loading scripts the right way for everyone</h1>
+<p>Differential loading is the technique where you load different content for different browsers that support different sets of Javascript features and APIs.</p>
+<pre><code class="language-html">&lt;script type=&quot;module&quot; src=&quot;/js/modern.mjs&quot;&gt;&lt;/script&gt;
+&lt;script nomodule defer src=&quot;/js/legacy.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>This works awesome with modern browsers that understand <code>type=&quot;module&quot;</code> and that will hapily ignore <code>nomodule</code>.</p>
+<p>The problem is that we can’t really make that assumption safely. There are browsers that will download the nomodule script twice and others that will download both scripts, even when they will only execute one of them.</p>
+<p>Jeremy Wagner’s article <a href="https://jeremy.codes/blog/a-less-risky-differential-serving-pattern/">A Less Risky Differential Serving Pattern</a> proposes the following hack to make sure that all browsers will load a single version of the code for the page depending on whether they use modules or not.</p>
+<pre><code class="language-html">&lt;script&gt;
+  // Create a new script element
+  //to slot into the DOM.
+  var scriptEl = document.createElement(&quot;script&quot;);
+
+  // Check whether the script element
+  // supports the `nomodule` attribute.
+  if (&quot;noModule&quot; in scriptEl) {
+    scriptEl.src = &quot;/js/modern.mjs&quot;;
+    scriptEl.type = &quot;module&quot;;
+  } else {
+    scriptEl.src = &quot;/js/legacy.js&quot;;
+    scriptEl.defer = true;
+  }
+
+  document.body.appendChild(scriptEl);
+&lt;/script&gt;
+</code></pre>
+<p>In a separate article in the <a href="https://calendar.perfplanet.com/2018/">2018 Performance Calendar</a> entry  <a href="https://calendar.perfplanet.com/2018/doing-differential-serving-in-2019/">Doing Differential Serving in 2019</a> he goes more in depth on how to prepare the bundles that will differentially serve.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

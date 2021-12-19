@@ -1,0 +1,112 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Github Actions as Publishing Tools</h1>
+<p>Github actions are a new offering from Github that allows you to automate processes and tooling for Github hosted projects, similar to what you’d get in a CI environment.</p>
+<p>The idea is that you create a <a href="https://yaml.org/">YAML</a> file with the list of steps to run and the operating system you want to run them on. It is possible to run an action in multiple operating systems (Windows, Mac and Linux are available).</p>
+<p>The following test action checks if the dependecies have been caches and if they are not, it installs the dependecies specified in <code>package-lock.json</code> and then runs <code>gulp</code>.</p>
+<pre><code class="language-yaml">name: Test
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/cache@v1
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    - name: Install Dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: npm install
+    - run: gulp
+</code></pre>
+<p>If we combine this with <a href="https://pages.github.com/">Github pages</a> we now have a full static site publishing solution that will update content everytime we push new content to the repository.</p>
+<p>Furthermore we can tie the action to more than one even, for example the following YAML snippet works when pushing into the master branch and whenever a pull request is closed.</p>
+<pre><code class="language-yaml">name: Test
+on:
+  push:
+    branches:
+      - master
+  pull_requests:
+    types: [closed]
+</code></pre>
+<div class="message warning">
+  <h2>Note</h2>
+  <p>I've asked Github support if there is a way to specify merged PRs rather than just closed. I don't know if the closed status implies merged since you can close a PR without merging it.</p>
+</div>
+<h2>Research Project: Collaborative Publishing</h2>
+<p>Now that we have the basics of actions, let’s put them together into a working project.</p>
+<p>The idea is to take a static site generator, as described in <a href="https://publishing-project.rivendellweb.net/static-site-generators-nunjucks-and-gulp/">Static Site Generators: Nunjucks and Gulp</a> with this <a href="https://github.com/caraya/static-gen-njk">code repository</a></p>
+<p>The idea is that only people creating the site can edit the content of the respository but everyone with a Github account can fork the respository and submit content to the repo through <a href="https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/proposing-changes-to-your-work-with-pull-requests">pull requests</a> without having to build the repository every time, unless you want to :-)</p>
+<h2>Building the workflow</h2>
+<p>I’ve chosen to implement the workflow from the repository itself. Create a .github/</p>
+<pre><code class="language-yaml">name: Publish
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [closed]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v1
+
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: build
+      run: |
+        npm install
+        npm run prepare
+        npm run publish
+
+    - name: Deploy
+      uses: maxheld83/ghpages@v0.2.1
+      with:
+        branch: gh-pages
+        env.BUILD_DIR: &quot;docs/&quot;
+        secrets: &quot;secrets.ACCESS_TOKEN&quot;
+</code></pre>
+<p>The workflow uses the following pre-defined actions:</p>
+<ul>
+<li><a href="https://github.com/actions/checkout">checkout</a></li>
+<li><a href="https://github.com/actions/setup-node">setup-node</a></li>
+<li><a href="https://github.com/maxheld83/ghpages">ghpages</a></li>
+</ul>
+<p>There is a large repository of ready-made actions <a href="https://github.com/actions/">available on Github</a>.</p>
+<p>It also leverages the process already in the repository. We run the existing build process from the repository and we don’t even need to install the node packages on every developer’s machine.</p>
+<p>The first version didn’t work. I mean, it did work but produced no output so I went back to the drawing board and used an example from <a href="https://dev.to/pierresaid">pierresaid</a> at <a href="https://dev.to/pierresaid/deploy-node-projects-to-github-pages-with-github-actions-4jco">dev.to</a> as the basis for the example below:</p>
+<h2>Resources</h2>
+<ul>
+<li><a href="https://github.com/features/actions">Github Actions</a></li>
+<li><a href="https://help.github.com/en/actions/automating-your-workflow-with-github-actions/core-concepts-for-github-actions">Core concepts for GitHub Actions</a></li>
+<li><a href="https://help.github.com/en/actions/automating-your-workflow-with-github-actions">Automating your workflow with GitHub Actions</a></li>
+<li><a href="https://help.github.com/en/actions/automating-your-workflow-with-github-actions/configuring-a-workflow#creating-a-workflow-file">Creating a workflow file</a></li>
+<li><a href="https://github.com/actions/starter-workflows/blob/master/ci/node.js.yml">Github Actions Node.js starter workflow</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

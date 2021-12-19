@@ -1,0 +1,170 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Specific languages and toolchains</h1>
+<p>In the <a href="https://publishing-project.rivendellweb.net/first-look-bazel-build-system/">last post</a> we looked at Bazel, what it is, installation on macOS using homebrew, and a Bazel-based project’s basic configuration.</p>
+<p>This post will look at using Bazel to run Typescript and Node.js builds using Bazel. Future posts will look at styling and backend toolchains</p>
+<h2>Javascript, Typescript and Node.js</h2>
+<p>To work directly with Javascript we’ll leverage two items</p>
+<ul>
+<li>Every Javascript file is also a legal Typescript file</li>
+<li>We’re already looking at implementing a Node.js-based build system that will use Javascript/Typescript</li>
+</ul>
+<p>Before Bazel will work we need to install the following Node packages.</p>
+<pre><code class="language-bash">npm i -D @bazel/protractor \
+@bazel/rollup \
+@bazel/terser \
+@bazel/typescript \
+@types/jasmine \
+html-insert-assets \
+http-server \
+protractor \
+rollup \
+terser \
+typescript
+</code></pre>
+<p>At its most basic, the following <code>WORKSPACE</code> file will load the Bazel rules for Node.js, tell Bazel where to find the project’s package.json and use the default version of Node and NPM. <strong>It will not install the packages in package.json.</strong></p>
+<pre><code class="language-python">load(&quot;@bazel_tools//tools/build_defs/repo:http.bzl&quot;, &quot;http_archive&quot;)
+
+http_archive(
+  name = &quot;build_bazel_rules_nodejs&quot;,
+  sha256 = &quot;121f17d8b421ce72f3376431c3461cd66bfe14de49059edc7bb008d5aebd16be&quot;,
+  urls = [&quot;https://github.com/bazelbuild/rules_nodejs/releases/download/2.3.1/rules_nodejs-2.3.1.tar.gz&quot;],
+)
+
+load(&quot;@build_bazel_rules_nodejs//:index.bzl&quot;, &quot;node_repositories&quot;)
+
+node_repositories(package_json = [&quot;//:package.json&quot;])
+</code></pre>
+<p>We can then start building our rules in <code>BUILD.bazel</code>. This example is taken from Bazel’s rules for <a href="https://github.com/bazelbuild/rules_nodejs/tree/stable/examples/app">Node.js example app</a></p>
+<p>The first step is to load the resources that we’ll use for this particular build file. There are two types of resources we load:</p>
+<ul>
+<li>Included in a bazel_rules package like <code>@build_bazel_rules_nodejs</code></li>
+<li>Included from Node.js like <code>@npm//@bazel/protractor</code> or <code>@npm//http-server</code></li>
+</ul>
+<pre><code class="language-python">load(&quot;@build_bazel_rules_nodejs//:index.bzl&quot;, &quot;pkg_web&quot;)
+load(&quot;@npm//@bazel/protractor:index.bzl&quot;, &quot;protractor_web_test_suite&quot;)
+load(&quot;@npm//@bazel/rollup:index.bzl&quot;, &quot;rollup_bundle&quot;)
+load(&quot;@npm//@bazel/terser:index.bzl&quot;, &quot;terser_minified&quot;)
+load(&quot;@npm//@bazel/typescript:index.bzl&quot;, &quot;ts_devserver&quot;, &quot;ts_project&quot;)
+load(&quot;@npm//html-insert-assets:index.bzl&quot;, &quot;html_insert_assets&quot;)
+load(&quot;@npm//http-server:index.bzl&quot;, &quot;http_server&quot;)
+</code></pre>
+<p>We then define a default vissibility for this build, whether other build or artifacts from other builds can see the artifacts from this build. We make it public.</p>
+<p>See <a href="https://docs.bazel.build/versions/master/visibility.html">visibility</a> in the Blaze documentation for more information.</p>
+<pre><code class="language-python">package(default_visibility = [&quot;//visibility:public&quot;])
+</code></pre>
+<p>We fisrt define an <code>_ASSETS</code> private variable containing data that other tasks in the buildfile will use.</p>
+<pre><code class="language-python">_ASSETS = [
+  &quot;:bundle.min&quot;,
+  &quot;//styles:base.css&quot;,
+  &quot;//styles:test.css&quot;,
+]
+</code></pre>
+<p>The remainder of the BUILD file defines the targets to build the application.</p>
+<p>Every target has a set of attributes:</p>
+<ul>
+<li><code>name</code> defines how we reference the target on the command line and from other targets</li>
+<li><code>srcs</code> define the source files that must be compiled to create the artifact for the target</li>
+<li><code>deps</code> define other targets that must be built before this target and linked into it There are three different types of dependencies
+<ul>
+<li>Within the same package (MyBinary’s dependency on <code>:mylib</code>)</li>
+<li>A third-party artifact outside of the source hierarchy (mylib’s dependency on <code>@npm//@types/jasmine</code> from NPM)</li>
+</ul>
+</li>
+</ul>
+<p>Some targets have additional attributes. For more information about specifics look at the corresponding <code>@bazel/*</code> NPM packages or the corresponding Bazel rules packages.</p>
+<pre><code class="language-python">ts_project(
+  name = &quot;app&quot;,
+  srcs = [&quot;app.ts&quot;],
+)
+
+ts_devserver(
+  name = &quot;devserver&quot;,
+  # We'll collect all the devmode JS sources from these TypeScript libraries
+  deps = [&quot;:app&quot;],
+)
+
+rollup_bundle(
+  name = &quot;bundle&quot;,
+  entry_point = &quot;:app.ts&quot;,
+  deps = [&quot;:app&quot;],
+)
+
+terser_minified(
+  name = &quot;bundle.min&quot;,
+  src = &quot;:bundle&quot;,
+)
+
+# Copy index.html to the output folder, adding &lt;script&gt; and &lt;link&gt; tags
+html_insert_assets(
+  name = &quot;inject_tags&quot;,
+  outs = [&quot;index.html&quot;],
+  args = [
+    &quot;--out=$@&quot;,
+    &quot;--html=$(execpath :index.tmpl.html)&quot;,
+    &quot;--roots=$(RULEDIR)&quot;,
+    &quot;--assets&quot;,
+  ] + [&quot;$(execpaths %s)&quot; % a for a in _ASSETS],
+  data = [&quot;:index.tmpl.html&quot;] + _ASSETS,
+)
+
+pkg_web(
+  name = &quot;package&quot;,
+  srcs = [&quot;:inject_tags&quot;] + _ASSETS,
+)
+
+http_server(
+  name = &quot;prodserver&quot;,
+  data = [&quot;:package&quot;],
+  templated_args = [&quot;package&quot;],
+)
+
+# This could also be `ts_library`
+ts_project(
+  name = &quot;tsconfig-test&quot;,
+  testonly = 1,
+  srcs = [&quot;app.e2e-spec.ts&quot;],
+  extends = [&quot;tsconfig.json&quot;],
+  deps = [
+    &quot;@npm//@types/jasmine&quot;,
+    &quot;@npm//@types/node&quot;,
+    &quot;@npm//protractor&quot;,
+  ],
+)
+
+protractor_web_test_suite(
+  name = &quot;prodserver_test&quot;,
+  srcs = [&quot;app.e2e-spec.js&quot;],
+  on_prepare = &quot;:protractor.on-prepare.js&quot;,
+  server = &quot;//:prodserver&quot;,
+)
+
+protractor_web_test_suite(
+  name = &quot;devserver_test&quot;,
+  srcs = [&quot;app.e2e-spec.js&quot;],
+  on_prepare = &quot;:protractor.on-prepare.js&quot;,
+  server = &quot;//:devserver&quot;,
+)
+
+# Just a dummy test so that we have a test target for //... on certain bazelci platforms with bazel_integration_test
+sh_test(
+  name = &quot;dummy_test&quot;,
+  srcs = [&quot;dummy_test.sh&quot;],
+)
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

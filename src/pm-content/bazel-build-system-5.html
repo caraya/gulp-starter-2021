@@ -1,0 +1,113 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Overall Notes and Observations</h1>
+<p>Bazel is hard to get to work but it’s really interesting to work with once you get started. Like Ant and other build systems I’ve worked with before they use their own terminology and their own tooling to make things work better for their intended audiences.</p>
+<p>These are some notes that I’ve collected along the way… they’ve informed my own research and are good things to keep in mind as you work with the tool and its ecosystem.</p>
+<h2>Why Use Bazel</h2>
+<p>In my opinion, Bazel workst best in a monorepo with multiple languages attached, whether the monorepo build a single  application or, like Google’s large repository, it builds every single product a company makes. I’m not going to discuss the advantages of advantages of a monorepo, I believe it all comes down to individual and team preference, just throwing my opinion of what would work best with Bazel.</p>
+<p>The downside from Bazel, in my opinion, is that it’s opinionated and you may not agree with the defaults on the published rules, regardless of who created them</p>
+<h2>Bazel installs its own software</h2>
+<p>To ensure rproducible software builds Bazel downloads and uses its own toolchains for each project, independent of what you have installed on your computer.</p>
+<p>In Node.js case it will install its toolchain with either NPM or Yarn so it doesn’t really matter what you have installed on your system or whether you use NVM to keep multiple versions of Node installed on your development box</p>
+<h2>File organization</h2>
+<p>I’m still researching whether we need one central <code>WORKSPACE</code> where we load all the rules definition or individual <code>WORKSPACE</code> files at the root of every package so we only load them when we need them. It works either way so it may come down to what how we want to organize files.</p>
+<h2>Executing specific builds</h2>
+<p>One of the things that confused me the most about researching Bazel was how to execute specific package builds.</p>
+<p>Each target in a repository belongs to one, and only one, package. However, this doesn’t mean that the name of the target has to be unique. Having these two labels is legal</p>
+<pre><code class="language-sh">my_repo/go/hello_world
+my_repo/rust/hello_world
+</code></pre>
+<p>and you would call them like this</p>
+<pre><code class="language-bash">bazel build //go/hello_world:all
+bazel build //rust/hello_world:all
+</code></pre>
+<p>See <a href="https://docs.bazel.build/versions/3.7.0/build-ref.html#labels">Labels</a> for an explanation of what labels are and <a href="https://docs.bazel.build/versions/3.7.0/guide.html#specifying-targets-to-build">Specifying targets to build</a> for instructions on how to reference different targets on your repository using Bazel.</p>
+<h2>Expanding Bazel and Documenting Your Code</h2>
+<p>Bazel is extensible using <a href="https://github.com/bazelbuild/starlark/">Starlark</a> (formerly known as Skylar), a Python <a href="https://en.wikipedia.org/wiki/Domain-specific_language">Domain Specific Language</a> initially designed for use in Bazel but also usable in other tools. Bazel uses it both for BUILD files and to write extensions to the platform in <code>.bzl</code> files.</p>
+<p>The following tour, taken from the Starlark README, shows most of the features of the language.</p>
+<pre><code class="language-python"># Define a number
+number = 18
+
+# Define a dictionary
+people = {
+    &quot;Alice&quot;: 22,
+    &quot;Bob&quot;: 40,
+    &quot;Charlie&quot;: 55,
+    &quot;Dave&quot;: 14,
+}
+
+names = &quot;, &quot;.join(people.keys())  # Alice, Bob, Charlie, Dave
+
+# Define a function
+def greet(name):
+    &quot;&quot;&quot;Return a greeting.&quot;&quot;&quot;
+    return &quot;Hello {}!&quot;.format(name)
+
+greeting = greet(names)
+
+above30 = [name for name, age in people.items() if age &gt;= 30]
+
+print(&quot;{} people are above 30.&quot;.format(len(above30)))
+
+def fizz_buzz(n):
+    &quot;&quot;&quot;Print Fizz Buzz numbers from 1 to n.&quot;&quot;&quot;
+    for i in range(1, n + 1):
+        s = &quot;&quot;
+        if i % 3 == 0:
+            s += &quot;Fizz&quot;
+        if i % 5 == 0:
+            s += &quot;Buzz&quot;
+        print(s if s else i)
+
+fizz_buzz(20)
+</code></pre>
+<p>If you’ve ever used Python, this should look very familiar. In fact, the code above is also a valid Python code. Still, this short example shows most of the language.</p>
+<p>I won’t go into about Starlark and how to write Starlark code here, I may write a post about it at a later time.</p>
+<p>One aspect I will mention is how to document your Starlark code using <a href="https://github.com/bazelbuild/stardoc/">Stardock</a> as documented in <a href="https://github.com/bazelbuild/stardoc/blob/master/docs/generating_stardoc.md">generating Stardoc for your files</a></p>
+<h2>Final notes</h2>
+<p>We just scratched the surface of what bazel can do. Once you figure it out is a very nice tool to have, particularly if you work in a <a href="https://en.wikipedia.org/wiki/Monorepo">monorepo</a> or work with projects in multiple languages.</p>
+<p>A Monorepo you can have projects and packages in a variety of languages, and can produce several different types of objects, from web sites and applications to iOS and Androoid and then use one tool to build everything.</p>
+<h1>Links and Resources</h1>
+<ul>
+<li><a href="https://bazel.build/">Bazel</a>
+<ul>
+<li>Concepts
+<ul>
+<li><a href="https://docs.bazel.build/versions/3.7.0/build-ref.html">Concepts and terminology</a></li>
+<li><a href="https://docs.bazel.build/versions/3.7.0/external.html">Working with external dependencies</a></li>
+<li><a href="https://docs.bazel.build/versions/3.7.0/configurable-attributes.html">Configurable build attributes</a></li>
+<li><a href="https://docs.bazel.build/versions/master/platforms-intro.html">Building with platforms</a></li>
+<li><a href="https://docs.bazel.build/versions/master/visibility.html">Visibility</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="https://dev.to/bazel/layering-in-bazel-for-web-389h">Layering in Bazel for Web</a></li>
+<li>Build Rules and related
+<ul>
+<li><a href="https://github.com/bazelbuild/examples">Bazel Rules Examples</a></li>
+<li><a href="https://docs.bazel.build/versions/master/build-javascript.html">Building JavaScript Outputs</a></li>
+<li><a href="https://bazelbuild.github.io/rules_nodejs/">rules_nodejs</a></li>
+<li><a href="https://github.com/bazelbuild/rules_postcss">rules_postcss</a></li>
+<li><a href="https://github.com/bazelbuild/rules_sass">rules_sass</a></li>
+<li><a href="https://github.com/bazelbuild/rules_go">rules_go</a></li>
+<li><a href="https://github.com/bazelbuild/rules_rust">rules_rust</a></li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

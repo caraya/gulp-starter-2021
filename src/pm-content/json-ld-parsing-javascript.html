@@ -1,0 +1,121 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>JSON-LD on the web</h1>
+<p><a href="https://json-ld.org/">JSON-LD</a> is set of extensions to <a href="https://www.json.org/json-en.html">JSON</a> that allows for creating and exchanging linked data on the web.</p>
+<p>Perhaps the best known use of JSON-LD outside semantic web users is using <a href="http://schema.org">schema.org</a>'s JSON-LD structured data for Google’s search engine.</p>
+<p>The following example gives the structured data snippet to acompany a recipe web page. The example is taken from <a href="https://developers.google.com/search/docs/guides/intro-structured-data">Understand how structured data works</a>.</p>
+<pre><code class="language-html">&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Party Coffee Cake&lt;/title&gt;
+    &lt;script type=&quot;application/ld+json&quot;&gt;
+    {
+      &quot;@context&quot;: &quot;https://schema.org/&quot;,
+      &quot;@type&quot;: &quot;Recipe&quot;,
+      &quot;name&quot;: &quot;Party Coffee Cake&quot;,
+      &quot;author&quot;: {
+        &quot;@type&quot;: &quot;Person&quot;,
+        &quot;name&quot;: &quot;Mary Stone&quot;
+      },
+      &quot;datePublished&quot;: &quot;2018-03-10&quot;,
+      &quot;description&quot;: &quot;This coffee cake is awesome and perfect for parties.&quot;,
+      &quot;prepTime&quot;: &quot;PT20M&quot;
+    }
+    &lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h2&gt;Party coffee cake recipe&lt;/h2&gt;
+    &lt;p&gt;
+      &lt;em&gt;by Mary Stone, 2018-03-10&lt;/em&gt;
+    &lt;/p&gt;
+    &lt;p&gt;
+      This coffee cake is awesome and perfect for parties.
+    &lt;/p&gt;
+    &lt;p&gt;
+      Preparation time: 20 minutes
+    &lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>We can also leverage the JSON-LD snippet that we created for Google Search and create our own snippets and content highlights. The only change we make to the script is an ID attribute to the script to maket it easier to capture.</p>
+<p>The process is as follows:</p>
+<ol>
+<li>Grab the text of the script with ID <code>data</code></li>
+<li>Parse the JSON</li>
+<li>Create a template literal interpolating the data from the JSON file</li>
+<li>Grab a reference to the container where we want to place the template data</li>
+<li>Insert the template literal into the container using <code>insertAdjacentHTML</code></li>
+</ol>
+<pre><code class="language-js">const data = document.getElementById(&quot;data&quot;).text; // 1
+const json = JSON.parse(data); // 2
+
+const displayData = `
+&lt;h2&gt;${json.name}&lt;/h2&gt;
+&lt;h3&gt;by ${json.author.name}&lt;/h3&gt;
+&lt;p&gt;${json.description}&lt;/p&gt;
+`; // 3
+
+const container = document.getElementById(&quot;container&quot;); //4
+container.insertAdjacentHTML(&quot;afterend&quot;, displayData); // 5
+</code></pre>
+<p>Another aspect of JSON-LD is how to create the linked data scripts. Even a trivial example like that of our recipe requires some knowledge of the standard and it is not a trivial undertaking. Since I work with WordPress for the most part, I’ve chose to either use a <a href="https://wordpress.org/plugins/schema/">WordPress schema plugin</a> to let WordPress build the Linked Data automatically or tools like <a href="https://github.com/spatie/schema-org/">scheema-org</a> to generate the Linked Data scripts manually for whatever type of page I’m working on, inside or outside of WordPress.</p>
+<p>The following example covers most of the information for the 50th anniversary edition of <a href="https://www.megustaleerenespanol.com/libros/rayuela/MES-089054">Rayuela (Hopscotch) in Spanish</a>.</p>
+<pre><code class="language-php">&lt;?php
+use Spatie\SchemaOrg\Schema;
+
+$rayuela = Schema::Book()
+  -&gt;name('Rayuela')
+  -&gt;author(Schema::Person()
+    -&gt;name('Julio Cortázar')
+  )
+  -&gt;description('Rayuela es la historia de Horacio Oliveira, un intelectual argentino, y su relación con Lucía, una joven uruguaya apodada &quot;La Maga&quot;.')
+  -&gt;bookFormat('Hardcover')
+  -&gt;datePublished('2019-03-01')
+  -&gt;image('https://static.megustaleer.com.mx/images/libros_200_x/9788420437484.jpg')
+  -&gt;inLanguage('Spanish')
+  -&gt;isbn('9788420437484')
+  -&gt;numberOfPages('704')
+  -&gt;publisher(Schema::Organization()
+    -&gt;name('Alfaguara')
+  );
+
+echo $rayuela-&gt;toScript();
+</code></pre>
+<p>It will generate the following JSON-LD inside a script tag, ready to insert on an HTML document and that runs without errors or warnings in the <a href="https://validator.schema.org/">schema.org validator</a></p>
+<pre><code class="language-json">&lt;script type=&quot;application/ld+json&quot;&gt;
+{
+  &quot;@context&quot;:&quot;https:\/\/schema.org&quot;,&quot;@type&quot;:&quot;Book&quot;,
+  &quot;name&quot;:&quot;Rayuela&quot;,
+  &quot;author&quot;:{
+    &quot;@type&quot;:&quot;Person&quot;,
+    &quot;name&quot;:&quot;Julio Cortázar&quot;
+  },
+  &quot;description&quot;:&quot;Rayuela es la historia de Horacio Oliveira, un intelectual argentino, y su relación con Lucía, una joven uruguaya apodada \&quot;La Maga\&quot;.&quot;,
+  &quot;bookFormat&quot;:&quot;Hardcover&quot;,
+  &quot;datePublished&quot;:&quot;2019-03-01&quot;,
+  &quot;image&quot;:&quot;https:\/\/static.megustaleer.com.mx\/images\/libros_200_x\/9788420437484.jpg&quot;,
+  &quot;inLanguage&quot;:&quot;Spanish&quot;,
+  &quot;isbn&quot;:&quot;9788420437484&quot;,
+  &quot;numberOfPages&quot;:&quot;704&quot;,
+  &quot;publisher&quot;: {
+    &quot;@type&quot;:&quot;Organization&quot;,
+    &quot;name&quot;:&quot;Alfaguara&quot;
+  }
+}&lt;/script&gt;
+</code></pre>
+<p>Even if you decide that you don’t want rich snippets on your site’s results in Google Search, JSON-LD and Linked Data open other possibilities.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

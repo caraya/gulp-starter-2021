@@ -1,0 +1,63 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Compositing with <code>feComposite</code></h1>
+<blockquote>
+<p>The code for this example is taken from Sara Souedain’s <a href="https://tympanus.net/codrops/2019/01/15/svg-filters-101/">SVG Filters 101</a></p>
+</blockquote>
+<p>Compositing is the combining of visual elements from separate sources into single images, often to create the illusion that all those elements are parts of the same scene (From <a href="https://en.wikipedia.org/wiki/Compositing">Wikipedia</a>)</p>
+<p>The <code>feComposite</code> primitive has an operator attribute which is used to specify which composite operation we want to use. See the <a href="https://www.w3.org/TR/SVG11/filters.html#feCompositeElement">feComposite definition</a> and Sara Souedain’s <a href="https://www.sarasoueidan.com/blog/compositing-and-blending-in-css/">Compositing and blending in CSS</a> for more information about <code>feComposite</code>.</p>
+<p>We use multiple filter primitives to accomplish the goal.  We’ll look at what each filter does and how to use the composite filer with an image.</p>
+<p>The first filter primitive is <code>feGausianblur</code>. It creates the blur of the alpha channel of the image (in this case it will produce a blured black element).</p>
+<p>The next step is to create the color flood using <code>feFlood</code>.</p>
+<p>The <code>feComposite</code> primitive requires two inputs to operate on, <code>in</code> and <code>in2</code> which represent the two layers that we want to composite. In this case we use our Gausian blur and color as the inputs and call the result shadow.</p>
+<p><code>feOffset</code> moves the input by the required ammount in bot x and y axes and produces a result. In addition, this primitive takes two main attributes: dx and dy, which determine the distance by which you want to offset the layer along the x and y axes, respectively.</p>
+<p>The last step on the filter is to merge the drop shadow with the source image using <code>feMerge</code>; one <code>mergeNode</code> will take our drop shadow as input, and another <code>mergeNode</code> will layer the source image using <code>SourceGraphic</code> as input.</p>
+<p>We use the filter by referencing it in the image using the <code>filter</code> attribute. Notice that we use the <code>url()</code> syntax rather than use <code>xlink:href</code></p>
+<pre><code class="language-svg">&lt;svg width=&quot;600&quot; height=&quot;400&quot; viewBox=&quot;0 0 850 650&quot;&gt;
+  &lt;filter id=&quot;drop-shadow&quot;&gt;
+
+    &lt;feGaussianBlur in=&quot;SourceAlpha&quot;
+                    stdDeviation=&quot;10&quot;
+                    result=&quot;drop&quot;&gt;&lt;/feGaussianBlur&gt;
+
+    &lt;feFlood flood-color=&quot;#bbb&quot; result=&quot;color&quot;&gt;&lt;/feFlood&gt;
+
+    &lt;feComposite  in=&quot;color&quot;
+                  in2=&quot;drop&quot;
+                  operator=&quot;in&quot;
+                  result=&quot;shadow&quot;&gt;&lt;/feComposite&gt;
+
+    &lt;feOffset   in=&quot;shadow&quot;
+                dx=&quot;20&quot; dy=&quot;20&quot;
+                result=&quot;dropshadow&quot;&gt;&lt;/feOffset&gt;
+
+    &lt;feMerge&gt;
+        &lt;feMergeNode in=&quot;dropshadow&quot;&gt;&lt;/feMergeNode&gt;
+        &lt;feMergeNode in=&quot;SourceGraphic&quot;&gt;&lt;/feMergeNode&gt;
+    &lt;/feMerge&gt;
+  &lt;/filter&gt;
+
+  &lt;image  xlink:href=&quot;images/image.jpg&quot;
+          x=&quot;0&quot; y=&quot;0&quot;
+          width=&quot;100%&quot; height=&quot;100%&quot;
+          filter=&quot;url(#drop-shadow)&quot;&gt;&lt;/image&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>We used drop shadow as an example of how to create complex filters. It is not the only way or the easiest way to create <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/drop-shadow">drop shadows using CSS</a> but I think it’s an interesting example of how to compose filters with multiple primitives.</p>
+<p>The field is open for you to experiment with filters in different combinations and with different parameters. The sky is the limit :)</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

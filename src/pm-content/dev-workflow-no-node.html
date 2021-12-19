@@ -1,0 +1,150 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Dev workflow without Node</h1>
+<p>Mariko Kosaka posed the following question on Twitter today (10/05):</p>
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Can I set up modern web development workflow without Node ?</p>&mdash; Mariko Kosaka (@kosamari) <a href="https://twitter.com/kosamari/status/916007878435119104?ref_src=twsrc%5Etfw">October 5, 2017</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>My answer was quick and to the point. I answered: <strong>It depends on how you define modern and how much work are you willing to do manually</strong>. Easier said than done… let’s put research where the mouth is and figure out how much work would it actually take to build a moderately complex web site without using Node.js at all.</p>
+<p>Here are the rules and tradeofs we make so we can work without Node:</p>
+<ul>
+<li>No <code>package.json</code></li>
+<li>No <code>gulpfile.js</code> or <code>gruntfile.js</code></li>
+<li>Build system that doesn’t require Node</li>
+<li>SCSS to CSS conversion or handwritten conversions</li>
+<li>Image optimization for PNG, JPG, GIF and SVG</li>
+<li>ES2015+ scripts</li>
+<li>Manual concatenation of scripts</li>
+</ul>
+<h2>Alternative Build Systems</h2>
+<p>Before I started using Grunt and, later, Gulp I used <a href="http://ant.apache.org/">Apache Ant</a>, an xml-based build system, originally created for Java-based build processes but now flexible enough to build almost anything.</p>
+<p>It’s XML-based and that may turn some of you off but I loved using Ant and I’ve used XML enough to not be afraid of it. Ant also satisfies the first three bullet points on our requirements list: It doesn’t use Node so there is no package.json involved, it doesn’t use Grunt or Gulp and or provides an alternative build system.</p>
+<p>The example below illustrates how to run Ant to covert an XML file into a single HTML file.</p>
+<pre><code class="language-xml">&lt;project name=&quot;writing&quot; default=&quot;html-single&quot; basedir=&quot;.&quot;&gt;
+    &lt;description&gt;
+        Ant build file to create differeent versions of my short and not-so-short stories
+    &lt;/description&gt;
+  &lt;!-- set global properties for this build --&gt;
+  &lt;property name=&quot;dist&quot;  location=&quot;stories&quot;/&gt;
+
+  &lt;target name=&quot;init&quot;&gt;
+    &lt;!-- Create the time stamp --&gt;
+    &lt;echo message=&quot;Generating timestamp&quot;/&gt;
+    &lt;tstamp/&gt;
+    &lt;!-- Create the build directory structure used by compile --&gt;
+    &lt;echo message=&quot;Creating Directory to store resulting files&quot;/&gt;
+    &lt;mkdir dir=&quot;${dist}-{tstamp}&quot;/&gt;
+  &lt;/target&gt;
+
+  &lt;target name=&quot;html-single&quot; depends=&quot;init&quot;
+        description=&quot;Create single HTML document &quot; &gt;
+  &lt;!-- Creates single HTML document using Saxon --&gt;
+    &lt;java classname=&quot;saxon.jar&quot;&gt;
+        &lt;arg value=&quot;-o stories.html&quot;/&gt;
+        &lt;arg value=&quot;stories-db5.xml&quot;/&gt;
+        &lt;arg value=&quot;carlos.xsl&quot;/&gt;
+    &lt;/java&gt;
+  &lt;/target&gt;
+
+  &lt;target name=&quot;clean&quot;
+        description=&quot;clean up&quot; &gt;
+    &lt;!-- Delete the ${build} and ${dist} directory trees --&gt;
+    &lt;delete dir=&quot;${build}&quot;/&gt;
+    &lt;delete dir=&quot;${dist}&quot;/&gt;
+  &lt;/target&gt;
+&lt;/project&gt;
+</code></pre>
+<p>It’s not the only choice. If you’re more comfortable you can work with Make, Rake or any other build system. The idea is not to use Node.</p>
+<h2>SCSS to CSS</h2>
+<p>Fortunately for me, the original SASS/SCSS utility was written in Ruby and has a command line utility that will let us run SCSS and associated libraries from the command line without requiring a build system.</p>
+<p>Installing Ruby SASS assumes that you’ve installed Ruby on your system. If you haven’t you have the following options depending on your Operating System:</p>
+<ul>
+<li>Macintosh and Linux: You can choose to use the built-in version of Ruby or install <a href="https://rvm.io/">RVM</a> as a way to install different versions of Ruby concurrently</li>
+<li>Windows users can use the <a href="http://rubyinstaller.org/">Ruby Installer</a> to add Ruby to their system. This will also install a Powershell application to run ruby commands from</li>
+</ul>
+<p>Once you have Ruby and Ruby Gems installed you can install Sass with the following command.</p>
+<pre><code class="language-bash">gem install sass
+</code></pre>
+<p>In Macintosh systems you may get an error, if you do then you need to install Sass as an administrator. Run the following command instead And enter your password when prompted.</p>
+<pre><code class="language-bash">sudo gem install sass
+</code></pre>
+<p>To test the installation type:</p>
+<pre><code class="language-bash">sass -v
+</code></pre>
+<p>This should return the version of SASS you installed, something like this:</p>
+<pre><code class="language-bash">Sass 3.5.2 (Bleeding Edge)
+</code></pre>
+<h2>Image Optimization: Raster Images</h2>
+<p><a href="https://imageoptim.com/mac">ImageOptim (Mac)</a></p>
+<p><a href="https://sourceforge.net/projects/nikkhokkho/files/FileOptimizer/">File Optimize (Windows)</a></p>
+<p><a href="https://trimage.org/">Trimage (Linux)</a></p>
+<h2>Image Optimization: SVG</h2>
+<p><a href="https://jakearchibald.github.io/svgomg/">SVGOMG</a></p>
+<h2>ES2015+ scripts</h2>
+<p>I’m making one dangerous assumption here; that our users will be in modern browsers  that will not need transpilation. I</p>
+<h2>If you need an app.</h2>
+<ul class="list-feature"> <li> <a href="">CodeKit</a> <span class="info">(Paid)</span> <span class="mac-icon"></span> </li> <li> <a href="">Compass.app</a> <span class="info">(Paid, Open Source)</span> <span class="mac-icon"></span> <span class="windows-icon"></span> <span class="linux-icon"></span> </li>
+<p>If you need an application, these will fit the b</p>
+<table>
+  <thead>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Platforms</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="http://incident57.com/codekit/">CodeKit</a></td>
+      <td>Paid</td>
+      <td>Mac Only</td>
+    <tr>
+      <td><a htdref="http://compass.kkbox.com/">Compass.app</a></td>
+      <td>Paid, Open Source</td>
+      <td>Mac, Windows and Linux</td>
+    </tr>
+    <tr>
+      <td> <a href="http://www.vanamco.com/ghostlab/">Ghostlab</a></td>
+      <td>Paid</td>
+      <td>Mac and Windows</td>
+    </tr>
+    <tr>
+      <td><a href="http://hammerformac.com/">Hammer</a></td>
+      <td>Paid</td>
+      <td>Mac Only</td>
+    </tr>
+    <tr>
+      <td><a href="http://koala-app.com/">Koala</a></td>
+      <td>Open Source</td>
+      <td>Macintosh, Windows and Linux</td>
+    </tr>
+    <tr>
+      <td><a href="http://livereload.com/">LiveReload</a></td>
+      <td>Paid, Open Source</td>
+      <td>Macintosh and Windows</td>
+    </tr>
+    <tr>
+      <td><a href="https://prepros.io/">Prepros</a></td>
+      <td>Paid</td>
+      <td>Macintosh, Windows and Linux</td>
+    </tr>
+    <tr>
+      <td><a href="http://scout-app.io/">Scout-App</a></td>
+      <td>Free, Open Source</td>
+      <td>Macintosh, Windows and Linus</td>
+    </tr>
+  </tbody>
+</table>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

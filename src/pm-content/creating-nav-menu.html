@@ -1,0 +1,125 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Creating a navigation menu</h1>
+<p>AS I’m working in enhancing the templates for my essay collection I’ve come up with a need to have a menu to link to the essays I want to make available to readers but not all the writing in the location where these essays are available. Rather than manually creating the menu I’ve decided t hat it may be better to atomate the process and use JSON and Javascript to create it.</p>
+<p>I’ve broken the content in three pieces, the JSON file with the items I want to add, the Javascript to create the menu and a small CSS to remove the bullet point from the menu items.</p>
+<p>It this a perfect solution. No, I don’t think there is such a thing. But it is a good way to learn how to create HTML content based on external data.</p>
+<h2>JSON</h2>
+<p>The JSON file is an array of projects with each child having two items: a name and a URL. It has been validated with <a href="https://jsonlint.com">jsonlint</a> to make sure that it’ll work properly.</p>
+<p>If we wanted to enhance the menu we could add more information to individual items. For example, if every project has an image we could add it to the JSON and use it when building the list.</p>
+<pre><code class="language-json">{
+  &quot;projects&quot;:
+  [{
+    &quot;name&quot;: &quot;Intersection Observers&quot;,
+    &quot;url&quot;: &quot;intersection-observers.html&quot;
+  }, {
+    &quot;name&quot;: &quot;HTML Video&quot;,
+    &quot;url&quot;: &quot;html5-video.html&quot;
+  }, {
+    &quot;name&quot;: &quot;Crazy Layouts&quot;,
+    &quot;url&quot;: &quot;layouts.html&quot;
+  }, {
+    &quot;name&quot;: &quot;Better Markdown From Node&quot;,
+    &quot;url&quot;: &quot;better-markdown-from-node.html&quot;
+  }, {
+    &quot;name&quot;: &quot;Book Proposal&quot;,
+    &quot;url&quot;: &quot;book-proposal.html&quot;
+  }, {
+    &quot;name&quot;: &quot;Crafting Reading Experiences&quot;,
+    &quot;url&quot;: &quot;crafting-reading-experiences.html&quot;
+  }, {
+    &quot;name&quot;: &quot;CSS and Javascript Working Together&quot;,
+    &quot;url&quot;: &quot;css-and-javascript-working-together.html&quot;
+  }, {
+    &quot;name&quot;: &quot;Define Easy&quot;,
+    &quot;url&quot;: &quot;define-easy.html&quot;
+  }, {
+    &quot;name&quot;: &quot;Digital Storytelling&quot;,
+    &quot;url&quot;: &quot;digital-storytelling.html&quot;
+  }]
+
+}
+</code></pre>
+<h2>Javascript</h2>
+<p>I’ve brokent the Javascript into two blocks. The first one block is two utility functions to create nodes and append a child node to the parent. They are not strictly necessary but they make life easier and they can be easily reused.</p>
+<pre><code class="language-javascript">function createNode(element) {
+  // Create the type of element you pass in the parameters
+  return document.createElement(element); 
+}
+
+function append(parent, el) {
+    // Append the second parameter(element) to the first one
+    return parent.appendChild(el); 
+}
+</code></pre>
+<p>The second block is what actually builds the menu. The scripts has the following elements.</p>
+<p>We first fetch the data and convert the response to JSON. We then assign the projects JSON array to a variable and grab a reference to the menu container.</p>
+<p>Using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map?v=control">array.map</a> we look through the projects array and do the following:</p>
+<ul>
+<li>Create a <code>li</code> element and attach a class of <code>menu-item-link</code> that we’ll use to style the element later</li>
+<li>Create a link element <code>a</code> and attach the <code>href</code> element with a value of the current item’s url using a string template literal <code>${project.url}</code></li>
+<li>Add the text of the link adding a string template literal <code>${project.name}</code> to the innerHTML of the link element we created</li>
+</ul>
+<p>If there is an error we log it to console and exit. Nothing we can really do in that situation.</p>
+<pre><code class="language-javascript">fetch('menu-data.json') // 1
+  // Transform the data into json
+  .then(resp =&gt; resp.json()) // 2 
+  .then(data =&gt; {
+    let projects = data.projects; 
+    let menu = document.getElementById('menu-container');
+
+    return projects.map(project =&gt; { 
+      let li = createNode('li');
+      li.setAttribute('class', 'menu-item-link');
+
+      // create the anchor
+      let anchor = createNode('a');
+      anchor.href = `${project.url}`;
+
+      let liContent = `${project.name}`;
+      anchor.innerHTML = liContent;
+
+      append(li, anchor);
+      append(menu, li);
+    })
+  })
+  .catch(error =&gt; {
+    console.log('there was a problem: ', error);
+});
+</code></pre>
+<p>We could create the link as full string template literal and skip the node creation process. It may work like this:</p>
+<pre><code class="language-javascript">return projects.map(project =&gt; { 
+  let li = createNode('li');
+  li.setAttribute('class', 'menu-item-link');
+
+  // create the anchor
+  let link = '&lt;a href=&quot;`${project.url}`&quot;&gt;`${project.name}`&lt;/a&gt;';
+
+  append(li, link);
+  append(menu, li);
+})
+</code></pre>
+<p>The problem with this version is support for older browsers. It will only work on modern browsers that support ES6 natively. If we want to work with older browsers we would then have to code an alternative version or use a polyfill.</p>
+<h2>CSS</h2>
+<p>In CSS there is only one rule. We hide the bullets on the list items. We use the class <code>menu-item-link</code> to make sure we only hide the bullets on the menu and move the content to the left so it’ll take the space we gained by removing the bullets.</p>
+<pre><code class="language-css">.menu-item-link  {
+  list-style: none;
+  margin-left: -3em;
+}
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

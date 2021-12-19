@@ -1,0 +1,242 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1>Using modules in browser</h1>
+<p>Browsers are beginning to support es6 modules without polyfills! This means that we can take modules and use them as is without having to transpile if we’re only supporting modern browsers.</p>
+<p>We’ll revisit modules: what they are and how they work. Unlike the cursory look we did when we discussed modules in the context of Rollup and Webpack, we’ll take a deeper look at how do modules work in the browser and look at examples of how we can best leverage them today by using new syntax on the script tag.</p>
+<h2>ES6/ES2015 Modules</h2>
+<p>Modules allow you to package related variables and functions in a single module file. The data and functions in your modules are invisible to the outside world unless you explicitly make them available.</p>
+<h3>Browser support for ES2016 modules</h3>
+<p>Modules in browsers are mostly supported behind flags.  The currect supported browsers are:</p>
+<ul>
+<li>Safari 10.1.</li>
+<li>Chrome Canary 60 – behind the Experimental Web Platform flag in <code>chrome:flags</code></li>
+<li>Firefox 54 – behind the <code>dom.moduleScripts.enabled</code> setting in <code>about:config</code></li>
+<li>Edge 15 – behind the Experimental JavaScript Features setting in <code>about:flags</code></li>
+</ul>
+<h2>Why use modules</h2>
+<p>Just like ShadowDOM allows you to encapsulate HTML, CSS and Javascript, modules allow you to encapsualte your scripts.  You have full control over what gets exposed to outside scripts and can keep your implementation details hidden by simply not exposing them.</p>
+<h2>Creating modules</h2>
+<p>There are two ways to create a module. External and internal modules, each of which can export and import multiple named functions from other modules.</p>
+<h3>Multiple exports and imports</h3>
+<p>Take the following <code>utils.js</code> external module that exports text manipliation functions: One to add text to a div in the body of a page and one to create an h1 element.</p>
+<pre><code class="language-javascript">// utils.js
+export function addTextToBody(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  document.body.appendChild(div);
+}
+
+export function createHeader(text) {
+  const header = document.createElement('h1');
+  header.textContent = text;
+  document.body.appendChild(header);
+}
+</code></pre>
+<p>This internal module imports <code>addTextToBody</code> and <code>createHeader</code> from <code>utils.js</code> and uses them as local functions without name spacing.</p>
+<pre><code class="language-javascript">&lt;script type=&quot;module&quot;&gt;
+  import {addTextToBody, createHeader} from 'utils';
+
+  addTextToBody('Modules are pretty cool.');
+&lt;/script&gt;
+</code></pre>
+<p>You can rename your imports to make them easier to work with. Working with the same example, we can shorten the name of our <code>addTextToBody</code> import by using the <code>as</code> keyword and the name we want to give it. We then use the name we chose rather than the original function name.</p>
+<pre><code class="language-javascript">&lt;script type=&quot;module&quot;&gt;
+  import {
+    addTextToBody as addText, 
+    createHeader} from 'utils';
+
+  createHeader('Hellow World');
+  addText('Modules are pretty cool.');
+&lt;/script&gt;
+</code></pre>
+<h3>Importing the complete module</h3>
+<p>When we have multiple imports we can also import the complete module rather than specifying items to import. The module is written as normal.</p>
+<p>When it comes to import and use the module, however, we use a different syntax.</p>
+<pre><code class="language-javascript">import * as util from  'utils';
+
+util.createHeader('wassup, doc');
+
+util.addTextToBody('I\'m huntting wabbits');
+</code></pre>
+<p>Unlike when we imported specific functions we must qualify the functions we import using a wildcard. This may be useful when working with multiple modules as it may avoid name collisions.</p>
+<h3>Exporting a default function or class</h3>
+<p>We can also define a single function or class to export by adding the <code>default</code> keyworks to a class or function. In this example we export a <code>addTextToBody</code> as a default function.</p>
+<pre><code class="language-javascript">// utils.js
+export default function addTextToBody(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  document.body.appendChild(div);
+}
+</code></pre>
+<p>You can also use anonymous functions declarations when working with default exports, we can make addTextToBody and anonymous functon and use it as a default export.</p>
+<pre><code class="language-javascript">// utils.js
+export default function (text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  document.body.appendChild(div);
+}
+</code></pre>
+<p>When it comes time to import it, we give it a name and use the same syntax we used with multiple imports. The name of the function we’re importing is less important, because we’ve identified the default function we want to import.</p>
+<pre><code class="language-javascript">//------ main1.js ------
+import addText from 'utils.js';
+addText('hello');
+</code></pre>
+<p>We can do the same thing with classes. We declare a default export of an anonymous class.</p>
+<pre><code class="language-javascript">// utilsClass.js
+export default class { ··· } // no semicolon!
+</code></pre>
+<p>When it comes time to import the class we use the same syntax but we then initialize the class using a constant or variable, like shown below:</p>
+<pre><code class="language-javascript">//------ main2.js ------
+import MyClass from 'utilClass';
+const inst = new MyClass();
+</code></pre>
+<h3>Mix and match</h3>
+<p>You can also mix and match named and default exports. Doing this is perfectly legal:</p>
+<pre><code class="language-javascript">export default function addTextToBody(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  document.body.appendChild(div);
+}
+
+export function createHeader(text) {
+  const header = document.createElement('h1');
+  header.textContent = text;
+  document.body.appendChild(header);
+}
+</code></pre>
+<p>and then use the following import statement:</p>
+<pre><code class="language-javascript">import {default as addText, createHeader} from 'utils';
+
+// do work with the functions
+</code></pre>
+<p>It is advisable to only mix the different export strategies in a single module only when you have a good reason. They will make code harder to reason</p>
+<h2>Fallbacks for older browsers</h2>
+<p>The last concern when working with native module implementations is how to handle older browsers. Most modern browsers have repurposed the <code>type</code> attribute of the <code>script</code> element: If it’s value is <code>module</code> the JS engine will treat the content as a module with different rules than those for normal scripts.</p>
+<p>To target older browsers use the <code>nomodule</code> attribute.</p>
+<pre><code class="language-javascript">&lt;script type=&quot;module&quot; src=&quot;module.js&quot;&gt;&lt;/script&gt;
+&lt;script nomodule src=&quot;fallback.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>Differences between regular scripts and module scripts when used in the browsers (taken from <a href="http://exploringjs.com/es6/ch_modules.html#sec_overview-modules">exploring ES6</a>:</p>
+<table>
+  <thead>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Scripts</th>
+      <th>Modules</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTML element</td>
+      <td><code>&lt;script&gt;</code></td>
+      <td><code>&lt;script type="module"&gt;</code></td>
+    </tr>
+    <tr>
+      <td>Default mode</td>
+      <td>non-strict</td>
+      <td>strict</td>
+    </tr>
+    <tr>
+      <td>Top-level variables are</td>
+      <td>global</td>
+      <td>local to module</td>
+    </tr>
+    <tr>
+      <td>Value of <code>this</code> at top level</td>
+      <td><code>window</code></td>
+      <td><code>undefined</code></td>
+    </tr>
+    <tr>
+      <td>Executed</td>
+      <td>synchronously</td>
+      <td>asynchronously</td>
+    </tr>
+    <tr>
+      <td>Declarative imports (<code>import</code> statement)</td>
+      <td>no</td>
+      <td>yes</td>
+    </tr>
+    <tr>
+      <td>Programmatic imports (Promise-based API)</td>
+      <td>yes</td>
+      <td>yes</td>
+    </tr>
+    <tr>
+      <td>File extension</td>
+      <td><code>.js</code></td>
+      <td><code>.js</code></td>
+    </tr>
+  </tbody>
+</table>
+<h2>Things to consider</h2>
+<p><strong>Imports and exports must be at the top level</strong>. They must be at the top most level of your script, otherwise they’ll throw errors.</p>
+<p><strong>Imports are hoisted</strong> to the top of the script so it doesn’t matter where they are in the script and you can use an imported function before you actually import it.</p>
+<p><strong>Imports are read-only views on export</strong> meaning that you can’t change an imported function. If you need to change it make a local version of it and use it instead.</p>
+<p><strong>They only run once per page</strong> no matter how many times you load it.</p>
+<p><strong>Modules run on strict mode by default</strong>. There are several implications for this:</p>
+<ul>
+<li>Variables can’t be left undeclared</li>
+<li>Function parameters must have unique names (or are considered syntax errors)</li>
+<li>with is forbidden</li>
+<li>Errors are thrown on assignment to read-only properties</li>
+<li>Octal numbers like 00840 are syntax errors</li>
+<li>Attempts to delete undeletable properties throw an error
+delete prop is a syntax error, instead of assuming delete global[prop]</li>
+<li>eval doesn’t introduce new variables into its surrounding scope</li>
+<li>eval and arguments can’t be bound or assigned to</li>
+<li>arguments doesn’t magically track changes to method parameters</li>
+<li>arguments.callee throws a TypeError, no longer supported</li>
+<li>arguments.caller throws a TypeError, no longer supported</li>
+<li>Context passed as this in method invocations is not “boxed” (forced) into becoming an Object</li>
+<li>No longer able to use fn.caller and fn.arguments to access the JavaScript stack</li>
+<li>Reserved words (e.g protected, static, interface, etc) cannot be bound</li>
+</ul>
+<p><strong>Modules and script modules never block rendering</strong>. They always run as if the <code>defered</code> attribute was set in the calling script tag. The defer tag means that the script will execute after the content is downloaded but before the DOMContentLoaded event is fired.</p>
+<p><strong>Modules and inline (script) modules can use async attribute</strong> meaning that they can be made to load without blocking HTML rendering but it also means that you can no longer guarantee execution order. If the order your scripts run in is important rely on the defered attribute discussed earlier.</p>
+<p><strong>Must use a valid Javascript Mime Type or it will not execute</strong>. In this context, a valid Javascript Mime Type is one of those listed in the <a href="https://html.spec.whatwg.org/multipage/scripting.html#javascript-mime-type">HTML Standard</a>:</p>
+<ul>
+<li>application/ecmascript</li>
+<li>application/javascript</li>
+<li>application/x-ecmascript</li>
+<li>application/x-javascript</li>
+<li>text/ecmascript</li>
+<li>text/javascript</li>
+<li>text/javascript1.0</li>
+<li>text/javascript1.1</li>
+<li>text/javascript1.2</li>
+<li>text/javascript1.3</li>
+<li>text/javascript1.4</li>
+<li>text/javascript1.5</li>
+<li>text/jscript</li>
+<li>text/livescript</li>
+<li>text/x-ecmascript</li>
+<li>text/x-javascript</li>
+</ul>
+<h2>Performance may not be as good as we’d like.</h2>
+<p>Because module support in browser is new, it may not perform as well as bundled modules. Just as I was getting ready to publish this article I found a post on module performance versus bundled content.</p>
+<p>In <a href="https://sgom.es/posts/2017-06-30-ecmascript-module-loading-can-we-unbundle-yet/">Browser module loading - can we stop bundling yet?</a> Sérgio Gomes walks down how he tested performance of bundled versus unbundled modules. His results are interesting and worth trying to reproduce.</p>
+<p>I expect things will improve as browsers fix bug and improve performance. The best solution was/is/will continue to be to use HTTP2 and preload.</p>
+<h2>Links and resources</h2>
+<ul>
+<li><a href="https://jakearchibald.com/2017/es-modules-in-browsers/">https://jakearchibald.com/2017/es-modules-in-browsers/</a></li>
+<li><a href="https://medium.com/@samthor/es6-modules-in-chrome-canary-m60-ba588dfb8ab7">https://medium.com/@samthor/es6-modules-in-chrome-canary-m60-ba588dfb8ab7</a></li>
+<li><a href="http://2ality.com/2014/09/es6-modules-final.html">http://2ality.com/2014/09/es6-modules-final.html</a></li>
+<li><a href="https://ponyfoo.com/articles/es6-modules-in-depth">https://ponyfoo.com/articles/es6-modules-in-depth</a></li>
+<li><a href="https://sgom.es/posts/2017-06-30-ecmascript-module-loading-can-we-unbundle-yet/">Browser module loading - can we stop bundling yet?</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>
