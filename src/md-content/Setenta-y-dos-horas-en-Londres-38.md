@@ -1,10 +1,10 @@
+# Setenta y dos horas en Londres 38
+
+## Patricio Rivas
+
+>Sociólogo, Doctor en Filosofía de la Historia. Fue profesor de la Escuela de Gobierno de la Universidad de Chile y Coordinador General de la División de Cultura del Ministerio de Educación de Chile. Actualmente es el Coordinador del Área de Cultura del Convenio Andrés Bello. Premio Nacional de Ensayo de Chile.
 
 rev.estud.soc.  no.25 Bogotá Sep./Dec. 2006
-Setenta y dos horas en Londres 38
-
-Patricio Rivas
-
-Sociólogo, Doctor en Filosofía de la Historia. Fue profesor de la Escuela de Gobierno de la Universidad de Chile y Coordinador General de la División de Cultura del Ministerio de Educación de Chile. Actualmente es el Coordinador del Área de Cultura del Convenio Andrés Bello. Premio Nacional de Ensayo de Chile.
 
 RESUMEN
 
@@ -13,16 +13,6 @@ A partir de referencias directas con su pasado en Chile, durante los años de la
 PALABRAS CLAVE
 
 Chile, memoria, represión, militares, trauma.
-
-Seventy-two hours in London 38
-
-ABSTRACT
-
-Based on direct references to his past in Chile—during Pinochet’s dictatorship—the author presents a heart-rending testimony of the tortures and ill-treats he had to endure during the military repression.
-
-KEYWORDS
-
-Chile, memory, repression, militaries, trauma.
 
 Desde el primer momento entendí cómo era el mundo de los hombres del coronel Manuel Contreras. Fui arrojado al piso de una camioneta enlodada. Recibí golpes, patadas y puñetazos. El trayecto duró más de media hora; de vez en cuando sentía el ruido de los automóviles y las voces de personas que caminaban sin sospechar que a su lado circulaba una camioneta de la DINA. El vehículo ingresó por una estrecha calle de adoquines. Estaba en Londres 38. Me bajaron al interior de un zaguán, a tientas reconocí una mesa de escritorio donde se controlaba el acceso de los agentes. Preguntaron mi nombre y fecha de nacimiento, me sentaron en una silla de madera y fierro y me esposaron por la espalda. Una especie de coro infernal repletaba el recinto. Oía gritos en distintos tonos, desde distintas bocas, que se mezclaban con las órdenes de los agentes. Eran gritos de espanto que mordían el aire y que al terminar seguían vibrando en el espacio. No eran gritos de miedo, eran de soledad frente a lo incomprensible. Las voces de esos jóvenes quedaron ahí para siempre y luego la certidumbre de que no se esfumaron. Se les vio con sus rostros marchando por la Alameda, frente al palacio de La Moneda, un día del 2004 en que se recordó a los 119 asesinados en la Operación Colombo.
 

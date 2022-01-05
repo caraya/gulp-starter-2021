@@ -1,4 +1,4 @@
-# The web stack/platform
+# The web stack: Introduction
 
 Over the last 25 years, the web has evolved in ways that you couldn't have imagined.
 
@@ -30,7 +30,7 @@ The table below shows the evolution of the HTML standard and related technologie
 | [HTML 4.01](https://www.w3.org/TR/html401/) | 1999 | W3C |
 | [XHTML 1.0](https://www.w3.org/TR/xhtml1/) | 2000 | W3C |
 | [XHTML 1.1](https://www.w3.org/TR/xhtml11/) | 2001 | W3C |
-| [HTML](https://html.spec.whatwg.org/). **This is a living standard where new features are added regularly and browser makers work against this `draft`** version. | First released in 2008, updated regularly since | WHATWG |
+| [HTML](https://html.spec.whatwg.org/). **This is a living standard where new features are added regularly and browser makers work against this `standard` document**. | First released in 2008, updated regularly since | WHATWG |
 | XHTML 2.0.| Work started in 2002. <br/><br/>Abandoned in 2009 | W3C |
 | [HTML 5](https://dev.w3.org/html5/spec-LC/) | 2014 | W3C |
 | [HTML 5.1](https://www.w3.org/TR/2017/PR-html51-20170803/) | 2016 | W3C |
@@ -63,19 +63,19 @@ HTML version 2.0 was developed in 1995 with basic intention of improving HTML ve
 * [RFC 1980](https://datatracker.ietf.org/doc/html/rfc1980) (client-side image maps)
 * [RFC 2070](https://datatracker.ietf.org/doc/html/rfc2070) (internationalization)
 
-At this time where we have more than one (graphical) browser. Mosaic had been released in 1993 and Netscape was released by some of the same egineers in 1994.
+At this time where we have more than one (graphical) browser. Mosaic had been released in 1993, Netscape was released by some of the same egineers in 1994 and the initial version of Internet Explorer appeared in 1995.
 
 Mosaic is the grandfather of Internet Explorer. NSCA licensed the code from Spyglass and used it to build the original version of Internet Explorer although it wasn't long before all the code from Mosaic was removed from Internet Explorer and replaced with Microsoft written code.
 
-Because the different browsers had the goal of attracting people they introduced tags as they felt they were needed, regardless of whether there waas a standard or not. Most of these talks were introduced as messages in the `www-talk` mailing list.
+Because the different browsers had the goal of attracting people they introduced tags as they felt they were needed, regardless of whether there was a standard or not. Most of these tags were introduced as messages in the `www-talk` mailing list.
 
 Take, for example, this [message to www-talk](http://1997.webhistory.org/www.lists/www-talk.1993q1/0182.html) from Mark Andressen proposing the `img` tag and the different alternatives that were presented on that discussion thread.
 
-**There was no W3C or WHATWG at this time**. The specification was released as an set of IETF RFC Draft documents.
+**There was no W3C or WHATWG at this time**. The specification was released as an set of IETF RFC Draft documents following the IETF development process. We'll see the differences when the specifications come under the stewardship of the W3C and later the WHATWG.
 
 ### HTML 3.2
 
-It is arround this time that we geet the two browsers that were part of the original browser wars: Netscape and Internet Explorer. This will shape this era of language development.
+It is arround this time that we get the two browsers that were part of the original browser wars: Netscape and Internet Explorer. This will shape this era of language development.
 
 HTML 3.2 included styles as attributes of HTML elements. It was common to see things like this in HTML 3.2 documents:
 
@@ -100,7 +100,7 @@ Another area that is important to note is that both IE and Netscape introduced p
 
 Here are some examples of proprietary netscape tags added to the browser. None of these were part of any HTML specification.
 
-| Netscape proprietary | Description |
+| Netscape proprietary | Description / Use |
 | ------------------- | ----------- |
 | &lt;blink> | Causes text to blink on and off |
 | &lt;ilayer> | Inline layer; allows you to offset content from its natural position on the page |
@@ -113,7 +113,7 @@ Here are some examples of proprietary netscape tags added to the browser. None o
 
 Microsoft didn't stay behind and developed their own proprietary tags for Internet Explorer. These tags wouldn't work in other browsers and wouldn't be added to the HTML specification.
 
-| Internet Explorer proprietary | Description |
+| Internet Explorer proprietary | Description / Use |
 |----------------------- | ----------- |
 | &lt;marquee> | Places scrolling marquee text on the page |
 | &lt;basefont color=color face=font face> | Sets the color and/or font of the entire document when placed in the &lt;head> or for subsequent text when placed in the flow of the body text |
@@ -310,35 +310,35 @@ It introduced serveral new elements to the HTML vocabulary. Some of them are str
 
 | Tags (Elements) | Description |
 | --- | --- |
-| &lt;article> | Represents an independent piece of content  like a blog entry or newspaper article |
-| &lt;section> | Represents a generic document or application section |
-| &lt;aside> | Represents a piece of content that is only slightly related to the rest of the page |
-| &lt;header> | Represents a group of introductory or navigational aids |
-| &lt;hgroup> | Represents the header of a section |
-| &lt;footer> | Represents a footer for a section |
-| &lt;nav> | Represents a section of the document intended for navigation |
+| **&lt;article>** | Represents an independent piece of content  like a blog entry or newspaper article |
+| **&lt;section>** | Represents a generic document or application section |
+| **&lt;aside>** | Represents a piece of content that is only slightly related to the rest of the page |
+| **&lt;header>** | Represents a group of introductory or navigational aids |
+| **&lt;hgroup>** | Represents the header of a section |
+| **&lt;footer>** | Represents a footer for a section |
+| **&lt;nav>** | Represents a section of the document intended for navigation |
 
 Other tags provide mulitmedia features without requiring plugins:
 
 | Tags (Elements) | Description |
 | --- | --- |
-| &lt;audio> | Defines an audio file|
-| &lt;video> | Defines a video file |
-| &lt;canvas> | This is used for rendering dynamic bitmap graphics on the fly, such as graphs or games |
-| &lt;figure> | Represents a piece of self-contained flow content, typically referenced as a single unit from the main flow of the document |
+| **&lt;audio>** | Defines an audio file|
+| **&lt;video>** | Defines a video file |
+| **&lt;canvas>** | This is used for rendering dynamic bitmap graphics on the fly, such as graphs or games |
+| **&lt;figure>** | Represents a piece of self-contained flow content, typically referenced as a single unit from the main flow of the document |
 
 Other elements are presentational and deal with semantics for visual elements
 
 | Tags (Elements) | Description |
 | --- | --- |
-| &lt;command> | Represents a command the user can invoke |
-| &lt;datalist> | Together with the a new list attribute for input can be used to make comboboxes |
-| &lt;details> | Represents additional information or controls which the user can obtain on demand |
-| &lt;keygen> | Represents control for key pair generation |
-| &lt;mark> | Represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context |
-| &lt;meter> | Represents a measurement, such as disk usage |
+| **&lt;command>** | Represents a command the user can invoke |
+| **&lt;datalist>** | Together with the a new list attribute for input can be used to make comboboxes |
+| **&lt;details>** | Represents additional information or controls which the user can obtain on demand |
+| **&lt;keygen>** | Represents control for key pair generation |
+| **&lt;mark>** | Represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context |
+| **&lt;meter> **| Represents a measurement, such as disk usage |
 | &lt;output> | Represents some type of output, such as from a calculation done through scripting |
-| &lt;progress> | Represents a completion of a task, such as downloading or when performing a series of expensive operations |
+| **&lt;progress>** | Represents a completion of a task, such as downloading or when performing a series of expensive operations |
 | **&lt;ruby>** | Together with Colorful typography on the web: get ready for multicolor fonts and **&lt;rp>** allow for marking up ruby annotations used in Japanese and other East Asian languages |
 | **&lt;time>** | Represents a date and/or time |
 | **&lt;wbr>** | Represents a line break opportunity |
@@ -536,6 +536,122 @@ One of the biggest concerns about web components is accessibility. Because all c
 
 This means that whatever accessibility wins we get from built in elements are not available to custom elements... unless we put them back ourselves.
 
+#### Explicit and Implicit Roles in Web Components
+
+In HTML, you can define what an element is with a role (see: [the ARIA Roles Model](https://www.w3.org/TR/wai-aria-1.2/#role_definitions)). This helps give users and Assistive Technologies (AT) tools like screen readers, context on how to interact with the element.
+
+There are explicit roles that we can assign directly with the `role` attribute. In this example, the `<div>` has a `role=”alert”` attribute so AT know to read it immediately when it appears on the page.
+
+```html
+<div role="alert">
+  This is an alert!
+</div>
+```
+
+Some HTML elements have implicit roles (see: [complete list of implicit roles](https://www.w3.org/TR/html-aria/#document-conformance-requirements-for-use-of-aria-attributes-in-html)). These implicit roles tell the browser and AT that an element is already understood to have a role; `<ul>` is implied to have `role=”list”`, and `<li>` has `role=”listitem”`.
+
+Browsers and AT know how to announce these based the implicit roles and how they normally interpret the roles.
+
+```html
+<ul>  // implied role="list"
+  <li>content</li>  // implied role="listitem"
+</ul>
+```
+
+For this to work the elements with implicit roles must be the direct children of the correct parent element,mixing web components with traditional elements will not work.
+
+In this example the `<li>` element is not a direct child of `<ul>` but of `<custom-list-item>`, an element with an implicit role of presentation (meaning that there is no implicit role at all).
+
+```html
+<ul>                  // implied role="list"
+  <custom-list-item>  // implied role="presentation"
+    <li>content</li>  // Implied role="listitem"
+  </custom-list-item>
+</ul>
+```
+
+Because of the nesting, browsers will no longer recognize this as a list with a number of items. Instead, it sees a list whose children have no implicit or explicit role.
+
+To fix this, we need to add the explicit roles to the correct elements. In this example we assign the `listitem` role to the `<custom-list-item>` element.
+
+Now the browser and AT will know that this is a list with a given number of items.
+
+```html
+<div role="list">
+  <custom-list-item role="listitem">
+    content
+  </custom-list-item>
+  ...
+</div>
+```
+
+### Global HTML attributes and properties on custom elements
+
+Custom elements don't implement property and attribute behavior by default.
+
+Global HTML attributes or properties on custom element without a corresponding script will stay on the custom element unless otherwise specified.
+
+If the attribute is meant to be on the custom element, this is fine, but if the attribute needs to be passed to a child of the custom element makes things more complicated.
+
+While this is not the recommended way to pass information from parent to child, it is possible to do it with the following requirements:
+
+* A setter function that takes the value from the custom element and puts it on the correct element.
+* A getter function that returns the value from the correct element (not the one passed to the custom element)
+* A function that checks if the value is on the custom element and removes it so that the browser isn’t confused.
+
+This requires a lot of maintenance because we have to constantly monitor the web components to make sure there are no duplicate values between the web component and the child elements.
+
+## ID referencing + Shadow DOM
+
+Many ARIA-related HTML attributes (aria-labelledby, aria-describedby, aria-controls, etc.) use the ID of another element as a connector between the two. Developers also use DOM queries to set focus with document.getElementById.
+
+A shadow boundary, even if it’s open, makes referencing IDs from outside the component impossible because the web component’s DOM is separate from that of the page.
+
+Let’s say we have a `custom-input` component with a unique ID and try to associate it with a label in that label’s HTML for attribute, like this:
+
+```html
+<label for="my-input">City</label>
+<custom-input>
+  #shadow-root (open)
+    <input id="my-input" type="text" />
+</custom-input>
+```
+
+This code will not work because when it is rendered, the input is in a separate DOM tree from the label, which means the browser can no longer link them together.
+
+A first way to fix this is to place both elements that use the ID inside the component's shadow DOM. For this example, we move the label element inside the custom element so we can reference the input's ID from the label:
+
+```html
+<custom-input label="City">
+  #shadow-root (open)
+    <label for="my-input">City</label>
+    <input id="my-input" type="text" />
+</custom-input>
+```
+
+Another most surprising and problematic way to do it is to use slots. If your component has a slot inside the element's shadow DOM you can reference it, even if it appears to cross shadow boundaries because the content of the slot is outside the component's shadow root, even if the slot is within the shadow boundary.
+
+In the next component, the input element goes into a slot and the label outside stays outside the component.
+
+```html
+<label for="another-input">Country</label>
+<form-element-container>
+  <input id="another-input" type="text" slot="input-slot"/>
+</form-element-container>
+```
+
+The main drawback to the slots is that, since they are in the light DOM, all styles and JavaScript on the page will affect the content in the slots so we have to be careful on how we style our page and how we design our scripts for our pages and apps.
+
+### `tabindex=”-1”` and Custom Elements
+
+`tabindex=”-1”` is a great tool! It is used to make something focusable and clickable, but not in the tab order.
+
+Currently, if you put `tabindex=”-1”` on a custom element with shadow DOM enabled, it makes so you can not tab through any of its children. This is unexpected, since tabindex usually does not propagate, and makes it so only people using a mouse can click the elements.
+
+This limitation means we must be careful about what elements you put `tabindex=”-1”` on. Ideally `tabindex="-1"` should never be on the custom element itself.
+
+These are some examples of accessibility issues with web components. You should do detailed research on how will AT work with your custom elements and your page in general.
+
 # CSS
 
 Unlike HTML, CSS has changed drastically since its inception. It was not part of the original World Wide Web set of specifications, the first version of the CSS specification was released in 1996.
@@ -601,15 +717,15 @@ CSS 2:
 * Added cursors
 * Added capabilities to control content overflow, and clipping
 * Added the ability to position content in the page (absolute, fixed and relative)
-* Extended the (minimal) selector mechanism from CSS 1
+* Extended the selector mechanism from CSS 1
 
-Because CSS 2 expanded the capabilities of CSS, the specification is significantly larger.
+Because CSS 2 expanded the capabilities of CSS, the specification is significantly larger both in page count... CSS 2 clocked at around 650 printed pages and in terms of capabilities.
 
 ## CSS 3 and beyond?
 
-As good as CSS 1 and 2 were at the time they presented a difficult dilemma for browser makers: Features mature at different rates but because they are all part of one standard document they can't be considered complete until the full specification is deemed complete.
+As good as CSS 1 and 2 were at the time they presented a difficult dilemma for browser makers: Features mature at different rates but because they are all part of one standard document they can't be considered complete until the full specification is finished.
 
-Rather than one monolithic specification, the CSS working group decided that work on what would have been the CSS 3 specification would be broken down into modules. This would allow the different features to mature at their own pace and be published as specifications when they were ready rather than having to wait for the full specification to be completed.
+Rather than one monolithic specification, the CSS working group decided that work on what would have been the CSS 3 specification would be broken down into modules. This would allow the different features to mature at their own pace and be published as specifications when they were ready rather than having to wait for a full specification to be completed.
 
 The following modules have completed the specification process and are now recommendations from the W3C
 
@@ -649,9 +765,9 @@ The snapshots are updated annually.
 
 In order to become a recommendation, a CSS specification must have two inteopeable implementations.
 
-This requirement presents use with the issue of CSS speed of adoption.
+This requirement presents users with the problem of CSS speed of adoption.
 
-This issue can be taken from either a browser maker's perspective (how long does it take to implement a feature once it reaches candidate recommendation stage? Will all browsers implement the feature?) or from a developer's perspective (how long will it take for me to implement a feature that is available to browsers?).
+This issue can be taken from either a browser maker's perspective (how long does it take to implement a feature once it reaches candidate recommendation stage? Will all browsers implement the feature?) and from a developer's perspective (how long will it take for me to implement a feature that is available in all browsers?).
 
 The other question is what proportion of browsers support a given feature?
 
@@ -1406,9 +1522,13 @@ Mostly HTML/CSS/JavaScript app with a few high-performance WebAssembly modules (
 
 While you can do it, it is not always the best solution. Take, for example, [Squoosh](https://squoosh.app/) an image compression tool running on the web.
 
-Rather than building the full application in C or Rust or any language, they built the core of the application in Javascript and only used WebAssembly to create web versions of the codec libraries they use written in C/C++ and Rust.
+Rather than building the full application in C or Rust or any language, they built the core of the application using web technologies and only use WebAssembly to create web-accessible versions of the codec libraries written in C/C++ and Rust.
 
 That's where I see the heaviest use of WebAssembly: writing bottlenecks in your application whether they are performance or functionality related. We'll be able to integrate your favorite libraries, regardless of the language they are written in into your web applications.
+
+There are other examples of WebAssembly usage, like AutoCAD for the web, which is a part of the Autodesk software for the web and games ported from Unreal Engine and Unity... those are heavier examples of games written in C/C++ and C#.
+
+The possibilities are expanded from just the Javascript on the web to doing a lot more with whatever language you want to use and Javascript to glue them together and show it to the user.
 
 <!--
 # Moving the web forward
