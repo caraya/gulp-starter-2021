@@ -73,7 +73,7 @@ afterEach(async () => {
 });
 ```
 
-I've taken a smaller set of tests to illustrate some things I found particularly useful.
+I've taken a small set of tests to illustrate some things I found particularly useful.
 
 The first test checks the content of the page's heading using Playwright's [page.$eval](https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageselector) to query the document for one instace.
 
@@ -87,7 +87,7 @@ describe('[PLAYWRIGHT]: Blog Structure Tests', () => {
         (header) => header.innerText,
     );
     headerText.should.equal('The Publishing Project');
-  });
+  })
 ```
 
 This test will query the document for all articles that have a class with the word post in the attribute value.
@@ -99,9 +99,8 @@ The we test if the number of returned matches is five. The blog is coded to have
     const availableArticles = 'article[class*=post]';
     const articles = await page.$$(availableArticles);
 
-    articles.should.have.lengthOf('5');
+    articles.length.should.be.greaterThan('0');
   });
-});
 ```
 
 This test will check if the images on the page have an alt attribute by creating an array of all the images with `alt` attribute.
@@ -141,3 +140,35 @@ BROWSER=firefox mocha --timeout 10000
 ```
 
 and replace firefox with the browser you want to use (the options are: **Firefox**, **Chromium** and **WebKit**)
+
+The reason why I use Playwright is that it also allows me to emulate a browser to run more detailed tests than you can do with Mocha alone.
+
+For example, I can use Playwright to test the navigation of the site.
+
+This example will load the homepage and then click on the title of the first post on the page.
+
+The [locator](https://playwright.dev/docs/api/class-locator) class allows us to query the document to match specific criteria, the first argument will retrieve the first value (regardless of how many values the locator returns) and the click method will click on the element.
+
+```js
+  it('[Playwright]: Should render the first post', async() => {
+    const pageClick = await page.locator('article :first-child h2 a').first.click;    ;
+  })
+```
+
+We could use a similar technique to fill out forms with test data to see if they work or to test that the site's navigation works as expected.
+
+One final detail. The script we've written is setup to run in headless mode, meaning we don't get to see what the browser does. We can change that by changing the value of the headless attribute in the function attached to `beforeEach`. This way we get to see the browser in action.
+
+The new `beforeEach` declaration looks like this:
+
+```js
+// Runs this before each test
+beforeEach(async () => {
+  browser = await {chromium, webkit, firefox}[browserName].launch({
+    headless: false,
+  });
+  context = await browser.newContext();
+  page = await context.newPage(BASE_URL);
+  await page.goto(BASE_URL);
+});
+```

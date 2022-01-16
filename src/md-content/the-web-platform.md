@@ -336,7 +336,7 @@ Other elements are presentational and deal with semantics for visual elements
 | **&lt;details>** | Represents additional information or controls which the user can obtain on demand |
 | **&lt;keygen>** | Represents control for key pair generation |
 | **&lt;mark>** | Represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context |
-| **&lt;meter> **| Represents a measurement, such as disk usage |
+| **&lt;meter>**| Represents a measurement, such as disk usage |
 | &lt;output> | Represents some type of output, such as from a calculation done through scripting |
 | **&lt;progress>** | Represents a completion of a task, such as downloading or when performing a series of expensive operations |
 | **&lt;ruby>** | Together with Colorful typography on the web: get ready for multicolor fonts and **&lt;rp>** allow for marking up ruby annotations used in Japanese and other East Asian languages |
@@ -1542,42 +1542,6 @@ The possibilities are expanded from just the Javascript on the web to doing a lo
 ## What do we do when a browser drags us back?
 
 [Progress delayed is progress denied](https://infrequently.org/2021/04/progress-delayed/)
-
-# Web Design as Craft or Web Design as Assembly Line
-
-<div class="video">
-  <iframe width="100vw" height="315" src="https://www.youtube.com/embed/ZNpn7FBp_9U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
-
-<div class="video">
-  <iframe src="https://player.vimeo.com/video/56705945?h=2d77dee063&portrait=0" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-</div>
-
-[All Websites Look The Same](http://www.novolume.co.uk/blog/all-websites-look-the-same/)
-
-[In Defense of a Fussy Website](https://css-tricks.com/in-defense-of-a-fussy-website/)
-
-<iframe height="300" style="width: 100%;" scrolling="no" title="Compound grid generator" src="https://codepen.io/michellebarker/embed/zYOMYWv?default-tab=result&theme-id=dark" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
-  See the Pen <a href="https://codepen.io/michellebarker/pen/zYOMYWv">
-  Compound grid generator</a> by Michelle Barker (<a href="https://codepen.io/michellebarker">@michellebarker</a>)
-  on <a href="https://codepen.io">CodePen</a>.
-</iframe>
-
-[Inspired Design Decisions: Pressing Matters](https://www.smashingmagazine.com/2019/07/inspired-design-decisions-pressing-matters/)
-
-<https://www.smashingmagazine.com/author/andy-clarke/>
-
-<div class="video">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/eUeoLUjOUHw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
-
-<div class="video">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/OxrsO4aIjyc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
-
-# Why can't the web be like print?
-
-Ever since we've had a commercial web the talk has been "the web is not print" or a variation thereof
 
 # Performance
 
