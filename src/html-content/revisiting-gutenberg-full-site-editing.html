@@ -1,17 +1,111 @@
 <h1>Revisiting Gutenberg full site editing</h1>
-<p>Now that WordPress 5.9 is close to release, we can revisit the Gutenberg full site editing experience.</p>
-<p>I’m not a fan of full site editing just like I’m not completely sold on Gutenberg as an editor. But, since the market is moving in this direction, I believe that developers should be aware of Gutenberg and the FSE to make clients aware of the differences between the two approaches and provide guidance on the optimal approach to the client’s project.</p>
-<p>That said I’ve been reading and researching the latest improvements to the FSE experience and I’m not holding my breath on whether it’ll do what I would expect a page builder to do in a portable way.</p>
-<p>My biggest pet peeve is that Gutenberg changes the way in which we create themes and that’s not necessarily a good thing.</p>
-<!-- | Argument | Counter |
-| --- | --- |
-| Block-based themes will be lightweight and contain fewer files than the current WordPress themes. | Who gets to decide what files are necessary? How will these new non-PHP files affect the template hierarchy? Is the hierarchy even necessary? | There will be no customizer options as they will use the “Global Styling” and other Gutenberg features. | These features are not necessarily more intuitive to use and they will require more time to learn. How do I enqueue custom scripts and fonts for the site? |
-| No custom (bloated) header, footer, or blog archive layout builders, as that will be done via the FSE. | How will the FSE be used? How is this experience better than page builders? |
-| Minimal theme lock-in. This means you would be able to switch themes more easily than now because you may not be dependant on themes for header, footer, etc. | How so? Do I need to recreate the entire design when moving to a new theme? How do we tell FSE themes that a part of the page is the footer when moving from one theme to another? How much harder will it be to migrate my content from one theme to another? | -->
-<h2>Links and Resources</h2>
+<p>Now that WordPress 5.9 is close to release, we can revisit the Gutenberg full site editing experience since more of it will be baked into core rather than the Gutenberg plugin.</p>
+<p>I’m not a fan of full site editing just like I’m not completely sold on Gutenberg as an editor even after years. But, since the market is moving in this direction, I believe that developers should be aware of Gutenberg and the FSE to provide guidance on the optimal approach to the client’s project.</p>
+<p>I’ve been reading and researching the latest improvements to the FSE experience and I’m not certain if the current use cases have been thought through in Gutenberg.</p>
+<h1>Understanding the Full Site Editing experience</h1>
+<p>I’ve set up a brand new WordPress site to work with Gutenberg. I’ve documented previous work with Gutenberg in the blog posts below:</p>
 <ul>
-<li><a href="https://gutenbergtimes.com/full-site-editing/">https://gutenbergtimes.com/full-site-editing/</a></li>
-<li><a href="https://gutenbergtimes.com/wordcamp-europe-full-site-editing-panel-discussion/">https://gutenbergtimes.com/wordcamp-europe-full-site-editing-panel-discussion/</a></li>
-<li><a href="https://gutenbergtimes.com/so-you-want-to-talk-about-full-site-editing/">https://gutenbergtimes.com/so-you-want-to-talk-about-full-site-editing/</a></li>
-<li><a href="https://gutenbergtimes.com/video-full-site-editing-overview-with-anne-mccarthy/">https://gutenbergtimes.com/video-full-site-editing-overview-with-anne-mccarthy/</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-full-site-editing-and-block-based-themes/">Gutenberg full-site editing and Block-Based Themes</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/a-new-way-to-create-block-plugins/">A New Way to Create Block Plugins</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-a-step-forward-or-two-steps-back/">Gutenberg: A step forward or two steps back?</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-how-do-we-work-with-older-content/">Gutenberg: How do we work with older content?</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-random-thoughts-and-conclusions/">Gutenberg: Additional Thoughts and Conclusions</a></li>
+<li>Building Gutenberg blocks
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-1/">Part 1</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-2/">Part 2</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-3/">Part 3</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-4/">Part 4</a></li>
 </ul>
+</li>
+<li>Gutenberg as a design system
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-a-design-system-part-1/">Part 1</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-design-systems-part-2/">Part 2</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-design-systems-part-3/">Part 3</a></li>
+</ul>
+</li>
+</ul>
+<p>Linking to the above post means I don’t have to repeat myself in writing the content again. It also establishes a baseline for the content in this post.</p>
+<p>We assume that you can complete the following tasks:</p>
+<ul>
+<li>Build React-based Gutenberg blocks</li>
+<li>Pack Gutenberg blocks into a plugin</li>
+<li>Create style variations for a block</li>
+<li>Style blocks with CSS</li>
+<li>Create a theme.json global configuration file</li>
+</ul>
+<p>There are still some questions to ask. Having the answers would make moving to a Gutenberg-based theme easier:</p>
+<ul>
+<li>How can you load prism scripts and styles into a theme.json file?</li>
+<li>How do you include third party fonts and scripts into a gutenberg theme? is equeueing the font enoguh?</li>
+</ul>
+<h1>Creating blocks versus the current system: React versus PHP</h1>
+<p>React blocks are the core of Gutenberg, both the ones that are bundled with WordPress Core, those that are built by third party groups like StudioPress, and those that you build yourself as bespoke blocks that address your specific needs.</p>
+<p>That said,Gutenberg doesn’t fully eliminate the need for PHP. There are still places where PHP is necessary.</p>
+<p><strong>Block Filters</strong>
+: WordPress provides a series of <a href="https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/">filters</a> that can be used to modify the block before it is rendered.
+: Some fo the filters are written in PHP and the ones that appear not to be seem to be written in Javascript</p>
+<p><strong>Plugins</strong>
+: <a href="https://developer.wordpress.org/plugins/">plugins</a> are still the prefered way to package content for use in WordPress, whether it’s in Gutenberg or outside.
+: Writing plugins is not complicated but it’s not trivial either. It get more complicated if you plan to share the plugin in the <a href="http://WordPress.org">WordPress.org</a> repository as there are more rules to follow.</p>
+<p>That brings up what, to me, is the biggest problem with Gutenberg:</p>
+<blockquote>
+<p><strong>Not all WordPress developers are React developers, and they shouldn’t be</strong>.</p>
+</blockquote>
+<p>I understand that there are a tons of blocks available by default and that several theme framework makers like Elementor and Genesis have released block plugins. But just like with jQuery and any other framework, there is a time when your needs may grow beyond what’s available, or beyond the price you’re willing to pay, so you will have to build your own.</p>
+<p>A good starting point is the Node-based <a href="https://developer.wordpress.org/block-editor/reference-guides/packages/packages-create-block/">create-block</a> package. This tool will automate the creation of a basic block for you but that’s all it does, it’s still on you as the developer to create the block itsellf.</p>
+<p>There are some new things that replace techniques that we’ve taken for granted as WordPress developers but they mean that we have to move away from the PHP that we’ve used since the beginning and move to React</p>
+<h1>Query blocks</h1>
+<p>One interesting thing that we can do with WordPress is to create custom loops to modify the results we get from the database.</p>
+<pre><code class="language-php">&lt;?php
+$args = array( 
+  'posts_per_page' =&gt; 3, 
+  'post_type' =&gt; 'post', 
+  'post_status' =&gt; 'publish' 
+);
+
+$my_custom_query = new WP_Query( $args );
+
+// Custom Loop
+if( $my_custom_query-&gt;have_posts() ){
+  while( $my_custom_query-&gt;have_posts() ){
+    $my_custom_query-&gt;the_post();
+    // HTML structure of our post
+  }
+} else {
+    // Nothing matched the query
+}
+
+// Return to regular query loops
+wp_reset_postdata();
+</code></pre>
+<p>We can run multiple queries in the same page to get multiple streams in the same page.</p>
+<p>The <a href="https://wordpress.org/support/article/query-loop-block/">query loop block</a> provides equivalent functionality when working with Gutenberg</p>
+<p><a href="https://wptavern.com/understanding-the-query-block-and-its-importance-in-site-editing">Understanding the Query Block and Its Importance in Site Editing</a></p>
+<h1>Revisiting Block Patterns and Variations (or Gutenberg as a design system)</h1>
+<ul>
+<li>Gutenberg as a design system
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-a-design-system-part-1/">Part 1</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-design-systems-part-2/">Part 2</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-design-systems-part-3/">Part 3</a></li>
+</ul>
+</li>
+<li><a href="https://mkaz.blog/wordpress/using-block-patterns-as-content-templates/">Using Block Patterns as content templates</a></li>
+</ul>
+<h1>block.json as a block configuration point</h1>
+<p>If you will add your blocks to the WordPress block directory</p>
+<h1>theme.json as a central configuration point</h1>
+<p><a href="https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/">Global Settings &amp; Styles (theme.json)</a></p>
+<h1>Delivering Gutenberg themes to the client</h1>
+<p>There probably are ways to lock down blocks and templates. It’s just one more thing to learn beyond React and the basics of Gutenberg.</p>
+<h1>Conditionally loading block assets</h1>
+<ul>
+<li><a href="https://mkaz.blog/wordpress/conditionally-load-block-assets-part-3/">Conditionally Load Block Assets, Part 3</a></li>
+<li><a href="https://make.wordpress.org/core/2021/07/01/block-styles-loading-enhancements-in-wordpress-5-8/">Block-styles loading enhancements in WordPress 5.8</a></li>
+</ul>
+<h1>Building a Prism block</h1>
+<h1>Tools and utilities</h1>
+<h2>@wordpress/scripts</h2>
+<p><a href="https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/">@wordpress/scripts</a></p>

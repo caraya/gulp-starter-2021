@@ -64,7 +64,7 @@ afterEach(async () =&gt; {
   await browser.close();
 });
 </code></pre>
-<p>I’ve taken a smaller set of tests to illustrate some things I found particularly useful.</p>
+<p>I’ve taken a small set of tests to illustrate some things I found particularly useful.</p>
 <p>The first test checks the content of the page’s heading using Playwright’s <a href="https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageselector">page.$eval</a> to query the document for one instace.</p>
 <p>We then use Chai to test if the content of the header matches the title for the site.</p>
 <pre><code class="language-js">describe('[PLAYWRIGHT]: Blog Structure Tests', () =&gt; {
@@ -74,7 +74,7 @@ afterEach(async () =&gt; {
         (header) =&gt; header.innerText,
     );
     headerText.should.equal('The Publishing Project');
-  });
+  })
 </code></pre>
 <p>This test will query the document for all articles that have a class with the word post in the attribute value.</p>
 <p>The we test if the number of returned matches is five. The blog is coded to have five posts on the home page so anything else will fail.</p>
@@ -82,9 +82,8 @@ afterEach(async () =&gt; {
     const availableArticles = 'article[class*=post]';
     const articles = await page.$$(availableArticles);
 
-    articles.should.have.lengthOf('5');
+    articles.length.should.be.greaterThan('0');
   });
-});
 </code></pre>
 <p>This test will check if the images on the page have an alt attribute by creating an array of all the images with <code>alt</code> attribute.</p>
 <pre><code class="language-js">describe('[PLAYWRIGHT]: Basic Accessibility Tests', () =&gt; {
@@ -111,6 +110,27 @@ afterEach(async () =&gt; {
 <pre><code class="language-bash">BROWSER=firefox mocha --timeout 10000
 </code></pre>
 <p>and replace firefox with the browser you want to use (the options are: <strong>Firefox</strong>, <strong>Chromium</strong> and <strong>WebKit</strong>)</p>
+<p>The reason why I use Playwright is that it also allows me to emulate a browser to run more detailed tests than you can do with Mocha alone.</p>
+<p>For example, I can use Playwright to test the navigation of the site.</p>
+<p>This example will load the homepage and then click on the title of the first post on the page.</p>
+<p>The <a href="https://playwright.dev/docs/api/class-locator">locator</a> class allows us to query the document to match specific criteria, the first argument will retrieve the first value (regardless of how many values the locator returns) and the click method will click on the element.</p>
+<pre><code class="language-js">  it('[Playwright]: Should render the first post', async() =&gt; {
+    const pageClick = await page.locator('article :first-child h2 a').first.click;    ;
+  })
+</code></pre>
+<p>We could use a similar technique to fill out forms with test data to see if they work or to test that the site’s navigation works as expected.</p>
+<p>One final detail. The script we’ve written is setup to run in headless mode, meaning we don’t get to see what the browser does. We can change that by changing the value of the headless attribute in the function attached to <code>beforeEach</code>. This way we get to see the browser in action.</p>
+<p>The new <code>beforeEach</code> declaration looks like this:</p>
+<pre><code class="language-js">// Runs this before each test
+beforeEach(async () =&gt; {
+  browser = await {chromium, webkit, firefox}[browserName].launch({
+    headless: false,
+  });
+  context = await browser.newContext();
+  page = await context.newPage(BASE_URL);
+  await page.goto(BASE_URL);
+});
+</code></pre>
 
 </article>
 <!--
