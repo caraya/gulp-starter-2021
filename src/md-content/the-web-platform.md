@@ -77,7 +77,7 @@ Take, for example, this [message to www-talk](http://1997.webhistory.org/www.lis
 
 It is arround this time that we get the two browsers that were part of the original browser wars: Netscape and Internet Explorer. This will shape this era of language development.
 
-HTML 3.2 included styles as attributes of HTML elements. It was common to see things like this in HTML 3.2 documents:
+HTML 3.2 included styles as attributes of HTML elements. It was common to see things like this in HTML 3.2 documents, with attributes in the `body` element indicating different colors of background, text and links:
 
 ```html
 <body
@@ -92,9 +92,7 @@ HTML 3.2 included styles as attributes of HTML elements. It was common to see th
 </body>
 ```
 
-The body element would have attributes defining the different colors used on the page.
-
-All the attributes were optional, have default values defined in the browser's built-in stylesheet and have equivalents in CSS that will be fully introduced in future versions.
+All the attributes are optional, have default values defined in the browser's built-in stylesheet and have equivalents in CSS that will be fully introduced in future versions.
 
 Another area that is important to note is that both IE and Netscape introduced propriertary tags and features that would only work on those browsers.
 
@@ -1490,7 +1488,7 @@ The successor to NaCl was the Portable Native Client (PNaCl).
 >
 > 1. compiling the source code to a bitcode executable (pexe), and
 > 2. translating the bitcode to a host-specific executable as soon as the module loads in the browser but before any code execution.
-> 
+>
 > This portability aligns Native Client with existing open web technologies such as JavaScript. You can distribute a pexe as part of an application (along with HTML, CSS, and JavaScript), and the user’s machine is simply able to run it.
 >
 > Source: [NaCl and PNaCl](https://developer.chrome.com/docs/native-client/nacl-and-pnacl/)
@@ -1529,24 +1527,3 @@ That's where I see the heaviest use of WebAssembly: writing bottlenecks in your 
 There are other examples of WebAssembly usage, like AutoCAD for the web, which is a part of the Autodesk software for the web and games ported from Unreal Engine and Unity... those are heavier examples of games written in C/C++ and C#.
 
 The possibilities are expanded from just the Javascript on the web to doing a lot more with whatever language you want to use and Javascript to glue them together and show it to the user.
-
-<!--
-# Moving the web forward
-
-## Getting new toys to play with
-
-## Playing with what we have
-
-## Why neither of these approaches work and what is holding the web back?
-
-## What do we do when a browser drags us back?
-
-[Progress delayed is progress denied](https://infrequently.org/2021/04/progress-delayed/)
-
-# Performance
-
-# To DRM or not to DRM
-
-# Accessibility is a real concern
-
-[a11myths](https://a11ymyths.com/) -->
