@@ -1906,7 +1906,7 @@ At the most basic, the `wp:navigation` has a single attribute that links the men
 <!-- wp:navigation {"ref":295} /-->
 ```
 
-For more information on this feature please see the Navigation block support documentation on selecting an existing menu.
+The problem I've had is that I can't figure out how to build the navigation page so, until I figure out how to build the menu page, I've built a static menu with hardcoded links. The modified link looks like this:
 
 ```html
 <!-- wp:navigation {
@@ -1918,6 +1918,7 @@ For more information on this feature please see the Navigation block support doc
     "alignItems":"center"
     }
   } -->
+
   <!-- wp:navigation-link {
     "label":"About",
     "title":"about",
@@ -1962,66 +1963,4 @@ For more information on this feature please see the Navigation block support doc
 <!-- /wp:navigation -->
 ```
 
-[Make WordPress blog info on navigation block](https://make.wordpress.org/core/2022/01/07/the-new-navigation-block/)
-
-# Plugins versus themes for custom code
-
-Working with WordPress customizations always presents the question: Should they be packed in a plugin or should they be bundled with the theme they were built for?
-
-The following sections make this assumption: CPTs (Custom Post Types) in WordPress are data, they don't provide a design to make the data usable.
-
-## The case for plugins
-
-Building the customizations into a plugin makes them portable, they can be used regardless of what theme you're using and will still work if you switch themes.
-
-If you move to another theme you have some work to do to make the new CPTs work with your new theme. You have to make the theme design work with the data you get from the CPTs and figure out how you want to show that data to your users.
-
-## The case for themes
-
-Plugins only provide data, not the design that will make the data usable. From this perspective it would make more sense to add the CPTs to a theme and work directly with the theme.
-
-If a custom post type lives in a theme then it will only be available to that specific version of a theme and will not work with any other theme, you may lose data and the new version of your site will not look as intended.
-
-## The Gutenberg (Added) Complexity
-
-We should ask the  same questions we ask of CPTs should when we talk about Gutenberg custom blocks, patterns and variations. Are they tied to a theme or do we want them to be portable and reusable?
-
-## Which one to use?
-
-This is a case-by-case answer but most of the time, the amount of work styling items for your new theme will be far less that the ammount of work you will have to do to make the new CPTs work with a new theme so, unless there is a particular reason to do otherwise, I'd suggest bundling all custom functionality in a plugin.
-
-# Using classes to write plugins
-
-A diffrent solution to using prefixes to identify your code is to enclose the plugin functions in a class and call the class methods statically.
-
-Consider this example that contains a static `send` method of a class that sends email to specific people when publishing a post:
-
-```php
-<?php
-class emailer {
-  static function send($post_ID)  {
-    $friends = 'bob@example.org,susie@example.org';
-    mail($friends,"sally's blog updated",'Just updated my blog: http://blog.example.com');
-    return $post_ID;
-  }
-}
-
-add_action('publish_post', array('emailer', 'send'));
-```
-
-The class has a method send that implements the plugin functionality.
-
-The `add_action()` function outside of the class adds the action to WordPress that tells it to call the send method when a post is published. The array used in the second parameter tells the plugin system to call the static method of the class `emailer` named `send`.
-
-The function send is protected from the global namespace by the class declaration. It is not possible to call send() directly, and so any other function named send will not collide with this one. If you did want to call send(), you would need to use a scope resolution operator, like this: emailer::send()
-
-
-Gutenberg provides blocks 
-
-# Delivering Gutenberg themes to the client
-
-There probably are ways to lock down blocks and templates. It's just one more thing to learn beyond React and the basics of Gutenberg.
-
-# @wordpress/scripts
-
-[@wordpress/scripts](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/)
+The information available about the[navigation block](https://make.wordpress.org/core/2022/01/07/the-new-navigation-block/) doesn't cover how to build the navigation pages. Until I do then I'll have to keep the static link around, perhaps as a separate pattern.
