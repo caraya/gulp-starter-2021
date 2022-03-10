@@ -1,4 +1,153 @@
 <h1>Building a new toolset</h1>
-<ul>
-<li><a href="https://www.npmjs.com/package/commander">Commander</a></li>
-</ul>
+<p>I had first thought about adopting and modifying Kent C. Dodds <a href="https://www.npmjs.com/package/kcd-scripts">kcd-scripts</a> and hade made a first pass at it. But it broke when I made custom changes to acommodate my needs beyond the package tools.</p>
+<p>Rather than build something using CLI tools, the goal for this project is to modify <code>kcd-scripts</code> as I try to understand the code and what’s the best way to expand the package and remove functionality I don’t use in my projects.</p>
+<h2>Ideas for packages</h2>
+<p>These are the tools that I want to incorporate into my toolset.</p>
+<h3>WordPress related</h3>
+<p>These are the WordPress related tools that I want to incorporate into my toolset. While they can be run using <a href="https://www.npmjs.com/package/npx">npx</a> I prefer to run them locally.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description / Purpose</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/">@wordpress/env</a></td>
+<td>Set a local WordPress development environment for testing plugins and themes</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://www.npmjs.com/package/@wordpress/create-block">@wordpress/create-block</a></td>
+<td>Create plugins for Gutenberg blocks</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3>Tools</h3>
+<p>These are the tools that I want to include in the toolset. Some of these were part of kcd-scripts and some of them are my own</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://jestjs.io/">Jest</a></td>
+<td>A Javascript testing infrastructure</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://eslint.org/">Eslint</a></td>
+<td>Includes the <a href="https://github.com/google/eslint-config-google">ESLint shareable config</a> for the Google JavaScript style guide</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://babeljs.io/">Babel</a></td>
+<td>Javascript transpiler</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://prettier.io/">Prettier</a></td>
+<td>Code Formatter</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://postcss.org/">PostCSS</a></td>
+<td>CSS Pre Processor</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://sass-lang.com/">SASS/SCSS</a></td>
+<td>CSS Pre Processor</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://github.com/markdownlint/markdownlint#readme">Markdownlint</a></td>
+<td>Markdown Linter</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a></td>
+<td>Used by wp-env and other tools</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://playwright.dev">Playwright</a></td>
+<td>Cross Platform browser emulation tool.<br><br>Because it works with multiple browser, the download size for this tool may be prohibitive</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://www.typescriptlang.org/">Typescript</a></td>
+<td>If the project uses <a href="https://www.typescriptlang.org/">Typescript</a>, switch the configuration to use a Typescript configuration or build one from scratch</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://reactjs.org/">React</a></td>
+<td>If the project uses React or Preact, switch the configuration to use a React-based configuration or build one from scratch</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><a href="https://preactjs.com/">Preact</a></td>
+<td>If the project uses Preact or Preact, switch the configuration to use a React-based configuration or build one from scratch</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://www.npmjs.com/package/lint-staged">lint-staged</a></td>
+<td>Will create precommit hooks to run our code against before comitting. It will also install <a href="https://typicode.github.io/husky/#/">husky</a> to make working with precommit hooks easier</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2>Building the package</h2>
+<p>The first script that we’ll look at is the index script (<code>index.js</code>). This till check that we’re using a supported version of Node and then runs the script runner.</p>
+<p>The script runner script (<code>run-script</code>) will run the other parts of the package.</p>
+<p>It will parse flags and arguments and pass them to the script that we want to run.</p>
+<p>It will also account for issues in the cross-spawn library and will normalize paths between Unix-like systems and Windows.</p>
+<p>Once we have that in place we can look at individual scripts to run the tools we want.</p>
+<p>I will pick one tool as an example, most tools work the same.</p>
+<pre><code class="language-js">const path = require('path');
+const spawn = require('cross-spawn');
+const yargsParser = require('yargs-parser');
+const {resolveBin, hasFile} = require('../utils');
+</code></pre>
+<pre><code class="language-js">let args = process.argv.slice(2);
+const here = (p) =&gt; path.join(__dirname, p);
+const hereRelative = (p) =&gt; here(p).replace(process.cwd(), '.');
+const parsedArgs = yargsParser(args);
+</code></pre>
+<pre><code class="language-js">const useBuiltinConfig =
+  !args.includes('--config') &amp;&amp;
+  !hasFile('.markdownlint.json');
+
+const config = useBuiltinConfig ?
+  ['--config', hereRelative('../config/.markdownlint.json')] :
+  [];
+</code></pre>
+<pre><code class="language-js">const defaultExtensions = 'md,mdx,markdown';
+const ext = args.includes('--ext') ? [] : ['--ext', defaultExtensions];
+const extensions = (parsedArgs.ext || defaultExtensions).split(',');
+</code></pre>
+<pre><code class="language-js">const filesGiven = parsedArgs._.length &gt; 0;
+
+const filesToApply = filesGiven ? [] : ['.'];
+
+if (filesGiven) {
+  args = args.filter(
+      (a) =&gt; !parsedArgs._.includes(a) || extensions.some((e) =&gt; a.endsWith(e)),
+  );
+}
+
+const result = spawn.sync(
+    resolveBin('markdownlint'),
+    [...config, ...ext, ...args, ...filesToApply],
+    {stdio: 'inherit'},
+);
+
+process.exit(result.status);
+</code></pre>
