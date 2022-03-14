@@ -1,0 +1,291 @@
+<h1>building a database backed application in Node</h1>
+<p>A lot of times when I try a new front end technology or decide to work with a new framework, I need a backend to work with.</p>
+<p>For the longest time I’ve used a project databaase hosted locally but I’ve decided to use a different strategy and build a single REST API backed by a MongoDB database. With an API I can then concentrate on the front end and use an existing CRUD (Create, Read, Update, Delete) REST API.</p>
+<p>The following table shows the different parts of the proposed API:</p>
+<table>
+<thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>projects</td>
+<td>Get all projects</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>project</td>
+<td>Create a new project</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>project/:id</td>
+<td>Get a single project by its ID</td>
+</tr>
+<tr>
+<td>Patch</td>
+<td>project/:id</td>
+<td>Update a project</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>project/:id</td>
+<td>Delete a project indicated by its ID</td>
+</tr>
+</tbody>
+</table>
+<p>We will use
+<a href="https://expressjs.com/">Express</a> and <a href="https://mongoosejs.com/">Mongoose</a> to build the API and follow Rahman Fadhil’s <a href="https://rahmanfadhil.com/express-rest-api/">How to Build a REST API with Express and Mongoose</a>.</p>
+<p>The post is broken up in three sections:</p>
+<ul>
+<li>The server</li>
+<li>The model</li>
+<li>The routes</li>
+</ul>
+<p>We will also do a quick setup of the tools that we need to build the API.</p>
+<h2>Getting started</h2>
+<p>The project requires the following tools:</p>
+<ul>
+<li>Node.js</li>
+<li>MongoDB</li>
+<li>Postman</li>
+</ul>
+<h3>Install Node.js</h3>
+<p>My preferred way to install Node is to use <a href="https://github.com/nvm-sh/nvm">NVM</a>. It will let you install, run and update multiple versions of Node without manual interaction.</p>
+<p>Using wget, run the following command to install NVM:</p>
+<pre><code class="language-bash">wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+</code></pre>
+<p>Running the above command downloads a script and runs it. The script clones the nvm repository to <code>~/.nvm</code>, and attempts to add the startup code snippet to the correct profile file (<code>~/.bash_profile</code>, <code>~/.zshrc</code>, <code>~/.profile</code>, or <code>~/.bashrc</code>).</p>
+<p>If it doesn’t work, check the following <a href="https://github.com/nvm-sh/nvm#troubleshooting-on-macos">troubleshooting tips on macOS</a> and <a href="https://github.com/nvm-sh/nvm#troubleshooting-on-linux">troubleshooting tips on Linux</a> for more information.</p>
+<p>If successful you should be able to run the following command to check if there’s a version of Node up and running</p>
+<pre><code class="language-bash">node --version
+</code></pre>
+<p>You can then install the latest version of Node 16 and switch to using it:</p>
+<pre><code class="language-bash">nvm install 16
+nvm use 16
+</code></pre>
+<h3>Install MongoDB</h3>
+<p>We will use the latest version of MongoDB Community Edition Server running locally. We might revisit this later and move it to a managed MongoDB Atlas cluster.</p>
+<p>First we will install MongoDB Community Edition Server (MongoDB Community) using <a href="https://brew.sh/">Homebrew</a>.</p>
+<pre><code class="language-bash">brew install mongodb-community
+</code></pre>
+<p>And the start the server using the following command:</p>
+<pre><code class="language-bash">mongod --config /usr/local/etc/mongod.conf --fork
+</code></pre>
+<p>Note that this command will not run MongoDB as a service. You will have to start it manually every time</p>
+<h3>Install Postman</h3>
+<p>We will use <a href="https://www.postman.com/">Postman</a> to test our API.</p>
+<p>You can install Postman using the following command:</p>
+<pre><code class="language-bash">brew install --cask postman
+</code></pre>
+<p>You can also download it from the Postman wwebsite after you’ve created an account and logged in.</p>
+<h3>Initializing the project</h3>
+<p>Before we can start writing code, we need to prepare the Node.js environment. To do so run the following commands on your shell/terminal:</p>
+<pre><code class="language-bash">mkdir api-project
+cd api-project
+npm init --yes
+</code></pre>
+<p>Running <code>npm init --yes</code> will create a package.json file and set up the project with default information.</p>
+<h2>The server</h2>
+<p>The first portion of the project is the server, located in <code>index.js</code>.</p>
+<p>We first require and configure <a href="https://expressjs.com/">Express.js</a>.</p>
+<p>We use the <code>body-parser</code> to parse the body of the request, and the <code>json</code> module to parse JSON incoming requests.</p>
+<pre><code class="language-js">const express = require('express');
+const app = express();
+app.use(express.urlencoded({
+  extended: true,
+}));
+app.use(express.json());
+</code></pre>
+<p>We define the routes for the API and we use associate them with the <code>/api</code> endpoint.</p>
+<pre><code class="language-js">const routes = require('./routes/routes');
+app.use('/api', routes);
+</code></pre>
+<p>We require <code>dotenv</code> to store secrets and we then use a secret in <code>.env</code> to configure the database URL that we want to use.</p>
+<pre><code class="language-js">require('dotenv').config();
+const mongoString = process.env.LOCAL_DB_URL;
+</code></pre>
+<p>We require <code>mongoose</code> to perform database-related operations.</p>
+<p>We connect to the database using the <code>mongoString</code> string defined earlier and define a <code>mongoose.connection</code> string.</p>
+<p>We then define two events, one for errors where we log the error to the console.</p>
+<p>The second event is registered after we are connected to the database. We log the status of the connection to the console.</p>
+<pre><code class="language-js">const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+
+mongoose.connect(mongoString);
+const database = mongoose.connection;
+
+database.on('error', (error) =&gt; {
+  console.log(error);
+});
+
+database.once('connected', () =&gt; {
+  console.log('Database Connected');
+});
+</code></pre>
+<p>The final part of the server is to start the server by listening on port 3000.</p>
+<p>In the future we need</p>
+<pre><code class="language-js">app.listen(3000, () =&gt; {
+  console.log(`Server Started at ${3000}`);
+});
+</code></pre>
+<h2>The model</h2>
+<pre><code class="language-js">const mongoose = require('mongoose');
+const projectSchema = new mongoose.Schema({
+  name: {
+    required: true,
+    type: String,
+  },
+  stage: {
+    required: true,
+    type: String,
+  },
+  description: {
+    required: true,
+    type: String,
+  },
+  notes: {
+    required: false,
+    type: String,
+  },
+  type: {
+    required: false,
+    type: String,
+  },
+  codeURL: {
+    type: String,
+  },
+  otherURL: {
+    type: String,
+  },
+  writeupURL: {
+    type: String,
+  },
+},
+{
+  timestamps: true,
+});
+;
+
+module.exports = mongoose.model('Data', projectSchema);
+</code></pre>
+<h2>The HTTP verbs</h2>
+<pre><code class="language-js">const express = require('express');
+const router = express.Router();
+const Projects = require('../models/model');
+</code></pre>
+<h3>Get all projects</h3>
+<pre><code class="language-js">// Get all projects
+router.get('/projects', async (req, res) =&gt; {
+  // res.send('Get all projects');
+  const posts = await Projects.find();
+  res.send(posts);
+});
+</code></pre>
+<h3>Create a project</h3>
+<pre><code class="language-js">// Get one project by ID
+router.get('/project/:id', async (req, res) =&gt; {
+  try {
+    const project = await Projects.findOne({
+      _id: req.params.id,
+    });
+    res.send(project);
+  } catch {
+    res.status(404);
+    res.send({
+      error: 'Post doesn\'t exist!',
+    });
+  }
+});
+</code></pre>
+<h3>Get a project based on its ID</h3>
+<pre><code class="language-js">router.post('/project', async (req, res) =&gt; {
+  const data = new Projects({
+    name: req.body.name,
+    stage: req.body.stage,
+    description: req.body.description,
+    notes: req.body.notes,
+    type: req.body.type,
+    codeURL: req.body.codeURL,
+    otherURL: req.body.otherURL,
+    writeupURL: req.body.writeupURL,
+  });
+
+  try {
+    const dataToSave = await data.save();
+    res.status(200).json(dataToSave);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+</code></pre>
+<h3>Update a project</h3>
+<pre><code class="language-js">// Update (patch) a project
+router.patch('/project/:id', async (req, res) =&gt; {
+  try {
+    const project = await Projects.findOne({
+      _id: req.params.id,
+    });
+
+    if (req.body.name) {
+      project.name = req.body.name;
+    }
+
+    if (req.body.stage) {
+      project.stage = req.body.stage;
+    }
+
+    if (req.body.description) {
+      project.description = req.body.description;
+    }
+
+    if (req.body.notes) {
+      project.notes = req.body.notes;
+    }
+
+    if (req.body.type) {
+      project.type = req.body.type;
+    }
+
+    if (req.body.codeURL) {
+      project.codeURL = req.body.codeURL;
+    }
+
+    if (req.body.otherURL) {
+      project.otherURL = req.body.otherURL;
+    }
+
+    if (req.body.writeupURL) {
+      project.writeupURL = req.body.writeupURL;
+    }
+
+    await project.save();
+    res.send(project);
+  } catch {
+    res.status(404);
+    res.send({error: 'Post doesn\'t exist!'});
+  }
+});
+</code></pre>
+<p>See <a href="https://www.geeksforgeeks.org/difference-between-put-and-patch-request/">Difference Between PUT and PATCH Request</a></p>
+<h3>Delete a project</h3>
+<pre><code class="language-js">// Delete a project by its ID
+router.delete('/project/:id', async (req, res) =&gt; {
+  try {
+    const project = await Projects.findOneAndDelete({
+      _id: req.params.id,
+    });
+    res.send(project);
+  } catch {
+    res.status(404);
+    res.send({error: 'Post doesn\'t exist!'});
+  }
+});
+</code></pre>
+<h3>Exporting the router</h3>
+<pre><code class="language-js">module.exports = router;
+</code></pre>
