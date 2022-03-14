@@ -6,7 +6,19 @@ Part of my love/hate relationship with Rails is that I think it too opinionated 
 
 It made me think about the two opposite sides of the coin and which one is better, if you can make the comparison beyond personal preferences.
 
-[convention over configuration](https://rubyonrails.org/doctrine#convention-over-configuration) and [The menu is omakase](https://rubyonrails.org/doctrine#omakase) are two of the pillars of the Rails Doctrine that outlines how Rails works and why it works the way it does. They are illustrative of why an opinionated framework is better than a non-opinionated one.
+[convention over configuration](https://rubyonrails.org/doctrine#convention-over-configuration) and [The menu is omakase](https://rubyonrails.org/doctrine#omakase) are two of the pillars of the Rails Doctrine that outlines how Rails works and why it works the way it does. They are illustrative of why a community would offer opinionated setting and some of their drawbacks.
+
+Most of the time, we use the defaults Rails provide; from creating the application to generating models, views and controllers, to using the database, to using the framework. This works fine as long as we're ok with using these defaults.
+
+But what happens if you want to use MongoDB or PostgresSQL instead of the default SQLite datbase for development? How do you change the database you choose to use in production? 
+
+You have to edit your database configuration file and ensure that the proper adapter is installed before you can switch databases. You then have to run existing migrations to ensure that the database is in the correct state. And you're not sure how well will these other databases work with Rails, are you?
+
+The problem with having the chef tell you what you will eat is that it may be good or it may be awful, there is no real one-size-fits-all.
+
+Yes, people are building the same box, all Rails users share a common experience, and you can swap portions of Rails for other libraries but it's not intuitive and you're limited to the portions of the framework the community decided you can swap and how well they will work with the rest of rails.
+
+## Looking at the front end
 
 For individual projects, we are opinionated about the tools and the techniques we use to build our projects. That's only fair since we are the ones building the projects and we should be comfortable with the code we use and the code we write.
 
@@ -48,12 +60,18 @@ This is an alternative way to create headers in Markdown that I see in WordPress
 ###### Header 6 ######
 ```
 
-The same thing with bulleted lists. There are three different ways to create a bulleted list in Markdown.
+The same thing with bulleted lists. There are three different ways to create a bulleted list in Markdown. All three following examples are valid and represent the same item
 
 ```json
 + item 1
-- item 2
-* item 3
+```
+
+```json
+- item 1
+```
+
+```json
+* item 1
 ```
 
 Instead of just telling users how to write Markdown I chose to write a configuration file that will give users warning and errors when publishing Markdown. Yes, this is more painful than if we were to do it in an editor (and I may still do that) but it is more efficient as it doesn't require every developer to install the rules and configure the editor.
@@ -117,13 +135,3 @@ But do we do the same for our personal projects? Does it make sense to enforce t
 For me it does. I always use Google's ESLint plugin to lint and enforce code style choices
 
 At a higher level, opinionated tools may be good to have but they should always have a way to break the rules to suite the needs for your projects.
-
-Take [Ruby on Rails](https://rubyonrails.org/) as an example.
-
-Most of the time, we use the provided defaults; from creating the application to generating models, views and controllers, to using the database, to using the framework. This works fine as long as we're ok with using these defaults.
-
-But what happens if you want to use MongoDB or PostgresSQL instead of the default SQLite datbase for development? How do you change the database you choose to use in production?
-
-You have to edit your database configuration file and ensure that the proper adapter is installed before you can switch databases. You then have to run existing migrations to ensure that the database is in the correct state.
-
-We could keep going that the defaults are good for people who are experienced with the application but are not always good for people who are just getting started.

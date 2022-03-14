@@ -29,13 +29,14 @@ These are the tools that I want to include in the toolset. Some of these were pa
 | [Prettier](https://prettier.io/)| Code Formatter | &#9989; |
 | [PostCSS](https://postcss.org/) | CSS Pre Processor | |
 | [SASS/SCSS](https://sass-lang.com/) | CSS Pre Processor | |
-| [Markdownlint](https://github.com/markdownlint/markdownlint#readme) | Markdown Linter | &#9989; |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop) | Used by wp-env and other tools | |
-| [Playwright](https://playwright.dev) | Cross Platform browser emulation tool.<br><br>Because it works with multiple browser, the download size for this tool may be prohibitive | |
+| [Playwright](https://playwright.dev) | Cross Platform browser emulation tool useful for testing beyond what Jest provides | |
 | [Typescript](https://www.typescriptlang.org/) | If the project uses [Typescript](https://www.typescriptlang.org/), switch the configuration to use a Typescript configuration or build one from scratch | &#9989; |
 | [React](https://reactjs.org/) | If the project uses React or Preact, switch the configuration to use a React-based configuration or build one from scratch | &#9989; |
-| [Preact](https://preactjs.com/) | If the project uses Preact or Preact, switch the configuration to use a React-based configuration or build one from scratch | |
+| [Preact](https://preactjs.com/) | If the project uses Preact or Preact, switch the configuration to use a React-based configuration or build one from scratch | &#9989; |
 | [lint-staged](https://www.npmjs.com/package/lint-staged) | Will create precommit hooks to run our code against before comitting. It will also install [husky](https://typicode.github.io/husky/#/) to make working with precommit hooks easier | &#9989; |
+| Markdownlint | I could never get it to work reliably so I removed it from the toolset | &#10060; |
+
+I had included `markdownlint` in previous versions of the package but it would break and  I couldn't get it to work so I removed it for now.
 
 ## Building the package
 
