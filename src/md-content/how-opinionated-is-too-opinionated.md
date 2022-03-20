@@ -10,7 +10,7 @@ It made me think about the two opposite sides of the coin and which one is bette
 
 Most of the time, we use the defaults Rails provide; from creating the application to generating models, views and controllers, to using the database, to using the framework. This works fine as long as we're ok with using these defaults.
 
-But what happens if you want to use MongoDB or PostgresSQL instead of the default SQLite datbase for development? How do you change the database you choose to use in production? 
+But what happens if you want to use MongoDB or PostgresSQL instead of the default SQLite datbase for development? How do you change the database you choose to use in production?
 
 You have to edit your database configuration file and ensure that the proper adapter is installed before you can switch databases. You then have to run existing migrations to ensure that the database is in the correct state. And you're not sure how well will these other databases work with Rails, are you?
 
