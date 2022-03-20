@@ -147,12 +147,16 @@ database.once('connected', () =&gt; {
 });
 </code></pre>
 <p>The final part of the server is to start the server by listening on port 3000.</p>
-<p>In the future we need</p>
 <pre><code class="language-js">app.listen(3000, () =&gt; {
   console.log(`Server Started at ${3000}`);
 });
 </code></pre>
+<p>In the future we need to change the way we listen to the port by using <code>process.env.PORT</code> in addition to 3000.</p>
 <h2>The model</h2>
+<p>The model in Mongoose talk, is the schema for the objects we use in the database.</p>
+<p>This is the schema that we will use for the <code>projects</code> collection.</p>
+<p>The only special item in the schema is the <code>timestamps</code> property. The property will automatically add the <code>createdAt</code> and <code>updatedAt</code> properties to the objects it creates.</p>
+<p>If you notice, we don’t add an ID property to the schema. This is because MongoDB will automatically create an ID for us.</p>
 <pre><code class="language-js">const mongoose = require('mongoose');
 const projectSchema = new mongoose.Schema({
   name: {
@@ -193,11 +197,57 @@ const projectSchema = new mongoose.Schema({
 module.exports = mongoose.model('Data', projectSchema);
 </code></pre>
 <h2>The HTTP verbs</h2>
+<p>The final section includes the routes for the API. As a reminder, these are the tasks we want to create along with the associated HTTP verbs.</p>
+<table>
+<thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>projects</td>
+<td>Get all projects</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>project</td>
+<td>Create a new project</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>project/:id</td>
+<td>Get a single project by its ID</td>
+</tr>
+<tr>
+<td>Patch</td>
+<td>project/:id</td>
+<td>Update a project</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>project/:id</td>
+<td>Delete a project indicated by its ID</td>
+</tr>
+</tbody>
+</table>
+<p>With that in hand we first setup our <code>routes.js</code>by completing the following tasks.</p>
+<ol>
+<li>Require the <code>express</code> module</li>
+<li>Create a <code>Router</code> object</li>
+<li>Require the model we created earlier and assign it to the <code>Projects</code> variable</li>
+</ol>
+<p>We can now look at individual routes.</p>
 <pre><code class="language-js">const express = require('express');
 const router = express.Router();
 const Projects = require('../models/model');
 </code></pre>
 <h3>Get all projects</h3>
+<p>The first, and simplest route is to get all projects.</p>
+<p>While this is not strictly a part of the Projects CRUD structure it’s always a good idea to have a way to list all entries on the database.</p>
 <pre><code class="language-js">// Get all projects
 router.get('/projects', async (req, res) =&gt; {
   // res.send('Get all projects');
@@ -206,22 +256,11 @@ router.get('/projects', async (req, res) =&gt; {
 });
 </code></pre>
 <h3>Create a project</h3>
-<pre><code class="language-js">// Get one project by ID
-router.get('/project/:id', async (req, res) =&gt; {
-  try {
-    const project = await Projects.findOne({
-      _id: req.params.id,
-    });
-    res.send(project);
-  } catch {
-    res.status(404);
-    res.send({
-      error: 'Post doesn\'t exist!',
-    });
-  }
-});
-</code></pre>
-<h3>Get a project based on its ID</h3>
+<p>The first CRUD routen will create a new project (the <code>C</code> in CRUD). Note that we’re using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async functions</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await">await operators</a> to make the promise-based code more readable.</p>
+<p>We first capture the structor of the post in a variable to use later.</p>
+<p>We then run a try/catch block.</p>
+<p>The try statement attempts to save the data to the database and returns a 200 (OK) status</p>
+<p>The catch statement returns a status of 400 (Bad Request) and the error message.</p>
 <pre><code class="language-js">router.post('/project', async (req, res) =&gt; {
   const data = new Projects({
     name: req.body.name,
@@ -242,9 +281,36 @@ router.get('/project/:id', async (req, res) =&gt; {
   }
 });
 </code></pre>
+<h3>Get a project based on its ID</h3>
+<p>The next endpoint reads a single project using the ID as they key to retrieve it.</p>
+<p>We add the value of the <code>_id</code> attribute as part of the URL, something like:</p>
+<pre><code class="language-bash">http://localhost:3000/api/project/622ead24ab960455b613dee8
+</code></pre>
+<p>The route will take the ID for t he project and look for it in the database using MongoDB’s <a href="https://docs.mongodb.com/manual/reference/method/db.collection.findOne/">findOne</a> method.</p>
+<p>If the project is not found we set the status to 404 (not found) and return an error message to let the user know.</p>
+<pre><code class="language-js">router.get('/project/:id', async (req, res) =&gt; {
+  try {
+    const project = await Projects.findOne({
+      _id: req.params.id,
+    });
+    res.send(project);
+  } catch {
+    res.status(404);
+    res.send({
+      error: 'Post doesn\'t exist!',
+    });
+  }
+});
+</code></pre>
+<p>This presents the first problem. The IDs generated by MongoDB are long enough to prevent collisions and duplicate IDs but they are hard to remember and hard to type.</p>
+<p>Is thre a better way to handle this? For this proof of concept I choose to leave it as is. For more polished projects, I may want to generate separate IDs using UUID or similar tools.</p>
 <h3>Update a project</h3>
-<pre><code class="language-js">// Update (patch) a project
-router.patch('/project/:id', async (req, res) =&gt; {
+<p>There are two ways to update a project using HTTP. The one I chose uses the HTTP <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH">PATCH</a> verb to update only the items of the project that have changed. This is the <code>Update</code> part of CRUD.</p>
+<p>The code grabs a reference to the project by it’s ID and find the corresponding entry in the database.</p>
+<p>It then checks if individual fields exist in the request object, indicating that they were changed. If so then it adds the new value to the project.</p>
+<p>Once it has checked all the values and added the to the project, where appropriate, it saves the project to the database.</p>
+<p>If it can’t find the project it returns a 404 (not found) status and prints an error message.</p>
+<pre><code class="language-js">router.patch('/project/:id', async (req, res) =&gt; {
   try {
     const project = await Projects.findOne({
       _id: req.params.id,
@@ -290,8 +356,38 @@ router.patch('/project/:id', async (req, res) =&gt; {
   }
 });
 </code></pre>
-<p>See <a href="https://www.geeksforgeeks.org/difference-between-put-and-patch-request/">Difference Between PUT and PATCH Request</a></p>
+<p>The second way to update a project uses the HTTP <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT">PUT</a> verb to update the entire project on the database. As such it requires you to send the entire project as the updated body of the request.</p>
+<p>If the resource doesn’t exist in the database, a PUT request will create a new entry in the database for it.</p>
+<p>See this table, adapted from <a href="https://www.geeksforgeeks.org/difference-between-put-and-patch-request/">Difference Between PUT and PATCH Request</a>, for a comparison of the two methods</p>
+<table>
+<thead>
+<tr>
+<th>PUT</th>
+<th>PATCH</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PUT is a method of modifying resource where the client sends data that updates the entire resource.</td>
+<td>PATCH is a method of modifying resources where the client sends only the data that needs to be updated without modifying the entire data.</td>
+</tr>
+<tr>
+<td>In a PUT request, the client request that the stored version be replaced with the atached payload</td>
+<td>A PATCH request however, is a set of instructions describing how a resource currently residing on the origin server should be modified to produce a new version.</td>
+</tr>
+<tr>
+<td>HTTP PUT is idempotent, So if you send retry a request multiple times, that should be equivalent to a single request modification</td>
+<td>A PATCH is not necessarily idempotent, although it can be. If you send the multiple request to patch a the same resource the data will not change.</td>
+</tr>
+<tr>
+<td>If the resource doesn’t exist, PUT will create it. The body of a PUT request contains the entire resource.</td>
+<td>A PATCH request can be used to modify a resource that already exists. It will not create a new resource if it doesn’t exist</td>
+</tr>
+</tbody>
+</table>
 <h3>Delete a project</h3>
+<p>The final method is Delete. It uses the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE">DELETE</a> method to permanently remove a resource from the database.</p>
+<p>The route will take the ID for the project and look for it in the database. If it is found, then it is deleted.</p>
 <pre><code class="language-js">// Delete a project by its ID
 router.delete('/project/:id', async (req, res) =&gt; {
   try {
@@ -305,7 +401,9 @@ router.delete('/project/:id', async (req, res) =&gt; {
   }
 });
 </code></pre>
+<p>Be extremely careful when you use the DELETE method. It is a permanent action and can’t be undone.</p>
 <h3>Exporting the router</h3>
+<p>After you’re done defining the routes, export the router so that other scripts can use via <code>require</code>.</p>
 <pre><code class="language-js">module.exports = router;
 </code></pre>
 
