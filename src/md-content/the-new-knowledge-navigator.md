@@ -6,27 +6,22 @@ In the early to mid 1980's Apple released the video below as a demo for future c
   <iframe width="560" height="315" src="https://www.youtube.com/embed/umJsITGzXd0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 
-I thought it was cute but until newer technologies like digital assistants (alexa, google assistant, etc) came along, it wasn't really feasible to create such a tool.
+I thought it was cute but until newer technologies like digital assistants (Alexa, Google Assistant, etc) came along, it wasn't really feasible to create such a tool.
 
-While it may still not be possible to create an agent as effective as the navigator, we may be able to duplicate some of its functionality.
+While it may still not be possible to create an agent as effective as the navigator show in the video, we may be able to duplicate some of its functionality.
 
 Some of the areas that I want to take a deeper look at are:
 
 * Assistants like [Siri](https://www.apple.com/siri/), [Alexa](https://developer.amazon.com/en-US/alexa/alexa-skills-kit), or [Google Assistant](https://developers.google.com/assistant) to see if it's possible to use them as the base for the project
-* Speech synthesis using technologies like [WaveNet](https://arxiv.org/pdf/1609.03499.pdf), if it is possible to do so
+* Speech synthesis using technologies like [WaveNet](https://arxiv.org/pdf/1609.03499.pdf), if it is possible to do so or speech to text technologies
+* Creating a backend for the assistant to work from
 
-## Digital assistants
+## Working with a digital assistant
 
-Digital assistants work with the user to provide a conversational interface to fulfill the user's needs.
+Unless you're working on an Android application, you will have to build actions for the assistant to perform, rather than have to build a dedicated application, although an application may be the best solution in the long run.
 
-There are others but I will concentrate on Google Assistant, the one I'm most familiar with and the one I'm most excited about. We'll look at three areas:
+An example of how to build actions for Google Assistant is shown in [Actions SDK and Builder quick start guide](https://developers.google.com/assistant/conversational/quickstart).
 
-[Integrate with Google Assistant](https://developers.google.com/assistant) discusses how to integrate different types of content with Google Assistant.
+## Creating a backend for the navigator
 
-[App Actions overview](https://developers.google.com/assistant/app/overview) describes how to enhance your Android applications with Assistant's features.
-
-Perhaps the most intriguing part is [Enhance your web presence for Search and Assistant](https://developers.google.com/assistant/content/) where you can create a custom web experience for Google Assistant based on your web content marked up with [structured data](https://developers.google.com/structured-data/).
-
-## Designing actions for Google Assistant
-
-[Designing Actions on Google](https://developers.google.com/assistant/conversation-design/welcome) provides more details on how to create conversations and dialogue flows for the assistant.
+In [Enhance your web presence for Search and Assistant](https://developers.google.com/assistant/content/) where you can create a custom web experience for Google Assistant based on your web content marked up with [structured data](https://developers.google.com/structured-data/).
