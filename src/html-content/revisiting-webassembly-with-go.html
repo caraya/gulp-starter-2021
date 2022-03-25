@@ -1,3 +1,292 @@
 <h1>Revisiting WebAssembly with Go</h1>
 <p>It’s been a while since I’ve looked at WebAssembly and Go. Some things have changed since then and I want to document as I revisit them.</p>
 <p>Some of these changes deal with the evolution of Go as a programming language, some of them deal with Go’s support for Webassmebly, and some have dealt with the evolution of WebAssembly.</p>
+<h2>First project: Building a template</h2>
+<p>Before we start looking at specific projects, let’s look at what we need to do to compile Go to WebAssembly.</p>
+<p>The first step is to initialize the project from GO. We do this by running the following command:</p>
+<pre><code class="language-bash">go mod init go-project
+</code></pre>
+<p>The resulting go.mod will look like this:</p>
+<pre><code class="language-text">module go-project
+
+go 1.17
+</code></pre>
+<p>As we install more packages, they will be added to <code>go.mod</code> so that when people build and run our code they will be in sync with the packages the author used to write it.</p>
+<p><code>hello-world</code> is the simplest example we can write and run</p>
+<pre><code class="language-go">package main
+
+import (
+  &quot;fmt&quot;
+)
+
+func main() {
+  fmt.Println(&quot;Hello World from Go&quot;)
+}
+</code></pre>
+<p>The compilation itself is simple:</p>
+<pre><code class="language-bash">GOOS=js GOARCH=wasm go build -o main.wasm
+</code></pre>
+<p>This is similar to how we crosscompile Go to platforms other than the one we’re compiling on.</p>
+<p><code>GOOS</code> defines the target operating system. in this case we choose <code>js</code> which is the target OS for WebAssembly.</p>
+<p><code>GOARCH</code> defines the target architecture. The target for WebAssembly is <code>wasm</code>.</p>
+<p>We the two flags set, we rung go build to compile the code, we use the <code>-o</code> to specify the name of the output file, and we use the <code>.wasm</code> extension to indicate this is a WebAssembly file.</p>
+<p>The next part is to load the glue Javascript code into the browser.</p>
+<p><code>wasm_exec.js</code> is available with the Go installation. You need to copy it into the js directory of your project with the following command:</p>
+<pre><code class="language-bash">cp &quot;$(go env GOROOT)/misc/wasm/wasm_exec.js&quot; ./js
+</code></pre>
+<p>The Javascript is straight forward. I’m experimenting with <a href="https://fastify.io">fastify</a> to build a simple HTTP server. You could do it with <a href="https://expressjs.com/">Express</a> or any other framework of your choosing</p>
+<pre><code class="language-js">const fastify = require('fastify')({ logger: true })
+const path = require('path')
+
+// Serve the static assets
+fastify.register(require('fastify-static'), {
+  root: path.join(__dirname, ''),
+  prefix: '/'
+})
+
+const start = async () =&gt; {
+  try {
+    await fastify.listen(8080, &quot;0.0.0.0&quot;)
+
+    console.log(&quot;server listening on:&quot;, fastify.server.address().port
+    )
+} catch (error) {
+  fastify.log.error(error)
+  }
+}
+
+start()
+</code></pre>
+<p>The HTML portion of the project is where the magic happens. We will discuss the script inside the HTML document that will actually run the code.</p>
+<p>The code follows these steps:</p>
+<ol>
+<li>The <code>Go()</code> function provides the Go WASM runtime brought by <code>wasm_exec.js</code> (it handles all the binding between the wasm file and the JavaScript API)</li>
+<li><code>instantiateStreaming</code> allows to load the WebAssembly module from a streamed source.
+<ul>
+<li>This function takes two parameters: the “streamed” wasm file and an <code>importObject</code> (an object containing the values to be imported into the newly-created WebAssembly Instance)
+<ul>
+<li>The first parameter: <code>fetch(main.wasm)</code> directly streams the <code>main.wasm</code> module</li>
+<li>The Go Wasm runtime provides a ready to use importObject that we call with <code>go.importObject;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>If the WebAssembly module loads successfully, we run the instance using <code>go.run(result.instance)</code></li>
+<li>If the module fails to load we log the error to console</li>
+</ol>
+<pre><code class="language-js">const go = new Go() // 1
+
+WebAssembly.instantiateStreaming (fetch(&quot;main.wasm&quot;), go.importObject) // 2
+.then(result =&gt; {
+  console.log(&quot;main.wasm is loaded&quot;)
+  go.run(result.instance) // 3
+})
+.catch(error =&gt; {
+  console.log(&quot;ouch&quot;, error) // 4
+})
+</code></pre>
+<h2>Interacting with the browser DOM</h2>
+<p>One of the newer things I’ve learned about working with Go and WebAssembly is the ability to interact with the browser DOM.</p>
+<p>We do this by using the <a href="https://pkg.go.dev/syscall/js">syscall/js</a> package</p>
+<pre><code class="language-go">package main
+  import (
+    &quot;syscall/js&quot;
+  )
+
+  func main() {
+    message := &quot;Hello World from Go&quot;
+    document := js.Global().Get(&quot;document&quot;)
+    h2 := document.Call(&quot;createElement&quot;, &quot;h2&quot;)
+    h2.Set(&quot;innerHTML&quot;, message)
+    document.Get(&quot;body&quot;).Call(&quot;appendChild&quot;, h2)
+}
+</code></pre>
+<p>All the code from the previous section remains the same.</p>
+<h2>Having Go and Javascript talk to each other</h2>
+<p>Using the <a href="https://pkg.go.dev/syscall/js">syscall/js</a> package we can leverage the best language for a given task and then have them communicate with each other.</p>
+<h3>Calling a Go function from Javascript</h3>
+<p>Import the <code>syscall/js</code> package (this package allows the WebAssembly to access the host environment (the browser)).</p>
+<p>The Hello function takes two parameters (this and args) and returns an <code>interface{}</code> type.</p>
+<p>We retrieve the first argument passed to the Hello function from JavaScript.</p>
+<p>To export the Hello function to the global JavaScript context, we use the <code>FuncOf</code> Go method (<code>FuncOf</code> is used to create a Func type).</p>
+<pre><code class="language-go">package main
+
+import (
+  &quot;syscall/js&quot;
+)
+func Hello(this js.Value, args []js.Value) interface{} {
+  message := args[0].String()
+  return &quot;Hello &quot; + message
+}
+
+func main() {
+  js.Global().Set(&quot;Hello&quot;, js.FuncOf(Hello))
+}
+</code></pre>
+<p>We also need to update the script inside <code>index.html</code> to call the <code>Hello</code> function.</p>
+<pre><code class="language-js">function loadWasm(path) {
+  const go = new Go()
+  return new Promise((resolve, reject) =&gt; {
+    WebAssembly.instantiateStreaming(
+        fetch(path),
+        go.importObject
+      )
+      .then(result =&gt; {
+        go.run(result.instance)
+        resolve(result.instance)
+      })
+      .catch(error =&gt; {
+        reject(error)
+      })
+  })
+}
+
+loadWasm(&quot;main.wasm&quot;).then(wasm =&gt; {
+  let message = Hello(&quot;Bob Morane&quot;)
+  document.querySelector(&quot;h1&quot;).innerHTML = message
+}).catch(error =&gt; {
+  console.log(error)
+})
+</code></pre>
+<p>Once the wasm file is loaded and executed, we can call the Hello function.</p>
+<p>Change the value of the <code>&lt;h1&gt;&lt;/h1&gt;</code> tag with the result of the Hello function.</p>
+<h3>Calling a Javascript function from Go</h3>
+<p>The WebAssembly Go runtime converts the Go types to JavaScript types:</p>
+<table>
+<thead>
+<tr>
+<th>Go</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>js.Value</td>
+<td>[its value]</td>
+</tr>
+<tr>
+<td>js.Func</td>
+<td>function</td>
+</tr>
+<tr>
+<td>nil</td>
+<td>null</td>
+</tr>
+<tr>
+<td>bool</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>integers and floats</td>
+<td>number</td>
+</tr>
+<tr>
+<td>string</td>
+<td>string</td>
+</tr>
+<tr>
+<td>[]interface{}</td>
+<td>new array</td>
+</tr>
+<tr>
+<td>map[string]interface{}</td>
+<td>new object</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>syscall/js</code> package provides the functions to access the wasm environment and to the host. Thanks to this package, we can access the
+functions and variables of the JavaScript host (your browser).</p>
+<p>This example shows different things that you can do with the <code>syscall/js</code> package.</p>
+<ol>
+<li>Call the sayHello JavaScript function with a string as parameter (Bill)</li>
+<li>Get the value of the message JavaScript variable</li>
+<li>Change the value of the message JavaScript variable</li>
+<li>Get the bill JavaScript object</li>
+<li>Add 2 fields with values to the bill JavaScript object</li>
+<li><code>&lt;-make(chan bool)</code> tells the Go application that we don’t want to exit by using a <a href="https://gobyexample.com/channels">channel</a>
+<ul>
+<li>The channel waits for data and will pause the execution until it receives data.</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-go">package main
+import (
+  &quot;fmt&quot;
+  &quot;syscall/js&quot;
+)
+
+func main() {
+  // 1
+  fmt.Println(js.Global().Call(&quot;sayHello&quot;, &quot;Bill&quot;))
+
+  // 2
+  message := js.Global().Get(&quot;message&quot;).String()
+
+  fmt.Println(&quot;message (before):&quot;, message)
+  
+  // 3
+  js.Global().Set(&quot;message&quot;, &quot;Hello from Go&quot;)
+  
+  //4 
+  bill := js.Global().Get(&quot;bill&quot;)
+
+  fmt.Println(&quot;bill (before):&quot;, bill)
+
+  // 5
+  bill.Set(&quot;firstName&quot;, &quot;Bill&quot;) 
+  bill.Set(&quot;lastName&quot;, &quot;Ballantine&quot;)
+
+  // 6
+  &lt;-make(chan bool)
+}
+</code></pre>
+<p>We also need to change the script in <code>index.html</code>.</p>
+<p>We create Javascript functions and constants that will be used in conjunction with the Go code.</p>
+<p>The <code>loadWasm</code> function is used to load the Wasm file without having to write it every time.</p>
+<p>We then load the Wasm file, execute the code and call the functioons defined in Go.</p>
+<pre><code class="language-js">const message = &quot;this is a message&quot;
+
+function sayHello(name) {
+  return `Hello ${name}`
+}
+
+const bill = {
+  age: 42
+}
+
+function loadWasm(path) {
+  const go = new Go()
+  return new Promise((resolve, reject) =&gt; {
+    WebAssembly.instantiateStreaming(
+        fetch(path),
+        go.importObject
+      )
+      .then(result =&gt; {
+        go.run(result.instance)
+        resolve(result.instance)
+      })
+      .catch(error =&gt; {
+        reject(error)
+      })
+  })
+}
+
+// Load the wasm file
+loadWasm(&quot;main.wasm&quot;).then(wasm =&gt; {
+  console.log(&quot;message (after):&quot;, message)
+  console.log(&quot;bill (after):&quot;, bill)
+}).catch(error =&gt; {
+  console.log(&quot;ouch&quot;, error)
+})
+</code></pre>
+<p>So we can create Go code that provides functionality to Javascript applications and consumes data from Javascript.</p>
+<p>So what’s next?</p>
+<p>There are several things that we can explore from here. Some of them include</p>
+<ul>
+<li>Reduce the size of the Wasm binaries by using <a href="https://tinygo.org/">TinyGo</a> and understanding the tradeofs and limitations of the TinyGo subset of the language</li>
+<li>Using different abstraction layers like Wasmtime, Wasmedge and Wasmer, and WASI to create standalone applications that run WebAssembly
+<ul>
+<li>Take advantage of tools like <a href="https://github.com/suborbital/subo">subo</a>, part of the <a href="https://github.com/suborbital/subo">Suborbital</a> family of tools</li>
+</ul>
+</li>
+</ul>
