@@ -15,7 +15,6 @@ These are the WordPress related tools that I want to incorporate into my toolset
 | Tool | Description / Purpose | Status |
 | ---- | ----------- | ------ |
 | [@wordpress/env](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) | Set a local WordPress development environment for testing plugins and themes | &#9989;  |
-| [@wordpress/create-block](https://www.npmjs.com/package/@wordpress/create-block) | Create plugins for Gutenberg blocks | |
 
 ### Tools
 
@@ -27,16 +26,22 @@ These are the tools that I want to include in the toolset. Some of these were pa
 | [Eslint](https://eslint.org/) | Includes the [ESLint shareable config](https://github.com/google/eslint-config-google) for the Google JavaScript style guide | &#9989; |
 | [Babel](https://babeljs.io/) | Javascript transpiler | &#9989;|
 | [Prettier](https://prettier.io/)| Code Formatter | &#9989; |
-| [PostCSS](https://postcss.org/) | CSS Pre Processor | |
-| [SASS/SCSS](https://sass-lang.com/) | CSS Pre Processor | |
-| [Playwright](https://playwright.dev) | Cross Platform browser emulation tool useful for testing beyond what Jest provides | |
 | [Typescript](https://www.typescriptlang.org/) | If the project uses [Typescript](https://www.typescriptlang.org/), switch the configuration to use a Typescript configuration or build one from scratch | &#9989; |
 | [React](https://reactjs.org/) | If the project uses React or Preact, switch the configuration to use a React-based configuration or build one from scratch | &#9989; |
 | [Preact](https://preactjs.com/) | If the project uses Preact or Preact, switch the configuration to use a React-based configuration or build one from scratch | &#9989; |
 | [lint-staged](https://www.npmjs.com/package/lint-staged) | Will create precommit hooks to run our code against before comitting. It will also install [husky](https://typicode.github.io/husky/#/) to make working with precommit hooks easier | &#9989; |
-| Markdownlint | I could never get it to work reliably so I removed it from the toolset | &#10060; |
+| Markdownlint | I could never get it to work reliably so I removed it from the toolset | &#9989; |
 
-I had included `markdownlint` in previous versions of the package but it would break and  I couldn't get it to work so I removed it for now.
+Potential ideas
+
+These are some tools that I'm debating whether to include in the toolset or not.
+
+| Tool | Description | Status |
+| ---- | ----------- | ------ |
+| [@wordpress/create-block](https://www.npmjs.com/package/@wordpress/create-block) | Create plugins for Gutenberg blocks | |
+| [PostCSS](https://postcss.org/) | CSS Pre Processor | |
+| [SASS/SCSS](https://sass-lang.com/) | CSS Pre Processor | |
+| [Playwright](https://playwright.dev) | Cross Platform browser emulation tool useful for testing beyond what Jest provides | |
 
 ## Building the package
 
@@ -52,6 +57,8 @@ Once we have that in place we can look at individual scripts to run the tools we
 
 I will pick one tool as an example, most tools work the same.
 
+We first require the necessary Node modules and the functions from within out utils package.
+
 ```js
 const path = require('path');
 const spawn = require('cross-spawn');
@@ -59,12 +66,16 @@ const yargsParser = require('yargs-parser');
 const {resolveBin, hasFile} = require('../utils');
 ```
 
+We then parse the arguments and options.
+
 ```js
 let args = process.argv.slice(2);
 const here = (p) => path.join(__dirname, p);
 const hereRelative = (p) => here(p).replace(process.cwd(), '.');
 const parsedArgs = yargsParser(args);
 ```
+
+The next step is to check and build the configuration for the tool we're using. First, we check if we have a configuration flag (`--config`) and a configuration file (`.markdownlint.json`).
 
 ```js
 const useBuiltinConfig =

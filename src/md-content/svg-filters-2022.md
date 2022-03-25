@@ -1,7 +1,5 @@
 # SVG filters (2022 version)
 
-
-
 ## Links and Resources
 
 * [The Art Of SVG Filters And Why It Is Awesome](https://www.smashingmagazine.com/2015/05/why-the-svg-filter-is-awesome/)
