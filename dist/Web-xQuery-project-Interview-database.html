@@ -1,0 +1,247 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1>Web/xQuery project: Interview database</h1>
+<p>I’m starting to work with interviews. I would like to be able to get the audio transcribed to text and then store the text and the metadata about the interview in an no-sql/non-relational database that I can then query using either xQuery/NoSQL or SQL databases.</p>
+<p>The idea:</p>
+<div class="message info">
+  <p>Create a tool to automatically transcribe interviews and other audio files into an XML database. Then use xQuery to build the metadata for the interviews.</p>
+</div>
+<p>These are preliminary notes and ideas, where possible I will try to incorporate code to validate them but it won’t be perfect or possible to do everywhere.</p>
+<h2>Tooling and processes</h2>
+<h3>Speech to text options</h3>
+<table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Vendor</th>
+<th>Pricing URL</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://cloud.google.com/speech-to-text/">Google speech-to-text</a></td>
+<td>Google</td>
+<td><a href="https://cloud.google.com/speech-to-text/pricing">Pricing</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://www.microsoft.com/cognitive-services/en-us/speech-api">Microsoft speech-to-text</a></td>
+<td>Microsoft</td>
+<td><a href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-api/">Pricing</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://aws.amazon.com/transcribe/">Amazon Transcribe</a></td>
+<td>Amazon</td>
+<td><a href="https://aws.amazon.com/transcribe/pricing/">Pricing</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://github.com/mozilla/DeepSpeech">Deep Speech</a></td>
+<td>Mozilla</td>
+<td>Open Source</td>
+<td>Released under the <a href="https://www.mozilla.org/en-US/MPL/2.0/">Mozilla Public License 2.0</a><br/> <br/>Also see <a href="https://opensource.com/article/22/1/voice-text-mozilla-deepspeech">Use Mozilla DeepSpeech to enable speech to text in your application</a><br/> <br/>Python only, doesn’t appear to have a javascript or Node version or wrapper</td>
+</tr>
+</tbody>
+</table>
+<p>I realize t hat it wouldn’t be long before the APIs start incurring cost, but as an experiment either one of the APIs would work.</p>
+<h3>Identifying database options</h3>
+<p>The other area worth researching is whether xQuery is the right solution for this type of project. Other XML/noSQL databases are also a possibility.</p>
+<table>
+<thead>
+<tr>
+<th>Vendor</th>
+<th>Type</th>
+<th>License</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="http://exist-db.org/">eXist</a></td>
+<td>NoSQL</td>
+<td>Open Source</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://www.marklogic.com/">MarkLogic</a></td>
+<td>NoSQL</td>
+<td>Commercial</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://www.mongodb.com/">MongoDB</a></td>
+<td>NoSQL</td>
+<td>Varies</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://www.postgresql.org/">PostrgreSQL</a></td>
+<td>SQL</td>
+<td>Open Source</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Even if xQuery is the right solution, then what is the best server to work with and how do we store the data? How expensive is it to host such a development solution in the cloud (either on premise or in the cloud)?</p>
+<h3>Creating a JSON schema for the data</h3>
+<p><a href="https://json-schema.org/">JSON Schemas</a> allows us to create a schema for JSON-based data. This ensures two things:</p>
+<ul>
+<li>Provides a way to validate the data</li>
+<li>Ensures data completeness and accuracy</li>
+</ul>
+<p>I’ve validated the schema below using the <a href="https://www.jsonschemavalidator.net/">JSON Schema Validator</a></p>
+<h2>The Schema</h2>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;JSON schema for interviews&quot;,
+  &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+</code></pre>
+<pre><code class="language-json">  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;$schema&quot;: {
+      &quot;type&quot;: &quot;string&quot;
+    },
+    &quot;id&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Unique identifier for the block&quot;
+    },
+    &quot;title&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Title of the interview&quot;
+    },
+</code></pre>
+<pre><code class="language-json">    &quot;type&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Type of interview&quot;,
+      &quot;default&quot;: &quot;interview&quot;,
+      &quot;enum&quot;: [
+        &quot;interview&quot;,
+        &quot;interview-one-on-one&quot;,
+        &quot;interview-group&quot;,
+        &quot;interview-one-on-one-video&quot;,
+        &quot;interview-group-video&quot;,
+        &quot;interview-one-on-one-audio&quot;,
+        &quot;interview-group-audio&quot;
+      ]
+    },
+</code></pre>
+<pre><code class="language-json">    &quot;date&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Date of the interview&quot;,
+      &quot;format&quot;: &quot;date&quot;
+    },
+    &quot;location&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Location of the interview&quot;
+    },
+</code></pre>
+<pre><code class="language-json">    &quot;interviewers&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;Interviewer(s) of the interview&quot;,
+      &quot;minItems&quot;: 1,
+      &quot;maxItems&quot;: 5,
+      &quot;items&quot;: {
+        &quot;$ref&quot;: &quot;#/$defs/person&quot;
+      }
+    },
+    &quot;interviewees&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;Subject(s) of the interview&quot;,
+      &quot;minItems&quot;: 1,
+      &quot;maxItems&quot;: 5,
+      &quot;items&quot;: {
+        &quot;$ref&quot;: &quot;#/$defs/person&quot;
+      }
+    },
+</code></pre>
+<pre><code class="language-json">    &quot;audio&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;properties&quot;: {
+        &quot;format&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;description&quot;: &quot;Format of the audio&quot;
+        },
+        &quot;url&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;description&quot;: &quot;URL of the audio file&quot;
+        },
+        &quot;duration&quot;: {
+          &quot;type&quot;: &quot;number&quot;,
+          &quot;description&quot;: &quot;Duration of the audio file&quot;
+        }
+      },
+      &quot;required&quot;: [
+        &quot;format&quot;,
+        &quot;url&quot;,
+        &quot;duration&quot;
+      ]
+    },
+</code></pre>
+<pre><code class="language-json">    &quot;transcript&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;properties&quot;: {
+        &quot;url&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;description&quot;: &quot;URL of the transcript file&quot;
+        },
+        &quot;content&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;description&quot;: &quot;Content of the transcript file&quot;
+        }
+      },
+      &quot;required&quot;: [
+        &quot;url&quot;,
+        &quot;content&quot;
+      ]
+    }
+  },
+  &quot;$defs&quot;: {
+    &quot;person&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;properties&quot;: {
+        &quot;name&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;description&quot;: &quot;Name of the person&quot;
+        },
+        &quot;email&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;description&quot;: &quot;Email of the person&quot;
+        }
+      },
+      &quot;required&quot;: [
+        &quot;name&quot;
+      ]
+    }
+  }
+}
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
