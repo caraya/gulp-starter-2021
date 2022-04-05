@@ -8,4 +8,7 @@ There are three ways to do this:
 
 [MDN](https://developer.mozilla.org/) goes a step further than Caniuse, it also provides additional information about the property, how it works and the specification that the property belongs to.
 
-[MDN browser compatibility data](https://www.npmjs.com/package/@mdn/browser-compat-data)
+Both Caniuse and MDN require you to have a browser open on the right site and actively search for the property or API you're looking for.
+
+MDN also provides its [browser compatibility data](https://www.npmjs.com/package/@mdn/browser-compat-data) as an NPM package that you can use as the database for your own project or as a standalone library to query MDN browser compatibility data.
+
