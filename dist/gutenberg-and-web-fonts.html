@@ -18,33 +18,84 @@
 <body>
 <article class="container">
   <h1>Gutenberg and web fonts</h1>
+<div class="message warning">
+  <h3>Note:</h3>
+  <p>This is another example of expectation management when working with Gutenberg and the full site editor.</p>
+  <p>As currently implemented in the Gutenberg plugin, the API will only work with the Full Site Editor... it will not allow you to use the fonts you defined in <code>theme.json</code> to change the fonts for content inside the templates.</p>
+  <p>I am still researching if it's possible to change the font for inline elements inside blocks or specific blocks in a page.</p>
+</div>
+<p>Gutenberg 12.8 introduced the web fonts API intro the Gutenberg plugin to give theme creators and customizers the ability to use web fonts in their themes.</p>
+<p>It does so by introducing the <code>fontFace</code> property in the <code>typography</code> object. This is similar to how you define <code>@font-face</code> in CSS.</p>
+<p>The <code>@font-face</code> attributes that I’ve seen used most often are:</p>
+<p><code>&quot;fontFamily&quot;</code>
+: The stack we will use for the font, including any fallback options.</p>
+<p><code>&quot;fontWeight&quot;</code>
+: One or two numbers indicating the numeric weight of the font.
+: If one number is used then it represents the absolute value of the font weight (for example 700)
+: If two numbers are used they represent the range of acceptable values of the font-weight attribute. This is commonly used in <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide">variable fonts</a>
+: The values used in the two number value are font dependent. Not all fonts have the same ranges</p>
+<p><code>&quot;fontStyle&quot;</code>
+: Either <code>italic</code> or <code>normal</code> to indicate if the font is italics or not.
+: If the font makes available a <code>slnt</code> custom axis then you can use code like this: <code>oblique 14deg</code> and change the degree angle to what works with your font
+: Some fonts may use custom axes for italics including <code>slnt</code>. Those are not covered in the <code>@font-face</code> CSS attribute or the <code>fontFace</code> attribute we’re discussing here.</p>
+<p><code>&quot;fontStretch&quot;</code>
+: The property uses single keyword value or a single percentage value
+: Numerical values are limited to 50% to 200% (inclusive). <strong>Negative values are not allowed</strong>
+: If you use a keyword value then the following values are allowed: <code>ultra-condensed</code>, <code>extra-condensed</code>, <code>condensed</code>, <code>semi-condensed</code> <code>normal</code>, <code>semi-expanded</code>, <code>expanded</code>, <code>extra-expanded</code>, <code>ultra-expanded</code>
+: It also allows for the <code>normal</code> value for the property</p>
+<p><code>&quot;src&quot;</code>
+: Gives the source to the file relative to the <code>theme.json</code> file and wrapped as a JSON object.
+: You can use any font format supported by your target browsers but see performance notes below</p>
 <pre><code class="language-json">{
-  &quot;settings&quot;: {
-    &quot;typography&quot;: {
-        &quot;fontFamilies&quot;: [{
-          &quot;fontFamily&quot;: &quot;\&quot;Cabin\&quot;, sans-serif&quot;,
-          &quot;slug&quot;: &quot;primary&quot;,
-          &quot;name&quot;: &quot;Primary&quot;,
-          &quot;fontFace&quot;: [{
-            &quot;fontFamily&quot;: &quot;Cabin&quot;,
-            &quot;fontWeight&quot;: &quot;400 700&quot;,
-            &quot;fontStyle&quot;: &quot;normal&quot;,
-            &quot;src&quot;: [ &quot;file:./public/fonts/cabin/Cabin-VariableFont_wdth,wght.ttf&quot; ]
-            },
-            {
-              &quot;fontFamily&quot;: &quot;Cabin&quot;,
-              &quot;fontWeight&quot;: &quot;400 700&quot;,
-              &quot;fontStyle&quot;: &quot;italic&quot;,
-              &quot;src&quot;: [ &quot;file:./public/fonts/cabin/Cabin-Italic-VariableFont_wdth,wght.ttf&quot; ]
-            }
+  &quot;typography&quot;: {
+  &quot;fontFamilies&quot;: [
+    {
+      &quot;fontFamily&quot;: &quot;-apple-system,BlinkMacSystemFont,\&quot;Segoe UI\&quot;,Roboto,Oxygen-Sans,Ubuntu,Cantarell,\&quot;Helvetica Neue\&quot;,sans-serif&quot;,
+      &quot;slug&quot;: &quot;system-fonts&quot;,
+      &quot;name&quot;: &quot;System Fonts&quot;
+    },
+    {
+      &quot;fontFamily&quot;: &quot;Geneva, Tahoma, Verdana, sans-serif&quot;,
+      &quot;slug&quot;: &quot;geneva-verdana&quot;
+    },
+    {
+      &quot;fontFamily&quot;: &quot;Cambria, Georgia, serif&quot;,
+      &quot;slug&quot;: &quot;cambria-georgia&quot;
+    },
+    {
+      &quot;fontFamily&quot;: &quot;Recursive, sans-serif&quot;,
+      &quot;name&quot;: &quot;Recursive&quot;,
+      &quot;slug&quot;: &quot;recursive&quot;,
+      &quot;fontFace&quot;: [
+        {
+          &quot;fontFamily&quot;: &quot;Recursive&quot;,
+          &quot;fontWeight&quot;: &quot;300 1000&quot;,
+          &quot;fontStyle&quot;: &quot;normal&quot;,
+          &quot;fontStretch&quot;: &quot;normal&quot;,
+          &quot;fontDisplay&quot;: &quot;swap&quot;,
+          &quot;src&quot;: [
+            &quot;file:./assets/fonts/recursive-latin-subset.woff2&quot;
           ]
         }
       ]
     }
-  }
+  ],
 }
 </code></pre>
-<p><a href="https://wptavern.com/the-wordpress-web-fonts-api-has-arrived">https://wptavern.com/the-wordpress-web-fonts-api-has-arrived</a></p>
+<h2>Performance Notes</h2>
+<p>These notes cover some basic aspects of web fonts, particularly format and size reduction.</p>
+<h3>What formats to use?</h3>
+<p>The four most used formats for fonts are:</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/TrueType">TTF</a> (True Type Fonts)</li>
+<li><a href="https://en.wikipedia.org/wiki/OpenType">OTF</a> (Open Type Fonts)</li>
+<li><a href="https://www.w3.org/TR/WOFF/">WOFF</a> (Web Open Font Format 1.0)</li>
+<li><a href="https://www.w3.org/TR/WOFF2/">WOFF2</a> (Web Open Font Format 2.0)</li>
+</ul>
+<p>The decision will depend on what browsers your users have on their devices. Most modern browsers support WOFF2, which is smaller than the other alternatives</p>
+<h3>subset your fonts</h3>
+<p>You can further reduce the site by subsetting a WOFF2 font. While the gains may be marginal, it may still be a good idea to do so.</p>
+<p>I’ve documented the font compression and subsetting process in <a href="https://publishing-project.rivendellweb.net/?p=803748">Font formats for the web and converting from one to another</a></p>
 
 </article>
 <!--
