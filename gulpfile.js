@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable quotes */
-/* eslint-disable indent */
+
 
 'use strict';
 // Require Gulp first
@@ -41,16 +41,18 @@ const newer = require('gulp-newer');
 const markdownPlugin = require('gulp-markdown-it');
 
 // load the plugins
-// const abbr = require("markdown-it-abbr");
-// const anc = require("markdown-it-anchor");
-// const attrs = require("markdown-it-attrs");
-// const embed = require("markdown-it-block-embed");
-// const fn = require("markdown-it-footnote");
-// const figs = require("markdown-it-implicit-figures");
-// const kbd = require("markdown-it-kbd");
-// const prism = require("markdown-it-prism");
-// const toc = require("markdown-it-table-of-contents");
-// const list = require("markdown-it-task-lists");
+const abbr = require("markdown-it-abbr");
+const alerts = require("markdown-it-alerts");
+const anc = require("markdown-it-anchor");
+const attrs = require("markdown-it-attrs");
+const embed = require("markdown-it-block-embed");
+const fn = require("markdown-it-footnote");
+const figs = require("markdown-it-implicit-figures");
+const kbd = require("markdown-it-kbd");
+const mermaid = require("markdown-it-mermaid");
+const prism = require("markdown-it-prism");
+const toc = require("markdown-it-table-of-contents");
+const list = require("markdown-it-task-lists");
 
 // explicitly require eslint
 const eslintPlugin = require('gulp-eslint');
@@ -78,11 +80,25 @@ function markdown() {
       linkify: true,
       typographer: true,
     },
+    plugins: [
+      abbr,
+      alerts,
+      anc,
+      attrs,
+      embed,
+      fn,
+      figs,
+      kbd,
+      mermaid,
+      prism,
+      toc,
+      list,
+    ],
   };
   return gulp
-    .src('src/md-content/*.md')
-    .pipe(markdownPlugin(config))
-    .pipe(gulp.dest('src/html-content/'));
+      .src('src/md-content/*.md')
+      .pipe(markdownPlugin(config))
+      .pipe(gulp.dest('src/html-content/'));
 };
 
 /**
@@ -93,11 +109,11 @@ function markdown() {
  */
 function buildTemplate(done) {
   gulp.src('./src/html-content/*.html')
-    .pipe($.wrap({
-      src: './src/templates/template.html',
-    }))
-    .pipe(gulp.dest('./dist'));
-    done();
+      .pipe($.wrap({
+        src: './src/templates/template.html',
+      }))
+      .pipe(gulp.dest('./dist'));
+  done();
 };
 
 // ------------
@@ -112,10 +128,10 @@ function buildTemplate(done) {
  */
 function buildPMTemplate(done) {
   gulp.src('./src/html-content/*.html')
-    .pipe($.wrap({
-      src: './src/templates/template-pm.html',
-    }))
-    .pipe(gulp.dest('./src/pm-content'));
+      .pipe($.wrap({
+        src: './src/templates/template-pm.html',
+      }))
+      .pipe(gulp.dest('./src/pm-content'));
   done();
 };
 
@@ -135,9 +151,9 @@ function buildPDF() {
     stdout: true, // default = true, false means don't write stdout
   };
   return gulp.src('./src/pm-content/*.html')
-    .pipe(newer('src/pdf/'))
-    .pipe($.exec((file) => `prince --verbose --input=html --javascript --style src/css/article-styles.css ${file.path}`, options))
-    .pipe($.exec.reporter(reportOptions));
+      .pipe(newer('src/pdf/'))
+      .pipe($.exec((file) => `prince --verbose --input=html --javascript --style src/css/article-styles.css ${file.path}`, options))
+      .pipe($.exec.reporter(reportOptions));
 };
 
 /**
@@ -152,11 +168,11 @@ function copyPDF(done) {
     dot: true,
     base: 'src/pm-content',
   })
-    .pipe(gulp.dest('dist/pdf'))
-    .pipe($.size({
-      pretty: true,
-      title: 'copy',
-    }));
+      .pipe(gulp.dest('dist/pdf'))
+      .pipe($.size({
+        pretty: true,
+        title: 'copy',
+      }));
   done();
 };
 
@@ -176,10 +192,10 @@ function copyPDF(done) {
  */
 function sass() {
   return gulp.src('src/sass/**/*.{scss,sass}')
-  .pipe($.sourcemaps.init())
-  .pipe(sassProc.sync({outputStyle: 'expanded'}))
-  .pipe($.sourcemaps.write('./maps'))
-  .pipe(gulp.dest('src/css'));
+      .pipe($.sourcemaps.init())
+      .pipe(sassProc.sync({outputStyle: 'expanded'}))
+      .pipe($.sourcemaps.write('./maps'))
+      .pipe(gulp.dest('src/css'));
 };
 
 /**
@@ -198,11 +214,11 @@ function processCSS() {
     autoprefixer(),
   ];
   return gulp
-    .src('src/css/**/*.css')
-    .pipe($.sourcemaps.init())
-    .pipe(postcss(PROCESSORS))
-    .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('./dist/css'));
+      .src('src/css/**/*.css')
+      .pipe($.sourcemaps.init())
+      .pipe(postcss(PROCESSORS))
+      .pipe($.sourcemaps.write('.'))
+      .pipe(gulp.dest('./dist/css'));
 };
 
 /**
@@ -213,15 +229,15 @@ function processCSS() {
  */
 function uncss() {
   return gulp.src('src/css/**/*.css')
-    .pipe($.concat('main.css'))
-    .pipe($.uncss({
-      html: ['index.html'],
-    }))
-    .pipe(gulp.dest('css/main.css'))
-    .pipe($.size({
-      pretty: true,
-      title: 'Uncss',
-    }));
+      .pipe($.concat('main.css'))
+      .pipe($.uncss({
+        html: ['index.html'],
+      }))
+      .pipe(gulp.dest('css/main.css'))
+      .pipe($.size({
+        pretty: true,
+        title: 'Uncss',
+      }));
 };
 
 /**
@@ -231,29 +247,29 @@ function uncss() {
  */
 function critical() {
   return gulp.src('src/*.html')
-    .pipe(criticalPlugin({
-      base: 'src/',
-      inline: true,
-      css: ['src/css/main.css'],
-      minify: true,
-      extract: false,
-      ignore: ['font-face'],
-      dimensions: [{
-        width: 320,
-        height: 480,
-      }, {
-        width: 768,
-        height: 1024,
-      }, {
-        width: 1280,
-        height: 960,
-      }],
-    }))
-    .pipe($.size({
-      pretty: true,
-      title: 'Critical',
-    }))
-    .pipe(gulp.dest('dist'));
+      .pipe(criticalPlugin({
+        base: 'src/',
+        inline: true,
+        css: ['src/css/main.css'],
+        minify: true,
+        extract: false,
+        ignore: ['font-face'],
+        dimensions: [{
+          width: 320,
+          height: 480,
+        }, {
+          width: 768,
+          height: 1024,
+        }, {
+          width: 1280,
+          height: 960,
+        }],
+      }))
+      .pipe($.size({
+        pretty: true,
+        title: 'Critical',
+      }))
+      .pipe(gulp.dest('dist'));
 };
 
 // ------------
@@ -272,18 +288,18 @@ function critical() {
  */
 function babel() {
   return gulp.src('src/js/**/*.js')
-    .pipe($.sourcemaps.init())
-    .pipe($.babel({
-      presets: [
-        "@babel/preset-modules",
-      ],
-    }))
-    .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('./dist/scripts'))
-    .pipe($.size({
-      pretty: true,
-      title: 'Babel',
-    }));
+      .pipe($.sourcemaps.init())
+      .pipe($.babel({
+        presets: [
+          "@babel/preset-modules",
+        ],
+      }))
+      .pipe($.sourcemaps.write('.'))
+      .pipe(gulp.dest('./dist/scripts'))
+      .pipe($.size({
+        pretty: true,
+        title: 'Babel',
+      }));
 };
 
 /**
@@ -295,9 +311,9 @@ function eslint() {
   return gulp.src([
     'scr/scripts/**/*.js',
   ])
-    .pipe(eslintPlugin())
-    .pipe(eslintPlugin.format('checkstyle'))
-    .pipe(eslintPlugin.failAfterError());
+      .pipe(eslintPlugin())
+      .pipe(eslintPlugin.format('checkstyle'))
+      .pipe(eslintPlugin.failAfterError());
 };
 
 /**
@@ -312,7 +328,7 @@ function eslint() {
 function jsdoc() {
   const config = require('./jsdocConfig.json');
   return gulp.src(['README.md', 'gulpfile.js'])
-    .pipe($.jsdoc3(config));
+      .pipe($.jsdoc3(config));
 };
 
 // ------------
@@ -329,19 +345,19 @@ function jsdoc() {
 */
 function imageResize() {
   return gulp.src('src/original-images/**/*.{jpg, jpeg, png, webp, avif}')
-  .pipe(
-    squoosh((src) => ({
-      preprocessOptions: {
-        resize: {
-          enabled: true,
-          // Using only the width will preserve aspect ratio
-          width: Math.round(src.width / 2),
-          // height: Math.round(src.height / 2),
-        },
-      },
-    })),
-  )
-  .pipe(gulp.dest('src/original-images/'));
+      .pipe(
+          squoosh((src) => ({
+            preprocessOptions: {
+              resize: {
+                enabled: true,
+                // Using only the width will preserve aspect ratio
+                width: Math.round(src.width / 2),
+                // height: Math.round(src.height / 2),
+              },
+            },
+          })),
+      )
+      .pipe(gulp.dest('src/original-images/'));
 };
 
 /**
@@ -439,13 +455,13 @@ function copyLocalJS() {
  * @description copies third-party JS into distribution directory
  * @return {void}
  */
- function copyVendorJS() {
+function copyVendorJS() {
   return gulp.src([
     "./src/scripts/vendor/clipboard.min.js",
     "./src/scripts/vendor/fontfaceobserver.js",
     "./src/scripts/vendor/prism.js",
   ])
-  .pipe(gulp.dest('dist/scripts/vendor'));
+      .pipe(gulp.dest('dist/scripts/vendor'));
 }
 
 /**
@@ -498,51 +514,51 @@ function serve() {
 // ------------
 
 const pdfBuild = gulp.series(
-  markdown,
-  buildPMTemplate,
-  buildPDF,
-  copyPDF,
+    markdown,
+    buildPMTemplate,
+    buildPDF,
+    copyPDF,
 );
 
 const htmlBuild = gulp.series(
-  markdown,
-  buildTemplate,
+    markdown,
+    buildTemplate,
 );
 
 const fullCSS = gulp.series(
-  sass,
-  processCSS,
-  copyCSS,
+    sass,
+    processCSS,
+    copyCSS,
 );
 
 const processJS = gulp.series(
-  babel,
-  copyLocalJS,
-  copyVendorJS,
+    babel,
+    copyLocalJS,
+    copyVendorJS,
 );
 
 const processImages = gulp.series(
-  imageResize,
-  imageCompress,
+    imageResize,
+    imageCompress,
 );
 
 const copyAll = gulp.parallel(
-  copyFonts,
-  copyCSS,
-  copyLocalJS,
-  copyVendorJS,
+    copyFonts,
+    copyCSS,
+    copyLocalJS,
+    copyVendorJS,
 );
 
 // ------------
 // Default Task Definition
 // ------------
 const defaultTask = gulp.series(
-  clean,
-  htmlBuild,
-  fullCSS,
-  imageCompress,
-  babel,
-  copyAll,
+    clean,
+    htmlBuild,
+    fullCSS,
+    imageCompress,
+    babel,
+    copyAll,
 );
 
 // ------------
