@@ -155,7 +155,7 @@
 </code></pre>
 <p>It is expected that the number will increase as new features are introduced or features from the Gutenberg plugin are integrated to WordPress core.</p>
 <p>If the default version value changes, your theme won’t break, the items in the new version will not be available and you will need to update the theme.json file and figure out if any existing part of the file needs to be changed.</p>
-<h3>settings</h3>
+<h3>presets / settings</h3>
 <p>The <code>theme.json</code> file provides a canonical way to define the settings of the block editor. These settings includes things like:</p>
 <ul>
 <li>The customization options that will be available or hidden from the user</li>
@@ -258,8 +258,6 @@
 <li><code>Rebecca Purple</code> is written as a CSS <a href="https://www.w3.org/TR/css-color-4/#named-colors">named color</a></li>
 <li><code>Very Dark Grey</code> is written using an <a href="https://www.w3.org/TR/css-color-4/#rgb-functions">RGB</a> function that indicate the percentage of red, green and blue in the color</li>
 </ul>
-<p><strong>IMPORTANT: Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.</strong></p>
-<p><strong>This is also important from a cultural standpoint. Not everyone using your site may understand your use of green or any other color the way you do.</strong></p>
 <pre><code class="language-json">    &quot;palette&quot;: [
       {
         &quot;slug&quot;: &quot;strong-magenta&quot;,
@@ -279,7 +277,15 @@
     ]
   },
 </code></pre>
+<hr />
+<p><strong>IMPORTANT:</strong></p>
+<ul>
+<li><strong>Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.</strong></li>
+<li><strong>This is also important from a cultural standpoint. Not everyone using your site may understand your use of green or any other color the way you do.</strong></li>
+</ul>
+<hr />
 <p>The <code>Layout</code> object defines the width of the default and wide layouts in the editor.</p>
+<p>The <code>wideSize</code> attribute defines the value of the wide layout that you can configure in the editor’s UI</p>
 <pre><code class="language-json">  &quot;layout&quot;: {
     &quot;contentSize&quot;: &quot;800px&quot;,
     &quot;wideSize&quot;: &quot;1000px&quot;
@@ -507,8 +513,10 @@ Any values declared within the custom field will be transformed to CSS Custom Pr
 <p>When you see the name of the variable value, it’s made of several parts:</p>
 <ul>
 <li><code>--wp</code> as the prefix used to differentiate the WordPress generated CSS from other CSS you may use on your theme</li>
-<li><code>--preset</code> indicates the type of variable that you’re creating</li>
-<li><code>--color--primary</code> shows the name of the item and the subtype of the resource you’re using.</li>
+<li><code>--preset</code> indicates the type of variable that you’re creating
+. in this care <code>preset</code></li>
+<li><code>--color</code> indicates which preset category the variable belongs to</li>
+<li><code>--primary</code> shows the name of the item and the subtype of the resource you’re using.</li>
 </ul>
 <pre><code class="language-json">&quot;styles&quot;: {
   &quot;color&quot;: {
@@ -524,7 +532,15 @@ Any values declared within the custom field will be transformed to CSS Custom Pr
 </code></pre>
 <p>For more information about the CSS Cascade and how it works see <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_and_inheritance">Cascade and inheritance</a></p>
 <h4>Block level styles</h4>
-<p>The next set of style rules applies to blocks, both core blocks and custom blocks you create yourself.</p>
+<p>{{ NOTE TO SELF: RESEARCH IF THIS WORKS FOR CUSTOM BLOCKS TOO OR ONLY CORE BLOCKS. HAVEN’T FOUND INFORMATION ABOUT THIS WORKING WITH CUSTOM BLOCKS YET }}</p>
+<p>The next set of style rules applies to blocks.</p>
+<p>The structure of the block level styles is made of two parts:</p>
+<ul>
+<li>The full qualified name of the block that the styles apply to</li>
+<li>A block of one or more styles to apply</li>
+</ul>
+<p>When we talk about fully qualified name, we use the prefix that we defined in the name property of the block <strong>and</strong> the slug of the block.</p>
+<p>For blocks built into Gutenberg, the fully qualified name is <code>core</code> + <code>name</code>, like <code>core/paragraph</code> or <code>core/block</code> as shown in the examples below.</p>
 <pre><code class="language-json">&quot;styles&quot;: {
   &quot;blocks&quot;: {
     &quot;core/paragraph&quot;: {
@@ -536,21 +552,12 @@ Any values declared within the custom field will be transformed to CSS Custom Pr
       &quot;color&quot;: {
         &quot;text&quot;: &quot;var(--wp--preset--color--tertiary)&quot;
       }
-    },
-    &quot;example/custom-block&quot;: {
-      &quot;color&quot;: {
-        &quot;text&quot;: &quot;var(--wp--preset--color--teal)&quot;
-      }
     }
   }
 }
 </code></pre>
-<p>The core/paragraph opts out from the default behaviour and uses p as a selector.</p>
-<pre><code class="language-css">body {
-  color: var( --wp--preset--color--primary );
-}
-
-p { 
+<p>The previous JSON will producce the following CSS:</p>
+<pre><code class="language-css">p { 
   color: var( --wp--preset--color--secondary );
 }
 
@@ -558,19 +565,55 @@ p {
   color: var( --wp--preset--color--tertiary );
 }
 </code></pre>
+<p>The CSS classes WordPress generates for each block are prefixed with <code>wp-block-</code> and the slug of the block.</p>
+<p>The <code>core/paragraph</code> block opts out from the default behaviour and uses p as a selector.</p>
 <h4>Element styles</h4>
-<p>In addition to top-level and block-level styles, there’s the concept of elements that can used in both places. There’s a closed set of them:</p>
-<ul>
-<li>link: maps to the a CSS selector.</li>
-<li>h1: maps to the h1 CSS selector.</li>
-<li>h2: maps to the h2 CSS selector.</li>
-<li>h3: maps to the h3 CSS selector.</li>
-<li>h4: maps to the h4 CSS selector.</li>
-<li>h5: maps to the h5 CSS selector.</li>
-<li>h6: maps to the h6 CSS selector.</li>
-</ul>
+<p>{{ NOTE TO SELF: RESEARCH IF THE CLOSED SET MENTIONED IN DOCS AND LISTED BELOW IS CORRECT OR IF WE CAN USE OTHER ELEMENTS }}</p>
+<p>In addition to top-level and block-level styles, there’s a set of preconfigured elements that can used in both places. The set of available elements and what they map to in CSS:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">element in theme.json</th>
+<th style="text-align:center">CSS Selector Equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">link</td>
+<td style="text-align:center">a</td>
+</tr>
+<tr>
+<td style="text-align:center">h1</td>
+<td style="text-align:center">h1</td>
+</tr>
+<tr>
+<td style="text-align:center">h2</td>
+<td style="text-align:center">h2</td>
+</tr>
+<tr>
+<td style="text-align:center">h3</td>
+<td style="text-align:center">h3</td>
+</tr>
+<tr>
+<td style="text-align:center">h4</td>
+<td style="text-align:center">h4</td>
+</tr>
+<tr>
+<td style="text-align:center">h5</td>
+<td style="text-align:center">h5</td>
+</tr>
+<tr>
+<td style="text-align:center">h6</td>
+<td style="text-align:center">h6</td>
+</tr>
+</tbody>
+</table>
+<p>When a style is defined at the root of the styles element it will be applied to the <code>body</code> element and then propagate down the CSS cascade, unless it’s overriden at a lower level either in styles or by more specific elements.</p>
 <pre><code class="language-json">&quot;styles&quot;: {
   &quot;elements&quot;: {
+    &quot;typography&quot;: {
+      &quot;fontSize&quot;: &quot;var(--wp--preset--font-size--normal)&quot;
+    },
     &quot;h1&quot;: {
       &quot;typography&quot;: {
         &quot;fontSize&quot;: &quot;var(--wp--preset--font-size--huge)&quot;
@@ -589,9 +632,12 @@ p {
   },
 }
 </code></pre>
+<p>The base <code>fontSize</code> attribute from the styles block, will be added to the <code>body</code> element and will act as the default for all elements that don’t have a more specific style rule.</p>
+<p>the three levels of headings, <code>h1</code>, <code>h2</code>, and <code>h3</code> will be aplied to corresponding CSS selectors.</p>
 <pre><code class="language-css">body {
     font-size: var( --wp--preset--font-size--normal );
 }
+
 h1 {
     font-size: var( --wp--preset--font-size--huge );
 }
@@ -601,17 +647,85 @@ h2 {
 h3 {
   font-size: var( --wp--preset--font-size--medium );
 }
-.wp-block-group h2 {
+</code></pre>
+<p>If you use the elements styles inside a block, the result will be slightly different.</p>
+<p>The example we are using defines <code>h2</code> and <code>h3</code> styles inside the <code>core/group</code> block.</p>
+<p>This means that the values we’re changing will only be available inside the <code>group</code> block and not elsewhere.</p>
+<pre><code class="language-json">&quot;styles&quot;:
+  &quot;blocks&quot;: {
+    &quot;core/group&quot;: {
+      &quot;elements&quot;: {
+        &quot;h2&quot;: {
+          &quot;typography&quot;: {
+            &quot;fontSize&quot;: &quot;var(--wp--preset--font-size--small)&quot;
+          }
+        },
+        &quot;h3&quot;: {
+          &quot;typography&quot;: {
+            &quot;fontSize&quot;: &quot;var(--wp--preset--font-size--smaller)&quot;
+          }
+        }
+    }
+  }
+}
+</code></pre>
+<p>The resulting CSS will reflect this restriction by attaching the style to <code>h2</code> elements inside the <code>group</code> block, represented by the <code>.wp-block-group</code> class and not anywhere else.</p>
+<pre><code class="language-css">.wp-block-group h2 {
   font-size: var( --wp--preset--font-size--small );
 }
 .wp-block-group h3 {
   font-size: var( --wp--preset--font-size--smaller );
 }
 </code></pre>
-<hr />
+<p>Learning about CSS is a long topic worth a workshop or two,and it is outside the scope of this presentation. Some good starting points for your CSS journey:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/CSS_basics">CSS Basics</a> from <a href="https://developer.mozilla.org/">MDN</a></li>
+<li><a href="https://web.dev/learn/css/">Learn CSS</a> from <a href="https://web.dev/">Web.dev</a></li>
+</ul>
 <h3>customTemplates</h3>
+<p><strong>This feature is only available if you have the Gutenberg plugin installed.</strong></p>
+<p>If you have the Gutenberg plugin installed, you can add custom template that are present in the theme’s templates folder to <code>theme.json</code> to indicate what types kinds of content can use the template.</p>
+<p>The three children of <code>customTemplates</code> are:</p>
+<ul>
+<li><code>name</code>: the name of the template. This is required</li>
+<li><code>title</code>: the title of the template. This is required</li>
+<li><code>postTypes</code>: the types of content that the post applies to. The default is <code>page</code></li>
+</ul>
+<p>In the example, we define a template called <code>my-custom-template</code> and assign it to posts, pages and my-cpt custom post types.</p>
+<pre><code class="language-json">  &quot;customTemplates&quot;: [
+    {
+      &quot;name&quot;: &quot;my-custom-template&quot;,
+      &quot;title&quot;: &quot;The template title&quot;,
+      &quot;postTypes&quot;: [
+        &quot;page&quot;,
+        &quot;post&quot;,
+        &quot;my-cpt&quot;
+      ]
+    }
+  ]
+</code></pre>
 <h3>templateParts</h3>
+<p>{{
+NOTE TO SELF: THIS NEEDS FURTHER RESEARCH TO FIGURE OUT IF THIS WILL WORK WITH CUSTOM TEMPLATES CREATED IN THE THEME EDITOR OR ONLY THE DEFAULT TEMPLATES. I’M RUNNING WITH THE ASSUMPTION ONLY CORE TEMPLATES WILL WORK
+}}</p>
+<p><strong>This feature is only available if you have the Gutenberg plugin installed.</strong></p>
+<p>Within this field themes can list the template parts present in the parts folder associated with a given template.</p>
+<p>For example, for a template part named <code>my-template-part.html</code>, the theme.json can declare the area for the template part responsible for rendering the corresponding block variation in the editor.</p>
+<p>Defining this area term in the json will allow the setting to persist across all uses of that template part entity, as opposed to a block attribute that would only affect one block. Defining area as a block attribute is not recommended as this is only used ‘behind the scenes’ to aid in bridging the gap between placeholder flows and entity creation.</p>
+<p>Currently block variations exist for “header” and “footer” values of the area term, any other values and template parts not defined in the json will default to the general template part block. Variations will be denoted by specific icons within the editor’s interface, will default to the corresponding semantic HTML element for the wrapper (this can also be overridden by the tagName attribute set on the template part block), and will contextualize the template part allowing more custom flows in future editor improvements.</p>
+<p>name: mandatory.
+title: optional, translatable.
+area: optional, will be set to uncategorized by default and trigger no block variation.</p>
+<pre><code class="language-json">  &quot;templateParts&quot;: [
+    {
+      &quot;name&quot;: &quot;my-template-part&quot;,
+      &quot;title&quot;: &quot;Header&quot;,
+      &quot;area&quot;: &quot;header&quot;
+    }
+  ]
+</code></pre>
 <h3>patterns</h3>
+<p><strong>This feature is only available if you have the Gutenberg plugin installed.</strong></p>
 <h3>Putting it all together</h3>
 <p>Building a basic theme.json configuration file</p>
 
