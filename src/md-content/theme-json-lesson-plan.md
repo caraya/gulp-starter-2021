@@ -142,7 +142,7 @@ It is expected that the number will increase as new features are introduced or f
 
 If the default version value changes, your theme won't break, the items in the new version will not be available and you will need to update the theme.json file and figure out if any existing part of the file needs to be changed.
 
-### settings
+### presets / settings
 
 The `theme.json` file provides a canonical way to define the settings of the block editor. These settings includes things like:
 
@@ -255,10 +255,6 @@ You can present the colors in any color format supported by CSS. The example blo
 * `Rebecca Purple` is written as a CSS [named color](https://www.w3.org/TR/css-color-4/#named-colors)
 * `Very Dark Grey` is written using an [RGB](https://www.w3.org/TR/css-color-4/#rgb-functions) function that indicate the percentage of red, green and blue in the color
 
-**IMPORTANT: Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.**
-
-**This is also important from a cultural standpoint. Not everyone using your site may understand your use of green or any other color the way you do.**
-
 ```json
     "palette": [
       {
@@ -280,7 +276,18 @@ You can present the colors in any color format supported by CSS. The example blo
   },
 ```
 
+----
+
+**IMPORTANT:**
+
+* **Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.**
+* **This is also important from a cultural standpoint. Not everyone using your site may understand your use of green or any other color the way you do.**
+
+----
+
 The `Layout` object defines the width of the default and wide layouts in the editor.
+
+The `wideSize` attribute defines the value of the wide layout that you can configure in the editor's UI
 
 ```json
   "layout": {
@@ -512,7 +519,9 @@ When you see the name of the variable value, it's made of several parts:
 
 * `--wp` as the prefix used to differentiate the WordPress generated CSS from other CSS you may use on your theme
 * `--preset` indicates the type of variable that you're creating
-* `--color--primary` shows the name of the item and the subtype of the resource you're using.
+. in this care `preset`
+* `--color` indicates which preset category the variable belongs to
+* `--primary` shows the name of the item and the subtype of the resource you're using.
 
 ```json
 "styles": {
@@ -536,7 +545,18 @@ For more information about the CSS Cascade and how it works see [Cascade and inh
 
 #### Block level styles
 
-The next set of style rules applies to blocks, both core blocks and custom blocks you create yourself.
+{{ NOTE TO SELF: RESEARCH IF THIS WORKS FOR CUSTOM BLOCKS TOO OR ONLY CORE BLOCKS. HAVEN'T FOUND INFORMATION ABOUT THIS WORKING WITH CUSTOM BLOCKS YET }}
+
+The next set of style rules applies to blocks.
+
+The structure of the block level styles is made of two parts:
+
+* The full qualified name of the block that the styles apply to
+* A block of one or more styles to apply
+
+When we talk about fully qualified name, we use the prefix that we defined in the name property of the block **and** the slug of the block.
+
+For blocks built into Gutenberg, the fully qualified name is `core` + `name`, like `core/paragraph` or `core/block` as shown in the examples below.
 
 ```json
 "styles": {
@@ -550,23 +570,14 @@ The next set of style rules applies to blocks, both core blocks and custom block
       "color": {
         "text": "var(--wp--preset--color--tertiary)"
       }
-    },
-    "example/custom-block": {
-      "color": {
-        "text": "var(--wp--preset--color--teal)"
-      }
     }
   }
 }
 ```
 
-The core/paragraph opts out from the default behaviour and uses p as a selector.
+The previous JSON will producce the following CSS:
 
 ```css
-body {
-  color: var( --wp--preset--color--primary );
-}
-
 p { 
   color: var( --wp--preset--color--secondary );
 }
@@ -576,21 +587,34 @@ p {
 }
 ```
 
+The CSS classes WordPress generates for each block are prefixed with `wp-block-` and the slug of the block.
+
+The `core/paragraph` block opts out from the default behaviour and uses p as a selector.
+
 #### Element styles
 
-In addition to top-level and block-level styles, there’s the concept of elements that can used in both places. There’s a closed set of them:
+{{ NOTE TO SELF: RESEARCH IF THE CLOSED SET MENTIONED IN DOCS AND LISTED BELOW IS CORRECT OR IF WE CAN USE OTHER ELEMENTS }}
 
-* link: maps to the a CSS selector.
-* h1: maps to the h1 CSS selector.
-* h2: maps to the h2 CSS selector.
-* h3: maps to the h3 CSS selector.
-* h4: maps to the h4 CSS selector.
-* h5: maps to the h5 CSS selector.
-* h6: maps to the h6 CSS selector.
+In addition to top-level and block-level styles, there's a set of preconfigured elements that can used in both places. The set of available elements and what they map to in CSS:
+
+| element in theme.json | CSS Selector Equivalent |
+| :----:  | :----:  |
+| link    | a       |
+| h1      | h1      |
+| h2      | h2      |
+| h3      | h3      |
+| h4      | h4      |
+| h5      | h5      |
+| h6      | h6      |
+
+When a style is defined at the root of the styles element it will be applied to the `body` element and then propagate down the CSS cascade, unless it's overriden at a lower level either in styles or by more specific elements.
 
 ```json
 "styles": {
   "elements": {
+    "typography": {
+      "fontSize": "var(--wp--preset--font-size--normal)"
+    },
     "h1": {
       "typography": {
         "fontSize": "var(--wp--preset--font-size--huge)"
@@ -610,10 +634,15 @@ In addition to top-level and block-level styles, there’s the concept of elemen
 }
 ```
 
+The base `fontSize` attribute from the styles block, will be added to the `body` element and will act as the default for all elements that don't have a more specific style rule.
+
+the three levels of headings, `h1`, `h2`, and `h3` will be aplied to corresponding CSS selectors.
+
 ```css
 body {
     font-size: var( --wp--preset--font-size--normal );
 }
+
 h1 {
     font-size: var( --wp--preset--font-size--huge );
 }
@@ -623,6 +652,37 @@ h2 {
 h3 {
   font-size: var( --wp--preset--font-size--medium );
 }
+```
+
+If you use the elements styles inside a block, the result will be slightly different.
+
+The example we are using defines `h2` and `h3` styles inside the `core/group` block.
+
+This means that the values we're changing will only be available inside the `group` block and not elsewhere.
+
+```json
+"styles":
+  "blocks": {
+    "core/group": {
+      "elements": {
+        "h2": {
+          "typography": {
+            "fontSize": "var(--wp--preset--font-size--small)"
+          }
+        },
+        "h3": {
+          "typography": {
+            "fontSize": "var(--wp--preset--font-size--smaller)"
+          }
+        }
+    }
+  }
+}
+```
+
+The resulting CSS will reflect this restriction by attaching the style to `h2` elements inside the `group` block, represented by the `.wp-block-group` class and not anywhere else.
+
+```css
 .wp-block-group h2 {
   font-size: var( --wp--preset--font-size--small );
 }
@@ -631,13 +691,72 @@ h3 {
 }
 ```
 
-----
+Learning about CSS is a long topic worth a workshop or two,and it is outside the scope of this presentation. Some good starting points for your CSS journey:
+
+* [CSS Basics](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/CSS_basics) from [MDN](https://developer.mozilla.org/)
+* [Learn CSS](https://web.dev/learn/css/) from [Web.dev](https://web.dev/)
 
 ### customTemplates
 
+**This feature is only available if you have the Gutenberg plugin installed.**
+
+If you have the Gutenberg plugin installed, you can add custom template that are present in the theme's templates folder to `theme.json` to indicate what types kinds of content can use the template.
+
+The three children of `customTemplates` are:
+
+* `name`: the name of the template. This is required
+* `title`: the title of the template. This is required
+* `postTypes`: the types of content that the post applies to. The default is `page`
+
+In the example, we define a template called `my-custom-template` and assign it to posts, pages and my-cpt custom post types.
+
+```json
+  "customTemplates": [
+    {
+      "name": "my-custom-template",
+      "title": "The template title",
+      "postTypes": [
+        "page",
+        "post",
+        "my-cpt"
+      ]
+    }
+  ]
+```
+
 ### templateParts
 
+{{
+  NOTE TO SELF: THIS NEEDS FURTHER RESEARCH TO FIGURE OUT IF THIS WILL WORK WITH CUSTOM TEMPLATES CREATED IN THE THEME EDITOR OR ONLY THE DEFAULT TEMPLATES. I'M RUNNING WITH THE ASSUMPTION ONLY CORE TEMPLATES WILL WORK
+}}
+
+**This feature is only available if you have the Gutenberg plugin installed.**
+
+Within this field themes can list the template parts present in the parts folder associated with a given template.
+
+For example, for a template part named `my-template-part.html`, the theme.json can declare the area for the template part responsible for rendering the corresponding block variation in the editor.
+
+Defining this area term in the json will allow the setting to persist across all uses of that template part entity, as opposed to a block attribute that would only affect one block. Defining area as a block attribute is not recommended as this is only used ‘behind the scenes’ to aid in bridging the gap between placeholder flows and entity creation.
+
+Currently block variations exist for “header” and “footer” values of the area term, any other values and template parts not defined in the json will default to the general template part block. Variations will be denoted by specific icons within the editor’s interface, will default to the corresponding semantic HTML element for the wrapper (this can also be overridden by the tagName attribute set on the template part block), and will contextualize the template part allowing more custom flows in future editor improvements.
+
+name: mandatory.
+title: optional, translatable.
+area: optional, will be set to uncategorized by default and trigger no block variation.
+
+```json
+  "templateParts": [
+    {
+      "name": "my-template-part",
+      "title": "Header",
+      "area": "header"
+    }
+  ]
+```
+
 ### patterns
+
+**This feature is only available if you have the Gutenberg plugin installed.**
 
 ### Putting it all together
 
