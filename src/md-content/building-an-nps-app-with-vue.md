@@ -1,4 +1,4 @@
-# Building a National Park Service app with Vue.js
+# Building a National Park Service app with Preact
 
 A while back I got an API keu for the National Park Service API. I was looking for an easy API to use that had enough features to make the design of the front end an interesting project.
 

@@ -5,26 +5,28 @@
 Participants will be able to:
 
 * Explain the purpose of theme.json (what the file does)
-* Understand the different parts of theme.json and explain their purpose (what each part does)
-* build a basic theme.json file for their block theme
+* Distinguish between the different parts of theme.json and explain their purpose (what each part does)
+* Build a basic theme.json file for a block theme
 
 ## Setting up the instructor machine
 
 Before you start the lesson, you will need the following:
 
 * A local installation of WordPress
+  * [Local by Flywheel](https://localwp.com/)
+  * [MAMP](https://www.mamp.info/en/mac/) + WordPress
 * A block-enabled theme. Some examples:
   * [TwentyTwentyTwo](https://wordpress.org/themes/twentytwentytwo/) **Recommended and bundled with WordPress**
   * [Archeo](https://wordpress.org/themes/archeo/)
   * [Armando](https://wordpress.org/themes/armando/)
 * The latest version of the Gutenberg Plugin
-  * Theme.json runs fine without the plugin but some features may not work
-  * The content will note if a features requires Gutenberg and the version the feature was introduced in
-* Data to populate the theme. Choose from the following:
+  * `theme.json` runs fine without the plugin but some features may not work
+  * The content will note if a features requires Gutenberg and the version the feature was first introduced
+* Data to populate the theme. Possible options:
   * Existing data
   * A copy of the [WordPress Theme Unit Test](https://codex.wordpress.org/Theme_Unit_Test) data
-  * A copy of the [gutenberg-theme-data](https://github.com/Automattic/theme-tools/tree/master/gutenberg-test-data)
-  * Look at [How to add demo content in WordPress](https://learn.wordpress.org/lesson-plan/how-to-add-demo-content-in-wordpress/) for more information on how to add demo content to your WordPress site.
+  * A copy of the [Gutenberg test data](https://github.com/Automattic/theme-tools/tree/master/gutenberg-test-data)
+  * Review [How to add demo content in WordPress](https://learn.wordpress.org/lesson-plan/how-to-add-demo-content-in-wordpress/) for more information
 * A code editor. Possible options:
   * [VS Code](https://code.visualstudio.com/)
   * [Atom](https://atom.io/)
@@ -35,8 +37,7 @@ Before you start the lesson, you will need the following:
 ## Instructor Notes
 
 * Theme.json is large enough that it may need more than one session to cover in its entirety
-* Depending on the audience, you may want to work through each individual section and break for questions.
-* This lesson plan deals only with `theme.json` as it works with block themes but there is a note on how theme.json handles some older declarations using add_theme_support()
+* This lesson plan deals only with `theme.json` as it works with block themes but there is a note on how theme.json handles some older declarations using `add_theme_support()`
 
 ## Content Outline
 
@@ -65,6 +66,8 @@ Before you start the lesson, you will need the following:
 
 ----
 
+## Full Sample Lesson Plan
+
 ## Introduction
 
 `Theme.json` allows you customize your WordPress theme from one central location.
@@ -73,21 +76,25 @@ It takes over `functions.php` for most of a theme's configuration settings and p
 
 While theme.json will work on any WordPress theme, for these lessons we'll concentrate on block-based themes.
 
-See [Using theme.json in a classic theme](https://mkaz.blog/wordpress/using-theme-json-in-a-classic-theme/) for more information about theme.json as applied to classic themes.
+See [Using theme.json in a classic theme](https://mkaz.blog/wordpress/using-theme-json-in-a-classic-theme/) for more information about theme.json as applied to classic themes. {{FLAG FOR TEAM REVIEW -- EXTERNAL LINK}}
 
 ### About JSON and JSON requirements
 
 `theme.json` is a JSON file and, as such, presents some things that may not be familiar if you haven't worked with the format before.
 
-All strings in JSON must be enclosed in double quotes. This is not legal and will be flagged as an error.
+All strings in JSON must be enclosed in double quotes. anything else will be flagged as an error.
 
-```json
-  'version': 2
-```
+  The first example below will work as intended:
+
+  The second example is a valid part of the `theme.json` schema but will fail validation because of the single quotes around the version string.
+
+| Valid  | Invalid|
+| :----: | :----: |
+| "version": 2 | 'version': 2 |
 
 Boolean values (true or false) and numbers must not be quoted.
 
-Even a single misplaced comma or colon can cause a JSON file to not work. You should be careful to validate thw file you're creating with tools like [JSONLint](https://jsonlint.com/) or CodeBeautify's [JSON Validator](https://codebeautify.org/jsonvalidator).
+Even a single misplaced comma or colon can cause a JSON file to not work. You should be careful to validate the file you're creating with tools like [JSONLint](https://jsonlint.com/) or CodeBeautify's [JSON Validator](https://codebeautify.org/jsonvalidator).
 
 For a good introduction to working with JSON, see [Working with JSON](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON) at MDN.
 
@@ -97,7 +104,7 @@ In order to use `theme.json`, you will need the [latest version of WordPress](ht
 
 We use Gutenberg to take advantage of new features that are under development outside of WordPress core, and will eventually be merged back into core.
 
-## `theme.json` structure
+## `theme.json` structure: The 10000 view
 
 The structure of `theme.json` follows the JSON conventions as defined in [ECMA-404](https://www.ecma-international.org/publications-and-standards/standards/ecma-404/).
 
@@ -110,9 +117,18 @@ An empty `theme.json` file looks like this:
   "settings": {},
   "styles": {},
   "customTemplates": {},
-  "templateParts": {}
+  "templateParts": {},
+  "patterns": {}
 }
 ```
+
+The settings section provides a way to enable or disable features in the post editor and establish theme settings like colors, duotones, and gradients.
+
+Styles allow theme developers to customize styles for the theme.
+
+customTemplates and customParts provide places where to add metadata about templates and template parts
+
+Finally, patterns enable you to associates patterns available in the WordPress Pattern directory
 
 We will look at each major section of the theme.json file in turn.
 
@@ -120,7 +136,7 @@ We will look at each major section of the theme.json file in turn.
 
 The location of the [json schema](https://json-schema.org/) for the theme.json file.
 
-Adding this string will allow you to validate the theme.json against the schema.
+Adding this string will allow you to validate the theme.json against the schema in your text editor.
 
 The only valid value is the string: `https://schemas.wp.org/trunk/theme.json` that points to the latest revision of the schema.
 
@@ -167,7 +183,7 @@ The first setting, `appearanceTools` is special. Rather than specify a single se
 
 The first example shows the `border` family of attributes. The code below indicates that all the border attributes are enabled.
 
-If you set any value to false, the attribute will not be shown to the administrator working on your theme.
+If you set any value to false, the attribute will not be shown to the user working with your theme.
 
 ```json
 "settings": {
@@ -177,7 +193,8 @@ If you set any value to false, the attribute will not be shown to the administra
     "radius": true,
     "style": true,
     "width": true
-  },
+  }
+}
 ```
 
 The color block combines both controls for what UI attributes will appear in the editor and what values will be available to the user.
@@ -191,6 +208,7 @@ I would suggest you remove the default values and only leave the `color` array i
 When choosing colors you should always consider accessibility, particularly color blindness and contrast between your text and background colors.
 
 ```json
+"settings": {
   "color": {
     "background": true,
     "custom": true,
@@ -200,7 +218,9 @@ When choosing colors you should always consider accessibility, particularly colo
     "defaultGradients": true,
     "defaultPalette": true,
     "link": true,
-    "text": true,
+    "text": true
+  }
+}
 ```
 
 The `duotone` array uses a common pattern that we'll see moving forward:
@@ -211,6 +231,7 @@ The `duotone` array uses a common pattern that we'll see moving forward:
   * Can be capitalized as needed
   * Can have spaces in it
   * This will be shows to the user in the UI
+  * Translators will take this value when translating the content of your theme
 * One more more values for the item
   * In the case of `duotone` it is an array of two colors, representing the color for highlights and shadows
 
@@ -220,16 +241,14 @@ The `duotone` array uses a common pattern that we'll see moving forward:
 
 * The slug, the machine-readable name of the item
 * The (human-readable) name
-* The gradient, indicating the CSS gradient that you want to use. The possible options are:
-  * [Linear Gradients](https://developer.mozilla.org/en-US/docs/Web/CSS/linear-gradient)
-  * [Radial Gradients](https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/radial-gradient)
-  * [Conic Gradient](https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/conic-gradient)
-
-Most of the time you will use linear gradients with default settings that you can modify in the editor's UI when you enable gradients for the theme.
+* The gradient, indicating the CSS gradient that you want to use.
+  * Most of the time you will use [linear gradients](https://developer.mozilla.org/en-US/docs/Web/CSS/linear-gradient) with default settings that you can modify in the editor's UI when you enable gradients for the theme.
 
 If you don't plan to add duotone pairs and gradients, you can remove your theme settings for them.
 
 ```json
+"settings": {
+  "colors": {
     "duotone": [{
       "slug": "black-and-white",
       "name": "Black and White",
@@ -244,18 +263,22 @@ If you don't plan to add duotone pairs and gradients, you can remove your theme 
         "gradient": "linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%)",
         "name": "Blush bordeaux"
       }
-    ],
+    ]
+  }
+}
 ```
 
 The `palette` object presents a list of colors that you want to be available in the editor's UI.
 
 You can present the colors in any color format supported by CSS. The example block presents three of the most common formats:
 
-* `Strong Magenta` is written using a six-digit hexadecimal number format where every pair of digits represents a color channel (red, green, blue)
+* `Strong Magenta` is written using a six-digit hexadecimal number format where every pair of digits represents a color channel (red, green, blue) using [hexadecimal notation](https://en.wikipedia.org/wiki/Hexadecimal)
 * `Rebecca Purple` is written as a CSS [named color](https://www.w3.org/TR/css-color-4/#named-colors)
 * `Very Dark Grey` is written using an [RGB](https://www.w3.org/TR/css-color-4/#rgb-functions) function that indicate the percentage of red, green and blue in the color
 
 ```json
+"settings": {
+  "colors": {
     "palette": [
       {
         "slug": "strong-magenta",
@@ -273,7 +296,8 @@ You can present the colors in any color format supported by CSS. The example blo
         "name": "Very dark grey"
       }
     ]
-  },
+  }
+}
 ```
 
 ----
@@ -281,7 +305,9 @@ You can present the colors in any color format supported by CSS. The example blo
 **IMPORTANT:**
 
 * **Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.**
-* **This is also important from a cultural standpoint. Not everyone using your site may understand your use of green or any other color the way you do.**
+* **This is also important from a cultural sensitivity standpoint. Not everyone using your site may understand your use of color.**
+
+**For more information see: [Creating Culturally Customized Content for Website Translation](https://www.globalizationpartners.com/2011/08/10/creating-culturally-customized-content-for-website-translation/).** {{FLAG THIS FOR TEAM REVIEW -- EXTERNAL LINK}}
 
 ----
 
@@ -324,7 +350,7 @@ The `typography` block defines items related to your site's typography.
 
 The block editor gives you a lot of control as to the typographical elements that you can make available on your theme.
 
-You control the display for t he following typographical items
+You control the display for the following typographical items
 
 ```json
   "typography": {
@@ -448,7 +474,7 @@ The custom area of the theme.json file is where you can define your own custom C
 Any values declared within the custom field will be transformed to CSS Custom Properties following this naming schema:
 
 ```css
---wp--custom--<variable-name>: value
+--wp--custom--: value
 ```
 
 Using the following custom section of a `theme.json` file
@@ -700,9 +726,9 @@ Learning about CSS is a long topic worth a workshop or two,and it is outside the
 
 **This feature is only available if you have the Gutenberg plugin installed.**
 
-If you have the Gutenberg plugin installed, you can add custom template that are present in the theme's templates folder to `theme.json` to indicate what types kinds of content can use the template.
+If you have the Gutenberg plugin installed, you can provide additional information about templates that are stored in the theme's `template` folder.
 
-The three children of `customTemplates` are:
+The information you provide about your templates includes:
 
 * `name`: the name of the template. This is required
 * `title`: the title of the template. This is required
@@ -727,37 +753,520 @@ In the example, we define a template called `my-custom-template` and assign it t
 ### templateParts
 
 {{
-  NOTE TO SELF: THIS NEEDS FURTHER RESEARCH TO FIGURE OUT IF THIS WILL WORK WITH CUSTOM TEMPLATES CREATED IN THE THEME EDITOR OR ONLY THE DEFAULT TEMPLATES. I'M RUNNING WITH THE ASSUMPTION ONLY CORE TEMPLATES WILL WORK
+  I'M TRYING TO WORK THROUGH THIS ONE.
+
+  I'M NOT SURE IF I'M CORRECT IN HOW I'VE DOCUMENTED IT HERE.
 }}
 
 **This feature is only available if you have the Gutenberg plugin installed.**
 
-Within this field themes can list the template parts present in the parts folder associated with a given template.
+In this section, you can add metadata about the template parts stored in your theme's `parts` folder.
 
-For example, for a template part named `my-template-part.html`, the theme.json can declare the area for the template part responsible for rendering the corresponding block variation in the editor.
+*Behind the scenes, WordPress will use this information to generate template specific variations of the template parts for each supported area (header and footer).*
 
-Defining this area term in the json will allow the setting to persist across all uses of that template part entity, as opposed to a block attribute that would only affect one block. Defining area as a block attribute is not recommended as this is only used ‘behind the scenes’ to aid in bridging the gap between placeholder flows and entity creation.
+Each template part declaration has three components:
 
-Currently block variations exist for “header” and “footer” values of the area term, any other values and template parts not defined in the json will default to the general template part block. Variations will be denoted by specific icons within the editor’s interface, will default to the corresponding semantic HTML element for the wrapper (this can also be overridden by the tagName attribute set on the template part block), and will contextualize the template part allowing more custom flows in future editor improvements.
-
-name: mandatory.
-title: optional, translatable.
-area: optional, will be set to uncategorized by default and trigger no block variation.
+* **name** the name of the template part. This is required
+* **title** the (human readable) title of the template part. This is required
+* **area** the area where the part is used. If not included the template will be set to uncategorized by default and will not trigger any template part variations.
 
 ```json
   "templateParts": [
     {
-      "name": "my-template-part",
+      "name": "comments",
+      "title": "Comments"
+    },
+    {
+      "name": "footer",
+      "title": "Footer",
+      "area": "Footer"
+    },
+    {
+      "name": "header",
       "title": "Header",
-      "area": "header"
+      "area": "Header"
+    },
+    {
+      "name": "main",
+      "title": "Main"
+    },
+    {
+      "name": "sidebar-left",
+      "title": "Sidebar Left"
+    },
+    {
+      "name": "sidebar-right",
+      "title": "Sidebar Right"
     }
   ]
 ```
 
 ### patterns
 
-**This feature is only available if you have the Gutenberg plugin installed.**
+----
 
-### Putting it all together
+**Notes:**
 
-Building a basic theme.json configuration file
+**This feature is only available if you have the Gutenberg plugin installed and in themes using theme.json version 2.**
+
+**This feature will only work with patterns in the WordPress pattern directory, not with patterns local to your site.**
+
+----
+
+This section will associate names with patterns from the [WordPress pattern directory](https://wordpress.org/patterns/pattern/).
+
+The `patterns` fields in an array of objects matching the slugs of URLs in the pattern directory.
+
+To declare we're using the [Text and links with image on the side](https://wordpress.org/patterns/pattern/text-and-links-with-image-on-the-side) and [do's and don'ts](https://wordpress.org/patterns/pattern/dos-and-donts) patterns from the directory, we capture the slugs (the string after the final slash on the URL), and add them to the `patterns` array.
+
+```json
+  "patterns": [
+    "text-and-links-with-image-on-the-side",
+    "dos-and-donts"
+  ]
+```
+
+### Putting It All Together: A Full Working Example
+
+This is a full working demo of the theme.json file. I've set all boolean values set to true, and all string values set to the default values discussed earlier in this presentation.
+
+```json
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 2,
+  "settings": {
+    "appearanceTools": true,
+    "border": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    },
+    "color": {
+      "background": true,
+      "custom": true,
+      "customDuotone": true,
+      "customGradient": true,
+      "defaultDuotone": true,
+      "defaultGradients": true,
+      "defaultPalette": true,
+      "link": true,
+      "text": true,
+      "duotone": [
+        {
+          "colors": [
+            "#000",
+            "#FFF"
+          ],
+          "slug": "black-and-white",
+          "name": "Black and White"
+        }
+      ],
+      "gradients": [
+        {
+          "slug": "blush-bordeaux",
+          "gradient": "linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%)",
+          "name": "Blush bordeaux"
+        }
+      ],
+      "palette": [
+        {
+          "slug": "strong-magenta",
+          "color": "#a156b4",
+          "name": "Strong magenta"
+        },
+        {
+          "slug": "rebecca-purple",
+          "color": "rebeccapurple",
+          "name": "Rebecca purple"
+        },
+        {
+          "slug": "link-red",
+          "color": "#cd2653",
+          "name": "Link red"
+        },
+        {
+          "slug": "very-dark-grey",
+          "color": "rgb(131, 12, 8)",
+          "name": "Very dark grey"
+        }
+      ]
+    },
+    "custom": {},
+    "layout": {
+      "contentSize": "800px",
+      "wideSize": "1000px"
+    },
+    "spacing": {
+      "blockGap": true,
+      "padding": true,
+      "margin": true,
+      "units": [
+        "%",
+        "px",
+        "em",
+        "rem",
+        "vh",
+        "vw"
+      ]
+    },
+    "typography": {
+      "customFontSize": true,
+      "dropCap": true,
+      "fontStyle": true,
+      "fontWeight": true,
+      "letterSpacing": true,
+      "lineHeight": true,
+      "textDecoration": true,
+      "textTransform": true,
+      "fontFamilies": [
+        {
+          "fontFamily": "-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Oxygen-Sans,Ubuntu,Cantarell,\"Helvetica Neue\",sans-serif",
+          "slug": "system-fonts",
+          "name": "System Fonts"
+        },
+        {
+          "fontFamily": "Recursive, sans-serif",
+          "name": "Recursive",
+          "slug": "recursive",
+          "fontFace": [
+            {
+              "fontFamily": "Recursive",
+              "fontWeight": "300 1000",
+              "fontStyle": "normal",
+              "fontStretch": "normal",
+              "fontDisplay": "swap",
+              "src": [
+                "file:./assets/fonts/recursive-latin-subset.woff2"
+              ]
+            },
+            {
+              "provider": "local",
+              "fontFamily": "Recursive",
+              "fontWeight": "300 1000",
+              "fontStyle": "normal",
+              "fontStretch": "normal",
+              "fontDisplay": "swap",
+              "src": [
+                "file:./assets/fonts/recursive-latin-subset.woff2"
+              ]
+            }
+          ]
+        }
+      ],
+      "fontSizes": [
+        {
+          "slug": "tiny",
+          "size": "16px",
+          "name": "Tiny"
+        },
+        {
+          "slug": "small",
+          "size": "18px",
+          "name": "Small"
+        },
+        {
+          "name": "Medium",
+          "slug": "medium",
+          "size": "20px"
+        },
+        {
+          "name": "Normal",
+          "slug": "normal",
+          "size": "20px"
+        },
+        {
+          "slug": "large",
+          "size": "24px",
+          "name": "large"
+        },
+        {
+          "slug": "post-title-large",
+          "size": "32px",
+          "name": "Post Title Large"
+        },
+        {
+          "slug": "extra-large",
+          "size": "40px",
+          "name": "Extra Large"
+        },
+        {
+          "slug": "gigantic",
+          "size": "96px",
+          "name": "Gigantic"
+        }
+      ]
+    }
+  },
+  "styles": {
+    "color": {
+      "background": "var(--wp--preset--color--white)",
+      "text": "var(--wp--preset--color--black)"
+    },
+    "typography": {
+      "fontSize": "var(--wp--preset--font-size--medium)",
+      "fontFamily": "var(--wp--preset--font-family--recursive)",
+      "lineHeight": "1.4"
+    },
+    "spacing": {
+      "margin": {
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px"
+      }
+    },
+    "elements": {
+      "link": {
+        "color": {
+          "text": "var(--wp--preset--color--link-red)"
+        },
+        "typography": {
+          "fontWeight": "bold"
+        }
+      },
+      "h1": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--extra-large)"
+        }
+      },
+      "h2": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--large)"
+        }
+      },
+      "h3": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        }
+      },
+      "h4": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        }
+      },
+      "h5": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        }
+      },
+      "h6": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        }
+      }
+    },
+    "blocks": {
+      "core/search": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--large)"
+        }
+      },
+      "core/post-title": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--post-title-large)"
+        }
+      },
+      "core/navigation": {
+        "color": {
+          "text": "var(--wp--preset--color--link-red)"
+        }
+      },
+      "core/paragraph": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--large)"
+        }
+      },
+      "core/archives": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        }
+      },
+      "core/post-date": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--small)"
+        }
+      },
+      "core/post-terms": {
+        "color": {
+          "text": "var(--wp--preset--color--black)"
+        },
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--small)"
+        }
+      },
+      "core/button": {
+        "border": {
+          "width": "0px",
+          "radius": "4px"
+        }
+      },
+      "core/query-pagination": {
+        "elements": {
+          "link": {
+            "color": {
+              "background": "var(--wp--preset--color--white)"
+            },
+            "spacing": {
+              "padding": {
+                "top": "calc(.667em + 2px)",
+                "right": "calc(1.333em + 2px)",
+                "bottom": "calc(.667em + 2px)",
+                "left": "calc(1.333em + 2px)"
+              }
+            },
+            "border": {
+              "radius": "4px"
+            }
+          }
+        }
+      },
+      "core/post-excerpt": {
+        "elements": {
+          "link": {
+            "color": {
+              "background": "var(--wp--preset--color--light-white)"
+            },
+            "spacing": {
+              "padding": {
+                "top": "calc(.667em + 2px)",
+                "right": "calc(1.333em + 2px)",
+                "bottom": "calc(.667em + 2px)",
+                "left": "calc(1.333em + 2px)"
+              }
+            },
+            "border": {
+              "radius": "4px"
+            }
+          }
+        }
+      },
+      "core/post-navigation-link": {
+        "elements": {
+          "link": {
+            "color": {
+              "background": "var(--wp--preset--color--light-grey)"
+            },
+            "spacing": {
+              "padding": {
+                "top": "calc(.667em + 2px)",
+                "right": "calc(1.333em + 2px)",
+                "bottom": "calc(.667em + 2px)",
+                "left": "calc(1.333em + 2px)"
+              }
+            },
+            "border": {
+              "radius": "4px"
+            }
+          }
+        }
+      },
+      "core/latest-posts": {
+        "spacing": {
+          "padding": {
+            "left": "0px"
+          }
+        }
+      },
+      "core/latest-comments": {
+        "spacing": {
+          "padding": {
+            "left": "0px"
+          }
+        }
+      },
+      "core/post-featured-image": {
+        "spacing": {
+          "margin": {
+            "bottom": "2.5rem"
+          }
+        }
+      },
+      "core/template-part": {
+        "spacing": {
+          "margin": {
+            "top": "0px",
+            "bottom": "0px"
+          }
+        }
+      }
+    }
+  },
+  "templateParts": [
+    {
+      "name": "comments",
+      "title": "Comments"
+    },
+    {
+      "name": "footer",
+      "title": "Footer",
+      "area": "Footer"
+    },
+    {
+      "name": "header",
+      "title": "Header",
+      "area": "Header"
+    },
+    {
+      "name": "main",
+      "title": "Main"
+    },
+    {
+      "name": "sidebar-left",
+      "title": "Sidebar Left"
+    },
+    {
+      "name": "sidebar-right",
+      "title": "Sidebar Right"
+    }
+  ],
+  "customTemplates": [
+    {
+      "name": "post-sidebar-right",
+      "title": "Two columns, right sidebar",
+      "postTypes": [
+        "page",
+        "post"
+      ]
+    },
+    {
+      "name": "post-sidebar-left",
+      "title": "Two columns, left sidebar",
+      "postTypes": [
+        "page",
+        "post"
+      ]
+    },
+    {
+      "name": "page-template-patterns",
+      "title": "Template for block pattern layouts",
+      "postTypes": [
+        "page",
+        "post"
+      ]
+    }
+  ],
+  "patterns": [
+    "text-and-links-with-image-on-the-side",
+    "dos-and-donts"
+  ]
+}
+```
