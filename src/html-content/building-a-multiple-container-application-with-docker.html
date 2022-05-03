@@ -23,8 +23,8 @@
 <p>The <code>db</code> service configures the MySQL database we will use for the project.</p>
 <p>We use the latest version of the Docker image for MySQL container, specified by the <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#image">image</a> attribute pointing to the name and version of the application we want, in this case: <code>image: mysql:latest</code>.</p>
 <p>If we need to specify a version, we can replace latest` with a specific version.</p>
-<p>The <code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes">volumes</a></code> section specified the external volume name and the associated directory inside the image.</p>
-<p>The <code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#environment">environment</a></code> section specified environment variables that will be passed to the container.</p>
+<p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes">volumes</a> section specified the external volume name and the associated directory inside the image.</p>
+<p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#environment">environment</a> section specified environment variables that will be passed to the container.</p>
 <p>Because this is an internal service, we don’t expect people to access the database directly, only via phpMyAdmin or WordPress, we don’t specify a container to host port translation.</p>
 <pre><code class="language-yaml">services:
   db:
@@ -39,21 +39,21 @@
       MYSQL_PASSWORD: wordpress
 </code></pre>
 <p>The WordPress service is the core of the application. This container will host WordPress and interact with the database. Because of it this is where we do most of the work.</p>
-<p><code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#depends_on">depends_on</a></code> explicitly tells Docker Compose that <code>wordpress</code> depends on the <code>db</code> service. This will cause the following to happen:</p>
+<p><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#depends_on">depends_on</a> explicitly tells Docker Compose that <code>wordpress</code> depends on the <code>db</code> service. This will cause the following to happen:</p>
 <ul>
 <li><code>docker-compose up</code> starts services in dependency order. <code>db</code> will start before <code>wordpress</code></li>
 <li>If you start a specific service using <code>docker-compose up SERVICE</code>, docker automatically includes SERVICE’s dependencies. In our case, docker-compose up wordpress also creates and starts <code>db</code></li>
 <li><code>docker-compose stop</code> stops services in dependency order. <code>wordpress</code> will stop before <code>db</code></li>
 </ul>
-<p>using the <code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes">volumes</a></code> directive, we create a volume associating a directory on the host with the directory inside the container hosting the WordPress application. This will make the code available even if the container is not running.</p>
-<p>The <code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#ports">ports</a></code> directive maps a port on the container to a port on the host. Wordpress maps port 80 in the container to port 8000 on the host. To access WordPress, just pont your browser to <code>http://localhost:8000</code>.</p>
-<p><code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#restart">restart</a></code> indicates the restart policy for the container. The possible values are:</p>
+<p>using the <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes">volumes</a> directive, we create a volume associating a directory on the host with the directory inside the container hosting the WordPress application. This will make the code available even if the container is not running.</p>
+<p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#ports">ports</a> directive maps a port on the container to a port on the host. Wordpress maps port 80 in the container to port 8000 on the host. To access WordPress, just pont your browser to <code>http://localhost:8000</code>.</p>
+<p><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#restart">restart</a> indicates the restart policy for the container. The possible values are:</p>
 <ul>
 <li><strong>always</strong>: The container always restarts</li>
 <li><strong>on-failure</strong>: Restart a container if the exit code indicates an on-failure error</li>
 <li><strong>unless-stopped</strong> Restarts a container, unless the container is stopped (manually or otherwise)</li>
 </ul>
-<p>The <code><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#environment">environment</a></code> directive holds environment variables that will be passed to the container.</p>
+<p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#environment">environment</a> directive holds environment variables that will be passed to the container.</p>
 <pre><code class="language-yaml">  wordpress:
     depends_on:
       - db
@@ -179,6 +179,7 @@ COPY php.ini /usr/local/etc/php
 <p>The example command will run the Bash shell inside the <code>wordpress</code> container.</p>
 <h2>Conclusion</h2>
 <p>In this post we’ve talked about building a WordPress installation using Docker.</p>
+<p>What I particularly like is that I have access to the container so I can add and remove themes, plugins and even run the WordPress CLI without having to rebuild the image or have compilers and developer tools installed.</p>
 <p>It is just a beginning exercise to explore how we can use integrate multiple tools and applications into a single Docker-based project.</p>
 <h2>More Reading</h2>
 <p>I found <a href="https://www.massolit-media.com/technical-writing/local-wordpress-development-environment-with-docker/">Use Docker to create a local WordPress development environment</a> particularly useful when writing this post.</p>
