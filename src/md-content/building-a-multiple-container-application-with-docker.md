@@ -38,9 +38,9 @@ We use the latest version of the Docker image for MySQL container, specified by 
 
 If we need to specify a version, we can replace latest` with a specific version.
 
-The <code>[volumes](https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes)</code> section specified the external volume name and the associated directory inside the image.
+The [volumes](https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes) section specified the external volume name and the associated directory inside the image.
 
-The <code>[environment](https://docs.docker.com/compose/compose-file/compose-file-v3/#environment)</code> section specified environment variables that will be passed to the container.
+The [environment](https://docs.docker.com/compose/compose-file/compose-file-v3/#environment) section specified environment variables that will be passed to the container.
 
 Because this is an internal service, we don't expect people to access the database directly, only via phpMyAdmin or WordPress, we don't specify a container to host port translation.
 
@@ -60,23 +60,23 @@ services:
 
 The WordPress service is the core of the application. This container will host WordPress and interact with the database. Because of it this is where we do most of the work.
 
-<code>[depends_on](https://docs.docker.com/compose/compose-file/compose-file-v3/#depends_on)</code> explicitly tells Docker Compose that `wordpress` depends on the `db` service. This will cause the following to happen:
+[depends_on](https://docs.docker.com/compose/compose-file/compose-file-v3/#depends_on) explicitly tells Docker Compose that `wordpress` depends on the `db` service. This will cause the following to happen:
 
 * `docker-compose up` starts services in dependency order. `db` will start before `wordpress`
 * If you start a specific service using `docker-compose up SERVICE`, docker automatically includes SERVICE’s dependencies. In our case, docker-compose up wordpress also creates and starts `db`
 * `docker-compose stop` stops services in dependency order. `wordpress` will stop before `db`
 
-using the <code>[volumes](https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes)</code> directive, we create a volume associating a directory on the host with the directory inside the container hosting the WordPress application. This will make the code available even if the container is not running.
+using the [volumes](https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes) directive, we create a volume associating a directory on the host with the directory inside the container hosting the WordPress application. This will make the code available even if the container is not running.
 
-The <code>[ports](https://docs.docker.com/compose/compose-file/compose-file-v3/#ports)</code> directive maps a port on the container to a port on the host. Wordpress maps port 80 in the container to port 8000 on the host. To access WordPress, just pont your browser to `http://localhost:8000`.
+The [ports](https://docs.docker.com/compose/compose-file/compose-file-v3/#ports) directive maps a port on the container to a port on the host. Wordpress maps port 80 in the container to port 8000 on the host. To access WordPress, just pont your browser to `http://localhost:8000`.
 
-<code>[restart](https://docs.docker.com/compose/compose-file/compose-file-v3/#restart)</code> indicates the restart policy for the container. The possible values are:
+[restart](https://docs.docker.com/compose/compose-file/compose-file-v3/#restart) indicates the restart policy for the container. The possible values are:
 
 * **always**: The container always restarts
 * **on-failure**: Restart a container if the exit code indicates an on-failure error
 * **unless-stopped** Restarts a container, unless the container is stopped (manually or otherwise)
 
-The <code>[environment](https://docs.docker.com/compose/compose-file/compose-file-v3/#environment)</code> directive holds environment variables that will be passed to the container.
+The [environment](https://docs.docker.com/compose/compose-file/compose-file-v3/#environment) directive holds environment variables that will be passed to the container.
 
 ```yaml
   wordpress:
@@ -248,6 +248,8 @@ The example command will run the Bash shell inside the `wordpress` container.
 ## Conclusion
 
 In this post we've talked about building a WordPress installation using Docker.
+
+What I particularly like is that I have access to the container so I can add and remove themes, plugins and even run the WordPress CLI without having to rebuild the image or have compilers and developer tools installed.
 
 It is just a beginning exercise to explore how we can use integrate multiple tools and applications into a single Docker-based project.
 
