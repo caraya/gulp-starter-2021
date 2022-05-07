@@ -62,7 +62,7 @@ Participants will get the most from this lesson if they have familiarity with:
 ## Readiness Questions
 
 * Do you want to make changes to your theme?
-* Do you need to prevent authors from making changes to your theme's templates?
+* Do you need to prevent other developers from making changes to your theme's templates?
 * What elements of the selected blocks do you want to lock?
 
 ## Slides
@@ -75,13 +75,12 @@ Slides (files included in this repo)
 
 * A local install of WordPress
 * The TwentyTwentytwo theme installed and active
-* a non-administrator user to switch to when testing the locking mechanism
 
 ## Notes for the Presenter
 
-* It is not possible to lock a block and test that it works with the same account. That's why we ask that participants have a non-administrator user available to test with.
+* While we can lock specific blocks in the theme, it should be possible for other developers working on the same theme to undo the locks
 * We ask for a specific theme so we can all be on the same page rather than having to figure out what each theme is doing
-* This feature is only available in WordPress 6.0 or in older versions running the Gutenberg plugin. It will not work in version 5.9.x or earlier without Gutenberg
+* This feature is only available in WordPress 6.0 or later or in older versions (5.8 and 5.9) running the Gutenberg plugin. It will not work in version 5.9.x or earlier without Gutenberg
 * This is a separate feature from template locking
 
 ## Lesson Outline
@@ -150,8 +149,7 @@ Slides (files included in this repo)
 
 **Test the locking system.**
 
-* Log in to your site using your non-administrator account
-* Complete the following tasks
+* In the TwentyTwentytwo theme, complete the following tasks
   * Try to move the second paragraph in the block underneath the header. You should not be able to remove it
   * Likewise, try removing the either paragraph. You should be able to do this
   * Try moving the block containing the two paragraphs. It should move like normal.
@@ -162,7 +160,7 @@ Who can lock blocks?
 
 1. Administrators
 2. Editors
-3. Anyone who can edit themes
+3. Anyone who can edit themes using the block editor
 4. Authors
 5. Anyone who can log in to the site
 
@@ -176,7 +174,7 @@ To be filled
 
 # Locking blocks in the full site editor
 
-One of the things that I wish WordPress would do is to give developers the ability to control what we can and cannot do in the full site editor.
+One of the things that I find missing from WordPress is to give theme developers the ability to control what we can and cannot do in the full site editor.
 
 In 6.0, we get a first set of locking features. We can lock individual block and prevent them from being moved or being deleted.
 
@@ -194,17 +192,11 @@ To start we need to create a few blocks in the template editor in order to have 
 
 Go into the site editor by clicking the editor (beta) link under the appearance menu
 
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651791672/publishing-project.rivendellweb.net/block-locking1/block-locking1.png?_i=AA' alt='Location of the full site editor in the Appearance menu' width='800'>
-  <figcaption>Location of the full site editor in the Appearance menu</figcaption>
-</figure>
+![Location of the full site editor in the Appearance menu](https://res.cloudinary.com/dfh6ihzvj/images/v1651791672/publishing-project.rivendellweb.net/block-locking1/block-locking1.png?_i=AA)
 
 Under the blog header, create a group block. You can click on the block inserter and then search for `group` and then click on the `group` block to insert it into the current template.
 
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651793971/publishing-project.rivendellweb.net/block-locking2/block-locking2.png?_i=AA' alt='Block inserter searching for a block and preview of group block' width='693'>
-  <figcaption>Block inserter searching for a block and preview of group block</figcaption>
-</figure>
+![Block inserter searching for a block and preview of group block](https://res.cloudinary.com/dfh6ihzvj/images/v1651793971/publishing-project.rivendellweb.net/block-locking2/block-locking2.png?_i=AA)
 
 Add two paragraph blocks inside the group block. These are the blocks that we'll be working with in the rest of the lesson.
 
@@ -216,17 +208,11 @@ As an example we'll be locking the first paragraph inside the group block we cre
 
 In the full site editor, select the first paragraph block inside the group block and select the options menu on the far right side.
 
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651850251/publishing-project.rivendellweb.net/block-locking3/block-locking3.png?_i=AA' alt='Options menu for paragraph block showing the Lock option, fifth options from the bottom, highlighted in blue' width='1055'>
-  <figcaption>Options menu for paragraph block showing the Lock option highlighted in blue</figcaption>
-</figure>
+![Options menu for paragraph block showing the Lock option, fifth options from the bottom, highlighted in blue text](https://res.cloudinary.com/dfh6ihzvj/images/v1651850251/publishing-project.rivendellweb.net/block-locking3/block-locking3.png?_i=AA)
 
 You will then be presented with a modal dialogue to select your lock option or options:
 
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651878505/publishing-project.rivendellweb.net/block-locking4/block-locking4.png?_i=AA' alt='Block locking modal dialogue for paragraph block with no options selected' width='906'>
-  <figcaption>Block locking modal dialogue for paragraph block with no options selected</figcaption>
-</figure>
+![Block locking modal dialogue for paragraph block with no options selected](https://res.cloudinary.com/dfh6ihzvj/images/v1651878505/publishing-project.rivendellweb.net/block-locking4/block-locking4.png?_i=AA)
 
 Click the checkbox next to `Disable movement` and click apply.
 
@@ -242,12 +228,9 @@ When you click the options menu and select the lock menu item, you will presente
 
 In this case select the checkbox next to the `Prevent removal` option and then click `Apply`.
 
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651853891/publishing-project.rivendellweb.net/block-locking5/block-locking5.png?_i=AA' alt='Block locking modal dialogue for paragraph block with no options selected' width='906'>
-  <figcaption>Block locking modal dialogue for paragraph block with no options selected</figcaption>
-</figure>
+![Block locking modal dialogue for paragraph block with no options selected](https://res.cloudinary.com/dfh6ihzvj/images/v1651853891/publishing-project.rivendellweb.net/block-locking5/block-locking5.png?_i=AA')
 
-Users who are just using the block editor (without permissions to edit the template) will not be able to remove the block.
+This indicates that we would want other theme developers not to remove the block.
 
 ## Locking both
 
@@ -259,12 +242,21 @@ The first one is to select the checkboxes next to both options and click `Apply`
 
 The second option is to click the `Lock all` option and then click `Apply`.
 
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651878500/publishing-project.rivendellweb.net/block-locking6/block-locking6.png?_i=AA' alt='Block locking modal dialogue for paragraph block with no options selected' width='906'>
-  <figcaption>Block locking modal dialogue for paragraph block with no options selected</figcaption>
-</figure>
+![Block locking modal dialogue for paragraph block with no options selected](https://res.cloudinary.com/dfh6ihzvj/images/v1651878500/publishing-project.rivendellweb.net/block-locking6/block-locking6.png?_i=AA)
 
 ## Test the locked blocks
+
+We've covered how to lock block to preveent removal, movement and both of them together.
+
+Now we need to test if the locks we put on the blocks are working.
+
+Go to the theme editor
+
+Test
+: item1
+: item2
+
+We need to be extremely careful when we check the lock status of the blocks. We can check if the locks we set are enabled but, at the same time, can disable any locks set up for a given block
 
 ## Lesson Wrap Up
 
