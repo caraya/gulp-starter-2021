@@ -80,26 +80,41 @@ function markdown() {
       linkify: true,
       typographer: true,
     },
-    plugins: [
-      abbr,
-      alerts,
-      anc,
-      attrs,
-      embed,
-      fn,
-      figs,
-      kbd,
-      mermaid,
-      prism,
-      toc,
-      list,
-    ],
   };
+
   return gulp
       .src('src/md-content/*.md')
+      .pipe(markdown(config)
+          .use(abbr) // Doesn't require special configuration
+          .use(anc, {
+            permalink: true,
+          })
+          .use(alerts)
+          .use(attrs) // Doesn't require special configuration
+          .use(embed, {
+            containerClassName: 'video',
+          })
+          .use(fn) // Doesn't require special configuration
+          .use(figs, {
+            dataType: false,
+            figcaption: true,
+            tabindex: true,
+            link: false,
+          })
+          .use(kbd) // Doesn't require special configuration
+          .use(mermaid) // Doesn't require special configuration
+          .use(prism)
+          // Include h1, h2 and h3 elements in the TOC
+          .use(toc, {
+            includeLevel: [1, 2, 3],
+          })
+          .use(list)
+          .use(dl)
+          .use(admonition),
+      )
       .pipe(markdownPlugin(config))
       .pipe(gulp.dest('src/html-content/'));
-};
+}
 
 /**
  * @name buildTemplate
