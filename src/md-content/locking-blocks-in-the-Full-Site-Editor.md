@@ -247,7 +247,17 @@ In this case select the checkbox next to the `Prevent removal` option and then c
   <figcaption>Block locking modal dialogue for paragraph block with no options selected</figcaption>
 </figure>
 
+Users who are just using the block editor (without permissions to edit the template) will not be able to remove the block.
+
 ## Locking both
+
+The final locking strategy is to restrict both moving and removal of the target blocks.
+
+There are two ways to lock both options.
+
+The first one is to select the checkboxes next to both options and click `Apply`.
+
+The second option is to click the `Lock all` option and then click `Apply`.
 
 <figure>
   <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1651878500/publishing-project.rivendellweb.net/block-locking6/block-locking6.png?_i=AA' alt='Block locking modal dialogue for paragraph block with no options selected' width='906'>
