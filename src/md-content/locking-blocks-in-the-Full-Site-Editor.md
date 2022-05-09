@@ -250,11 +250,23 @@ We've covered how to lock block to preveent removal, movement and both of them t
 
 Now we need to test if the locks we put on the blocks are working.
 
-Go to the theme editor
+### Testing movement lock
 
-Test
-: item1
-: item2
+Go to the theme editor and click on the first paragraph inside the group block we created.
+
+The quickest way to check if we can move a block is to check whether the `lock` icon is visible. If it is visible then the block is locked. We can check what lock was applied by clicking on the lock; this will display the lock dialogue.
+
+![The blue lock icon shows that there is a lock applied to the block](https://res.cloudinary.com/dfh6ihzvj/images/v1651963975/publishing-project.rivendellweb.net/block-locking8_80380433f9e/block-locking8_80380433f9e.png?_i=AA)
+
+When a block is not locked you will see the drag handle and the arrows to move the block up and down
+
+![Unloocked blocks show the drag handle and movement arrows](https://res.cloudinary.com/dfh6ihzvj/images/v1651963977/publishing-project.rivendellweb.net/block-locking10_803806f45e5/block-locking10_803806f45e5.png?_i=AA)
+
+### Testing Removal lock
+
+Testing the `prevent removal` lock is a little more complicated. There is no visible change in the block configuration strip. The way to test if we've successfully locked the block is to check if the remove block (`remove paragraph` for our example) is available in the options menu
+
+![Preventing block removal eliminates the Remove block item at the bottom of the options menu](https://res.cloudinary.com/dfh6ihzvj/images/v1651963978/publishing-project.rivendellweb.net/block-locking7/block-locking7.png?_i=AA)
 
 We need to be extremely careful when we check the lock status of the blocks. We can check if the locks we set are enabled but, at the same time, can disable any locks set up for a given block
 
