@@ -10,47 +10,6 @@ After completing this lesson, participants will be able to:
 
 * Identify the different locking mechanism for WordPress blocks
 * Explain the differences between the available locking mechanism and give an example of each locking
-* Apply different permissions to locking / unlocking blocks based on user roles
-
-## Target Audience
-
-[] Users / Content Writers
-[] Designers
-[] Developers
-[] Speakers
-[] Organizers
-[] Kids
-
-## Experience Level
-
-How much experience would a participant need to get the most from this lesson? Put an "x" in the brackets for all that apply.
-
-[] Beginner
-[] Intermediate
-[] Advanced
-
-## Type of Instruction
-
-Which strategies will be used for this lesson plan? Put an "x" in the brackets for all that apply.
-
-[] Demonstration
-[] Discussion
-[] Exercises
-[] Feedback
-[] Lecture (Presentation)
-[] Slides
-[] Show & Tell
-[] Tutorial
-
-## Time Estimate (Duration)
-
-IF this is just a show and tell then it should take about an hour. If we choose to run this as a hands-on workshop then I would suggest two to three hours.
-
-[] 1 hour or less
-[] 2-4 hours (half-day)
-[] 5-8 hours (full-day)
-[] 2 days
-[] 3 days or more
 
 ## Prerequisite Skills
 
@@ -80,7 +39,8 @@ Slides (files included in this repo)
 
 * While we can lock specific blocks in the theme, it should be possible for other developers working on the same theme to undo the locks
 * We ask for a specific theme so we can all be on the same page rather than having to figure out what each theme is doing
-* This feature is only available in WordPress 6.0 or later or in older versions (5.8 and 5.9) running the Gutenberg plugin. It will not work in version 5.9.x or earlier without Gutenberg
+* This feature is only available in WordPress 6.0 or later
+  * It is also available in 5.8 and 5.9 running the Gutenberg plugin but we will not cover that in this lesson plan
 * This is a separate feature from template locking
 
 ## Lesson Outline
@@ -113,7 +73,7 @@ Slides (files included in this repo)
   * Go into the site editor
   * Select template editor > home
   * Create a group block
-  * Create two paragraph blocks inside the header
+  * Create two paragraph blocks inside the header. You can choose whatever text you want for each paragraph
 
 **Lock movement.**
 
@@ -160,11 +120,13 @@ Who can lock blocks?
 
 1. Administrators
 2. Editors
-3. Anyone who can edit themes using the block editor
+3. Anyone who can edit themes using the full site editor
 4. Authors
 5. Anyone who can log in to the site
 
 Answer: 3. Correct answer
+
+
 
 ## Additional Resources
 
@@ -270,6 +232,8 @@ Testing the `prevent removal` lock is a little more complicated. There is no vis
 
 We need to be extremely careful when we check the lock status of the blocks. We can check if the locks we set are enabled but, at the same time, can disable any locks set up for a given block
 
-## Lesson Wrap Up
+### Lesson Wrap Up
 
- Follow with the Exercises and Assessment outlined above.
+And this is the wrap-up of the lesson. We've looked at the different ways to lock blocks and how to tese if the locks are working.
+
+Follow with the Exercises and Assessment outlined above.
