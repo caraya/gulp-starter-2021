@@ -6,11 +6,21 @@ CSS provides four mathematical expression functions: `calc()`, `min()`, `max()`,
 
 The calc() function supports four arithmetic operations: addition (`+`), subtraction (`-`), multiplication (`*`) and division (`/`).
 
-This will allow you to combine different types of value to create a new value. For example, you can
+This will allow you to combine different types of values (like `vw` and `px`) to create a new value.
+
+In this example, you can set the margins of an element minus a fixed amount:
+
+```css
+div {
+  width: calc(80vw - 20px);
+}
+```
 
 ## min()
 
-The min() function is used to set the smallest acceptable value. It takes 2 different specifications separated by a comma and supports arithmetic expression.
+The min() function is used to set the smallest acceptable value.
+
+It takes 2 different values separated by a comma and may change.
 
 ```css
 font-size: min(25px,1vw);

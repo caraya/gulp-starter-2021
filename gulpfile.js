@@ -84,7 +84,7 @@ function markdown() {
 
   return gulp
       .src('src/md-content/*.md')
-      .pipe(markdown(config)
+      .pipe(markdownPlugin(config)
           .use(abbr) // Doesn't require special configuration
           .use(anc, {
             permalink: true,
@@ -112,7 +112,6 @@ function markdown() {
           .use(dl)
           .use(admonition),
       )
-      .pipe(markdownPlugin(config))
       .pipe(gulp.dest('src/html-content/'));
 }
 
