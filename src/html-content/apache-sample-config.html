@@ -1,589 +1,594 @@
-<h1>Example Apache .htaccess Configuration</h1>
-<p>Apache .htaccess files allow users to configure directories of the web server they control without modifying the main configuration file.</p>
-<p>While this is useful it's important to note that using <code>.htaccess</code> files slows down Apache, so, if you have access to the main server configuration file (which is usually called `httpd.conf`), you should add this logic there under a <code>Directory</code> block.</p>
-<p>See <a class="external" href="https://httpd.apache.org/docs/current/howto/htaccess.html">.htaccess</a> in the Apache HTTPD documentation site for more details about what .htaccess files can do.</p>
-<p>The remainder of this document will discuss different configuration options you can add to <code>.htaccess</code> and what they do.</p>
-<p>Most of the following blocks use the <a class="external" href="https://httpd.apache.org/docs/2.4/mod/core.html#ifmodule">IfModule</a> directive to only execute the instructions inside the block if the corresponding module was properly configured and the server loaded it. This way we save our server from crashing if the module wasn't loaded.</p>
-<p><h2>Redirects</h2></p>
-<p>There are times when we need to tell users that a resource has moved, either temporarily or permanently. This is what we use <code>Redirect</code> and <code>Redirectmatch</code> for.
-<pre class="brush: bash">
-<IfModule mod_alias>
-  # Redirect to a URL on a different host
-  Redirect "/service" "http://foo2.example.com/service"
-
-  # Redirect to a URL on the same host
-  Redirect "/one" "/two"
-
-  # Equivalent redirect to URL on the same host
-  Redirect temp "/one" "/two"
-
-  # Permanent redirect to a URL on the same host
-  Redirect permanent "/three" "/four"
-
-  # Redirect to an external URL
-  # Using regular expressions and RedirectMatch
-  RedirectMatch "^/oldfile\.html/?$" "http://example.com/newfile.php"
-</IfModule>
-</pre>
-<p>The possible values for the first parameter are listed below. If the first parameter is not included is defaults to <code>temp</code>.</p>
-<dl>
-  <dt>permanent</dt>
-  <dd>Returns a permanent redirect status (301) indicating that
-  the resource has moved permanently.</dd>
-  <dt>temp</dt>
-  <dd>Returns a temporary redirect status (302). <strong>This is the
-  default</strong>.</dd>
-  <dt>seeother</dt>
-  <dd>Returns a "See Other" status (303) indicating that the resource has been replaced.</dd>
-  <dt>gone</dt>
-  <dd>Returns a "Gone" status (410) indicating that the
-  resource has been permanently removed. When this status is
-  used the <var>URL</var> argument should be omitted.</dd>
-</dl>
-<p><h2>Cross-origin resources</h2></p>
-<p>The first set of directives control <a class="external" href="https://www.w3.org/TR/cors/">CORS</a> (Cross-Origin Resource Sharing) access to resources from the server. CORS is an HTTP-header based mechanism that allows a server to indicate the external origins (domain, protocol, or port) which a browser should permit loading of resources.</p>
-<p>For security reasons, browsers restrict cross-origin HTTP requests initiated from scripts. For example, XMLHttpRequest and the Fetch API follow the same-origin policy. A web application using those APIs can only request resources from the same origin the application was loaded from unless the response from other origins includes the apprpriate CORS headers.
-<p><h3>General CORS access</h3></p>
-<p>This directive will add the CORS header for all resources in the directory from any website.</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  Header set Access-Control-Allow-Origin "*"
-</IfModule>
-</pre>
-<p>Unless you override the directive later in the configuraation or in the configuration of a directory below where you set this one, every request from external servers will be honored, which is unlikely to be what you want.</p>
-<p>One alternative is to explicitly state what domains have access to the content of your site. In the example below we restrict access to a subdomain of our main site (example.com). This is more secure and, likely, what you intended to do.</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  Header set Access-Control-Allow-Origin "subdomain.example.com"
-</IfModule>
-</pre>
-<p><h3>Cross-origin images</h3></p>
-<p>As reported in the <a class="external" href="https://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html">Chromium Blog</a> and documented in <a href="/en-US/docs/Web/HTML/CORS_enabled_image">Allowing cross-origin use of images and canvas</a> can lead to fingerprinting attacks.</p>
-<p>To mitigate the possibility of these attacks, you should use the <code>crossorigin</code> attribute in the images you request and the code snippet below in your <code>.htaccess</code> to set the CORS header from the server.
-<pre class="brush: bash">
-<IfModule mod_setenvif.c>
-  <IfModule mod_headers.c>
-    <FilesMatch "\.(bmp|cur|gif|ico|jpe?g|a?png|svgz?|webp|heic|heif|avif)$">
-      SetEnvIf Origin ":" IS_CORS
-      Header set Access-Control-Allow-Origin "*" env=*IS_CORS*
-    </FilesMatch>
-  </IfModule>
-</IfModule>
-</pre>
-<p><h3>Cross-origin web fonts</h3></p>
-<p>Google Chrome's <a class="external" href="https://developers.google.com/fonts/docs/troubleshooting">Google Fonts troubleshooting guide</a> tells us that, while Google Fonts may send the CORS header with every response, some proxy servers may strip it before the browser can use it to render the font.</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  <FilesMatch "\.(eot|otf|tt[cf]|woff2?)$">
-    Header set Access-Control-Allow-Origin "*"
-  </FilesMatch>
-</IfModule>
-</pre>
-<p><h3>Cross-origin resource timing</h3></p>
-<p>The <a class="external" href="https://www.w3.org/TR/resource-timing/">Resource Timing Level 1</a> specification defines an interface for web applications to access the complete timing information for resources in a document.
-<p>The <a href="/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
-">Timing-Allow-Origin</a> response header specifies origins that are allowed to see values of attributes retrieved via features of the Resource Timing API, which would otherwise be reported as zero due to cross-origin restrictions.</p>
-<p>If a resource isn't served with a <code>Timing-Allow-Origin</code> or if the header does not include the origin making the request some of the
-attributes of the <code>PerformanceResourceTiming</code> object will be set to zero.</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  Header set Timing-Allow-Origin: "*"
-</IfModule>
-</pre>
-<p><h2>Custom Error Pages/Messsages</h2></p>
-<p>Apache allows you to provide custom error pages for users depending on the type of error they receive.</p>
-<p>The error pages are presented as URLs. These URLs can begin with a slash (/) for local web-paths (relative to the DocumentRoot), or be a full URL which the client can resolve.</p>
-<p>See the <a class="external" href="https://httpd.apache.org/docs/current/mod/core.html#errordocument">ErrorDocument Directive</a> documentation on the HTTPD documentation site for more information.</p>
-<pre class="brush: bash">
+<h1 id="example-apache-.htaccess-configuration">Example Apache .htaccess Configuration</h1>
+<p>&lt;p&gt;Apache .htaccess files allow users to configure directories of the web server they control without modifying the main configuration file.&lt;/p&gt;</p>
+<p>&lt;p&gt;While this is useful it's important to note that using &lt;code&gt;.htaccess&lt;/code&gt; files slows down Apache, so, if you have access to the main server configuration file (which is usually called <code>httpd.conf</code>), you should add this logic there under a &lt;code&gt;Directory&lt;/code&gt; block.&lt;/p&gt;</p>
+<p>&lt;p&gt;See &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/howto/htaccess.html&quot;&gt;.htaccess&lt;/a&gt; in the Apache HTTPD documentation site for more details about what .htaccess files can do.&lt;/p&gt;</p>
+<p>&lt;p&gt;The remainder of this document will discuss different configuration options you can add to &lt;code&gt;.htaccess&lt;/code&gt; and what they do.&lt;/p&gt;</p>
+<p>&lt;p&gt;Most of the following blocks use the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/2.4/mod/core.html#ifmodule&quot;&gt;IfModule&lt;/a&gt; directive to only execute the instructions inside the block if the corresponding module was properly configured and the server loaded it. This way we save our server from crashing if the module wasn't loaded.&lt;/p&gt;</p>
+<p>&lt;h2&gt;Redirects&lt;/h2&gt;</p>
+<p>&lt;p&gt;There are times when we need to tell users that a resource has moved, either temporarily or permanently. This is what we use &lt;code&gt;Redirect&lt;/code&gt; and &lt;code&gt;Redirectmatch&lt;/code&gt; for.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_alias&gt;</p>
+<h1 id="redirect-to-a-url-on-a-different-host">Redirect to a URL on a different host</h1>
+<p>Redirect &quot;/service&quot; &quot;http://foo2.example.com/service&quot;</p>
+<h1 id="redirect-to-a-url-on-the-same-host">Redirect to a URL on the same host</h1>
+<p>Redirect &quot;/one&quot; &quot;/two&quot;</p>
+<h1 id="equivalent-redirect-to-url-on-the-same-host">Equivalent redirect to URL on the same host</h1>
+<p>Redirect temp &quot;/one&quot; &quot;/two&quot;</p>
+<h1 id="permanent-redirect-to-a-url-on-the-same-host">Permanent redirect to a URL on the same host</h1>
+<p>Redirect permanent &quot;/three&quot; &quot;/four&quot;</p>
+<h1 id="redirect-to-an-external-url">Redirect to an external URL</h1>
+<h1 id="using-regular-expressions-and-redirectmatch">Using regular expressions and RedirectMatch</h1>
+<p>RedirectMatch &quot;^/oldfile.html/?$&quot; &quot;http://example.com/newfile.php&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>The possible values for the first parameter are listed below. If the first parameter is not included is defaults to &lt;code&gt;temp&lt;/code&gt;.</p>
+<p>&lt;dl&gt;
+&lt;dt&gt;permanent&lt;/dt&gt;
+&lt;dd&gt;Returns a permanent redirect status (301) indicating that
+the resource has moved permanently.&lt;/dd&gt;</p>
+<p>&lt;dt&gt;temp&lt;/dt&gt;
+&lt;dd&gt;Returns a temporary redirect status (302). &lt;strong&gt;This is the
+default&lt;/strong&gt;.&lt;/dd&gt;</p>
+<p>&lt;dt&gt;seeother&lt;/dt&gt;
+&lt;dd&gt;Returns a &quot;See Other&quot; status (303) indicating that the resource has been replaced.&lt;/dd&gt;</p>
+<p>&lt;dt&gt;gone&lt;/dt&gt;
+&lt;dd&gt;Returns a &quot;Gone&quot; status (410) indicating that the
+resource has been permanently removed. When this status is
+used the &lt;var&gt;URL&lt;/var&gt; argument should be omitted.&lt;/dd&gt;
+&lt;/dl&gt;</p>
+<p>&lt;h2&gt;Cross-origin resources&lt;/h2&gt;</p>
+<p>&lt;p&gt;The first set of directives control &lt;a class=&quot;external&quot; href=&quot;https://www.w3.org/TR/cors/&quot;&gt;CORS&lt;/a&gt; (Cross-Origin Resource Sharing) access to resources from the server. CORS is an HTTP-header based mechanism that allows a server to indicate the external origins (domain, protocol, or port) which a browser should permit loading of resources.&lt;/p&gt;</p>
+<p>&lt;p&gt;For security reasons, browsers restrict cross-origin HTTP requests initiated from scripts. For example, XMLHttpRequest and the Fetch API follow the same-origin policy. A web application using those APIs can only request resources from the same origin the application was loaded from unless the response from other origins includes the apprpriate CORS headers.</p>
+<p>&lt;h3&gt;General CORS access&lt;/h3&gt;</p>
+<p>&lt;p&gt;This directive will add the CORS header for all resources in the directory from any website.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header set Access-Control-Allow-Origin &quot;*&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;Unless you override the directive later in the configuraation or in the configuration of a directory below where you set this one, every request from external servers will be honored, which is unlikely to be what you want.&lt;/p&gt;</p>
+<p>&lt;p&gt;One alternative is to explicitly state what domains have access to the content of your site. In the example below we restrict access to a subdomain of our main site (example.com). This is more secure and, likely, what you intended to do.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header set Access-Control-Allow-Origin &quot;subdomain.example.com&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Cross-origin images&lt;/h3&gt;</p>
+<p>&lt;p&gt;As reported in the &lt;a class=&quot;external&quot; href=&quot;https://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html&quot;&gt;Chromium Blog&lt;/a&gt; and documented in &lt;a href=&quot;/en-US/docs/Web/HTML/CORS_enabled_image&quot;&gt;Allowing cross-origin use of images and canvas&lt;/a&gt; can lead to fingerprinting attacks.&lt;/p&gt;</p>
+<p>&lt;p&gt;To mitigate the possibility of these attacks, you should use the &lt;code&gt;crossorigin&lt;/code&gt; attribute in the images you request and the code snippet below in your &lt;code&gt;.htaccess&lt;/code&gt; to set the CORS header from the server.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_setenvif.c&gt;
+&lt;IfModule mod_headers.c&gt;
+&lt;FilesMatch &quot;.(bmp|cur|gif|ico|jpe?g|a?png|svgz?|webp|heic|heif|avif)$&quot;&gt;
+SetEnvIf Origin &quot;:&quot; IS_CORS
+Header set Access-Control-Allow-Origin &quot;*&quot; env=<em>IS_CORS</em>
+&lt;/FilesMatch&gt;
+&lt;/IfModule&gt;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Cross-origin web fonts&lt;/h3&gt;</p>
+<p>&lt;p&gt;Google Chrome's &lt;a class=&quot;external&quot; href=&quot;https://developers.google.com/fonts/docs/troubleshooting&quot;&gt;Google Fonts troubleshooting guide&lt;/a&gt; tells us that, while Google Fonts may send the CORS header with every response, some proxy servers may strip it before the browser can use it to render the font.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+&lt;FilesMatch &quot;.(eot|otf|tt[cf]|woff2?)$&quot;&gt;
+Header set Access-Control-Allow-Origin &quot;*&quot;
+&lt;/FilesMatch&gt;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Cross-origin resource timing&lt;/h3&gt;</p>
+<p>&lt;p&gt;The &lt;a class=&quot;external&quot; href=&quot;https://www.w3.org/TR/resource-timing/&quot;&gt;Resource Timing Level 1&lt;/a&gt; specification defines an interface for web applications to access the complete timing information for resources in a document.</p>
+<p>&lt;p&gt;The &lt;a href=&quot;/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
+&quot;&gt;Timing-Allow-Origin&lt;/a&gt; response header specifies origins that are allowed to see values of attributes retrieved via features of the Resource Timing API, which would otherwise be reported as zero due to cross-origin restrictions.&lt;/p&gt;</p>
+<p>&lt;p&gt;If a resource isn't served with a &lt;code&gt;Timing-Allow-Origin&lt;/code&gt; or if the header does not include the origin making the request some of the
+attributes of the &lt;code&gt;PerformanceResourceTiming&lt;/code&gt; object will be set to zero.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header set Timing-Allow-Origin: &quot;*&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Custom Error Pages/Messsages&lt;/h2&gt;</p>
+<p>&lt;p&gt;Apache allows you to provide custom error pages for users depending on the type of error they receive.&lt;/p&gt;</p>
+<p>&lt;p&gt;The error pages are presented as URLs. These URLs can begin with a slash (/) for local web-paths (relative to the DocumentRoot), or be a full URL which the client can resolve.&lt;/p&gt;</p>
+<p>&lt;p&gt;See the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/core.html#errordocument&quot;&gt;ErrorDocument Directive&lt;/a&gt; documentation on the HTTPD documentation site for more information.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 ErrorDocument 500 /errors/500.html
 ErrorDocument 404 /errors/400.html
 ErrorDocument 401 https://example.com/subscription_info.html
-ErrorDocument 403 "Sorry, can't allow you access today"
-</pre>
-<p><h2>Error prevention</h2></p>
-<p>This setting affects how MultiViews work for the directory the configuration applies to.</p>
-<p>The effect of <code>MultiViews</code> is as follows: if the server receives a request for /some/dir/foo, if /some/dir has <code>MultiViews</code> enabled, and /some/dir/foo does not exist, then the server reads the directory looking for files named foo.*, and effectively fakes up a type map which names all those files, assigning them the same media types and content-encodings it would have if the client had asked for one of them by name. It then chooses the best match to the client's requirements.</p>
-<p>The setting disables <code>MultiViews</code> for the directory this configuration applies to and prevents Apache from returning a 404 error as the result of a  rewrite when the directory with the same name does not exist</p>
-<pre class="brush: bash">
+ErrorDocument 403 &quot;Sorry, can't allow you access today&quot;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Error prevention&lt;/h2&gt;</p>
+<p>&lt;p&gt;This setting affects how MultiViews work for the directory the configuration applies to.&lt;/p&gt;</p>
+<p>&lt;p&gt;The effect of &lt;code&gt;MultiViews&lt;/code&gt; is as follows: if the server receives a request for /some/dir/foo, if /some/dir has &lt;code&gt;MultiViews&lt;/code&gt; enabled, and /some/dir/foo does not exist, then the server reads the directory looking for files named foo.*, and effectively fakes up a type map which names all those files, assigning them the same media types and content-encodings it would have if the client had asked for one of them by name. It then chooses the best match to the client's requirements.&lt;/p&gt;</p>
+<p>&lt;p&gt;The setting disables &lt;code&gt;MultiViews&lt;/code&gt; for the directory this configuration applies to and prevents Apache from returning a 404 error as the result of a  rewrite when the directory with the same name does not exist&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 Options -MultiViews
-</pre>
-<p><h2>Media Types and Character Encodings</h2></p>
-<p>Apache uses <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_mime.html#addtype">mod_mime</a> to assign content metadata to the content selected for an HTTP response by mapping patterns in the URI or filenames to the metadata values.</p>
-<p>For example, the filename extensions of content files often define the content's Internet media type, language, character set, and content-encoding. This information is sent in HTTP messages containing that content and used in content negotiation when selecting alternatives, such that the user's preferences are respected when choosing one of several possible contents to serve.</p>
-<p><strong>Changing the metadata for a file does not change the value of the Last-Modified header. Thus, previously cached copies may still be used by a client or proxy, with the previous headers. If you change the metadata (language, content type, character set or encoding) you may need to 'touch' affected files (updating their last modified date) to ensure that all visitors are receive the corrected content headers.</strong></p>
-<p><h3>Serve resources with the proper media types (a.k.a MIME types)</h3></p>
-<p>Associates media types with one or more extensions to make sure the resources will be served appropriately.</p>
-<p>Servers should use text/javascript for JavaScript resourcesn as indicated in the <a class="external" href="https://html.spec.whatwg.org/multipage/scripting.html#scriptingLanguages">HTML specification</a></p>
-<pre class="brush: bash">
-<IfModule mod_mime.c>
-  # Data interchange
-    AddType application/atom+xml      atom
-    AddType application/json          json map topojson
-    AddType application/ld+json       jsonld
-    AddType application/rss+xml       rss
-    AddType application/geo+json      geojson
-    AddType application/rdf+xml       rdf
-    AddType application/xml           xml
-  # JavaScript
-    AddType text/javascript           js mjs
-  # Manifest files
-    AddType application/manifest+json     webmanifest
-    AddType application/x-web-app-manifest+json         webapp
-    AddType text/cache-manifest           appcache
-  # Media files
-    AddType audio/mp4                     f4a f4b m4a
-    AddType audio/ogg                     oga ogg opus
-    AddType image/bmp                     bmp
-    AddType image/svg+xml                 svg svgz
-    AddType image/webp                    webp
-    AddType video/mp4                     f4v f4p m4v mp4
-    AddType video/ogg                     ogv
-    AddType video/webm                    webm
-    AddType image/x-icon    cur ico
-  # HEIF Images
-    AddType image/heic                    heic
-    AddType image/heif                    heif
-  # HEIF Image Sequence
-    AddType image/heics                   heics
-    AddType image/heifs                   heifs
-  # AVIF Images
-    AddType image/avif                    avif
-  # AVIF Image Seuqence
-    AddType image/avis                    avis
-  # WebAssembly
-    AddType application/wasm              wasm
-  # Web fonts
-    AddType font/woff                         woff
-    AddType font/woff2                        woff2
-    AddType application/vnd.ms-fontobject                eot
-    AddType font/ttf                          ttf
-    AddType font/collection                   ttc
-    AddType font/otf                          otf
-  # Other
-    AddType application/octet-stream          safariextz
-    AddType application/x-bb-appworld         bbaw
-    AddType application/x-chrome-extension    crx
-    AddType application/x-opera-extension     oex
-    AddType application/x-xpinstall           xpi
-    AddType text/calendar                     ics
-    AddType text/markdown                     markdown md
-    AddType text/vcard                        vcard vcf
-    AddType text/vnd.rim.location.xloc        xloc
-    AddType text/vtt                          vtt
-    AddType text/x-component                  htc
-</IfModule>
-</pre>
-<p><h2>Set the default Charset attribute</h2></p>
-<p>Every piece of content on the web has a character set. Most, if not all, the content is UTF-8 Unicode.
-<p>Use <a class="external" href="https://httpd.apache.org/docs/current/mod/core.html#adddefaultcharset
-">AddDefaultCharset</a> to serve all resources labeled as <code>text/html</code> or <code>text/plain</code> with the <code>UTF-8</code> charset.</p>
-<pre class="brush: bash">
-AddDefaultCharset utf-8
-</pre>
-<p><h2>Set the charset for specific media types</h2></p>
-<p>Serve the following file types with the  <code>charset</code> parameter set to <code>UTF-8</code> using the <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_mime.html#addcharset">AddCharset</a> directive available in <code>mod_mime</code>.</p>
-<pre class="brush: bash">
-<IfModule mod_mime.c>
-  AddCharset utf-8 .appcache \
-    .bbaw \
-    .css \
-    .htc \
-    .ics \
-    .js \
-    .json \
-    .manifest \
-    .map \
-    .markdown \
-    .md \
-    .mjs \
-    .topojson \
-    .vtt \
-    .vcard \
-    .vcf \
-    .webmanifest \
-    .xloc
-</IfModule>
-</pre>
-<p><h2>Mod_rewrite and the RewriteEngine directives</h2></p>
-<p><a class="external" href="https://httpd.apache.org/docs/current/mod/mod_rewrite.html">mod_rewrite</a> provides a way to modify incoming URL requests, dynamically, based on regular expression rules. This allows you to map arbitrary URLs onto your internal URL structure in any way you like.
-<p>It supports an unlimited number of rules and an unlimited number of attached rule conditions for each rule to provide a really flexible and powerful URL manipulation mechanism. The URL manipulations can depend on various tests: server variables, environment variables, HTTP headers, time stamps, external database lookups, and various other external programs or handlers, can be used to achieve granular URL matching.</p>
-<p><h3>Enable mod_rewrite</h3></p>
-<p>The basic pattern to enable <code>mod_rewrite</code> is a pre-requisite for all other tasks that use.</p>
-<p>The required steps are:</p>
-<ol>
-  <li>Turn on the rewrite engine (this is necessary in order for the <code>RewriteRule</code> directives to work) as documented in the <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_rewrite.html#RewriteEngine">RewriteEngine</a> documentation</li>
-  <li>Enable the <code>FollowSymLinks</code> option if it isn't already. See <a class="external" href="https://httpd.apache.org/docs/current/mod/core.html#options">Core Options</a> documentation</li>
-  <li>If your web host doesn't allow the <code>FollowSymlinks</code> option, you need to comment it out or remove it, and then uncomment the <code>Options +SymLinksIfOwnerMatch</code> line, but be aware of the <a class="external" href="https://httpd.apache.org/docs/current/misc/perf-tuning.html#symlinks">performance impact</a></li>
-    <ul>
-      <li>Some cloud hosting services will require you set <code>RewriteBase</code></li>
-      <li> See <a class="external" href="https://www.rackspace.com/knowledge_center/frequently-asked-question/why-is-modrewrite-not-working-on-my-site">Rackspace FAQ</a> and the <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewritebase">HTTPD documentation</a></li>
-      <li>Depending on how your server is set up, you may also need to use the <code><a class="external" href="https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewriteoptions">RewriteOptions</a></code> directive to enable some options for the rewrite engine
-    </ul>
-  </ol>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    Options +FollowSymlinks
-    # Options +SymLinksIfOwnerMatch
-    # RewriteBase /
-    # RewriteOptions <options>
-</IfModule>
-</pre>
-<p><h3>Forcing https</h3></p>
-<p>This Rewrite rules will redirect from the <code>http://</code> insecure version to the <code>https://</code> secure version of the URL as described in the <a class="external" href="https://wiki.apache.org/httpd/RewriteHTTPToHTTPS">Apache HTTPD wiki</a>.</p>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{HTTPS} !=on
-
-  RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
-</IfModule>
-</pre>
-<p>If you're using cPanel AutoSSL or the Let's Encrypt webroot method to create your SSL certificates, it will fail to validate the certificate if validation requests are redirected to HTTPS. Turn on the condition(s) you need.</p>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{HTTPS} !=on
-  RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
-  RewriteCond %{REQUEST_URI} !^/\.well-known/cpanel-dcv/[\w-]+$
-  RewriteCond %{REQUEST_URI} !^/\.well-known/pki-validation/[A-F0-9]{32}\.txt(?:\ Comodo\ DCV)?$
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-</IfModule>
-</pre>
-<p><h3>Redirecting from <code>www.</code> URLs</h3></p>
-<p>These directives will rewrite <code>www.example.com</code> to <code>example.com</code>.</p>
-<p>You should not duplicate content in multiple origins (with and without www);This can cause SEO problems (duplicate content), and therefore, you should
-choose one of the alternatives and redirect the other one. You should also use <a class="external" href="https://www.semrush.com/blog/canonical-url-guide/">Canonical URLs</a> to indicate which URL should search engines crawl (if they support the feature).<p>
-<p>Set <code>%{ENV:PROTO}</code> variable, to allow rewrites to redirect with the appropriate schema automatically (http or https).</p>
-<p>The rule assumes by default that both HTTP and HTTPS environments are available for redirection.</p>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    RewriteCond %{HTTPS} =on
-    RewriteRule ^ - [E=PROTO:https]
-    RewriteCond %{HTTPS} !=on
-    RewriteRule ^ - [E=PROTO:http]
-
-    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-    RewriteRule ^ %{ENV:PROTO}://%1%{REQUEST_URI} [R=301,L]
-</IfModule>
-</pre>
-<p><h3>Inserting the www. at the beginning of URLs</h3></p>
-<p>These rules will insert <code>www.</code> at the beginning of a URL. It's important to note that you should never make the same content available under two different URLs.</p>
-<p>This can cause SEO problems (duplicate content), and therefore, you should choose one of the alternatives and redirect the other one. For search engines that support them you should use <a class="external" href="https://www.semrush.com/blog/canonical-url-guide/">Canonical URLs</a> to indicate which URL should search engines crawl.</p>
-<p>Set <code>%{ENV:PROTO}</code> variable, to allow rewrites to redirect with the appropriate schema automatically (http or https).</p>
-<p>The rule assumes by default that both HTTP and HTTPS environments are available for redirection. If your SSL certificate could not handle one of the domains used during redirection, you should turn the condition on.</p>
-<p>The following might not be a good idea if you use "real" subdomains for certain parts of your website.</p>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{HTTPS} =on
-  RewriteRule ^ - [E=PROTO:https]
-  RewriteCond %{HTTPS} !=on
-  RewriteRule ^ - [E=PROTO:http]
-  
-  RewriteCond %{HTTPS} !=on
-
-  RewriteCond %{HTTP_HOST} !^www\. [NC]
-  RewriteCond %{SERVER_ADDR} !=127.0.0.1
-  RewriteCond %{SERVER_ADDR} !=::1
-  RewriteRule ^ %{ENV:PROTO}://www.%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-
-</IfModule>
-</pre>
-<p><h2>Frame Options</h2></p>
-<p>The example below sends the <code>X-Frame-Options</code> response header with the value <code>DENY</code>, informing browsers not to display the content of the web page in any frame to protect website against <a class="external" href="https://www.owasp.org/index.php/Clickjacking">clickjacking</a>.</p>
-<p>This might not be the best setting for everyone. You should read about <a class="external" href="https://tools.ietf.org/html/rfc7034#section-2.1">the other two possible values for the <code>X-Frame-Options</code> header</a>: <code>SAMEORIGIN</code> and <code>ALLOW-FROM</code>.</p>
-<p>While you could send the <code>X-Frame-Options</code> header for all of your website's pages, this has the potential downside that it forbids even any framing of your content (e.g.: when users visit your website using a Google Image Search results page).</p>
-<p>Nonetheless, you should ensure that you send the <code>X-Frame-Options</code> header for all pages that allow a user to make a state-changing operation (e.g: pages that contain one-click purchase links, checkout or bank-transfer confirmation pages, pages that make permanent configuration changes, etc.).</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  Header always set X-Frame-Options "DENY" "expr=%{CONTENT_TYPE} =~ m#text/html#i"
-</IfModule>
-</pre>
-<p><h2>Content Security Policy (CSP)</h2></p>
-<p><a class="external" href="https://content-security-policy.com/">CSP (Content Security Policy)</a> mitigates the risk of cross-site scripting and other content-injection attacks by setting a `Content Security Policy` which whitelists trusted sources of content for your website.</p>
-<p>There is no policy that fits all websites, the example below is meant as guidelines for you to modify for your site.</p>
-<p>The example policy below:</p>
-<ol>
-  <li>Restricts all fetches by default to the origin of the current website by setting the <code>default-src</code> directive to <code>'self'</code> - which acts as a fallback to all <a href="/en-US/docs/Glossary/Fetch_directive">Fetch directives</a>.
-  <ul>
-    <li>This is convenient as you do not have to specify all Fetch directives that apply to your site, for example: <code>connect-src 'self'; font-src 'self'; script-src 'self'; style-src 'self'</code>, etc</li>
-    <li>This restriction also means that you must explicitly define from which site(s) your website is allowed to load resources from, otherwise it will be restricted to the same origin as the page making the request</li>
-  </ul>
-  <li>Disallows the <code>&lt;base></code> element on the website. This is to prevent attackers from changing the locations of resources loaded from relative URLs</li>
-  <ul>
-    <li>If you want to use the <code>&lt;base></code> element, then use <code>base-uri 'self'</code> instead</li>
-  </ul>
-  <li>Only allows form submissions are from the current origin with: <code>form-action 'self'</code></li>
-  <li>Prevents all websites (including your own) from embedding your webpages within e.g. the <code>&lt;iframe></code> or <code>&lt;object></code> element by setting: <code>frame-ancestors 'none'</code>.
-  <ul>
-    <li>The <code>frame-ancestors</code>directive helps avoid "Clickjacking" attacks and is similar to the <code>X-Frame-Options</code> header</li>
-    <li>Browsers that support the CSP header will ignore <code>X-Frame-Options</code> if <code>frame-ancestors</code> is also specified</li>
-  </ul>
-  <li>Forces the browser to treat all the resources that are served over HTTP as if they were loaded securely over HTTPS by setting the <code>upgrade-insecure-requests</code> directive</li>
-  <ul>
-    <li><strong><code>upgrade-insecure-requests</code> does not ensure HTTPS for the top-level navigation. If you want to force the website itself to be loaded over HTTPS you must include the <code>Strict-Transport-Security</code> header</strong></li>
-  </ul>
-  <li>Includes the <code>Content-Security-Policy</code> header in all responses that are able to execute scripting. This includes the commonly used file types: HTML, XML and PDF documents. Although Javascript files can not execute scripts in a "browsing context", they are included to target <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#CSP_in_workers">web workers</a></li>
-</ul>
-<p>To make your CSP implementation easier, you can use an online <a class="external" href="https://report-uri.com/home/generate/">CSP header
-generator</a>. You should also use a <a class="external" href="https://csp-evaluator.withgoogle.com">validator</a> to make sure your header does what you want it to do.</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  Content-Security-Policy "default-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" "expr=%{CONTENT_TYPE} =~ m#text\/(html|javascript)|application\/pdf|xml#i"
-</IfModule>
-</pre>
-<p><h2>Directory access</h2></p>
-<p>This directive will prevent access to directories that don't have an index file present in whatever format the server is configured to use, like <code>index.html</code>, or <code>index.php</code>.</p>
-<pre class="brush: bash">
-<IfModule mod_autoindex.c>
-    Options -Indexes
-</IfModule>
-</pre>
-<p><h2>Block access to hidden files and directories</h2></p>
-<p>In Macintosh and Linux systems, files that begin with a period are hidden from view but not from access if you know their name and location. These types of files usually contain user preferences or the preserved state of a utility, and can include rather private places like, for example, the <code>.git</code> or <code>.svn</code> directories.</p>
-<p>The <code>.well-known/</code> directory represents <a class="external" href="https://tools.ietf.org/html/rfc5785">the standard (RFC 5785)</a> path prefix for "well-known locations" (e.g.: <code>/.well-known/manifest.json</code>,  <code>/.well-known/keybase.txt</code>), and therefore, access to its visible content should not be blocked.</p>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteCond %{REQUEST_URI} "!(^|/)\.well-known/([^./]+./?)+$" [NC]
-    RewriteCond %{SCRIPT_FILENAME} -d [OR]
-    RewriteCond %{SCRIPT_FILENAME} -f
-    RewriteRule "(^|/)\." - [F]
-</IfModule>
-</pre>
-<p><h2>Block access to files with sensitive information</h2></p>
-<p>Block access to backup and source files that may be left by some text editors and can pose a security risk when anyone has access to them.</p>
-<p>Update the <code>&lt;FilesMatch></code> regular expression in the following example to include any files that might end up on your production server and can expose sensitive information about your website. These files may include: configuration files or files that contain metadata about the project among others.
-<pre class="brush: bash">
-<IfModule mod_authz_core.c>
-    <FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|orig|psd|sh|sql|sw[op])|~)$">
-        Require all denied
-    </FilesMatch>
-</IfModule>
-</pre>
-<p><h2>HTTP Strict Transport Security (HSTS)</h2></p>
-<p>If a user types <code>example.com</code> in their browser, even if the server redirects them to the secure version of the website, that still leaves a window of opportunity (the initial HTTP connection) for an attacker to downgrade or redirect the request.</p>
-<p>The following header ensures that a browser only connects to your server via HTTPS, regardless of what the users type in the browser's address bar.</p>
-<p>Be aware that Strict Transport Security is not revokable and you must ensure being able to serve the site over HTTPS for as long as you've specified in the <code>max-age</code> directive. If you don't have a valid TLS connection anymore (e.g. due to an expired TLS certificate) your visitors will see an error message even when attempting to connect over HTTP.
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  # Header always set
-  Strict-Transport-Security "max-age=16070400; includeSubDomains" "expr=%{HTTPS} == 'on'"
-  # (1) Enable your site for HSTS preload inclusion.
-  # Header always set
-  Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=%{HTTPS} == 'on'"
-</IfModule>
-</pre>
-<p><h2>Prevent some browsers from MIME-sniffing the response</h2></p>
-<p>Some older browsers would try and guess the content type of a resource, even when it isn’t properly set up on the server configuration.</p>
-<p>This reduces exposure to drive-by download attacks and cross-origin data leaks.</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-    Header always set X-Content-Type-Options "nosniff"
-</IfModule>
-</pre>
-<p><h2>Referrer Policy</h2></p>
-<p>We inlcude the <code>Referrer-Policy</code> header is included in responses for resources that are able to request (or navigate to) other resources.</p>
-<p>This includes commonly used resource types: HTML, CSS, XML/SVG, PDF documents, scripts and workers.
-<p>To prevent referrer leakage entirely, specify the <code>no-referrer</code> value instead. Note that the effect could impact analytics metrics negatively.<p>
-<p>Use services like the ones below to check your Referrer Policy:</p>
-<ul>
-  <li><a class="external" href="https://securityheaders.com/">securityheaders.com</a></li>
-  <li><a class="external" href="https://observatory.mozilla.org/">Mozilla Observatory</a></li>
-</ul>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-  Header always set Referrer-Policy "strict-origin-when-cross-origin" "expr=%{CONTENT_TYPE} =~ m#text\/(css|html|javascript)|application\/pdf|xml#i"
-</IfModule>
-</pre>
-<p><h2>Disable TRACE HTTP Method</h2></p>
-<p>The <a href="/en-US/docs/Web/HTTP/Methods/TRACE">TRACE</a> method, while seemingly harmless, can be successfully leveraged in some scenarios to steal legitimate users’ credentials. See <a class="external" href="https://www.owasp.org/index.php/Cross_Site_Tracing">A Cross-Site Tracing (XST) attack</a> and  <a class="external" href="https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)">OWASP Web Security Testing Guide</a></p></p>
-<p>Modern browsers now prevent TRACE requests being made via JavaScript,
-however, other ways of sending TRACE requests with browsers have been
-discovered, such as using Java.</p>
-<p>If you have access to the main server configuration file, use the <code><a class="external" href="https://httpd.apache.org/docs/current/mod/core.html#traceenable">TraceEnable</a></code> directive instead.</p>
-<pre class="brush: bash">
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{REQUEST_METHOD} ^TRACE [NC]
-  RewriteRule .* - [R=405,L]
-</IfModule>
-</pre>
-<p><h2>Remove the X-Powered-By response header</h2></p>
-<p>Some frameworks like PHP and ASP.NET set an <code>X-Powered-By</code> header that contains information about them (e.g.: their name, version number)</p>
-<p>This header  doesn't provide any value, and in some cases, the information it provides can expose vulnerabilities</p>
-<pre class="brush: bash">
-<IfModule mod_headers.c>
-    Header unset X-Powered-By
-    Header always unset X-Powered-By
-</IfModule>
-</pre>
-<p>If you can, you should disable the <code>X-Powered-By</code> header from the language/framework level (e.g.: for PHP, you can do that by setting the folowing in <code>php.ini</code>.</p>
-<pre><code class="language-php">expose_php = off;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Media Types and Character Encodings&lt;/h2&gt;</p>
+<p>&lt;p&gt;Apache uses &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_mime.html#addtype&quot;&gt;mod_mime&lt;/a&gt; to assign content metadata to the content selected for an HTTP response by mapping patterns in the URI or filenames to the metadata values.&lt;/p&gt;</p>
+<p>&lt;p&gt;For example, the filename extensions of content files often define the content's Internet media type, language, character set, and content-encoding. This information is sent in HTTP messages containing that content and used in content negotiation when selecting alternatives, such that the user's preferences are respected when choosing one of several possible contents to serve.&lt;/p&gt;</p>
+<p>&lt;p&gt;&lt;strong&gt;Changing the metadata for a file does not change the value of the Last-Modified header. Thus, previously cached copies may still be used by a client or proxy, with the previous headers. If you change the metadata (language, content type, character set or encoding) you may need to 'touch' affected files (updating their last modified date) to ensure that all visitors are receive the corrected content headers.&lt;/strong&gt;&lt;/p&gt;</p>
+<p>&lt;h3&gt;Serve resources with the proper media types (a.k.a MIME types)&lt;/h3&gt;</p>
+<p>&lt;p&gt;Associates media types with one or more extensions to make sure the resources will be served appropriately.&lt;/p&gt;</p>
+<p>&lt;p&gt;Servers should use text/javascript for JavaScript resourcesn as indicated in the &lt;a class=&quot;external&quot; href=&quot;https://html.spec.whatwg.org/multipage/scripting.html#scriptingLanguages&quot;&gt;HTML specification&lt;/a&gt;&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_mime.c&gt;</p>
+<h1 id="data-interchange">Data interchange</h1>
+<pre><code>AddType application/atom+xml      atom
+AddType application/json          json map topojson
+AddType application/ld+json       jsonld
+AddType application/rss+xml       rss
+AddType application/geo+json      geojson
+AddType application/rdf+xml       rdf
+AddType application/xml           xml
 </code></pre>
-<p><h2>Remove Apache-generated Server Information Footer</h2></p>
+<h1 id="javascript">JavaScript</h1>
+<pre><code>AddType text/javascript           js mjs
+</code></pre>
+<h1 id="manifest-files">Manifest files</h1>
+<pre><code>AddType application/manifest+json     webmanifest
+AddType application/x-web-app-manifest+json         webapp
+AddType text/cache-manifest           appcache
+</code></pre>
+<h1 id="media-files">Media files</h1>
+<pre><code>AddType audio/mp4                     f4a f4b m4a
+AddType audio/ogg                     oga ogg opus
+AddType image/bmp                     bmp
+AddType image/svg+xml                 svg svgz
+AddType image/webp                    webp
+AddType video/mp4                     f4v f4p m4v mp4
+AddType video/ogg                     ogv
+AddType video/webm                    webm
+AddType image/x-icon    cur ico
+</code></pre>
+<h1 id="heif-images">HEIF Images</h1>
+<pre><code>AddType image/heic                    heic
+AddType image/heif                    heif
+</code></pre>
+<h1 id="heif-image-sequence">HEIF Image Sequence</h1>
+<pre><code>AddType image/heics                   heics
+AddType image/heifs                   heifs
+</code></pre>
+<h1 id="avif-images">AVIF Images</h1>
+<pre><code>AddType image/avif                    avif
+</code></pre>
+<h1 id="avif-image-seuqence">AVIF Image Seuqence</h1>
+<pre><code>AddType image/avis                    avis
+</code></pre>
+<h1 id="webassembly">WebAssembly</h1>
+<pre><code>AddType application/wasm              wasm
+</code></pre>
+<h1 id="web-fonts">Web fonts</h1>
+<pre><code>AddType font/woff                         woff
+AddType font/woff2                        woff2
+AddType application/vnd.ms-fontobject                eot
+AddType font/ttf                          ttf
+AddType font/collection                   ttc
+AddType font/otf                          otf
+</code></pre>
+<h1 id="other">Other</h1>
+<pre><code>AddType application/octet-stream          safariextz
+AddType application/x-bb-appworld         bbaw
+AddType application/x-chrome-extension    crx
+AddType application/x-opera-extension     oex
+AddType application/x-xpinstall           xpi
+AddType text/calendar                     ics
+AddType text/markdown                     markdown md
+AddType text/vcard                        vcard vcf
+AddType text/vnd.rim.location.xloc        xloc
+AddType text/vtt                          vtt
+AddType text/x-component                  htc
+</code></pre>
+<p>&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Set the default Charset attribute&lt;/h2&gt;</p>
+<p>&lt;p&gt;Every piece of content on the web has a character set. Most, if not all, the content is UTF-8 Unicode.</p>
+<p>&lt;p&gt;Use &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/core.html#adddefaultcharset
+&quot;&gt;AddDefaultCharset&lt;/a&gt; to serve all resources labeled as &lt;code&gt;text/html&lt;/code&gt; or &lt;code&gt;text/plain&lt;/code&gt; with the &lt;code&gt;UTF-8&lt;/code&gt; charset.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+AddDefaultCharset utf-8
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Set the charset for specific media types&lt;/h2&gt;</p>
+<p>Serve the following file types with the  &lt;code&gt;charset&lt;/code&gt; parameter set to <code>UTF-8</code> using the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_mime.html#addcharset&quot;&gt;AddCharset&lt;/a&gt; directive available in &lt;code&gt;mod_mime&lt;/code&gt;.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_mime.c&gt;
+AddCharset utf-8 .appcache <br>
+.bbaw <br>
+.css <br>
+.htc <br>
+.ics <br>
+.js <br>
+.json <br>
+.manifest <br>
+.map <br>
+.markdown <br>
+.md <br>
+.mjs <br>
+.topojson <br>
+.vtt <br>
+.vcard <br>
+.vcf <br>
+.webmanifest <br>
+.xloc
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Mod_rewrite and the RewriteEngine directives&lt;/h2&gt;</p>
+<p>&lt;p&gt;&lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_rewrite.html&quot;&gt;mod_rewrite&lt;/a&gt; provides a way to modify incoming URL requests, dynamically, based on regular expression rules. This allows you to map arbitrary URLs onto your internal URL structure in any way you like.</p>
+<p>&lt;p&gt;It supports an unlimited number of rules and an unlimited number of attached rule conditions for each rule to provide a really flexible and powerful URL manipulation mechanism. The URL manipulations can depend on various tests: server variables, environment variables, HTTP headers, time stamps, external database lookups, and various other external programs or handlers, can be used to achieve granular URL matching.&lt;/p&gt;</p>
+<p>&lt;h3&gt;Enable mod_rewrite&lt;/h3&gt;</p>
+<p>&lt;p&gt;The basic pattern to enable &lt;code&gt;mod_rewrite&lt;/code&gt; is a pre-requisite for all other tasks that use.&lt;/p&gt;</p>
+<p>The required steps are:</p>
+<p>&lt;ol&gt;
+&lt;li&gt;Turn on the rewrite engine (this is necessary in order for the &lt;code&gt;RewriteRule&lt;/code&gt; directives to work) as documented in the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_rewrite.html#RewriteEngine&quot;&gt;RewriteEngine&lt;/a&gt; documentation&lt;/li&gt;
+&lt;li&gt;Enable the &lt;code&gt;FollowSymLinks&lt;/code&gt; option if it isn't already. See &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/core.html#options&quot;&gt;Core Options&lt;/a&gt; documentation&lt;/li&gt;
+&lt;li&gt;If your web host doesn't allow the &lt;code&gt;FollowSymlinks&lt;/code&gt; option, you need to comment it out or remove it, and then uncomment the &lt;code&gt;Options +SymLinksIfOwnerMatch&lt;/code&gt; line, but be aware of the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/misc/perf-tuning.html#symlinks&quot;&gt;performance impact&lt;/a&gt;&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;Some cloud hosting services will require you set &lt;code&gt;RewriteBase&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt; See &lt;a class=&quot;external&quot; href=&quot;https://www.rackspace.com/knowledge_center/frequently-asked-question/why-is-modrewrite-not-working-on-my-site&quot;&gt;Rackspace FAQ&lt;/a&gt; and the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewritebase&quot;&gt;HTTPD documentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Depending on how your server is set up, you may also need to use the &lt;code&gt;&lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewriteoptions&quot;&gt;RewriteOptions&lt;/a&gt;&lt;/code&gt; directive to enable some options for the rewrite engine
+&lt;/ul&gt;
+&lt;/ol&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+Options +FollowSymlinks
+# Options +SymLinksIfOwnerMatch
+# RewriteBase /
+# RewriteOptions &lt;options&gt;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Forcing https&lt;/h3&gt;</p>
+<p>&lt;p&gt;This Rewrite rules will redirect from the &lt;code&gt;http://&lt;/code&gt; insecure version to the &lt;code&gt;https://&lt;/code&gt; secure version of the URL as described in the &lt;a class=&quot;external&quot; href=&quot;https://wiki.apache.org/httpd/RewriteHTTPToHTTPS&quot;&gt;Apache HTTPD wiki&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+RewriteCond %{HTTPS} !=on</p>
+<p>RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;If you're using cPanel AutoSSL or the Let's Encrypt webroot method to create your SSL certificates, it will fail to validate the certificate if validation requests are redirected to HTTPS. Turn on the condition(s) you need.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteCond %{REQUEST_URI} !^/.well-known/acme-challenge/
+RewriteCond %{REQUEST_URI} !^/.well-known/cpanel-dcv/[\w-]+$
+RewriteCond %{REQUEST_URI} !^/.well-known/pki-validation/[A-F0-9]{32}.txt(?:\ Comodo\ DCV)?$
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Redirecting from &lt;code&gt;www.&lt;/code&gt; URLs&lt;/h3&gt;</p>
+<p>&lt;p&gt;These directives will rewrite &lt;code&gt;www.example.com&lt;/code&gt; to &lt;code&gt;example.com&lt;/code&gt;.&lt;/p&gt;</p>
+<p>&lt;p&gt;You should not duplicate content in multiple origins (with and without www);This can cause SEO problems (duplicate content), and therefore, you should
+choose one of the alternatives and redirect the other one. You should also use &lt;a class=&quot;external&quot; href=&quot;https://www.semrush.com/blog/canonical-url-guide/&quot;&gt;Canonical URLs&lt;/a&gt; to indicate which URL should search engines crawl (if they support the feature).&lt;p&gt;</p>
+<p>&lt;p&gt;Set &lt;code&gt;%{ENV:PROTO}&lt;/code&gt; variable, to allow rewrites to redirect with the appropriate schema automatically (http or https).&lt;/p&gt;</p>
+<p>&lt;p&gt;The rule assumes by default that both HTTP and HTTPS environments are available for redirection.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On</p>
+<pre><code>RewriteCond %{HTTPS} =on
+RewriteRule ^ - [E=PROTO:https]
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ - [E=PROTO:http]
+
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ %{ENV:PROTO}://%1%{REQUEST_URI} [R=301,L]
+</code></pre>
+<p>&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Inserting the www. at the beginning of URLs&lt;/h3&gt;</p>
+<p>&lt;p&gt;These rules will insert &lt;code&gt;www.&lt;/code&gt; at the beginning of a URL. It's important to note that you should never make the same content available under two different URLs.&lt;/p&gt;</p>
+<p>&lt;p&gt;This can cause SEO problems (duplicate content), and therefore, you should choose one of the alternatives and redirect the other one. For search engines that support them you should use &lt;a class=&quot;external&quot; href=&quot;https://www.semrush.com/blog/canonical-url-guide/&quot;&gt;Canonical URLs&lt;/a&gt; to indicate which URL should search engines crawl.&lt;/p&gt;</p>
+<p>&lt;p&gt;Set &lt;code&gt;%{ENV:PROTO}&lt;/code&gt; variable, to allow rewrites to redirect with the appropriate schema automatically (http or https).&lt;/p&gt;</p>
+<p>&lt;p&gt;The rule assumes by default that both HTTP and HTTPS environments are available for redirection. If your SSL certificate could not handle one of the domains used during redirection, you should turn the condition on.&lt;/p&gt;</p>
+<p>&lt;p&gt;The following might not be a good idea if you use &quot;real&quot; subdomains for certain parts of your website.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+RewriteCond %{HTTPS} =on
+RewriteRule ^ - [E=PROTO:https]
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ - [E=PROTO:http]</p>
+<p>RewriteCond %{HTTPS} !=on</p>
+<p>RewriteCond %{HTTP_HOST} !^www. [NC]
+RewriteCond %{SERVER_ADDR} !=127.0.0.1
+RewriteCond %{SERVER_ADDR} !=::1
+RewriteRule ^ %{ENV:PROTO}://www.%{HTTP_HOST}%{REQUEST_URI} [R=301,L]</p>
+<p>&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Frame Options&lt;/h2&gt;</p>
+<p>&lt;p&gt;The example below sends the &lt;code&gt;X-Frame-Options&lt;/code&gt; response header with the value &lt;code&gt;DENY&lt;/code&gt;, informing browsers not to display the content of the web page in any frame to protect website against &lt;a class=&quot;external&quot; href=&quot;https://www.owasp.org/index.php/Clickjacking&quot;&gt;clickjacking&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;p&gt;This might not be the best setting for everyone. You should read about &lt;a class=&quot;external&quot; href=&quot;https://tools.ietf.org/html/rfc7034#section-2.1&quot;&gt;the other two possible values for the &lt;code&gt;X-Frame-Options&lt;/code&gt; header&lt;/a&gt;: &lt;code&gt;SAMEORIGIN&lt;/code&gt; and &lt;code&gt;ALLOW-FROM&lt;/code&gt;.&lt;/p&gt;</p>
+<p>&lt;p&gt;While you could send the &lt;code&gt;X-Frame-Options&lt;/code&gt; header for all of your website's pages, this has the potential downside that it forbids even any framing of your content (e.g.: when users visit your website using a Google Image Search results page).&lt;/p&gt;</p>
+<p>&lt;p&gt;Nonetheless, you should ensure that you send the &lt;code&gt;X-Frame-Options&lt;/code&gt; header for all pages that allow a user to make a state-changing operation (e.g: pages that contain one-click purchase links, checkout or bank-transfer confirmation pages, pages that make permanent configuration changes, etc.).&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header always set X-Frame-Options &quot;DENY&quot; &quot;expr=%{CONTENT_TYPE} =~ m#text/html#i&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Content Security Policy (CSP)&lt;/h2&gt;</p>
+<p>&lt;p&gt;&lt;a class=&quot;external&quot; href=&quot;https://content-security-policy.com/&quot;&gt;CSP (Content Security Policy)&lt;/a&gt; mitigates the risk of cross-site scripting and other content-injection attacks by setting a <code>Content Security Policy</code> which whitelists trusted sources of content for your website.&lt;/p&gt;</p>
+<p>&lt;p&gt;There is no policy that fits all websites, the example below is meant as guidelines for you to modify for your site.&lt;/p&gt;</p>
+<p>The example policy below:</p>
+<p>&lt;ol&gt;
+&lt;li&gt;Restricts all fetches by default to the origin of the current website by setting the &lt;code&gt;default-src&lt;/code&gt; directive to &lt;code&gt;'self'&lt;/code&gt; - which acts as a fallback to all &lt;a href=&quot;/en-US/docs/Glossary/Fetch_directive&quot;&gt;Fetch directives&lt;/a&gt;.
+&lt;ul&gt;
+&lt;li&gt;This is convenient as you do not have to specify all Fetch directives that apply to your site, for example: &lt;code&gt;connect-src 'self'; font-src 'self'; script-src 'self'; style-src 'self'&lt;/code&gt;, etc&lt;/li&gt;
+&lt;li&gt;This restriction also means that you must explicitly define from which site(s) your website is allowed to load resources from, otherwise it will be restricted to the same origin as the page making the request&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Disallows the &lt;code&gt;&lt;base&gt;&lt;/code&gt; element on the website. This is to prevent attackers from changing the locations of resources loaded from relative URLs&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;If you want to use the &lt;code&gt;&lt;base&gt;&lt;/code&gt; element, then use &lt;code&gt;base-uri 'self'&lt;/code&gt; instead&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Only allows form submissions are from the current origin with: &lt;code&gt;form-action 'self'&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Prevents all websites (including your own) from embedding your webpages within e.g. the &lt;code&gt;&lt;iframe&gt;&lt;/code&gt; or &lt;code&gt;&lt;object&gt;&lt;/code&gt; element by setting: &lt;code&gt;frame-ancestors 'none'&lt;/code&gt;.
+&lt;ul&gt;
+&lt;li&gt;The &lt;code&gt;frame-ancestors&lt;/code&gt;directive helps avoid &quot;Clickjacking&quot; attacks and is similar to the &lt;code&gt;X-Frame-Options&lt;/code&gt; header&lt;/li&gt;
+&lt;li&gt;Browsers that support the CSP header will ignore &lt;code&gt;X-Frame-Options&lt;/code&gt; if &lt;code&gt;frame-ancestors&lt;/code&gt; is also specified&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Forces the browser to treat all the resources that are served over HTTP as if they were loaded securely over HTTPS by setting the &lt;code&gt;upgrade-insecure-requests&lt;/code&gt; directive&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;upgrade-insecure-requests&lt;/code&gt; does not ensure HTTPS for the top-level navigation. If you want to force the website itself to be loaded over HTTPS you must include the &lt;code&gt;Strict-Transport-Security&lt;/code&gt; header&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Includes the &lt;code&gt;Content-Security-Policy&lt;/code&gt; header in all responses that are able to execute scripting. This includes the commonly used file types: HTML, XML and PDF documents. Although Javascript files can not execute scripts in a &quot;browsing context&quot;, they are included to target &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#CSP_in_workers&quot;&gt;web workers&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</p>
+<p>&lt;p&gt;To make your CSP implementation easier, you can use an online &lt;a class=&quot;external&quot; href=&quot;https://report-uri.com/home/generate/&quot;&gt;CSP header
+generator&lt;/a&gt;. You should also use a &lt;a class=&quot;external&quot; href=&quot;https://csp-evaluator.withgoogle.com&quot;&gt;validator&lt;/a&gt; to make sure your header does what you want it to do.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Content-Security-Policy &quot;default-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests&quot; &quot;expr=%{CONTENT_TYPE} =~ m#text/(html|javascript)|application/pdf|xml#i&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Directory access&lt;/h2&gt;</p>
+<p>&lt;p&gt;This directive will prevent access to directories that don't have an index file present in whatever format the server is configured to use, like &lt;code&gt;index.html&lt;/code&gt;, or &lt;code&gt;index.php&lt;/code&gt;.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_autoindex.c&gt;
+Options -Indexes
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Block access to hidden files and directories&lt;/h2&gt;</p>
+<p>&lt;p&gt;In Macintosh and Linux systems, files that begin with a period are hidden from view but not from access if you know their name and location. These types of files usually contain user preferences or the preserved state of a utility, and can include rather private places like, for example, the &lt;code&gt;.git&lt;/code&gt; or &lt;code&gt;.svn&lt;/code&gt; directories.&lt;/p&gt;</p>
+<p>&lt;p&gt;The &lt;code&gt;.well-known/&lt;/code&gt; directory represents &lt;a class=&quot;external&quot; href=&quot;https://tools.ietf.org/html/rfc5785&quot;&gt;the standard (RFC 5785)&lt;/a&gt; path prefix for &quot;well-known locations&quot; (e.g.: &lt;code&gt;/.well-known/manifest.json&lt;/code&gt;,  &lt;code&gt;/.well-known/keybase.txt&lt;/code&gt;), and therefore, access to its visible content should not be blocked.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+RewriteCond %{REQUEST_URI} &quot;!(^|/).well-known/([^./]+./?)+$&quot; [NC]
+RewriteCond %{SCRIPT_FILENAME} -d [OR]
+RewriteCond %{SCRIPT_FILENAME} -f
+RewriteRule &quot;(^|/).&quot; - [F]
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Block access to files with sensitive information&lt;/h2&gt;</p>
+<p>&lt;p&gt;Block access to backup and source files that may be left by some text editors and can pose a security risk when anyone has access to them.&lt;/p&gt;</p>
+<p>&lt;p&gt;Update the &lt;code&gt;&lt;FilesMatch&gt;&lt;/code&gt; regular expression in the following example to include any files that might end up on your production server and can expose sensitive information about your website. These files may include: configuration files or files that contain metadata about the project among others.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_authz_core.c&gt;
+&lt;FilesMatch &quot;(^#.*#|.(bak|conf|dist|fla|in[ci]|log|orig|psd|sh|sql|sw[op])|~)$&quot;&gt;
+Require all denied
+&lt;/FilesMatch&gt;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;HTTP Strict Transport Security (HSTS)&lt;/h2&gt;</p>
+<p>&lt;p&gt;If a user types &lt;code&gt;example.com&lt;/code&gt; in their browser, even if the server redirects them to the secure version of the website, that still leaves a window of opportunity (the initial HTTP connection) for an attacker to downgrade or redirect the request.&lt;/p&gt;</p>
+<p>&lt;p&gt;The following header ensures that a browser only connects to your server via HTTPS, regardless of what the users type in the browser's address bar.&lt;/p&gt;</p>
+<p>&lt;p&gt;Be aware that Strict Transport Security is not revokable and you must ensure being able to serve the site over HTTPS for as long as you've specified in the &lt;code&gt;max-age&lt;/code&gt; directive. If you don't have a valid TLS connection anymore (e.g. due to an expired TLS certificate) your visitors will see an error message even when attempting to connect over HTTP.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;</p>
+<h1 id="header-always-set">Header always set</h1>
+<p>Strict-Transport-Security &quot;max-age=16070400; includeSubDomains&quot; &quot;expr=%{HTTPS} == 'on'&quot;</p>
+<h1 id="(1)-enable-your-site-for-hsts-preload-inclusion.">(1) Enable your site for HSTS preload inclusion.</h1>
+<h1 id="header-always-set-1">Header always set</h1>
+<p>Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot; &quot;expr=%{HTTPS} == 'on'&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Prevent some browsers from MIME-sniffing the response&lt;/h2&gt;</p>
+<p>Some older browsers would try and guess the content type of a resource, even when it isn't properly set up on the server configuration.</p>
+<p>This reduces exposure to drive-by download attacks and cross-origin data leaks.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header always set X-Content-Type-Options &quot;nosniff&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Referrer Policy&lt;/h2&gt;</p>
+<p>&lt;p&gt;We inlcude the &lt;code&gt;Referrer-Policy&lt;/code&gt; header is included in responses for resources that are able to request (or navigate to) other resources.&lt;/p&gt;</p>
+<p>&lt;p&gt;This includes commonly used resource types: HTML, CSS, XML/SVG, PDF documents, scripts and workers.</p>
+<p>&lt;p&gt;To prevent referrer leakage entirely, specify the &lt;code&gt;no-referrer&lt;/code&gt; value instead. Note that the effect could impact analytics metrics negatively.&lt;p&gt;</p>
+<p>&lt;p&gt;Use services like the ones below to check your Referrer Policy:&lt;/p&gt;</p>
+<p>&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;external&quot; href=&quot;https://securityheaders.com/&quot;&gt;securityheaders.com&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;external&quot; href=&quot;https://observatory.mozilla.org/&quot;&gt;Mozilla Observatory&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header always set Referrer-Policy &quot;strict-origin-when-cross-origin&quot; &quot;expr=%{CONTENT_TYPE} =~ m#text/(css|html|javascript)|application/pdf|xml#i&quot;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Disable TRACE HTTP Method&lt;/h2&gt;</p>
+<p>The &lt;a href=&quot;/en-US/docs/Web/HTTP/Methods/TRACE&quot;&gt;TRACE&lt;/a&gt; method, while seemingly harmless, can be successfully leveraged in some scenarios to steal legitimate users' credentials. See &lt;a class=&quot;external&quot; href=&quot;https://www.owasp.org/index.php/Cross_Site_Tracing&quot;&gt;A Cross-Site Tracing (XST) attack&lt;/a&gt; and  &lt;a class=&quot;external&quot; href=&quot;https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)&quot;&gt;OWASP Web Security Testing Guide&lt;/a&gt;&lt;/p&gt;</p>
+<p>&lt;p&gt;Modern browsers now prevent TRACE requests being made via JavaScript,
+however, other ways of sending TRACE requests with browsers have been
+discovered, such as using Java.&lt;/p&gt;</p>
+<p>&lt;p&gt;If you have access to the main server configuration file, use the &lt;code&gt;&lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/core.html#traceenable&quot;&gt;TraceEnable&lt;/a&gt;&lt;/code&gt; directive instead.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} ^TRACE [NC]
+RewriteRule .* - [R=405,L]
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Remove the X-Powered-By response header&lt;/h2&gt;</p>
+<p>&lt;p&gt;Some frameworks like PHP and ASP.NET set an &lt;code&gt;X-Powered-By&lt;/code&gt; header that contains information about them (e.g.: their name, version number)&lt;/p&gt;</p>
+<p>&lt;p&gt;This header  doesn't provide any value, and in some cases, the information it provides can expose vulnerabilities&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_headers.c&gt;
+Header unset X-Powered-By
+Header always unset X-Powered-By
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;If you can, you should disable the &lt;code&gt;X-Powered-By&lt;/code&gt; header from the language/framework level (e.g.: for PHP, you can do that by setting the folowing in &lt;code&gt;php.ini&lt;/code&gt;.&lt;/p&gt;</p>
+<pre class="language-php"><code class="language-php">expose_php <span class="token operator">=</span> off<span class="token punctuation">;</span>
+</code></pre>
+<p>&lt;h2&gt;Remove Apache-generated Server Information Footer&lt;/h2&gt;</p>
 <p>Prevent Apache from adding a trailing footer line containing information about the server to the server-generated documents (e.g.: error messages, directory listings, etc.).</p>
-<p>See <a class="external" href="https://httpd.apache.org/docs/current/mod/core.html#serversignature">
-ServerSignature Directive</a> for more information on what the server signature provides and the <a class="external" href="https://httpd.apache.org/docs/current/mod/core.html#servertokens">ServerTokens Directive</a> for information about configuring the information provided in the signature.</p>
-<pre class="brush: bash">
+<p>See &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/core.html#serversignature&quot;&gt;
+ServerSignature Directive&lt;/a&gt; for more information on what the server signature provides and the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/core.html#servertokens&quot;&gt;ServerTokens Directive&lt;/a&gt; for information about configuring the information provided in the signature.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 ServerSignature Off
-</pre>
-<p><h2>Fix broken AcceptEncoding Headers</h2></p>
-<p>Some proxies and security software mangle or strip the <code>Accept-Encoding</code> HTTP header. See <a class="external" href="https://calendar.perfplanet.com/2010/pushing-beyond-gzipping/">Pushing Beyond Gzipping</a> for a more detailed explanation.</p>
-<pre class="brush: bash">
-</pre>
-<p><h2>Compress media types</h2></p>
-<p>Compress all output labeled with one of the following media types using the <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_filter.html#addoutputfilterbytype">AddOutputFilterByType Directive</a>.</p>
-<pre class="brush: bash">
-<IfModule mod_deflate.c>
-  <IfModule mod_filter.c>
-  AddOutputFilterByType DEFLATE "application/atom+xml" \
-    "application/javascript" \
-    "application/json" \
-    "application/ld+json" \
-    "application/manifest+json" \
-    "application/rdf+xml" \
-    "application/rss+xml" \
-    "application/schema+json" \
-    "application/geo+json" \
-    "application/vnd.ms-fontobject" \
-    "application/wasm" \
-    "application/x-font-ttf" \
-    "application/x-javascript" \
-    "application/x-web-app-manifest+json" \
-    "application/xhtml+xml" \
-    "application/xml" \
-    "font/eot" \
-    "font/opentype" \
-    "font/otf" \
-    "font/ttf" \
-    "image/bmp" \
-    "image/svg+xml" \
-    "image/vnd.microsoft.icon" \
-    "text/cache-manifest" \
-    "text/calendar" \
-    "text/css" \
-    "text/html" \
-    "text/javascript" \
-    "text/plain" \
-    "text/markdown" \
-    "text/vcard" \
-    "text/vnd.rim.location.xloc" \
-    "text/vtt" \
-    "text/x-component" \
-    "text/x-cross-domain-policy" \
-    "text/xml"
-  </IfModule>
-</IfModule>
-</pre>
-<p><h2> Map extensions to media types</h2></p>
-<p>Map the following filename extensions to the specified encoding type using <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_mime.html#addencoding">AddEncoding</a> so Apache can serve the file types with the appropriate <code>Content-Encoding</code> response header (this will NOT make
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Fix broken AcceptEncoding Headers&lt;/h2&gt;</p>
+<p>&lt;p&gt;Some proxies and security software mangle or strip the &lt;code&gt;Accept-Encoding&lt;/code&gt; HTTP header. See &lt;a class=&quot;external&quot; href=&quot;https://calendar.perfplanet.com/2010/pushing-beyond-gzipping/&quot;&gt;Pushing Beyond Gzipping&lt;/a&gt; for a more detailed explanation.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Compress media types&lt;/h2&gt;</p>
+<p>&lt;p&gt;Compress all output labeled with one of the following media types using the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_filter.html#addoutputfilterbytype&quot;&gt;AddOutputFilterByType Directive&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_deflate.c&gt;
+&lt;IfModule mod_filter.c&gt;
+AddOutputFilterByType DEFLATE &quot;application/atom+xml&quot; <br>
+&quot;application/javascript&quot; <br>
+&quot;application/json&quot; <br>
+&quot;application/ld+json&quot; <br>
+&quot;application/manifest+json&quot; <br>
+&quot;application/rdf+xml&quot; <br>
+&quot;application/rss+xml&quot; <br>
+&quot;application/schema+json&quot; <br>
+&quot;application/geo+json&quot; <br>
+&quot;application/vnd.ms-fontobject&quot; <br>
+&quot;application/wasm&quot; <br>
+&quot;application/x-font-ttf&quot; <br>
+&quot;application/x-javascript&quot; <br>
+&quot;application/x-web-app-manifest+json&quot; <br>
+&quot;application/xhtml+xml&quot; <br>
+&quot;application/xml&quot; <br>
+&quot;font/eot&quot; <br>
+&quot;font/opentype&quot; <br>
+&quot;font/otf&quot; <br>
+&quot;font/ttf&quot; <br>
+&quot;image/bmp&quot; <br>
+&quot;image/svg+xml&quot; <br>
+&quot;image/vnd.microsoft.icon&quot; <br>
+&quot;text/cache-manifest&quot; <br>
+&quot;text/calendar&quot; <br>
+&quot;text/css&quot; <br>
+&quot;text/html&quot; <br>
+&quot;text/javascript&quot; <br>
+&quot;text/plain&quot; <br>
+&quot;text/markdown&quot; <br>
+&quot;text/vcard&quot; <br>
+&quot;text/vnd.rim.location.xloc&quot; <br>
+&quot;text/vtt&quot; <br>
+&quot;text/x-component&quot; <br>
+&quot;text/x-cross-domain-policy&quot; <br>
+&quot;text/xml&quot;
+&lt;/IfModule&gt;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt; Map extensions to media types&lt;/h2&gt;</p>
+<p>Map the following filename extensions to the specified encoding type using &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_mime.html#addencoding&quot;&gt;AddEncoding&lt;/a&gt; so Apache can serve the file types with the appropriate &lt;code&gt;Content-Encoding&lt;/code&gt; response header (this will NOT make
 Apache compress them!).</p>
 <p>If these files types would be served without an appropriate
-<code>Content-Encoding</code> response header, client applications (e.g.: browsers)
-wouldn’t know that they first need to uncompress the response, and thus,
-wouldn’t be able to understand the content.</p>
-<pre class="brush: bash">
-<IfModule mod_deflate.c>
-  <IfModule mod_mime.c>
-    AddEncoding gzip              svgz
-  </IfModule>
-</IfModule>
-</pre>
-<p><h2>Cache expiration</h2></p>
-<p>Serve resources with a far-future expiration date using the <a class="external" href="https://httpd.apache.org/docs/current/mod/mod_expires.html">mod_expires</a> module, and <a href="/en-US/docs/Web/HTTP/Headers/Cache-Control">Cache-Control</a> and <a href="/en-US/docs/Web/HTTP/Headers/Expires">Expires</a> headers.</p>
-<pre class="brush: bash">
-<IfModule mod_expires.c>
-    ExpiresActive on
-    ExpiresDefault                                      "access plus 1 month"
+&lt;code&gt;Content-Encoding&lt;/code&gt; response header, client applications (e.g.: browsers)
+wouldn't know that they first need to uncompress the response, and thus,
+wouldn't be able to understand the content.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_deflate.c&gt;
+&lt;IfModule mod_mime.c&gt;
+AddEncoding gzip              svgz
+&lt;/IfModule&gt;
+&lt;/IfModule&gt;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Cache expiration&lt;/h2&gt;</p>
+<p>Serve resources with a far-future expiration date using the &lt;a class=&quot;external&quot; href=&quot;https://httpd.apache.org/docs/current/mod/mod_expires.html&quot;&gt;mod_expires&lt;/a&gt; module, and &lt;a href=&quot;/en-US/docs/Web/HTTP/Headers/Cache-Control&quot;&gt;Cache-Control&lt;/a&gt; and &lt;a href=&quot;/en-US/docs/Web/HTTP/Headers/Expires&quot;&gt;Expires&lt;/a&gt; headers.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+&lt;IfModule mod_expires.c&gt;
+ExpiresActive on
+ExpiresDefault                                      &quot;access plus 1 month&quot;</p>
+<h1 id="css">CSS</h1>
+<pre><code>ExpiresByType text/css                              &quot;access plus 1 year&quot;
+</code></pre>
+<h1 id="data-interchange-1">Data interchange</h1>
+<pre><code>ExpiresByType application/atom+xml                  &quot;access plus 1 hour&quot;
+ExpiresByType application/rdf+xml                   &quot;access plus 1 hour&quot;
+ExpiresByType application/rss+xml                   &quot;access plus 1 hour&quot;
+ExpiresByType application/json                      &quot;access plus 0 seconds&quot;
+ExpiresByType application/ld+json                   &quot;access plus 0 seconds&quot;
+ExpiresByType application/schema+json               &quot;access plus 0 seconds&quot;
+ExpiresByType application/geo+json                  &quot;access plus 0 seconds&quot;
+ExpiresByType application/xml                       &quot;access plus 0 seconds&quot;
+ExpiresByType text/calendar                         &quot;access plus 0 seconds&quot;
+ExpiresByType text/xml                              &quot;access plus 0 seconds&quot;
+</code></pre>
+<h1 id="favicon-(cannot-be-renamed!)-and-cursor-images">Favicon (cannot be renamed!) and cursor images</h1>
+<pre><code>ExpiresByType image/vnd.microsoft.icon              &quot;access plus 1 week&quot;
+ExpiresByType image/x-icon                          &quot;access plus 1 week&quot;
+</code></pre>
+<h1 id="html">HTML</h1>
+<pre><code>ExpiresByType text/html                             &quot;access plus 0 seconds&quot;
+</code></pre>
+<h1 id="javascript-1">JavaScript</h1>
+<pre><code>ExpiresByType text/javascript                       &quot;access plus 1 year&quot;
+</code></pre>
+<h1 id="manifest-files-1">Manifest files</h1>
+<pre><code>ExpiresByType application/manifest+json             &quot;access plus 1 week&quot;
+ExpiresByType application/x-web-app-manifest+json   &quot;access plus 0 seconds&quot;
+ExpiresByType text/cache-manifest                   &quot;access plus 0 seconds&quot;
+</code></pre>
+<h1 id="markdown">Markdown</h1>
+<pre><code>ExpiresByType text/markdown                         &quot;access plus 0 seconds&quot;
+</code></pre>
+<h1 id="media-files-1">Media files</h1>
+<pre><code>ExpiresByType audio/ogg                             &quot;access plus 1 month&quot;
+ExpiresByType image/bmp                             &quot;access plus 1 month&quot;
+ExpiresByType image/gif                             &quot;access plus 1 month&quot;
+ExpiresByType image/jpeg                            &quot;access plus 1 month&quot;
+ExpiresByType image/svg+xml                         &quot;access plus 1 month&quot;
+ExpiresByType image/webp                            &quot;access plus 1 month&quot;
+# PNG and animated PNG
+ExpiresByType image/apng                            &quot;access plus 1 month&quot;
+ExpiresByType image/png                             &quot;access plus 1 month&quot;
+# HEIF Images
+ExpiresByType image/heic                            &quot;access plus 1 month&quot;
+ExpiresByType image/heif                            &quot;access plus 1 month&quot;
+# HEIF Image Sequence
+ExpiresByType image/heics                           &quot;access plus 1 month&quot;
+ExpiresByType image/heifs                           &quot;access plus 1 month&quot;
+# AVIF Images
+ExpiresByType image/avif                            &quot;access plus 1 month&quot;
+# AVIF Image Sequence                               
+ExpiresByType image/avis                            &quot;access plus 1 month&quot;
+ExpiresByType video/mp4                             &quot;access plus 1 month&quot;
+ExpiresByType video/ogg                             &quot;access plus 1 month&quot;
+ExpiresByType video/webm                            &quot;access plus 1 month&quot;
+</code></pre>
+<h1 id="webassembly-1">WebAssembly</h1>
+<pre><code>ExpiresByType application/wasm                      &quot;access plus 1 year&quot;
+</code></pre>
+<h1 id="web-fonts-1">Web fonts</h1>
+<pre><code># Collection
+ExpiresByType font/collection                       &quot;access plus 1 month&quot;
 
-  # CSS
-    ExpiresByType text/css                              "access plus 1 year"
-  # Data interchange
-    ExpiresByType application/atom+xml                  "access plus 1 hour"
-    ExpiresByType application/rdf+xml                   "access plus 1 hour"
-    ExpiresByType application/rss+xml                   "access plus 1 hour"
-    ExpiresByType application/json                      "access plus 0 seconds"
-    ExpiresByType application/ld+json                   "access plus 0 seconds"
-    ExpiresByType application/schema+json               "access plus 0 seconds"
-    ExpiresByType application/geo+json                  "access plus 0 seconds"
-    ExpiresByType application/xml                       "access plus 0 seconds"
-    ExpiresByType text/calendar                         "access plus 0 seconds"
-    ExpiresByType text/xml                              "access plus 0 seconds"
-  # Favicon (cannot be renamed!) and cursor images
-    ExpiresByType image/vnd.microsoft.icon              "access plus 1 week"
-    ExpiresByType image/x-icon                          "access plus 1 week"
-  # HTML
-    ExpiresByType text/html                             "access plus 0 seconds"
-  # JavaScript
-    ExpiresByType text/javascript                       "access plus 1 year"
-  # Manifest files
-    ExpiresByType application/manifest+json             "access plus 1 week"
-    ExpiresByType application/x-web-app-manifest+json   "access plus 0 seconds"
-    ExpiresByType text/cache-manifest                   "access plus 0 seconds"
-  # Markdown
-    ExpiresByType text/markdown                         "access plus 0 seconds"
-  # Media files
-    ExpiresByType audio/ogg                             "access plus 1 month"
-    ExpiresByType image/bmp                             "access plus 1 month"
-    ExpiresByType image/gif                             "access plus 1 month"
-    ExpiresByType image/jpeg                            "access plus 1 month"
-    ExpiresByType image/svg+xml                         "access plus 1 month"
-    ExpiresByType image/webp                            "access plus 1 month"
-    # PNG and animated PNG
-    ExpiresByType image/apng                            "access plus 1 month"
-    ExpiresByType image/png                             "access plus 1 month"
-    # HEIF Images
-    ExpiresByType image/heic                            "access plus 1 month"
-    ExpiresByType image/heif                            "access plus 1 month"
-    # HEIF Image Sequence
-    ExpiresByType image/heics                           "access plus 1 month"
-    ExpiresByType image/heifs                           "access plus 1 month"
-    # AVIF Images
-    ExpiresByType image/avif                            "access plus 1 month"
-    # AVIF Image Sequence                               
-    ExpiresByType image/avis                            "access plus 1 month"
-    ExpiresByType video/mp4                             "access plus 1 month"
-    ExpiresByType video/ogg                             "access plus 1 month"
-    ExpiresByType video/webm                            "access plus 1 month"
+# Embedded OpenType (EOT)
+ExpiresByType application/vnd.ms-fontobject         &quot;access plus 1 month&quot;
+ExpiresByType font/eot                              &quot;access plus 1 month&quot;
 
+# OpenType
+ExpiresByType font/opentype                         &quot;access plus 1 month&quot;
+ExpiresByType font/otf                              &quot;access plus 1 month&quot;
 
-  # WebAssembly
+# TrueType
+ExpiresByType application/x-font-ttf                &quot;access plus 1 month&quot;
+ExpiresByType font/ttf                              &quot;access plus 1 month&quot;
 
-    ExpiresByType application/wasm                      "access plus 1 year"
+# Web Open Font Format (WOFF) 1.0
+ExpiresByType application/font-woff                 &quot;access plus 1 month&quot;
+ExpiresByType application/x-font-woff               &quot;access plus 1 month&quot;
+ExpiresByType font/woff                             &quot;access plus 1 month&quot;
 
-
-  # Web fonts
-
-    # Collection
-    ExpiresByType font/collection                       "access plus 1 month"
-
-    # Embedded OpenType (EOT)
-    ExpiresByType application/vnd.ms-fontobject         "access plus 1 month"
-    ExpiresByType font/eot                              "access plus 1 month"
-
-    # OpenType
-    ExpiresByType font/opentype                         "access plus 1 month"
-    ExpiresByType font/otf                              "access plus 1 month"
-
-    # TrueType
-    ExpiresByType application/x-font-ttf                "access plus 1 month"
-    ExpiresByType font/ttf                              "access plus 1 month"
-
-    # Web Open Font Format (WOFF) 1.0
-    ExpiresByType application/font-woff                 "access plus 1 month"
-    ExpiresByType application/x-font-woff               "access plus 1 month"
-    ExpiresByType font/woff                             "access plus 1 month"
-
-    # Web Open Font Format (WOFF) 2.0
-    ExpiresByType application/font-woff2                "access plus 1 month"
-    ExpiresByType font/woff2                            "access plus 1 month"
-  # Other
-
-    ExpiresByType text/x-cross-domain-policy            "access plus 1 week"
-
-</IfModule>
-</pre>
+# Web Open Font Format (WOFF) 2.0
+ExpiresByType application/font-woff2                &quot;access plus 1 month&quot;
+ExpiresByType font/woff2                            &quot;access plus 1 month&quot;
+</code></pre>
+<h1 id="other-1">Other</h1>
+<pre><code>ExpiresByType text/x-cross-domain-policy            &quot;access plus 1 week&quot;
+</code></pre>
+<p>&lt;/IfModule&gt;
+&lt;/pre&gt;</p>

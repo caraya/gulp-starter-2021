@@ -1,24 +1,24 @@
-<h1>Server Side Performance Tricks</h1>
-<p>Over time I’ve learned that performance is a two way street that requires good server configurations and good content management.</p>
-<div class="message danger">
-  <p>You should avoid using .htaccess files completely if you have access to httpd main server config file. Using .htaccess files slows down your Apache http server. Any directive that you can include in a .htaccess file is better set in a Directory block, as it will have the same effect with better performance.</p>
-</div>
-<h2>Cross Origin Requests</h2>
+<h1 id="server-side-performance-tricks">Server Side Performance Tricks</h1>
+<p>Over time I've learned that performance is a two way street that requires good server configurations and good content management.</p>
+<p>&lt;div class=&quot;message danger&quot;&gt;
+&lt;p&gt;You should avoid using .htaccess files completely if you have access to httpd main server config file. Using .htaccess files slows down your Apache http server. Any directive that you can include in a .htaccess file is better set in a Directory block, as it will have the same effect with better performance.&lt;/p&gt;
+&lt;/div&gt;</p>
+<h2 id="cross-origin-requests">Cross Origin Requests</h2>
 <p>These rulles allow servers to work around the <a href="https://www.wikiwand.com/en/Same-origin_policy">same-origin policy</a> and accept resources origin</p>
 <p>This is not without risks as it opens your server to potentially maliciously crafted resources originating from outside your domain and which you have no control over.</p>
-<h3>Generic CORS requests</h3>
+<h3 id="generic-cors-requests">Generic CORS requests</h3>
 <p>Sends the CORS headers for all resources.</p>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
   Header set Access-Control-Allow-Origin &quot;*&quot;
 &lt;/IfModule&gt;
 </code></pre>
-<h3>Cross-origin images</h3>
+<h3 id="cross-origin-images">Cross-origin images</h3>
 <p>Send the CORS header for images when browsers request it.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image">https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image</a></li>
 <li><a href="https://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html">https://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_setenvif.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_setenvif.c&gt;
   &lt;IfModule mod_headers.c&gt;
     &lt;FilesMatch &quot;\.(bmp|cur|gif|ico|jpe?g|png|svgz?|webp)$&quot;&gt;
       SetEnvIf Origin &quot;:&quot; IS_CORS
@@ -27,35 +27,35 @@
   &lt;/IfModule&gt;
 &lt;/IfModule&gt;
 </code></pre>
-<h3>Cross-origin web fonts</h3>
+<h3 id="cross-origin-web-fonts">Cross-origin web fonts</h3>
 <p>Send the CORS header for web fonts when browsers request them.</p>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
   &lt;FilesMatch &quot;\.(eot|otf|tt[cf]|woff2?)$&quot;&gt;
     Header set Access-Control-Allow-Origin &quot;*&quot;
   &lt;/FilesMatch&gt;
 &lt;/IfModule&gt;
 </code></pre>
-<h3>Cross-origin resource timing</h3>
+<h3 id="cross-origin-resource-timing">Cross-origin resource timing</h3>
 <p>Allow cross-origin access to the timing information for all resources.</p>
-<p>If a resource isn’t served with a <code>Timing-Allow-Origin</code> header that
+<p>If a resource isn't served with a <code>Timing-Allow-Origin</code> header that
 would allow its timing information to be shared with the document,
 some of the attributes of the <code>PerformanceResourceTiming</code> object will be set to zero.</p>
 <ul>
 <li><a href="https://www.w3.org/TR/resource-timing/">https://www.w3.org/TR/resource-timing/</a></li>
 <li><a href="http://www.stevesouders.com/blog/2014/08/21/resource-timing-practical-tips/">http://www.stevesouders.com/blog/2014/08/21/resource-timing-practical-tips/</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
   Header set Timing-Allow-Origin: &quot;*&quot;
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Media Types</h2>
+<h2 id="media-types">Media Types</h2>
 <p>Serve resources with the proper media types (MIME types).</p>
 <ul>
 <li><a href="https://www.iana.org/assignments/media-types/media-types.xhtml">https://www.iana.org/assignments/media-types/media-types.xhtml</a></li>
 <li><a href="https://httpd.apache.org/docs/current/mod/mod_mime.html#addtype">https://httpd.apache.org/docs/current/mod/mod_mime.html#addtype</a></li>
 </ul>
 <p>Normalize Javascript to standard type per <a href="https://tools.ietf.org/html/rfc4329#section-7.2">https://tools.ietf.org/html/rfc4329#section-7.2</a></p>
-<pre><code class="language-apache">&lt;IfModule mod_mime.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_mime.c&gt;
   # Data interchange
     AddType application/atom+xml                        atom
     AddType application/json                            json map topojson
@@ -106,18 +106,18 @@ some of the attributes of the <code>PerformanceResourceTiming</code> object will
 
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Character encodings</h2>
+<h2 id="character-encodings">Character encodings</h2>
 <p>Serve all resources labeled as <code>text/html</code> or <code>text/plain</code> with the media type <code>charset</code> parameter set to <code>UTF-8</code>.</p>
 <ul>
 <li><a href="https://httpd.apache.org/docs/current/mod/core.html#adddefaultcharset">https://httpd.apache.org/docs/current/mod/core.html#adddefaultcharset</a></li>
 </ul>
-<pre><code class="language-apache">AddDefaultCharset utf-8
+<pre class="language-apache"><code class="language-apache">AddDefaultCharset utf-8
 </code></pre>
 <p>Serve the following file types with the media type <code>charset</code> parameter set to <code>UTF-8</code>.</p>
 <ul>
 <li><a href="https://httpd.apache.org/docs/current/mod/core.html#adddefaultcharset">https://httpd.apache.org/docs/current/mod/mod_mime.html#addcharset</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_mime.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_mime.c&gt;
 AddCharset utf-8 .atom \
   .bbaw \
   .css \
@@ -140,7 +140,7 @@ AddCharset utf-8 .atom \
   .xml
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Rewrite Engine</h2>
+<h2 id="rewrite-engine">Rewrite Engine</h2>
 <ol>
 <li>
 <p>Turn on the rewrite engine (this is necessary in order for
@@ -148,11 +148,11 @@ the <code>RewriteRule</code> directives to work).</p>
 <p><a href="https://httpd.apache.org/docs/current/mod/mod_rewrite.htmlRewriteEngine">https://httpd.apache.org/docs/current/mod/mod_rewrite.htmlRewriteEngine</a></p>
 </li>
 <li>
-<p>Enable the <code>FollowSymLinks</code> option if it isn’t already.</p>
+<p>Enable the <code>FollowSymLinks</code> option if it isn't already.</p>
 <p><a href="https://httpd.apache.org/docs/current/mod/core.htmloptions">https://httpd.apache.org/docs/current/mod/core.htmloptions</a></p>
 </li>
 <li>
-<p>If your web host doesn’t allow the <code>FollowSymlinks</code> option,
+<p>If your web host doesn't allow the <code>FollowSymlinks</code> option,
 you need to comment it out or remove it, and then uncomment
 the <code>Options +SymLinksIfOwnerMatch</code> line (4), but be aware
 of the performance impact.</p>
@@ -175,7 +175,7 @@ the rewrite engine.</p>
 <p>Set <code>%{ENV:PROTO}</code> variable, to allow rewrites to redirect with the appropriate schema automatically (http or https).</p>
 </li>
 </ol>
-<pre><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
     RewriteEngine On # (1)
     Options +FollowSymlinks # (2)
     # Options +SymLinksIfOwnerMatch # (3) (4)
@@ -189,31 +189,31 @@ the rewrite engine.</p>
 
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Forcing https</h2>
+<h2 id="forcing-https">Forcing https</h2>
 <p>Redirect from the <code>http://</code> to the <code>https://</code> version of the URL.</p>
 <ul>
 <li><a href="https://wiki.apache.org/httpd/RewriteHTTPToHTTPS">https://wiki.apache.org/httpd/RewriteHTTPToHTTPS</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
    RewriteEngine On
    RewriteCond %{HTTPS} !=on
    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Content Security Policy (CSP)</h2>
+<h2 id="content-security-policy-(csp)">Content Security Policy (CSP)</h2>
 <p>Mitigate the risk of cross-site scripting and other content-injection attacks.</p>
 <p>This can be done by setting a <code>Content Security Policy</code> which whitelists trusted sources of content for your website.</p>
-<p>The example header below allows ONLY scripts that are loaded from the current website’s origin (no inline scripts, no CDN, etc). That almost certainly won’t work as-is for your website!</p>
+<p>The example header below allows ONLY scripts that are loaded from the current website's origin (no inline scripts, no CDN, etc). That almost certainly won't work as-is for your website!</p>
 <p>To make things easier, you can use an online CSP header generator such as: <a href="http://cspisawesome.com/">http://cspisawesome.com/</a>.</p>
 <ul>
 <li><a href="https://content-security-policy.com/">https://content-security-policy.com/</a></li>
 <li><a href="https://www.html5rocks.com/en/tutorials/security/content-security-policy/">https://www.html5rocks.com/en/tutorials/security/content-security-policy/</a></li>
 <li><a href="https://w3c.github.io/webappsec-csp/">https://w3c.github.io/webappsec-csp/</a></li>
 </ul>
-<aside class="message info">
-  <p><code>mod_headers</code> cannot match based on the content-type, however, the `Content-Security-Policy` response header should be send only for HTML documents and not for the other resources.</p>
-</aside>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<p>&lt;aside class=&quot;message info&quot;&gt;
+&lt;p&gt;&lt;code&gt;mod_headers&lt;/code&gt; cannot match based on the content-type, however, the <code>Content-Security-Policy</code> response header should be send only for HTML documents and not for the other resources.&lt;/p&gt;
+&lt;/aside&gt;</p>
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
   Header set Content-Security-Policy &quot;script-src 'self'; object-src 'self'&quot;
 
   &lt;FilesMatch &quot;\.(appcache|atom|bbaw|bmp|crx|css|cur|eot|f4[abpv]|flv|geojson|gif|htc|ic[os]|jpe?g|m?js|json(ld)?|m4[av]|manifest|map|markdown|md|mp4|oex|og[agv]|opus|otf|pdf|png|rdf|rss|safariextz|svgz?|swf|topojson|tt[cf]|txt|vcard|vcf|vtt|webapp|web[mp]|webmanifest|woff2?|xloc|xml|xpi)$&quot;&gt;
@@ -222,21 +222,21 @@ the rewrite engine.</p>
 
  &lt;/IfModule&gt;
 </code></pre>
-<h2>File access</h2>
+<h2 id="file-access">File access</h2>
 <p><strong>Block access to directories without a default document.</strong></p>
-<p>You should leave the following uncommented, as you shouldn’t allow anyone to surf through every directory on your server (which may includes rather private places such as the CMS’s directories).</p>
-<pre><code class="language-apache">&lt;IfModule mod_autoindex.c&gt;
+<p>You should leave the following uncommented, as you shouldn't allow anyone to surf through every directory on your server (which may includes rather private places such as the CMS's directories).</p>
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_autoindex.c&gt;
     Options -Indexes
 &lt;/IfModule&gt;
 </code></pre>
 <p>Block access to all hidden files and directories with the exception of the visible content from within the <code>/.well-known/</code> hidden directory.</p>
 <p>These types of files usually contain user preferences or the preserved state of an utility, and can include rather private places like, for example, the <code>.git</code> or <code>.svn</code> directories.</p>
-<p>The <code>/.well-known/</code> directory represents the standard (RFC 5785) path prefix for “well-known locations” (e.g.: <code>/.well-known/manifest.json</code>, <code>/.well-known/keybase.txt</code>), and therefore, access to its visible content should not be blocked.</p>
+<p>The <code>/.well-known/</code> directory represents the standard (RFC 5785) path prefix for &quot;well-known locations&quot; (e.g.: <code>/.well-known/manifest.json</code>, <code>/.well-known/keybase.txt</code>), and therefore, access to its visible content should not be blocked.</p>
 <ul>
 <li><a href="https://www.mnot.net/blog/2010/04/07/well-known">https://www.mnot.net/blog/2010/04/07/well-known</a></li>
 <li><a href="https://tools.ietf.org/html/rfc5785">https://tools.ietf.org/html/rfc5785</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
     RewriteEngine On
     RewriteCond %{REQUEST_URI} &quot;!(^|/)\.well-known/([^./]+./?)+$&quot; [NC]
     RewriteCond %{SCRIPT_FILENAME} -d [OR]
@@ -246,9 +246,9 @@ the rewrite engine.</p>
 </code></pre>
 <p><strong>Block access to files that can expose sensitive information.</strong></p>
 <p>By default, block access to backup and source files that may bleft by some text editors and can pose a security risk when anyonhas access to them.</p>
-<p>= <a href="https://feross.org/cmsploit/">https://feross.org/cmsploit/</a></p>
+<p>= https://feross.org/cmsploit/</p>
 <p>(!) Update the <code>&lt;FilesMatch&gt;</code> regular expression from below tinclude any files that might end up on your production server and can expose sensitive information about your website. These files mainclude: configuration files, files that contain metadata about the project (e.g.: project dependencies), build scripts, etc.</p>
-<pre><code class="language-apache">&lt;FilesMatch &quot;(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|orig|psd|sh|sql|sw[op])|~)$&quot;&gt;
+<pre class="language-apache"><code class="language-apache">&lt;FilesMatch &quot;(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|orig|psd|sh|sql|sw[op])|~)$&quot;&gt;
 
     # Apache &lt; 2.3
     &lt;IfModule !mod_authz_core.c&gt;
@@ -264,20 +264,20 @@ the rewrite engine.</p>
 
 &lt;/FilesMatch&gt;
 </code></pre>
-<h2>HTTP Strict Transport Security (HSTS)</h2>
+<h2 id="http-strict-transport-security-(hsts)">HTTP Strict Transport Security (HSTS)</h2>
 <p>Force client-side SSL redirection.
-If a user types <code>example.com</code> in their browser, even if the server redirects them to the secure version of the website, that still leaves a window of opportunity (the initial HTTP connection) for an attacker to downgrade or redirect the request. The following header ensures that browser will ONLY connect to your # server via HTTPS, regardless of what the users type in the browser’s address bar.</p>
-<p>(!) Remove the <code>includeSubDomains</code> optional directive if the website’s subdomains are not using HTTPS.</p>
+If a user types <code>example.com</code> in their browser, even if the server redirects them to the secure version of the website, that still leaves a window of opportunity (the initial HTTP connection) for an attacker to downgrade or redirect the request. The following header ensures that browser will ONLY connect to your # server via HTTPS, regardless of what the users type in the browser's address bar.</p>
+<p>(!) Remove the <code>includeSubDomains</code> optional directive if the website's subdomains are not using HTTPS.</p>
 <ul>
 <li><a href="https://www.html5rocks.com/en/tutorials/security/transport-layer-security/">https://www.html5rocks.com/en/tutorials/security/transport-layer-security/</a></li>
 <li><a href="https://tools.ietf.org/html/draft-ietf-websec-strict-transport-sec-14#section-6.1">https://tools.ietf.org/html/draft-ietf-websec-strict-transport-sec-14#section-6.1</a></li>
-<li>[<a href="https://blogs.msdn.microsoft.com/ieinternals/2014/08/18/strict-transport-security/">https://blogs.msdn.microsoft.com/ieinternals/2014/08/18/strict-transport-security/</a>]</li>
+<li>[https://blogs.msdn.microsoft.com/ieinternals/2014/08/18/strict-transport-security/]</li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
   Header always set Strict-Transport-Security &quot;max-age=16070400; includeSubDomains&quot;
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Reducing MIME type security risks</h2>
+<h2 id="reducing-mime-type-security-risks">Reducing MIME type security risks</h2>
 <p><strong>Prevent some browsers from MIME-sniffing the response.</strong></p>
 <p>This reduces exposure to drive-by download attacks and cross-origin data leaks, and should be left uncommented, especially if the server is serving user-uploaded content or content that could potentially be treated as executable by the browser.</p>
 <ul>
@@ -286,11 +286,11 @@ If a user types <code>example.com</code> in their browser, even if the server re
 <li><a href="https://msdn.microsoft.com/en-us/library/ie/gg622941.aspx">https://msdn.microsoft.com/en-us/library/ie/gg622941.aspx</a></li>
 <li><a href="https://mimesniff.spec.whatwg.org/">https://mimesniff.spec.whatwg.org/</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
     Header set X-Content-Type-Options &quot;nosniff&quot;
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Reflected Cross-Site Scripting (XSS) attacks</h2>
+<h2 id="reflected-cross-site-scripting-(xss)-attacks">Reflected Cross-Site Scripting (XSS) attacks</h2>
 <ol>
 <li>
 <p>Try to re-enable the cross-site scripting (XSS) filter built into most web browsers.</p>
@@ -302,18 +302,18 @@ If a user types <code>example.com</code> in their browser, even if the server re
 <p>Prevent web browsers from rendering the web page if a potential reflected (a.k.a non-persistent) XSS attack is detected by the filter.</p>
 <ul>
 <li>By default, if the filter is enabled and browsers detect a reflected XSS attack,they will attempt to block the attack by making the smallest possible modifications to the returned web page.</li>
-<li>Unfortunately, in some browsers (e.g.: Internet Explorer), this default behavior may allow the XSS filter to be exploited, thereby, it’s better to inform browsers to prevent the rendering of the page altogether, instead of attempting to modify it [IE’s XSS Filter Creates XSS Vulnerabilities] (<a href="https://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities">https://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities</a>)</li>
+<li>Unfortunately, in some browsers (e.g.: Internet Explorer), this default behavior may allow the XSS filter to be exploited, thereby, it's better to inform browsers to prevent the rendering of the page altogether, instead of attempting to modify it [IE's XSS Filter Creates XSS Vulnerabilities] (<a href="https://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities">https://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities</a>)</li>
 </ul>
 </li>
 </ol>
-<p>(!) Do not rely on the XSS filter to prevent XSS attacks! Ensure that you are taking all possible measures to prevent XSS attacks, the most obvious being: validating and sanitizing your website’s inputs.</p>
+<p>(!) Do not rely on the XSS filter to prevent XSS attacks! Ensure that you are taking all possible measures to prevent XSS attacks, the most obvious being: validating and sanitizing your website's inputs.</p>
 <ul>
-<li><a href="https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/">https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/</a></li>
-<li><a href="https://blogs.msdn.microsoft.com/ieinternals/2011/01/31/controlling-the-xss-filter/">https://blogs.msdn.microsoft.com/ieinternals/2011/01/31/controlling-the-xss-filter/</a></li>
-<li><a href="https://www.owasp.org/index.php/Cross-site_Scripting_%28XSS%29">https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)</a></li>
+<li>https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/</li>
+<li>https://blogs.msdn.microsoft.com/ieinternals/2011/01/31/controlling-the-xss-filter/</li>
+<li>https://www.owasp.org/index.php/Cross-site_Scripting_%28XSS%29</li>
 </ul>
 <p><code>mod_headers</code> cannot match based on the content-type, however, the <code>X-XSS-Protection</code> response header should be send only for  HTML documents and not for the other resources.</p>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
 
   #                           (1)    (2)
   Header set X-XSS-Protection &quot;1; mode=block&quot;
@@ -324,40 +324,40 @@ If a user types <code>example.com</code> in their browser, even if the server re
 
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Server-side technology information</h2>
+<h2 id="server-side-technology-information">Server-side technology information</h2>
 <p>Remove the <code>X-Powered-By</code> response header that:</p>
 <ul>
-<li>is set by some frameworks and server-side languages (e.g.: <a href="http://ASP.NET">ASP.NET</a>, PHP), and its value contains information about them (e.g.: their name, version number)</li>
-<li>doesn’t provide any value to users, contributes to header bloat, and in some cases, the information it provides can expose vulnerabilities</li>
+<li>is set by some frameworks and server-side languages (e.g.: ASP.NET, PHP), and its value contains information about them (e.g.: their name, version number)</li>
+<li>doesn't provide any value to users, contributes to header bloat, and in some cases, the information it provides can expose vulnerabilities</li>
 </ul>
 <p>(!) If you can, you should disable the <code>X-Powered-By</code> header from the language / framework level (e.g.: for PHP, you can do that by setting<code>expose_php = off</code> in <code>php.ini</code>)</p>
 <ul>
-<li><a href="https://php.net/manual/en/ini.core.php#ini.expose-php">https://php.net/manual/en/ini.core.php#ini.expose-php</a></li>
+<li>https://php.net/manual/en/ini.core.php#ini.expose-php</li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_headers.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_headers.c&gt;
     Header unset X-Powered-By
 &lt;/IfModule&gt;
 </code></pre>
-<h3>Server software information</h3>
+<h3 id="server-software-information">Server software information</h3>
 <p>Prevent Apache from adding a trailing footer line containing information about the server to the server-generated documents (e.g.: error messages, directory listings, etc.)</p>
 <ul>
-<li><a href="https://httpd.apache.org/docs/current/mod/core.html#serversignature">https://httpd.apache.org/docs/current/mod/core.html#serversignature</a></li>
+<li>https://httpd.apache.org/docs/current/mod/core.html#serversignature</li>
 </ul>
-<pre><code class="language-apache">ServerSignature Off
+<pre class="language-apache"><code class="language-apache">ServerSignature Off
 </code></pre>
 <p>Prevent Apache from sending in the <code>Server</code> response header its exact version number, the description of the generic OS-type or information about its compiled-in modules.</p>
-<p>(!) The <code>ServerTokens</code> directive will only work in the main server configuration file, so don’t try to enable it in the <code>.htaccess</code> file!</p>
+<p>(!) The <code>ServerTokens</code> directive will only work in the main server configuration file, so don't try to enable it in the <code>.htaccess</code> file!</p>
 <ul>
-<li><a href="https://httpd.apache.org/docs/current/mod/core.html#servertokens">https://httpd.apache.org/docs/current/mod/core.html#servertokens</a></li>
+<li>https://httpd.apache.org/docs/current/mod/core.html#servertokens</li>
 </ul>
-<pre><code class="language-apache">#ServerTokens Prod
+<pre class="language-apache"><code class="language-apache">#ServerTokens Prod
 </code></pre>
-<h2>Compression</h2>
+<h2 id="compression">Compression</h2>
 <p>Force compression for mangled <code>Accept-Encoding</code> request headers.</p>
 <ul>
 <li><a href="https://calendar.perfplanet.com/2010/pushing-beyond-gzipping/">Pushing Beyond Gzipping</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_deflate.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_deflate.c&gt;
   &lt;IfModule mod_setenvif.c&gt;
       &lt;IfModule mod_headers.c&gt;
           SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
@@ -367,11 +367,11 @@ If a user types <code>example.com</code> in their browser, even if the server re
 &lt;/IfModule&gt;
 </code></pre>
 <p>Compress all output labeled with one of the following media types.</p>
-<p>(!) For Apache versions below version 2.3.7 you don’t need toenable <code>mod_filter</code> and can remove the <code>&lt;IfModule mod_filter.c&gt;</code>and <code>&lt;/IfModule&gt;</code> lines as <code>AddOutputFilterByType</code> is still inthe core directives.</p>
+<p>(!) For Apache versions below version 2.3.7 you don't need toenable <code>mod_filter</code> and can remove the <code>&lt;IfModule mod_filter.c&gt;</code>and <code>&lt;/IfModule&gt;</code> lines as <code>AddOutputFilterByType</code> is still inthe core directives.</p>
 <ul>
 <li><a href="https://httpd.apache.org/docs/current/mod/mod_filter.html#addoutputfilterbytype">https://httpd.apache.org/docs/current/mod/mod_filter.html#addoutputfilterbytype</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_filter.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_filter.c&gt;
 AddOutputFilterByType DEFLATE &quot;application/atom+xml&quot; \
     &quot;application/javascript&quot; \
     &quot;application/json&quot; \
@@ -412,36 +412,36 @@ AddOutputFilterByType DEFLATE &quot;application/atom+xml&quot; \
 &lt;/IfModule&gt;
 </code></pre>
 <p>Map the following filename extensions to the specified encoding type in order to make Apache serve the file types with the appropriate <code>Content-Encoding</code> response header(do note that this will NOT make Apache compress them!).</p>
-<p>If these files types would be served without an appropriate<code>Content-Enable</code> response header, client applications (e.g.:browsers) wouldn’t know that they first need to uncompressthe response, and thus, wouldn’t be able to understand thecontent.</p>
+<p>If these files types would be served without an appropriate<code>Content-Enable</code> response header, client applications (e.g.:browsers) wouldn't know that they first need to uncompressthe response, and thus, wouldn't be able to understand thecontent.</p>
 <ul>
-<li><a href="https://httpd.apache.org/docs/current/mod/mod_mime.html#addencoding">https://httpd.apache.org/docs/current/mod/mod_mime.html#addencoding</a></li>
+<li>https://httpd.apache.org/docs/current/mod/mod_mime.html#addencoding</li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule&gt;
   &lt;IfModule mod_mime.c&gt;
       AddEncoding gzip              svgz
   &lt;/IfModule&gt;
 &lt;/IfModule&gt;
 </code></pre>
-<h2>ETags</h2>
+<h2 id="etags">ETags</h2>
 <p><strong>Remove <code>ETags</code> as resources are sent with far-future expires headers.</strong></p>
 <ul>
 <li><a href="https://developer.yahoo.com/performance/rules.html#etags">https://developer.yahoo.com/performance/rules.html#etags</a></li>
 <li><a href="https://tools.ietf.org/html/rfc7232#section-2.3">https://tools.ietf.org/html/rfc7232#section-2.3</a></li>
 </ul>
-<pre><code class="language-apache"># `FileETag None` doesn't work in all cases.
+<pre class="language-apache"><code class="language-apache"># `FileETag None` doesn't work in all cases.
 &lt;IfModule mod_headers.c&gt;
   Header unset ETag
 &lt;/IfModule&gt;
 
 FileETag None
 </code></pre>
-<h2>Expires headers</h2>
+<h2 id="expires-headers">Expires headers</h2>
 <p><strong>Serve resources with far-future expires headers.</strong></p>
-<p>(!) If you don’t control versioning with filename-based cache busting, you should consider lowering the cache times to something like one week.</p>
+<p>(!) If you don't control versioning with filename-based cache busting, you should consider lowering the cache times to something like one week.</p>
 <ul>
 <li><a href="https://httpd.apache.org/docs/current/mod/mod_expires.html">https://httpd.apache.org/docs/current/mod/mod_expires.html</a></li>
 </ul>
-<pre><code class="language-apache">&lt;IfModule mod_expires.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_expires.c&gt;
   ExpiresActive                             on
   ExpiresDefault                            &quot;access plus 1 month&quot;
 
@@ -516,10 +516,10 @@ FileETag None
   ExpiresByType text/x-cross-domain-policy  &quot;access plus 1 week&quot;
 &lt;/IfModule&gt;
 </code></pre>
-<h2>Filename-based cache busting</h2>
-<p>If you’re not using a build process to manage your filename version revving, you might want to consider enabling the following directives to route all requests such as <code>/style.12345.css</code> to <code>/style.css</code>.</p>
+<h2 id="filename-based-cache-busting">Filename-based cache busting</h2>
+<p>If you're not using a build process to manage your filename version revving, you might want to consider enabling the following directives to route all requests such as <code>/style.12345.css</code> to <code>/style.css</code>.</p>
 <p>To understand why this is important and even a better solution than using something like <code>*.css?v231</code>, please see: <a href="http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/">Revving Filenames: don’t use querystring</a></p>
-<pre><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
+<pre class="language-apache"><code class="language-apache">&lt;IfModule mod_rewrite.c&gt;
   RewriteEngine On
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^(.+)\.(\d+)\.(bmp|css|cur|gif|ico|jpe?g|m?js|png|svgz?|webp|webmanifest)$ $1.$3 [L]

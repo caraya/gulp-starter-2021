@@ -1,15 +1,15 @@
-<h1>CSS Houdini: Present and Future of CSS</h1>
+<h1 id="css-houdini%3A-present-and-future-of-css">CSS Houdini: Present and Future of CSS</h1>
 <blockquote>
 <p>If we grow the language in these few ways [that allow extensibility], then we will not need to grow it in a hundred other ways; the users can take on the rest of the task.</p>
 <p>Guy Steele, <a href="http://www.cs.virginia.edu/~evans/cs655/readings/steele.pdf">Growing a Language</a>, 1998 ACM OOPSLA</p>
 </blockquote>
 <p>CSS Houdini is a <a href="https://drafts.css-houdini.org/">set of APIs</a> under development by the <a href="https://www.w3.org/Style/CSS/">CSS Working Group</a> and the Technical Architecture Group to provide users with way to extend CSS to match their needs. The extensibility language is usually JavaScript but some of these are written in pure CSS.</p>
 <p>To translate the tech speak: Houdini will provide the hooks for developers to create their own content types and in a performant way without having to wait for the working group to create specs for and browsers to implement.</p>
-<p>Tab Atkins from the Chrome team presented about Houdini at CSS Day 2017. He does a much better job at explaining the APIs (expected since he’s one of the editors).</p>
-<div class="video">
-<iframe src="https://player.vimeo.com/video/242890906?byline=0&portrait=0" width="560" height="315" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-</div>
-<p>Surma, from the Chrome team, created <a href="https://ishoudinireadyyet.com/">is Houdini ready yet?</a> as a way to track what Houdini is working on and the status of these different projects. I’ve grouped the table into three categories for the list below:</p>
+<p>Tab Atkins from the Chrome team presented about Houdini at CSS Day 2017. He does a much better job at explaining the APIs (expected since he's one of the editors).</p>
+<p>&lt;div class=&quot;video&quot;&gt;
+&lt;iframe src=&quot;https://player.vimeo.com/video/242890906?byline=0&amp;portrait=0&quot; width=&quot;560&quot; height=&quot;315&quot; frameborder=&quot;0&quot; webkitallowfullscreen mozallowfullscreen allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;</p>
+<p>Surma, from the Chrome team, created <a href="https://ishoudinireadyyet.com/">is Houdini ready yet?</a> as a way to track what Houdini is working on and the status of these different projects. I've grouped the table into three categories for the list below:</p>
 <ul>
 <li>Supported in (some) browser(s)
 <ul>
@@ -32,53 +32,53 @@
 </li>
 </ul>
 <p>Houdini APIs rely on Worklets, a <a href="https://www.w3.org/TR/worklets-1/">separate specification</a>. This spec provides the underpinnings for the other Houdini specifications.</p>
-<p>Before we get started, it’s important to know that <strong>this is not CSS in JS!</strong> It’s a way to enhance CSS with Javascript to produce results that are impossible to produce with CSS alone, as it exists today.</p>
-<h2>Worklets</h2>
+<p>Before we get started, it's important to know that <strong>this is not CSS in JS!</strong> It's a way to enhance CSS with Javascript to produce results that are impossible to produce with CSS alone, as it exists today.</p>
+<h2 id="worklets">Worklets</h2>
 <p>The worklets are lightweight web workers that are better suited than the heavier workers for the kinds of work Houdini is intended for. You will see several different kinds of worklets that are specific for each API.</p>
-<h2>CSS Typed Object Model</h2>
+<h2 id="css-typed-object-model">CSS Typed Object Model</h2>
 <p>If you work with CSS in JS you will soon discover that all values CSS gives the JS parser are strings that you must parse to get the data you need to continue processing the styles. This is when you use the <code>element.style.attribute</code> syntax.</p>
-<pre><code class="language-javascript">// Element styles.
-el.style.opacity = 0.3;
-typeof el.style.opacity === 'string' // Ugh. A string!?
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Element styles.</span>
+el<span class="token punctuation">.</span>style<span class="token punctuation">.</span>opacity <span class="token operator">=</span> <span class="token number">0.3</span><span class="token punctuation">;</span>
+<span class="token keyword">typeof</span> el<span class="token punctuation">.</span>style<span class="token punctuation">.</span>opacity <span class="token operator">===</span> <span class="token string">'string'</span> <span class="token comment">// Ugh. A string!?</span>
 
-// Stylesheet rules.
-document.styleSheets[0].cssRules[0].style.opacity = 0.3;
+<span class="token comment">// Stylesheet rules.</span>
+document<span class="token punctuation">.</span>styleSheets<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>cssRules<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>style<span class="token punctuation">.</span>opacity <span class="token operator">=</span> <span class="token number">0.3</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The CSS Typed Object Model (Typed OM) adds types, methods, and an object model to CSS values. Instead of strings, values are exposed as JavaScript objects to facilitate performant (and sane) manipulation of CSS.</p>
-<p>Instead of using <code>element.style</code>, you’ll be accessing styles through a new <code>.attributeStyleMap</code> property for elements and a <code>.styleMap</code> property for stylesheet rules. Both return a <code>StylePropertyMap</code> object.</p>
+<p>Instead of using <code>element.style</code>, you'll be accessing styles through a new <code>.attributeStyleMap</code> property for elements and a <code>.styleMap</code> property for stylesheet rules. Both return a <code>StylePropertyMap</code> object.</p>
 <p>The functionality of the Stylesheet version of the</p>
-<pre><code class="language-javascript">// Element styles.
-// Set element style
-el.attributeStyleMap.set('opacity', 0.3);
-// Get the element style's value
-el.attributeStyleMap.get('opacity').value;
-// list all style attributes for element
-console.log(el.attributeStyleMap)
-// What kind of element is the value for the element?
-typeof el.attributeStyleMap.get('opacity').value
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Element styles.</span>
+<span class="token comment">// Set element style</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'opacity'</span><span class="token punctuation">,</span> <span class="token number">0.3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Get the element style's value</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'opacity'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+<span class="token comment">// list all style attributes for element</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">)</span>
+<span class="token comment">// What kind of element is the value for the element?</span>
+<span class="token keyword">typeof</span> el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'opacity'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value
 
-// Stylesheet rules.
-const stylesheet = document.styleSheets[0];
-stylesheet.cssRules[0].styleMap.set('background', 'blue');
+<span class="token comment">// Stylesheet rules.</span>
+<span class="token keyword">const</span> stylesheet <span class="token operator">=</span> document<span class="token punctuation">.</span>styleSheets<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+stylesheet<span class="token punctuation">.</span>cssRules<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>styleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'background'</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>So, why should we care?</p>
 <ul>
 <li>Numerical values are always returned as numbers, not strings, so you do less work and get consistent results</li>
-<li>Value clamping &amp; rounding. Typed OM rounds and/or clamps values so they’re within the acceptable ranges for a property</li>
+<li>Value clamping &amp; rounding. Typed OM rounds and/or clamps values so they're within the acceptable ranges for a property</li>
 <li>Better performance. The browser has to do less work serializing and deserializing string values</li>
 <li>We can use Javascript error handling for our CSS</li>
 <li>CSS property names in Typed OM are always strings, matching what you actually write in CSS</li>
 </ul>
-<h3>Basic Usage: Feature Detection</h3>
-<p>I’m always one to code defensively. To make sure that the browser supports CSS Typed OM we can use something like the code below to make sure that the browser will work with the code we want to use. If it doesn’t then we can fall back to using the current object model (<code>el.style.attribute</code>).</p>
-<pre><code class="language-javascript">if (window.CSS &amp;&amp; CSS.number) {
-  // Work with CSS Typed OM.
-  el.attributeStyleMap.set('opacity', 0.3);
-} else {
-  el.style.opacity = '0.3';
-}
+<h3 id="basic-usage%3A-feature-detection">Basic Usage: Feature Detection</h3>
+<p>I'm always one to code defensively. To make sure that the browser supports CSS Typed OM we can use something like the code below to make sure that the browser will work with the code we want to use. If it doesn't then we can fall back to using the current object model (<code>el.style.attribute</code>).</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span><span class="token constant">CSS</span> <span class="token operator">&amp;&amp;</span> <span class="token constant">CSS</span><span class="token punctuation">.</span>number<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Work with CSS Typed OM.</span>
+  el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'opacity'</span><span class="token punctuation">,</span> <span class="token number">0.3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  el<span class="token punctuation">.</span>style<span class="token punctuation">.</span>opacity <span class="token operator">=</span> <span class="token string">'0.3'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>Setting Single Value Attributes</h3>
+<h3 id="setting-single-value-attributes">Setting Single Value Attributes</h3>
 <p>The basic thing to do is to set and retrieve values. Using the <code>attributeStyleMap</code> to set up the values for attributes.</p>
 <p>Typed OM provides convenient methods to make it easier to create typed values without having to use strings. Note that some of these values are part of specifications currently under development and may have little or no support among current browsers.</p>
 <p>The values in the current Typed OM  specification are:</p>
@@ -87,22 +87,22 @@ stylesheet.cssRules[0].styleMap.set('background', 'blue');
 <ul>
 <li>CSS.em();</li>
 <li>CSS.ex();</li>
-<li><a href="http://CSS.ch">CSS.ch</a>();</li>
+<li>CSS.ch();</li>
 <li>CSS.ic();</li>
 <li>CSS.rem();</li>
 <li>CSS.lh();</li>
 <li>CSS.rlh();</li>
 <li>CSS.vw();</li>
 <li>CSS.vh();</li>
-<li><a href="http://CSS.vi">CSS.vi</a>();</li>
+<li>CSS.vi();</li>
 <li>CSS.vb();</li>
 <li>CSS.vmin();</li>
 <li>CSS.vmax();</li>
-<li><a href="http://CSS.cm">CSS.cm</a>();</li>
-<li><a href="http://CSS.mm">CSS.mm</a>();</li>
+<li>CSS.cm();</li>
+<li>CSS.mm();</li>
 <li>CSS.Q();</li>
-<li><a href="http://CSS.in">CSS.in</a>();</li>
-<li><a href="http://CSS.pt">CSS.pt</a>();</li>
+<li>CSS.in();</li>
+<li>CSS.pt();</li>
 <li>CSS.pc();</li>
 <li>CSS.px();</li>
 </ul>
@@ -118,7 +118,7 @@ stylesheet.cssRules[0].styleMap.set('background', 'blue');
 <li>time
 <ul>
 <li>CSS.s();</li>
-<li><a href="http://CSS.ms">CSS.ms</a>();</li>
+<li>CSS.ms();</li>
 </ul>
 </li>
 <li>frequency
@@ -136,16 +136,16 @@ stylesheet.cssRules[0].styleMap.set('background', 'blue');
 </li>
 <li>flex
 <ul>
-<li><a href="http://CSS.fr">CSS.fr</a>();</li>
+<li>CSS.fr();</li>
 </ul>
 </li>
 </ul>
 <p>For more information about the units listed above check the <a href="https://drafts.csswg.org/css-values/">CSS Values and Units Level 4</a> specification.</p>
 <p>You can also use strings. The parser will convert it to numbers under the hood. The two declarations below are equivalent.</p>
-<pre><code class="language-javascript">el.attributeStyleMap.set('margin-top', CSS.px(10));
-el.attributeStyleMap.set('margin-top', '10px');
+<pre class="language-javascript"><code class="language-javascript">el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'margin-top'</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'margin-top'</span><span class="token punctuation">,</span> <span class="token string">'10px'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Complex Numeric Values</h3>
+<h3 id="complex-numeric-values">Complex Numeric Values</h3>
 <p>There are times when you need to represent more than a single value, for example when doing something like <code>calc(1em + 10px)</code>.</p>
 <p>We can get more complex values by using mathematical functions that are part of the Typed OM. The Spec makes the following aritmethic functions available that will return either a typed value or a calc() function depending on the parameters passed.</p>
 <ul>
@@ -156,136 +156,136 @@ el.attributeStyleMap.set('margin-top', '10px');
 <li>min();</li>
 <li>max();</li>
 </ul>
-<pre><code class="language-javascript">// Multiply 2 values, keep the unit
-CSS.deg(90).mul(2)
-// {value: 180, unit: &quot;deg&quot;}
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Multiply 2 values, keep the unit</span>
+<span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">deg</span><span class="token punctuation">(</span><span class="token number">90</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">mul</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+<span class="token comment">// {value: 180, unit: "deg"}</span>
 
-// Pick the bigger of the two values
-CSS.percent(50).max(CSS.vw(50)).toString()
-// &quot;max(50%, 50vw)&quot;
+<span class="token comment">// Pick the bigger of the two values</span>
+<span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">percent</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">vw</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment">// "max(50%, 50vw)"</span>
 
-// Add to numbers of the same unit
-CSS.px(1).add(CSS.px(2))
-// {value: 3, unit: &quot;px&quot;}
+<span class="token comment">// Add to numbers of the same unit</span>
+<span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment">// {value: 3, unit: "px"}</span>
 
-// multiple values:
-CSS.s(1).sub(CSS.ms(200), CSS.ms(300)).toString()
-// &quot;calc(1s + -200ms + -300ms)&quot;
+<span class="token comment">// multiple values:</span>
+<span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">s</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">sub</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">ms</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">ms</span><span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment">// "calc(1s + -200ms + -300ms)"</span>
 
-// or pass a `CSSMathSum`:
-const sum = new CSSMathSum(CSS.percent(100), CSS.px(20)));
-CSS.vw(100).add(sum).toString() // &quot;calc(100vw + (100% + 20px))&quot;
+<span class="token comment">// or pass a `CSSMathSum`:</span>
+<span class="token keyword">const</span> sum <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CSSMathSum</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">percent</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">vw</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>sum<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// "calc(100vw + (100% + 20px))"</span>
 </code></pre>
-<h3>CSS Math Values</h3>
+<h3 id="css-math-values">CSS Math Values</h3>
 <p>The values created by  <code>cssMathValue</code> objects contain one or more mathematical expressions. Notice how we use the <code>toString()</code> method to explicitly convert the values to strings that we can feed back to CSS for it to work consistently.</p>
 <p>Also note that unless we usually get a <code>calc()</code> function that we can drop in to the stylesheets to continue manipulating or leave in the stylesheet as the final value.</p>
-<pre><code class="language-javascript">new CSSMathSum(CSS.vw(100), CSS.px(-10)).toString();
-// &quot;calc(100vw + -10px)&quot;
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">new</span> <span class="token class-name">CSSMathSum</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">vw</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// "calc(100vw + -10px)"</span>
 
-new CSSMathNegate(CSS.px(42)).toString()
-// &quot;calc(-42px)&quot;
+<span class="token keyword">new</span> <span class="token class-name">CSSMathNegate</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment">// "calc(-42px)"</span>
 
-new CSSMathInvert(CSS.s(10)).toString()
-// &quot;calc(1 / 10s)&quot;
+<span class="token keyword">new</span> <span class="token class-name">CSSMathInvert</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">s</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment">// "calc(1 / 10s)"</span>
 
-new CSSMathProduct(CSS.deg(90), CSS.number(Math.PI/180)).toString();
-// &quot;calc(90deg * 0.0174533)&quot;
+<span class="token keyword">new</span> <span class="token class-name">CSSMathProduct</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">deg</span><span class="token punctuation">(</span><span class="token number">90</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">number</span><span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token constant">PI</span><span class="token operator">/</span><span class="token number">180</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// "calc(90deg * 0.0174533)"</span>
 
-new CSSMathMin(CSS.percent(80), CSS.px(12)).toString();
-// &quot;min(80%, 12px)&quot;
+<span class="token keyword">new</span> <span class="token class-name">CSSMathMin</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">percent</span><span class="token punctuation">(</span><span class="token number">80</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">12</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// "min(80%, 12px)"</span>
 
-new CSSMathMax(CSS.percent(80), CSS.px(12)).toString();
-// &quot;max(80%, 12px)&quot;
+<span class="token keyword">new</span> <span class="token class-name">CSSMathMax</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">percent</span><span class="token punctuation">(</span><span class="token number">80</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">12</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// "max(80%, 12px)"</span>
 </code></pre>
-<h3>Keyword Values</h3>
+<h3 id="keyword-values">Keyword Values</h3>
 <p>There are values that are not represented by a number + unit combination, like the values for display or <code>inherited</code>. Use <code>CSSKeyWordValue</code> in those cases.</p>
-<pre><code class="language-javascript">el.attributeStyleMap.set('display', new CSSKeywordValue('initial'));
-el.attributeStyleMap.get('display').value // 'initial'
-el.attributeStyleMap.get('display').unit // undefined
+<pre class="language-javascript"><code class="language-javascript">el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'display'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">CSSKeywordValue</span><span class="token punctuation">(</span><span class="token string">'initial'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'display'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value <span class="token comment">// 'initial'</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'display'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>unit <span class="token comment">// undefined</span>
 </code></pre>
-<h3>Retrieving values: attributeStyleMap versus computedStyleMap</h3>
+<h3 id="retrieving-values%3A-attributestylemap-versus-computedstylemap">Retrieving values: attributeStyleMap versus computedStyleMap</h3>
 <p>We can then retrieve the value (without a unit) or the unit itself.</p>
-<pre><code class="language-javascript">el.attributeStyleMap.get('margin-top').value  // 10
-el.attributeStyleMap.get('margin-top').unit // 'px'
+<pre class="language-javascript"><code class="language-javascript">el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'margin-top'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value  <span class="token comment">// 10</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'margin-top'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>unit <span class="token comment">// 'px'</span>
 </code></pre>
 <p>There are situations where the element may have more than a single value like <code>background-image</code>. In this situation, <code>get</code> will only give us the first value for the attribute. Fortunately we have a <code>getAll</code> method that would return all the values in a map.</p>
-<pre><code class="language-javascript">el.attributeStyleMap.getAll('background-image')
+<pre class="language-javascript"><code class="language-javascript">el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">getAll</span><span class="token punctuation">(</span><span class="token string">'background-image'</span><span class="token punctuation">)</span>
 </code></pre>
-<h3>Computed Styles versus Attribute Styles</h3>
+<h3 id="computed-styles-versus-attribute-styles">Computed Styles versus Attribute Styles</h3>
 <p><code>attributeStyleMap</code> gives you the value you entered but this presents one interesting case for me. What happens when we give it a percentage or other relative values like em or rem?</p>
 <p>We can use different units defined outside the Typed OM like <code>window.getComputedStyle()</code> to get the resulting value of a property after all parent object values are calculated.</p>
-<p>The difference between <code>window.getComputedStyle()</code> (outside the Typed OM) and <code>element.computedStyleMap()</code> (part of the Typed OM) is that the <code>window.getComputedStyle()</code> method gets the value after all calculations have been done. If we need to get the value as we’re working with it then we can use the <code>element.computedStyleMap()</code> method.</p>
-<h3>CSS Transforms</h3>
+<p>The difference between <code>window.getComputedStyle()</code> (outside the Typed OM) and <code>element.computedStyleMap()</code> (part of the Typed OM) is that the <code>window.getComputedStyle()</code> method gets the value after all calculations have been done. If we need to get the value as we're working with it then we can use the <code>element.computedStyleMap()</code> method.</p>
+<h3 id="css-transforms">CSS Transforms</h3>
 <p>CSS Transforms are created with a<a href="https://drafts.css-houdini.org/css-typed-om/#transformvalue-objects">CSSTransformValue</a> objects passing an array of transform values (e.g. CSSRotate, CSScale, CSSSkew, CSSSkewX, CSSSkewY). As an example, say you want to re-create this CSS:</p>
-<pre><code class="language-css">transform: rotateZ(45deg) scale(0.5) translate3d(10px,10px,10px);
+<pre class="language-css"><code class="language-css"><span class="token property">transform</span><span class="token punctuation">:</span> <span class="token function">rotateZ</span><span class="token punctuation">(</span>45deg<span class="token punctuation">)</span> <span class="token function">scale</span><span class="token punctuation">(</span>0.5<span class="token punctuation">)</span> <span class="token function">translate3d</span><span class="token punctuation">(</span>10px<span class="token punctuation">,</span>10px<span class="token punctuation">,</span>10px<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Translated into Typed OM:</p>
-<pre><code class="language-javascript">const transform =  new CSSTransformValue([
-  new CSSRotate(CSS.deg(45)),
-  new CSSScale(CSS.number(0.5), CSS.number(0.5)),
-  new CSSTranslate(CSS.px(10), CSS.px(10), CSS.px(10))
-]);
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> transform <span class="token operator">=</span>  <span class="token keyword">new</span> <span class="token class-name">CSSTransformValue</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+  <span class="token keyword">new</span> <span class="token class-name">CSSRotate</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">deg</span><span class="token punctuation">(</span><span class="token number">45</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">CSSScale</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">number</span><span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">number</span><span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">CSSTranslate</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>In addition to its verbosity (lolz!), CSSTransformValue has some cool features. It has a boolean property to differentiate 2D and 3D transforms and a .toMatrix() method to return the DOMMatrix representation of a transform:</p>
-<pre><code class="language-javascript">new CSSTranslate(CSS.px(10), CSS.px(10)).is2D // true
-new CSSTranslate(CSS.px(10), CSS.px(10), CSS.px(10)).is2D // false
-new CSSTranslate(CSS.px(10), CSS.px(10)).toMatrix() // DOMMatrix
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">new</span> <span class="token class-name">CSSTranslate</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>is2D <span class="token comment">// true</span>
+<span class="token keyword">new</span> <span class="token class-name">CSSTranslate</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>is2D <span class="token comment">// false</span>
+<span class="token keyword">new</span> <span class="token class-name">CSSTranslate</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toMatrix</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// DOMMatrix</span>
 </code></pre>
-<h3>Custom Properties</h3>
+<h3 id="custom-properties">Custom Properties</h3>
 <p>CSS <code>var()</code> become a CSSVariableReferenceValue object in the Typed OM. Their values get parsed into CSSUnparsedValue because they can take any type (px, %, em, rgba(), etc).</p>
-<pre><code class="language-javascript">const foo = new CSSVariableReferenceValue('--foo');
-// foo.variable === '--foo'
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> foo <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CSSVariableReferenceValue</span><span class="token punctuation">(</span><span class="token string">'--foo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// foo.variable === '--foo'</span>
 
-// Fallback values:
-const padding = new CSSVariableReferenceValue(
-    '--default-padding', new CSSUnparsedValue(['8px']));
+<span class="token comment">// Fallback values:</span>
+<span class="token keyword">const</span> padding <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CSSVariableReferenceValue</span><span class="token punctuation">(</span>
+    <span class="token string">'--default-padding'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">CSSUnparsedValue</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'8px'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>If you want to get the value of a custom property, there’s a bit of work to do:</p>
-<pre><code class="language-html">&lt;style&gt;
-  body {
-    --foo: 10px;
-  }
-&lt;/style&gt;
-&lt;script&gt;
-  const styles = document.querySelector('style');
-  const foo = styles.sheet.cssRules[0].styleMap.get('--foo').trim();
-  console.log(CSSNumericValue.parse(foo).value); // 10
-&lt;/script&gt;
+<p>If you want to get the value of a custom property, there's a bit of work to do:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css">
+  <span class="token selector">body</span> <span class="token punctuation">{</span>
+    <span class="token property">--foo</span><span class="token punctuation">:</span> 10px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token keyword">const</span> styles <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'style'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> foo <span class="token operator">=</span> styles<span class="token punctuation">.</span>sheet<span class="token punctuation">.</span>cssRules<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>styleMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'--foo'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>CSSNumericValue<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>foo<span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 10</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
 </code></pre>
-<h3>CSS Positions</h3>
+<h3 id="css-positions">CSS Positions</h3>
 <p><a href="https://drafts.css-houdini.org/css-typed-om/#positionvalue-objects">CSSPositionValue objects</a> represent a space-separated list of values, like those used by object-position.</p>
-<pre><code class="language-javascript">const position = new CSSPositionValue(CSS.px(5), CSS.px(10));
-el.attributeStyleMap.set('object-position', position);
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> position <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CSSPositionValue</span><span class="token punctuation">(</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'object-position'</span><span class="token punctuation">,</span> position<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-console.log(position.x.value, position.y.value);
-// → 5, 10
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>position<span class="token punctuation">.</span>x<span class="token punctuation">.</span>value<span class="token punctuation">,</span> position<span class="token punctuation">.</span>y<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// → 5, 10</span>
 </code></pre>
-<h3>CSS Images</h3>
+<h3 id="css-images">CSS Images</h3>
 <p><a href="https://drafts.css-houdini.org/css-typed-om/#imagevalue-objects">CSSImageValue objects</a> represent one or more values for images, like those used in background-image, list-style-image, and border-image-source. As we discussed earlier these elements may return one or more images as the value so we need to retrieve them with <code>element.attributeStyleMap.getAll()</code> to make sure we capture all the images used in the element.</p>
-<h3>Parsing values</h3>
+<h3 id="parsing-values">Parsing values</h3>
 <p>The Typed OM introduces parsing methods to the web platform! This means you can finally parse CSS values programmatically, before trying to use it! This new capability is a potential life saver for catching early bugs and malformed CSS.</p>
 <p>Parse a full style:</p>
-<pre><code class="language-javascript">const css = CSSStyleValue.parse(
-    'transform', 'translate3d(10px,10px,0) scale(0.5)');
-// → css instanceof CSSTransformValue === true
-// → css.toString() === 'translate3d(10px, 10px, 0) scale(0.5)'
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> css <span class="token operator">=</span> CSSStyleValue<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>
+    <span class="token string">'transform'</span><span class="token punctuation">,</span> <span class="token string">'translate3d(10px,10px,0) scale(0.5)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// → css instanceof CSSTransformValue === true</span>
+<span class="token comment">// → css.toString() === 'translate3d(10px, 10px, 0) scale(0.5)'</span>
 </code></pre>
 <p>Parse values into CSSUnitValue:</p>
-<pre><code class="language-javascript">CSSNumericValue.parse('42.0px') // {value: 42, unit: 'px'}
+<pre class="language-javascript"><code class="language-javascript">CSSNumericValue<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">'42.0px'</span><span class="token punctuation">)</span> <span class="token comment">// {value: 42, unit: 'px'}</span>
 
-// But it's easier to use the factory functions:
-CSS.px(42.0) // '42px'
+<span class="token comment">// But it's easier to use the factory functions:</span>
+<span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">42.0</span><span class="token punctuation">)</span> <span class="token comment">// '42px'</span>
 </code></pre>
-<h3>Error handling</h3>
-<p>Because we’re working with Javascript to</p>
-<pre><code class="language-javascript">try {
-  const css = CSSStyleValue.parse('transform', 'translate4d(bogus value)');
-  // use css
-} catch (err) {
-  console.err(err);
-}
+<h3 id="error-handling">Error handling</h3>
+<p>Because we're working with Javascript to</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">try</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> css <span class="token operator">=</span> CSSStyleValue<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">'transform'</span><span class="token punctuation">,</span> <span class="token string">'translate4d(bogus value)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// use css</span>
+<span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">err</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Links and Resources</h2>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://developers.google.com/web/updates/2018/01/paintapi">CSS Paint API</a></li>
 <li><a href="https://developers.google.com/web/updates/2018/03/cssom">Working with the new CSS Typed Object Model</a></li>

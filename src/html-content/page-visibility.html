@@ -1,5 +1,5 @@
-<h1>Page Visibility</h1>
-<p>There is nothing more anoying than having audio/video playing in a tab when it’s in the background or when the browser is minimized.</p>
+<h1 id="page-visibility">Page Visibility</h1>
+<p>There is nothing more anoying than having audio/video playing in a tab when it's in the background or when the browser is minimized.</p>
 <p>The <a href="https://www.w3.org/TR/page-visibility/">Page Visibility API</a> gives us control of what to do with media or any other element of a page when the tab is hidden or not visible. Some of the things we can do with this API:</p>
 <ul>
 <li>Pausing a video when the page has lost user focus.</li>
@@ -18,47 +18,47 @@
 <p><code>document.hidden</code> is boolean property, that is set to false if page is visible and true if page is hidden.</p>
 <p>The first example pauses a video if the container tab is hidden or not visible and plays it otherwise.</p>
 <p>We start by adding a <code>visibilitychange</code> event listener to the document. Inside the listener we check if the document is hidden and pause the video if it is; otherwise we play it.</p>
-<pre><code class="language-javascript">video = document.getElementById('myVideo');
+<pre class="language-javascript"><code class="language-javascript">video <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'myVideo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-document.addEventListener('visibilitychange', function () {
-    if (document.hidden) {
-        video.pause();
-    } else {
-        video.play();
-    }
-});
+document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'visibilitychange'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>document<span class="token punctuation">.</span>hidden<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The most obvious use is to control video playback when the tab is not visible. When I wrote about creating <a href="https://publishing-project.rivendellweb.net/custom-controls-for-html5-video/">custom controls for HTML5 video</a> I used a click event handler like this one to control video play/pause status:</p>
-<pre><code class="language-javascript">play.addEventListener('click', e =&gt; {
-  // Prevent Default Click Action
-  e.preventDefault();
-  if (video.paused) {
-    video.play();
-    playIcon.src = 'images/icons/pause.svg';
-  } else {
-    video.pause();
-    playIcon.src = 'images/icons/play-button.svg';
-  }
-});
+<pre class="language-javascript"><code class="language-javascript">play<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token parameter">e</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// Prevent Default Click Action</span>
+  e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>video<span class="token punctuation">.</span>paused<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/pause.svg'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We can further enhance it so that it will only play the video if the document is visible.</p>
-<p>We wrap the if block that controls playback in another if block that tests the page’s visibility state and only moves forward if we can see the page. If the page is not visible then we pause the video, regardless of whether it’s currently playing.</p>
+<p>We wrap the if block that controls playback in another if block that tests the page's visibility state and only moves forward if we can see the page. If the page is not visible then we pause the video, regardless of whether it's currently playing.</p>
 <p>The code now looks like this:</p>
-<pre><code class="language-javascript">play.addEventListener('click', e =&gt; {
-  // Prevent Default Click Action
-  e.preventDefault();
-  if (document.visibilityState === 'visible') {
-    if (video.paused) {
-      video.play();
-      playIcon.src = 'images/icons/pause.svg';
-    } else {
-      video.pause();
-      playIcon.src = 'images/icons/play-button.svg';
-    }
-  } else {
-    video.pause();
-    playIcon.src = 'images/icons/play-button.svg';
-  }
-});
+<pre class="language-javascript"><code class="language-javascript">play<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token parameter">e</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// Prevent Default Click Action</span>
+  e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>document<span class="token punctuation">.</span>visibilityState <span class="token operator">===</span> <span class="token string">'visible'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>video<span class="token punctuation">.</span>paused<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/pause.svg'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>With those simple changes we’ve ensured that the video will not play in the background and that there will be no other distractions when we work on other tabs.  We then should do something similar for our keyboard video controls.</p>
+<p>With those simple changes we've ensured that the video will not play in the background and that there will be no other distractions when we work on other tabs.  We then should do something similar for our keyboard video controls.</p>

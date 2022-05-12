@@ -1,133 +1,133 @@
-<h1>Writing Markdown extensions (1): Customizing renderer behavior</h1>
+<h1 id="writing-markdown-extensions-(1)%3A-customizing-renderer-behavior">Writing Markdown extensions (1): Customizing renderer behavior</h1>
 <p>Markdown gives you two options to work with specialized content: You can write it as HTML directly or you can use plugins for your Markdown tools that will produce the same result from some specific combination of text symbols.</p>
-<p>Until now I’ve always used HTML for things like figures and video embeds from YouTube or Codepen. It’s easier, I’ve created snippets in VSCode to handle them and my muscle memory already knows the shortcuts and how to write the code by hand.</p>
-<p>For security reasons this may not always be a good idea, specially if you accept third-party contributions. There’s nothing stoping a malicious author from inserting scripts into the HTML that would run when a reader views the page.</p>
-<p>I’ve chosen to experiment with Markdown-it as a standalone editor and see how easy it is to write plugins for them (or not, see <a href="https://publishing-project.rivendellweb.net/markdown-to-html-standalone-converter-tool/">Markdown to HTML standalone converter tool</a> for my reservations about the project leadership).</p>
-<h2>Modifying existing renderer rules</h2>
+<p>Until now I've always used HTML for things like figures and video embeds from YouTube or Codepen. It's easier, I've created snippets in VSCode to handle them and my muscle memory already knows the shortcuts and how to write the code by hand.</p>
+<p>For security reasons this may not always be a good idea, specially if you accept third-party contributions. There's nothing stoping a malicious author from inserting scripts into the HTML that would run when a reader views the page.</p>
+<p>I've chosen to experiment with Markdown-it as a standalone editor and see how easy it is to write plugins for them (or not, see <a href="https://publishing-project.rivendellweb.net/markdown-to-html-standalone-converter-tool/">Markdown to HTML standalone converter tool</a> for my reservations about the project leadership).</p>
+<h2 id="modifying-existing-renderer-rules">Modifying existing renderer rules</h2>
 <p>The easiest way to create Markdown-it plugins is to customize the way that the Markdown renderer works. The following example will add <code>loading=&quot;lazy&quot;</code> to all images so they will lazy load in Chromium-based browsers.</p>
-<pre><code class="language-js">const imageDefaultRender =
-  md.renderer.rules.image ||
-  function (tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-  };
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> imageDefaultRender <span class="token operator">=</span>
+  md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span>image <span class="token operator">||</span>
+  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> self<span class="token punctuation">.</span><span class="token function">renderToken</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-md.renderer.rules.image = function (tokens, idx, options, env, self) {
-  const loadingIndex = tokens[idx].attrIndex('loading');
+md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span><span class="token function-variable function">image</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> loadingIndex <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrIndex</span><span class="token punctuation">(</span><span class="token string">'loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  if (loadingIndex &lt; 0) {
-    tokens[idx].attrPush(['loading', 'lazy']);
-  } else {
-    tokens[idx].attrs[loadingIndex][1] = 'lazy';
-  }
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>loadingIndex <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrPush</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'loading'</span><span class="token punctuation">,</span> <span class="token string">'lazy'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span>attrs<span class="token punctuation">[</span>loadingIndex<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">'lazy'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  return defaultRender(tokens, idx, options, env, self);
-};
+  <span class="token keyword">return</span> <span class="token function">defaultRender</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>This is an all-or-nothing deal. Either all the images get it or you have to manually edit the resulting HTML code. For native lazy loading this is not bad since browsers will not lazy load the images that are on the viewport when the page initially loads but it may be an issue for other applications.</p>
-<p>It also present the issue that, if you change one attribute, any other attribute will have its value reset. This happened with the <code>alt</code> attribute. To fix it we had to add a second if/then/else block to handle the <code>alt</code> attribute. I’m not 100% sure if you’d have to do the same for other existing attributes.</p>
-<pre><code class="language-js">const imageDefaultRender =
-  md.renderer.rules.image ||
-  function (tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-  };
+<p>It also present the issue that, if you change one attribute, any other attribute will have its value reset. This happened with the <code>alt</code> attribute. To fix it we had to add a second if/then/else block to handle the <code>alt</code> attribute. I'm not 100% sure if you'd have to do the same for other existing attributes.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> imageDefaultRender <span class="token operator">=</span>
+  md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span>image <span class="token operator">||</span>
+  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> self<span class="token punctuation">.</span><span class="token function">renderToken</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-md.renderer.rules.image = function (tokens, idx, options, env, self) {
-  const loadingIndex = tokens[idx].attrIndex('loading');
-  const altIndex = tokens[idx].attrIndex('alt');
+md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span><span class="token function-variable function">image</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> loadingIndex <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrIndex</span><span class="token punctuation">(</span><span class="token string">'loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> altIndex <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrIndex</span><span class="token punctuation">(</span><span class="token string">'alt'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  if (loadingIndex &lt; 0) {
-    tokens[idx].attrPush(['loading', 'lazy']);
-  } else {
-    tokens[idx].attrs[loadingIndex][1] = 'lazy';
-  }
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>loadingIndex <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrPush</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'loading'</span><span class="token punctuation">,</span> <span class="token string">'lazy'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span>attrs<span class="token punctuation">[</span>loadingIndex<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">'lazy'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  // We test for presence and length
-  // to prevent a crash if the 
-  // attribute is empty (lenght = 0)
-  if (altIndex &lt; 0 &amp;&amp; altIndex.length &gt; 0) {
-    tokens[idx].attrPush(['alt', tokens[0].children[0].content]);
-  } else {
-    tokens[idx].attrs[altIndex][1] = tokens[0].children[0].content;
-  }
+  <span class="token comment">// We test for presence and length</span>
+  <span class="token comment">// to prevent a crash if the </span>
+  <span class="token comment">// attribute is empty (lenght = 0)</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>altIndex <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> altIndex<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrPush</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'alt'</span><span class="token punctuation">,</span> tokens<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>children<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>content<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span>attrs<span class="token punctuation">[</span>altIndex<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> tokens<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>children<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  return imageDefaultRender(tokens, idx, options, env, self);
-};
+  <span class="token keyword">return</span> <span class="token function">imageDefaultRender</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Another example is to add <code>noopener</code>, <code>nofollow</code> and <code>noreferrer</code> attributes to external links.</p>
-<pre><code class="language-js">var defaultRender =
-  md.renderer.rules.link_open ||
-  function (tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-  };
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> defaultRender <span class="token operator">=</span>
+  md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span>link_open <span class="token operator">||</span>
+  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> self<span class="token punctuation">.</span><span class="token function">renderToken</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
-  var aIndex = tokens[idx].attrIndex('rel');
+md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span><span class="token function-variable function">link_open</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">var</span> aIndex <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrIndex</span><span class="token punctuation">(</span><span class="token string">'rel'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  if (aIndex &lt; 0) {
-    tokens[idx].attrPush(['rel', 'noopener noreferrer nofollow']);
-  } else {
-    tokens[idx].attrs[aIndex][1] = 'noopener noreferrer nofollow';
-  }
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>aIndex <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrPush</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'rel'</span><span class="token punctuation">,</span> <span class="token string">'noopener noreferrer nofollow'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span>attrs<span class="token punctuation">[</span>aIndex<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">'noopener noreferrer nofollow'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  return defaultRender(tokens, idx, options, env, self);
-};
+  <span class="token keyword">return</span> <span class="token function">defaultRender</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<p>Again, this is an all or nothing proposition but this time, it’s not harmless. We don’t want to add the attributes to internal links so we have to code around the problem.</p>
+<p>Again, this is an all or nothing proposition but this time, it's not harmless. We don't want to add the attributes to internal links so we have to code around the problem.</p>
 <p>First we create two functions that will define if a link is internal or not.</p>
 <p>The first one gets the domain for the site (the domain is defined as everything between the <code>//</code> and the first <code>/</code> in the URL, assuming that external links will look like this <code>http://example.com/demo.html</code>)</p>
 <p>The second functions defines an internal link as one without a domain.</p>
-<pre><code class="language-js">function getDomain(href) {
-  let domain = href.split('//')[1];
-  if (domain) {
-    domain = domain.split('/')[0].toLowerCase();
-    return domain || null;
-  }
-  return null;
-}
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">getDomain</span><span class="token punctuation">(</span><span class="token parameter">href</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> domain <span class="token operator">=</span> href<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">'//'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>domain<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    domain <span class="token operator">=</span> domain<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">'/'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> domain <span class="token operator">||</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-function isInternalLink(href) {
-  let domain = getDomain(href);
-  return domain === null;
-}
+<span class="token keyword">function</span> <span class="token function">isInternalLink</span><span class="token punctuation">(</span><span class="token parameter">href</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> domain <span class="token operator">=</span> <span class="token function">getDomain</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> domain <span class="token operator">===</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>We then modify our link_open renderer so it will only add the attributes to links that are <strong>not</strong> internal.</p>
-<pre><code class="language-js">// Remember old renderer, if overridden, or proxy to default renderer
-var defaultRender =
-  md.renderer.rules.link_open ||
-  function (tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-  };
+<pre class="language-js"><code class="language-js"><span class="token comment">// Remember old renderer, if overridden, or proxy to default renderer</span>
+<span class="token keyword">var</span> defaultRender <span class="token operator">=</span>
+  md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span>link_open <span class="token operator">||</span>
+  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> self<span class="token punctuation">.</span><span class="token function">renderToken</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
-  var linkIndex = tokens[idx].attrIndex('rel');
-  var href = tokens[idx].attrGet('href');
+md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span><span class="token function-variable function">link_open</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">var</span> linkIndex <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrIndex</span><span class="token punctuation">(</span><span class="token string">'rel'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">var</span> href <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrGet</span><span class="token punctuation">(</span><span class="token string">'href'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  // Only do it if the link is not internal
-  if (!isInternalLink(href)) {
-    if (linkIndex &lt; 0) {
-      tokens[idx].attrPush(['rel', 'noopener noreferrer nofollow']);
-    } else {
-      tokens[idx].attrs[linkIndex][1] = 'noopener noreferrer nofollow';
-    }
-  }
-  // pass token to default renderer.
-  return defaultRender(tokens, idx, options, env, self);
-};
+  <span class="token comment">// Only do it if the link is not internal</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">isInternalLink</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>linkIndex <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">attrPush</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'rel'</span><span class="token punctuation">,</span> <span class="token string">'noopener noreferrer nofollow'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">.</span>attrs<span class="token punctuation">[</span>linkIndex<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">'noopener noreferrer nofollow'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  <span class="token comment">// pass token to default renderer.</span>
+  <span class="token keyword">return</span> <span class="token function">defaultRender</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Further improvements</h2>
-<p>Right now our code is very rigid. It adds the attributes we tell it to and requires further work to add the customizations. Based on my limited knowledge of how the parser internals work I don’t know if it’s possible to further customize the rules customizations with customizations that fall outside the Markdown parser or if this would fall under creating new Markdown elements</p>
-<h1>Writing Markdown extensions (2): Thoughts and ideas (so far)</h1>
-<p>Before jumping into writing our own Markdown elements and all the complexity that goes with them, let’s stop and see where are are.</p>
-<p>Markdown rule customization gives you a lot of flexibility regarding customizing built-in rules and elements. It’s an all or nothing proposition, either all elements have the attributes you’re customizing or you code around to make sure only some do (like the link example where we only add attribute to external links).</p>
-<p>Most of the time, these customizations will be enough, but not always. There may be times when we want an element that is not available on standard Markdown or we don’t want to modify the default element to suit our needs because we still need it in its default form.</p>
-<p>In that case we’d have to write our own custom Markdown element. This is much harder than the code we’ve written so far because it digs deeper into Markdown-it internals and because the documentation on how to do it is scarce and almost non-existent, leaving beginners to try and figure out things from the source code.</p>
-<p>Looking at existing plugins or the Markdown-It engine doesn’t help as much as I thought it would. Markdown-it itself is well documented but it assumes you know everything that’s going on and that’s not always the case.</p>
-<p>As I get more comfortable with the code I’ll write another post covering the details of the process.</p>
-<h2>When to write your own and when to trust third parties</h2>
-<p>It is likely that if you need to do something other people will want to do it too, so it begs the question: When do you write your own code and when do you use someone else’s?</p>
-<p>A related problem with Markdown-it plugins is that many of the plugins available on NPM are copies of existing packages, some scoped to specific users (instead of <code>package</code> it becomes <code>@user/package</code>) and some just forked from the original for no reason that’s apparent to me. This makes it harder to figure out which package use on your projects, making it even more tempting to write your own.</p>
-<p>We’ll cover specifics of how to write a custom plugin in a later post but as mentioned earlier, it’s not an easy task because there is little to no documentation on how to do it. You’re expected to understand the code well enough to make it happen.</p>
-<h1>Writing Markdown extensions (3): Writing our own Markdown elements</h1>
+<h2 id="further-improvements">Further improvements</h2>
+<p>Right now our code is very rigid. It adds the attributes we tell it to and requires further work to add the customizations. Based on my limited knowledge of how the parser internals work I don't know if it's possible to further customize the rules customizations with customizations that fall outside the Markdown parser or if this would fall under creating new Markdown elements</p>
+<h1 id="writing-markdown-extensions-(2)%3A-thoughts-and-ideas-(so-far)">Writing Markdown extensions (2): Thoughts and ideas (so far)</h1>
+<p>Before jumping into writing our own Markdown elements and all the complexity that goes with them, let's stop and see where are are.</p>
+<p>Markdown rule customization gives you a lot of flexibility regarding customizing built-in rules and elements. It's an all or nothing proposition, either all elements have the attributes you're customizing or you code around to make sure only some do (like the link example where we only add attribute to external links).</p>
+<p>Most of the time, these customizations will be enough, but not always. There may be times when we want an element that is not available on standard Markdown or we don't want to modify the default element to suit our needs because we still need it in its default form.</p>
+<p>In that case we'd have to write our own custom Markdown element. This is much harder than the code we've written so far because it digs deeper into Markdown-it internals and because the documentation on how to do it is scarce and almost non-existent, leaving beginners to try and figure out things from the source code.</p>
+<p>Looking at existing plugins or the Markdown-It engine doesn't help as much as I thought it would. Markdown-it itself is well documented but it assumes you know everything that's going on and that's not always the case.</p>
+<p>As I get more comfortable with the code I'll write another post covering the details of the process.</p>
+<h2 id="when-to-write-your-own-and-when-to-trust-third-parties">When to write your own and when to trust third parties</h2>
+<p>It is likely that if you need to do something other people will want to do it too, so it begs the question: When do you write your own code and when do you use someone else's?</p>
+<p>A related problem with Markdown-it plugins is that many of the plugins available on NPM are copies of existing packages, some scoped to specific users (instead of <code>package</code> it becomes <code>@user/package</code>) and some just forked from the original for no reason that's apparent to me. This makes it harder to figure out which package use on your projects, making it even more tempting to write your own.</p>
+<p>We'll cover specifics of how to write a custom plugin in a later post but as mentioned earlier, it's not an easy task because there is little to no documentation on how to do it. You're expected to understand the code well enough to make it happen.</p>
+<h1 id="writing-markdown-extensions-(3)%3A-writing-our-own-markdown-elements">Writing Markdown extensions (3): Writing our own Markdown elements</h1>
 <p>The other way to create custom Markdown and the corresponding HTML is to create completely custom Markdown elements.</p>
 <p>This is more complicated since we now have to parse the input, not just match an existing renderer but with the complexity comes a much more powerful toolset.</p>
 <p>In pseudocode, as far as I understand it, the process goes something like this:</p>
@@ -139,6 +139,6 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 </ol>
 </li>
 <li>Write custom rules to process the new markup we want to use</li>
-<li>Add the custom rules to the parser pipeline so they’ll be used when we render documents to HTML</li>
+<li>Add the custom rules to the parser pipeline so they'll be used when we render documents to HTML</li>
 <li>Run the renderer to generate HTML</li>
 </ol>

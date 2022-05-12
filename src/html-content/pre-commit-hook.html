@@ -1,39 +1,39 @@
-<h1>pre-commit hooks</h1>
+<h1 id="pre-commit-hooks">pre-commit hooks</h1>
 <blockquote>
 <p>This is a different take on hooks from <a href="https://publishing-project.rivendellweb.net/pre-commit-hooks-combating-laziness/">Pre Commit Hooks: Combating Laziness</a>, written two years ago</p>
 </blockquote>
-<p>There are times when it would be awesome if we could force ourselves (or our development team) to perform some actions before committing code to the project’s repository.</p>
+<p>There are times when it would be awesome if we could force ourselves (or our development team) to perform some actions before committing code to the project's repository.</p>
 <p>Git has a set of tools called <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">hooks</a> that can help with this enforcement proccess.</p>
 <p>The idea behind hooks is that they will run at set times during the request lifecycle and run the code you specify in the hook file. You can use hooks to run linting and accessibility checks before you commit code and reject the commit if any of the check fails.</p>
 <p>In this example we want to run <code>gulp axe</code> and <code>gulp eslint</code> before each and every commit and fail the commit if there are errors returned from either command.</p>
-<p>We’ll leverage the <code>pre-commit</code> hook to accomplish this. This hook is run first, before you type a commit message. It’s used to inspect the snapshot that’s about to be committed, complete tasks before the commit happens. Exiting non-zero from this hook aborts the commit.</p>
+<p>We'll leverage the <code>pre-commit</code> hook to accomplish this. This hook is run first, before you type a commit message. It’s used to inspect the snapshot that’s about to be committed, complete tasks before the commit happens. Exiting non-zero from this hook aborts the commit.</p>
 <p>Move this code into the <code>hooks/pre-commit</code> file inside your <code>.git</code> directoory.</p>
-<pre><code class="language-bash">#!/bin/sh
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/bin/sh</span>
 
-# Stash non-commited changes
-git stash -q --keep-index
-# if node_modules directory doesn't exist
-# then run npm install
-if [ ! -d &quot;/node_modules/&quot; ]
-then
-    echo &quot;Directory node_modules not created&quot;
-    npm install
-fi
-# Run gulp axe to check accessibility
+<span class="token comment"># Stash non-commited changes</span>
+<span class="token function">git</span> stash -q --keep-index
+<span class="token comment"># if node_modules directory doesn't exist</span>
+<span class="token comment"># then run npm install</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token operator">!</span> -d <span class="token string">"/node_modules/"</span> <span class="token punctuation">]</span>
+<span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"Directory node_modules not created"</span>
+    <span class="token function">npm</span> <span class="token function">install</span>
+<span class="token keyword">fi</span>
+<span class="token comment"># Run gulp axe to check accessibility</span>
 gulp axe
-# Run gulp eslint to check for syntax
+<span class="token comment"># Run gulp eslint to check for syntax</span>
 gulp eslint
-# Assigns the exit status to a variable
-RESULT=$?
-# Pop the changes back to current directory
-git stash pop -q
-[ $RESULT -ne 0 ] &amp;&amp; exit 1
-# Otherwise exit with error code 0
-exit 0
+<span class="token comment"># Assigns the exit status to a variable</span>
+<span class="token assign-left variable">RESULT</span><span class="token operator">=</span><span class="token variable">$?</span>
+<span class="token comment"># Pop the changes back to current directory</span>
+<span class="token function">git</span> stash pop -q
+<span class="token punctuation">[</span> <span class="token variable">$RESULT</span> -ne <span class="token number">0</span> <span class="token punctuation">]</span> <span class="token operator">&amp;&amp;</span> <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+<span class="token comment"># Otherwise exit with error code 0</span>
+<span class="token builtin class-name">exit</span> <span class="token number">0</span>
 </code></pre>
 <p>This example makes the following assumptions:</p>
 <ul>
-<li>You’ve added <code>node_modules</code> to <code>.gitignore</code></li>
-<li>You’ve added axe and eslint as gulp tasks</li>
+<li>You've added <code>node_modules</code> to <code>.gitignore</code></li>
+<li>You've added axe and eslint as gulp tasks</li>
 </ul>
 <p>The downside of hooks is that they are not copied when you clone a repository. If your intent with these scripts is to enforce a policy, you’ll want to do that on the server side. The <a href="https://git-scm.com/book/en/v2/Customizing-Git-An-Example-Git-Enforced-Policy">Git Book</a> provides examples of server side scripts to enforce Git Policies.</p>

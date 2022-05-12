@@ -1,114 +1,114 @@
-<h1>Testing front end with Mocha and Playwright</h1>
-<p>I’ve told myself for a while that I would learn how to write and use tests for front end code.</p>
-<p>Most of the code and tutorials I’ve seen are written for backend code. But using tools like <a href="https://playwright.dev/">Playwright</a> together with <a href="https://mochajs.org/">Mocha</a> and the <a href="https://www.chaijs.com/">Chai</a> assertion library we can build verry robust testing for front end code that works in multiple browsers.</p>
-<h2>Background: Playwright</h2>
-<p>Playwright is Microsoft’s browser testing and automation library. It allows you to control a browser: Chrome, Firefox or Safari (WebKit) and perform operations as if you were working on the browser directly.</p>
+<h1 id="testing-front-end-with-mocha-and-playwright">Testing front end with Mocha and Playwright</h1>
+<p>I've told myself for a while that I would learn how to write and use tests for front end code.</p>
+<p>Most of the code and tutorials I've seen are written for backend code. But using tools like <a href="https://playwright.dev/">Playwright</a> together with <a href="https://mochajs.org/">Mocha</a> and the <a href="https://www.chaijs.com/">Chai</a> assertion library we can build verry robust testing for front end code that works in multiple browsers.</p>
+<h2 id="background%3A-playwright">Background: Playwright</h2>
+<p>Playwright is Microsoft's browser testing and automation library. It allows you to control a browser: Chrome, Firefox or Safari (WebKit) and perform operations as if you were working on the browser directly.</p>
 <p>Because we support multiple browsers we can configure wich one we will run for a specific task.</p>
-<h2>Background: Mocha and Chai</h2>
+<h2 id="background%3A-mocha-and-chai">Background: Mocha and Chai</h2>
 <p>Mocha is one of the oldest testing libraries available (the first alpha version of the library was released in 2011). It allows you to create tests for the frontend and the backend using the same vocabulary.</p>
-<p>Chai is the assertion library I use with Mocha. It’s Chai’s <code>should</code> syntax that allows me to do this:</p>
-<pre><code class="language-js">articles.length.should.be.greaterThan(1);
+<p>Chai is the assertion library I use with Mocha. It's Chai's <code>should</code> syntax that allows me to do this:</p>
+<pre class="language-js"><code class="language-js">articles<span class="token punctuation">.</span>length<span class="token punctuation">.</span>should<span class="token punctuation">.</span>be<span class="token punctuation">.</span><span class="token function">greaterThan</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Yes, it is more wordy but it makes it easier to understand and reason through what we want to say.</p>
-<h2>Putting them together</h2>
-<p>I’ve broken the code in sections to make it easier to write about the different sections.</p>
+<h2 id="putting-them-together">Putting them together</h2>
+<p>I've broken the code in sections to make it easier to write about the different sections.</p>
 <p>The first section requires the necessary modules.</p>
-<p>Chai’s <code>should</code> assertion style requires that we actually use a function as part of the require statement.</p>
+<p>Chai's <code>should</code> assertion style requires that we actually use a function as part of the require statement.</p>
 <p>We destructure the elements we require from Playwright, we want access to Chromium, Firefox and WebKit.</p>
-<pre><code class="language-js">/* eslint-disable no-unused-vars */
-const should = require('chai').should();
-const {chromium, webkit, firefox} = require('playwright');
+<pre class="language-js"><code class="language-js"><span class="token comment">/* eslint-disable no-unused-vars */</span>
+<span class="token keyword">const</span> should <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'chai'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">should</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>chromium<span class="token punctuation">,</span> webkit<span class="token punctuation">,</span> firefox<span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'playwright'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The next block defines variables and constants.</p>
 <p><code>browser</code>, <code>page</code>, and <code>context</code> are Playwright specific variables that we define outside the tests and functions to make them global.</p>
-<p>The <code>BASE_URL</code> is the URL that we’ll run the tests against.</p>
+<p>The <code>BASE_URL</code> is the URL that we'll run the tests against.</p>
 <p>The <code>browserName</code> is either the value of the <code>BROWSER</code> environmental variable or the string <code>chromium</code>. We can leverage this to run the tests against the different browsers that Playwright supports.</p>
-<pre><code class="language-js">// Playwright variables
-let browser, page, context;
+<pre class="language-js"><code class="language-js"><span class="token comment">// Playwright variables</span>
+<span class="token keyword">let</span> browser<span class="token punctuation">,</span> page<span class="token punctuation">,</span> context<span class="token punctuation">;</span>
 
-const BASE_URL = 'https://publishing-project.rivendellweb.net/';
-const browserName = process.env.BROWSER || 'chromium';
+<span class="token keyword">const</span> <span class="token constant">BASE_URL</span> <span class="token operator">=</span> <span class="token string">'https://publishing-project.rivendellweb.net/'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> browserName <span class="token operator">=</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">BROWSER</span> <span class="token operator">||</span> <span class="token string">'chromium'</span><span class="token punctuation">;</span>
 </code></pre>
 <p><code>beforeEach</code> and <code>afterEach</code> will execute before and after each test. We reset the Playwright configuration before every test and we close the browser we tested with after each test is completed.</p>
-<pre><code class="language-js">// Runs this before each test
-beforeEach(async () =&gt; {
-  browser = await {chromium, webkit, firefox}[browserName].launch({
-    headless: true,
-  });
-  context = await browser.newContext();
-  page = await context.newPage(BASE_URL);
-  await page.goto(BASE_URL);
-});
+<pre class="language-js"><code class="language-js"><span class="token comment">// Runs this before each test</span>
+<span class="token function">beforeEach</span><span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  browser <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">{</span>chromium<span class="token punctuation">,</span> webkit<span class="token punctuation">,</span> firefox<span class="token punctuation">}</span><span class="token punctuation">[</span>browserName<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">launch</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    headless<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  context <span class="token operator">=</span> <span class="token keyword">await</span> browser<span class="token punctuation">.</span><span class="token function">newContext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  page <span class="token operator">=</span> <span class="token keyword">await</span> context<span class="token punctuation">.</span><span class="token function">newPage</span><span class="token punctuation">(</span><span class="token constant">BASE_URL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">goto</span><span class="token punctuation">(</span><span class="token constant">BASE_URL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-// Runs this after each test
-afterEach(async () =&gt; {
-  await browser.close();
-});
+<span class="token comment">// Runs this after each test</span>
+<span class="token function">afterEach</span><span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">await</span> browser<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>I’ve taken a small set of tests to illustrate some things I found particularly useful.</p>
-<p>The first test checks the content of the page’s heading using Playwright’s <a href="https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageselector">page.$eval</a> to query the document for one instace.</p>
+<p>I've taken a small set of tests to illustrate some things I found particularly useful.</p>
+<p>The first test checks the content of the page's heading using Playwright's <a href="https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageselector">page.$eval</a> to query the document for one instace.</p>
 <p>We then use Chai to test if the content of the header matches the title for the site.</p>
-<pre><code class="language-js">describe('[PLAYWRIGHT]: Blog Structure Tests', () =&gt; {
-  it('[PLAYWRIGHT]: should render TPP homepage', async () =&gt; {
-    const headerText = await page.$eval(
-        '.site-title',
-        (header) =&gt; header.innerText,
-    );
-    headerText.should.equal('The Publishing Project');
-  })
+<pre class="language-js"><code class="language-js"><span class="token function">describe</span><span class="token punctuation">(</span><span class="token string">'[PLAYWRIGHT]: Blog Structure Tests'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'[PLAYWRIGHT]: should render TPP homepage'</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> headerText <span class="token operator">=</span> <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">$eval</span><span class="token punctuation">(</span>
+        <span class="token string">'.site-title'</span><span class="token punctuation">,</span>
+        <span class="token punctuation">(</span><span class="token parameter">header</span><span class="token punctuation">)</span> <span class="token operator">=></span> header<span class="token punctuation">.</span>innerText<span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    headerText<span class="token punctuation">.</span>should<span class="token punctuation">.</span><span class="token function">equal</span><span class="token punctuation">(</span><span class="token string">'The Publishing Project'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
 <p>This test will query the document for all articles that have a class with the word post in the attribute value.</p>
 <p>The we test if the number of returned matches is five. The blog is coded to have five posts on the home page so anything else will fail.</p>
-<pre><code class="language-js">  it('[PLAYWRIGHT]: should render one or more posts', async () =&gt; {
-    const availableArticles = 'article[class*=post]';
-    const articles = await page.$$(availableArticles);
+<pre class="language-js"><code class="language-js">  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'[PLAYWRIGHT]: should render one or more posts'</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> availableArticles <span class="token operator">=</span> <span class="token string">'article[class*=post]'</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> articles <span class="token operator">=</span> <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">$$</span><span class="token punctuation">(</span>availableArticles<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    articles.length.should.be.greaterThan('0');
-  });
+    articles<span class="token punctuation">.</span>length<span class="token punctuation">.</span>should<span class="token punctuation">.</span>be<span class="token punctuation">.</span><span class="token function">greaterThan</span><span class="token punctuation">(</span><span class="token string">'0'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>This test will check if the images on the page have an alt attribute by creating an array of all the images with <code>alt</code> attribute.</p>
-<pre><code class="language-js">describe('[PLAYWRIGHT]: Basic Accessibility Tests', () =&gt; {
-  it('[PLAYWRIGHT]: images have alt attributes', async () =&gt; {
-    const availableImages = 'img[alt]';
-    const images = await page.$$(availableImages);
+<pre class="language-js"><code class="language-js"><span class="token function">describe</span><span class="token punctuation">(</span><span class="token string">'[PLAYWRIGHT]: Basic Accessibility Tests'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'[PLAYWRIGHT]: images have alt attributes'</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> availableImages <span class="token operator">=</span> <span class="token string">'img[alt]'</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> images <span class="token operator">=</span> <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">$$</span><span class="token punctuation">(</span>availableImages<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    images.length.should.be.greaterThan(0);
-  });
+    images<span class="token punctuation">.</span>length<span class="token punctuation">.</span>should<span class="token punctuation">.</span>be<span class="token punctuation">.</span><span class="token function">greaterThan</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The next task is to make sure that the attribute is not empty. We have do some weird contortions to make sure that it works as intended.</p>
 <p><code>page.$$()</code> is equivalent to <code>querySelectorAll()</code> where it will return all elements in the page that match our condition.</p>
-<p>We then test if the condition is bigger than 0, meaning there are images and they don’t have an empty <code>alt</code> attribute.</p>
-<pre><code class="language-js">  it('[PLAYWRIGHT]: has no images with empty alt attribute', async () =&gt; {
-    const nonEmptyImages = '[alt]:not([alt=&quot;&quot;])';
-    const result = await page.$$(nonEmptyImages);
+<p>We then test if the condition is bigger than 0, meaning there are images and they don't have an empty <code>alt</code> attribute.</p>
+<pre class="language-js"><code class="language-js">  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'[PLAYWRIGHT]: has no images with empty alt attribute'</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> nonEmptyImages <span class="token operator">=</span> <span class="token string">'[alt]:not([alt=""])'</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> result <span class="token operator">=</span> <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">$$</span><span class="token punctuation">(</span>nonEmptyImages<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    result.length.should.be.greaterThan(0);
-  });
-});
+    result<span class="token punctuation">.</span>length<span class="token punctuation">.</span>should<span class="token punctuation">.</span>be<span class="token punctuation">.</span><span class="token function">greaterThan</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Running the tests</h2>
+<h2 id="running-the-tests">Running the tests</h2>
 <p>We choose to run the test with any of the Playwright supported browsers will the following command:</p>
-<pre><code class="language-bash">BROWSER=firefox mocha --timeout 10000
+<pre class="language-bash"><code class="language-bash"><span class="token assign-left variable">BROWSER</span><span class="token operator">=</span>firefox mocha --timeout <span class="token number">10000</span>
 </code></pre>
 <p>and replace firefox with the browser you want to use (the options are: <strong>Firefox</strong>, <strong>Chromium</strong> and <strong>WebKit</strong>)</p>
 <p>The reason why I use Playwright is that it also allows me to emulate a browser to run more detailed tests than you can do with Mocha alone.</p>
 <p>For example, I can use Playwright to test the navigation of the site.</p>
 <p>This example will load the homepage and then click on the title of the first post on the page.</p>
 <p>The <a href="https://playwright.dev/docs/api/class-locator">locator</a> class allows us to query the document to match specific criteria, the first argument will retrieve the first value (regardless of how many values the locator returns) and the click method will click on the element.</p>
-<pre><code class="language-js">  it('[Playwright]: Should render the first post', async() =&gt; {
-    const pageClick = await page.locator('article :first-child h2 a').first.click;    ;
-  })
+<pre class="language-js"><code class="language-js">  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'[Playwright]: Should render the first post'</span><span class="token punctuation">,</span> <span class="token keyword">async</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> pageClick <span class="token operator">=</span> <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">locator</span><span class="token punctuation">(</span><span class="token string">'article :first-child h2 a'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">.</span>click<span class="token punctuation">;</span>    <span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>We could use a similar technique to fill out forms with test data to see if they work or to test that the site’s navigation works as expected.</p>
-<p>One final detail. The script we’ve written is setup to run in headless mode, meaning we don’t get to see what the browser does. We can change that by changing the value of the headless attribute in the function attached to <code>beforeEach</code>. This way we get to see the browser in action.</p>
+<p>We could use a similar technique to fill out forms with test data to see if they work or to test that the site's navigation works as expected.</p>
+<p>One final detail. The script we've written is setup to run in headless mode, meaning we don't get to see what the browser does. We can change that by changing the value of the headless attribute in the function attached to <code>beforeEach</code>. This way we get to see the browser in action.</p>
 <p>The new <code>beforeEach</code> declaration looks like this:</p>
-<pre><code class="language-js">// Runs this before each test
-beforeEach(async () =&gt; {
-  browser = await {chromium, webkit, firefox}[browserName].launch({
-    headless: false,
-  });
-  context = await browser.newContext();
-  page = await context.newPage(BASE_URL);
-  await page.goto(BASE_URL);
-});
+<pre class="language-js"><code class="language-js"><span class="token comment">// Runs this before each test</span>
+<span class="token function">beforeEach</span><span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  browser <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">{</span>chromium<span class="token punctuation">,</span> webkit<span class="token punctuation">,</span> firefox<span class="token punctuation">}</span><span class="token punctuation">[</span>browserName<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">launch</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    headless<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  context <span class="token operator">=</span> <span class="token keyword">await</span> browser<span class="token punctuation">.</span><span class="token function">newContext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  page <span class="token operator">=</span> <span class="token keyword">await</span> context<span class="token punctuation">.</span><span class="token function">newPage</span><span class="token punctuation">(</span><span class="token constant">BASE_URL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">goto</span><span class="token punctuation">(</span><span class="token constant">BASE_URL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>

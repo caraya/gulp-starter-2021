@@ -1,4 +1,4 @@
-<h1>Running WordPress with Docker</h1>
+<h1 id="running-wordpress-with-docker">Running WordPress with Docker</h1>
 <p>There are many ways to run WordPress locally on your development machine.</p>
 <ul>
 <li>You can install MAMP/WAMP/XAMP or any other bundled LAMP stack, configure a database and install WordPress</li>
@@ -9,15 +9,15 @@
 <p>As a quick introduction: Our WordPress installation using Docker requires two images:</p>
 <ul>
 <li>A WordPress image containing both Apache properly configured and the WordPress code ready to install</li>
-<li>A MySQL or MariaDB image to store the site’s data</li>
+<li>A MySQL or MariaDB image to store the site's data</li>
 </ul>
 <p>You can optionally add a phpMyAdmin image to manage the database via a GUI</p>
 <p>The database and the code for WordPress are passed through to the local directory where we ran <code>docker-compose</code> from. That way the changes will persist when we shutdown the container.</p>
-<p>Yes, I know that this has already been done multiple times by developers far more experienced in Docker than I am. This is still something I would use in my projects so I’m ok with learning using this combination.</p>
-<h2>Getting Started: Looking at the pieces</h2>
-<p>We’ll break the <code>docker-compose.yaml</code> file into its component services. This will help explain how they interact with each other.</p>
-<p>We first specify the version of Docker Compose that we’re using. 3.9 is the latest version.</p>
-<pre><code class="language-yaml">version: &quot;3.9&quot;
+<p>Yes, I know that this has already been done multiple times by developers far more experienced in Docker than I am. This is still something I would use in my projects so I'm ok with learning using this combination.</p>
+<h2 id="getting-started%3A-looking-at-the-pieces">Getting Started: Looking at the pieces</h2>
+<p>We'll break the <code>docker-compose.yaml</code> file into its component services. This will help explain how they interact with each other.</p>
+<p>We first specify the version of Docker Compose that we're using. 3.9 is the latest version.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">version</span><span class="token punctuation">:</span> <span class="token string">"3.9"</span>
 </code></pre>
 <p>The services section presents the three services we will use for our WordPress installation: <code>db</code>, <code>wordpress</code> and the optional <code>phpmyadmin</code>.</p>
 <p>The <code>db</code> service configures the MySQL database we will use for the project.</p>
@@ -25,18 +25,18 @@
 <p>If we need to specify a version, we can replace latest` with a specific version.</p>
 <p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes">volumes</a> section specified the external volume name and the associated directory inside the image.</p>
 <p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#environment">environment</a> section specified environment variables that will be passed to the container.</p>
-<p>Because this is an internal service, we don’t expect people to access the database directly, only via phpMyAdmin or WordPress, we don’t specify a container to host port translation.</p>
-<pre><code class="language-yaml">services:
-  db:
-    image: mysql:latest
-    volumes:
-      - ./mysql:/var/lib/mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: somewordpress
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
+<p>Because this is an internal service, we don't expect people to access the database directly, only via phpMyAdmin or WordPress, we don't specify a container to host port translation.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">db</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> mysql<span class="token punctuation">:</span>latest
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> ./mysql<span class="token punctuation">:</span>/var/lib/mysql
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+      <span class="token key atrule">MYSQL_ROOT_PASSWORD</span><span class="token punctuation">:</span> somewordpress
+      <span class="token key atrule">MYSQL_DATABASE</span><span class="token punctuation">:</span> wordpress
+      <span class="token key atrule">MYSQL_USER</span><span class="token punctuation">:</span> wordpress
+      <span class="token key atrule">MYSQL_PASSWORD</span><span class="token punctuation">:</span> wordpress
 </code></pre>
 <p>The WordPress service is the core of the application. This container will host WordPress and interact with the database. Because of it this is where we do most of the work.</p>
 <p><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#depends_on">depends_on</a> explicitly tells Docker Compose that <code>wordpress</code> depends on the <code>db</code> service. This will cause the following to happen:</p>
@@ -54,22 +54,22 @@
 <li><strong>unless-stopped</strong> Restarts a container, unless the container is stopped (manually or otherwise)</li>
 </ul>
 <p>The <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/#environment">environment</a> directive holds environment variables that will be passed to the container.</p>
-<pre><code class="language-yaml">  wordpress:
-    depends_on:
-      - db
-    image: wordpress:latest
-    volumes:
-      - ./wordpress_data:/var/www/html
-    ports:
-      - &quot;8000:80&quot;
-    restart: unless-stopped
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
-      WORDPRESS_DB_NAME: wordpress
+<pre class="language-yaml"><code class="language-yaml">  <span class="token key atrule">wordpress</span><span class="token punctuation">:</span>
+    <span class="token key atrule">depends_on</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> db
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> wordpress<span class="token punctuation">:</span>latest
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> ./wordpress_data<span class="token punctuation">:</span>/var/www/html
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token string">"8000:80"</span>
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+      <span class="token key atrule">WORDPRESS_DB_HOST</span><span class="token punctuation">:</span> db
+      <span class="token key atrule">WORDPRESS_DB_USER</span><span class="token punctuation">:</span> wordpress
+      <span class="token key atrule">WORDPRESS_DB_PASSWORD</span><span class="token punctuation">:</span> wordpress
+      <span class="token key atrule">WORDPRESS_DB_NAME</span><span class="token punctuation">:</span> wordpress
 </code></pre>
-<p>The <code>phpMyAdmin</code> container is similar to the <code>wordpress</code> container but it’s not as complicated.</p>
+<p>The <code>phpMyAdmin</code> container is similar to the <code>wordpress</code> container but it's not as complicated.</p>
 <p>The only differences are:</p>
 <ul>
 <li>The container name (<code>phpmyadmin</code>)</li>
@@ -77,95 +77,95 @@
 <li>The port we expose (phpmyadmin will use port 8181)</li>
 <li>The values under <code>environment</code></li>
 </ul>
-<pre><code class="language-yaml">  phpmyadmin:
-    container_name: phpmyadmin
-    image: phpmyadmin:latest
-    depends_on:
-      - db
-    restart: unless-stopped
-    ports:
-      - 8181:80
-    environment:
-      PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: wordpress
+<pre class="language-yaml"><code class="language-yaml">  <span class="token key atrule">phpmyadmin</span><span class="token punctuation">:</span>
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> phpmyadmin
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> phpmyadmin<span class="token punctuation">:</span>latest
+    <span class="token key atrule">depends_on</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> db
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> 8181<span class="token punctuation">:</span><span class="token number">80</span>
+    <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+      <span class="token key atrule">PMA_HOST</span><span class="token punctuation">:</span> db
+      <span class="token key atrule">MYSQL_ROOT_PASSWORD</span><span class="token punctuation">:</span> wordpress
 </code></pre>
-<p>The final image we’ll work with is one for the <a href="https://wp-cli.org/">WordPress CLI</a>. Rather than installing it in a custom image, I found out that there are prebuilt images we can use.</p>
-<pre><code class="language-yaml">  wpcli:
-    image: wordpress:cli
-    depends_on:
-      - db
-      - wordpress
-    restart: unless-stopped
-    user: xfs
-    volumes:
-      - wordpress_data:/var/www/html
+<p>The final image we'll work with is one for the <a href="https://wp-cli.org/">WordPress CLI</a>. Rather than installing it in a custom image, I found out that there are prebuilt images we can use.</p>
+<pre class="language-yaml"><code class="language-yaml">  <span class="token key atrule">wpcli</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> wordpress<span class="token punctuation">:</span>cli
+    <span class="token key atrule">depends_on</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> db
+      <span class="token punctuation">-</span> wordpress
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">user</span><span class="token punctuation">:</span> xfs
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> wordpress_data<span class="token punctuation">:</span>/var/www/html
 </code></pre>
-<p>The top level <code>volumes</code> directive makes the specified volumes available to other containers. We don’t need the functionality but it still good to have in case our project grows.</p>
-<pre><code class="language-yaml">volumes:
-  db_data:
-  wordpress_data:
+<p>The top level <code>volumes</code> directive makes the specified volumes available to other containers. We don't need the functionality but it still good to have in case our project grows.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+  <span class="token key atrule">db_data</span><span class="token punctuation">:</span>
+  <span class="token key atrule">wordpress_data</span><span class="token punctuation">:</span>
 </code></pre>
-<h2>Part 2: Customizing individual images</h2>
+<h2 id="part-2%3A-customizing-individual-images">Part 2: Customizing individual images</h2>
 <p>The code works fine as is using the container defaults but there may be times when you want to customize the images.</p>
-<p>What we’ll do is to create a separate Dockerfile for each of the containers we want to customize and then reference them from the <code>docker-compose</code> file.</p>
-<h3>Creating a Dockerfile</h3>
+<p>What we'll do is to create a separate Dockerfile for each of the containers we want to customize and then reference them from the <code>docker-compose</code> file.</p>
+<h3 id="creating-a-dockerfile">Creating a Dockerfile</h3>
 <p>Customizing an image usually means creating a Dockerfile with your custom configuration and then building the image or referencing the image from a <code>docker-compose</code> file.</p>
-<p>For this example we’ll create a <code>Dockerfile</code> to modify the <code>wordpress</code> image.</p>
+<p>For this example we'll create a <code>Dockerfile</code> to modify the <code>wordpress</code> image.</p>
 <p>The Dockerfile will do the following tasks:</p>
 <ol>
 <li>Use the latest  version of the WordPress image, indicated by <code>FROM wordpress:beta-6.0-beta2-php8.1-apache</code>. 6.0 Beta 2 is the latest version of WordPress as of this writing</li>
 <li>Update all the packages in the image and install Vim and wget</li>
 <li>Replaces <code>php.ini</code> with the one in the local directory</li>
 </ol>
-<pre><code class="language-docker"># 1
-FROM wordpress:beta-6.0-beta2-php8.1-apache
+<pre class="language-docker"><code class="language-docker"><span class="token comment"># 1</span>
+<span class="token instruction"><span class="token keyword">FROM</span> wordpress:beta-6.0-beta2-php8.1-apache</span>
 
-# 2
-RUN apt update &amp;&amp; \
-    apt upgrade -y &amp;&amp; \
-    apt autoremove
+<span class="token comment"># 2</span>
+<span class="token instruction"><span class="token keyword">RUN</span> apt update &amp;&amp; <span class="token operator">\</span>
+    apt upgrade -y &amp;&amp; <span class="token operator">\</span>
+    apt autoremove</span>
 
-# 3
-COPY php.ini /usr/local/etc/php
+<span class="token comment"># 3</span>
+<span class="token instruction"><span class="token keyword">COPY</span> php.ini /usr/local/etc/php</span>
 </code></pre>
 <p>We then modify the <code>docker-compose</code> file to reference the custom <code>wordpress</code> image.</p>
 <p>Assuming that the files for the custom image are in a subdirectory of the current current directory, we can modify the <code>docker-compose.yml</code> file to reference the custom image:</p>
-<pre><code class="language-yaml">  wordpress:
-    build: ./custom/wordpress
-    depends_on:
-      - db
-    volumes:
-      - ./wordpress_data:/var/www/html
-    ports:
-      - &quot;8000:80&quot;
-    restart: unless-stopped
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
-      WORDPRESS_DB_NAME: wordpress
+<pre class="language-yaml"><code class="language-yaml">  <span class="token key atrule">wordpress</span><span class="token punctuation">:</span>
+    <span class="token key atrule">build</span><span class="token punctuation">:</span> ./custom/wordpress
+    <span class="token key atrule">depends_on</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> db
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> ./wordpress_data<span class="token punctuation">:</span>/var/www/html
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token string">"8000:80"</span>
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+      <span class="token key atrule">WORDPRESS_DB_HOST</span><span class="token punctuation">:</span> db
+      <span class="token key atrule">WORDPRESS_DB_USER</span><span class="token punctuation">:</span> wordpress
+      <span class="token key atrule">WORDPRESS_DB_PASSWORD</span><span class="token punctuation">:</span> wordpress
+      <span class="token key atrule">WORDPRESS_DB_NAME</span><span class="token punctuation">:</span> wordpress
 </code></pre>
-<h2><code>docker</code> and <code>docker-compose</code> commands</h2>
+<h2 id="docker-and-docker-compose-commands"><code>docker</code> and <code>docker-compose</code> commands</h2>
 <p>Here are some commands that will be necessary to build and use the project.</p>
-<h3>Building and starting the containers</h3>
+<h3 id="building-and-starting-the-containers">Building and starting the containers</h3>
 <p>The first thing to do is to build the containers. <code>docker-compose up</code> will build the containers and start them.</p>
 <ul>
 <li><strong>docker-compose</strong>: the command to run</li>
 <li><strong>up</strong>: Creates the networks and containers specified in the docker-compose.yml file. It then runs the application</li>
 <li><strong>-d</strong>: Run in detached mode. This means the containers will spin up and <code>docker-compose</code> will return you to the shell. Otherwise the terminal will wait until you kill the <code>docker-compose</code> process with <code>ctrl + c</code></li>
 </ul>
-<pre><code class="language-bash">docker-compose up -d
+<pre class="language-bash"><code class="language-bash">docker-compose up -d
 </code></pre>
-<p>We only need to do this once, after building the images, we can run <code>docker-compose start</code> to start the containers without building them. This assumes you’ve ran <code>docker-compose up</code> once before.</p>
-<h3>Stopping and shuting down the containers</h3>
+<p>We only need to do this once, after building the images, we can run <code>docker-compose start</code> to start the containers without building them. This assumes you've ran <code>docker-compose up</code> once before.</p>
+<h3 id="stopping-and-shuting-down-the-containers">Stopping and shuting down the containers</h3>
 <p>The inverse command of <code>docker-compose start</code> is <code>docker-compose stop</code>. This will stop the containers but keep them in place so you can start them up later without having to rebuild them.</p>
 <p><code>docker-compose down</code> is the inverse command to <code>docker-compose up</code>. It will stop and remove all the containers associated with the <code>docker-compose.yml</code> file.</p>
-<h3>Building the custom image</h3>
+<h3 id="building-the-custom-image">Building the custom image</h3>
 <p>When working with <code>docker-compose</code> refering to the build system is enough to pick up the right version. But it will not be enough if you want to share the custom image or if you want to use it in other projects.</p>
 <p>For that the solution is to build the image using <code>docker build</code>. This will build the image based on the dockerfile we create and using the <code>-t</code> flag create a name and a tag so we can distinguish our image from others we may have installed.</p>
-<pre><code class="language-bash">docker build -t wordpress_local:wp5_custom_1.0 .
+<pre class="language-bash"><code class="language-bash">docker build -t wordpress_local:wp5_custom_1.0 <span class="token builtin class-name">.</span>
 </code></pre>
-<h3>Logging in to the containers</h3>
+<h3 id="logging-in-to-the-containers">Logging in to the containers</h3>
 <p>The final command to run is <code>docker exec</code>. This will run the specified command in the specified container.</p>
 <p>The command uses two flags:</p>
 <ul>
@@ -173,13 +173,13 @@ COPY php.ini /usr/local/etc/php
 <li><strong>-i</strong>: Run in interactive mode</li>
 </ul>
 <p>You can combine the two flags into one, <code>-ti</code>.</p>
-<pre><code class="language-bash">docker exec -ti wordpress bash
+<pre class="language-bash"><code class="language-bash">docker <span class="token builtin class-name">exec</span> -ti wordpress <span class="token function">bash</span>
 </code></pre>
-<p>For our project, this is important, otherwise we wouldn’t be able to run the WordPress CLI we installed in the custom image.</p>
+<p>For our project, this is important, otherwise we wouldn't be able to run the WordPress CLI we installed in the custom image.</p>
 <p>The example command will run the Bash shell inside the <code>wordpress</code> container.</p>
-<h2>Conclusion</h2>
-<p>In this post we’ve talked about building a WordPress installation using Docker.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this post we've talked about building a WordPress installation using Docker.</p>
 <p>What I particularly like is that I have access to the container so I can add and remove themes, plugins and even run the WordPress CLI without having to rebuild the image or have compilers and developer tools installed.</p>
 <p>It is just a beginning exercise to explore how we can use integrate multiple tools and applications into a single Docker-based project.</p>
-<h2>More Reading</h2>
+<h2 id="more-reading">More Reading</h2>
 <p>I found <a href="https://www.massolit-media.com/technical-writing/local-wordpress-development-environment-with-docker/">Use Docker to create a local WordPress development environment</a> particularly useful when writing this post.</p>

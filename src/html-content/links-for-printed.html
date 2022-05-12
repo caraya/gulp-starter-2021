@@ -1,36 +1,36 @@
-<h1>Links for printed pages</h1>
+<h1 id="links-for-printed-pages">Links for printed pages</h1>
 <p>One of the most frustrating things that happen when I print a web page is that all links appear as underlined text without any reference to what the links point out to.</p>
-<p>One way to solve the problem without Javascript is to use generated content to append the full URL to the link and use print specific stylesheets so that it’ll only happen when we print the document.</p>
-<p>Dudley Storey <a href="http://thenewcode.com/1186/Better-Links-for-Printed-Web-Pages-with-JavaScript">provides another way to accomplish the same goal using Javascript</a>. It doesn’t require an additional stylesheet but, depending on the length of the document, may be hard to move back and forth between the link and the list of URLs at the bottom of the page.</p>
-<h2>The Stylesheet</h2>
+<p>One way to solve the problem without Javascript is to use generated content to append the full URL to the link and use print specific stylesheets so that it'll only happen when we print the document.</p>
+<p>Dudley Storey <a href="http://thenewcode.com/1186/Better-Links-for-Printed-Web-Pages-with-JavaScript">provides another way to accomplish the same goal using Javascript</a>. It doesn't require an additional stylesheet but, depending on the length of the document, may be hard to move back and forth between the link and the list of URLs at the bottom of the page.</p>
+<h2 id="the-stylesheet">The Stylesheet</h2>
 <p>The additions for link descriptors for paged media is straightforward. The following rule will append the URL In parenthesis to all the links in the page.</p>
 <p>It uses <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Attribute_selectors">attribute selectors</a> that will match all <code>a</code> elements with an <code>href</code> attributes that begins with <code>http</code>.</p>
 <p>It will then use the <code>:after</code> pseudo element to append the string <code>(</code>, the <code>href</code> attribute and the string <code>)</code> to the element. The spaces are significant.</p>
-<pre><code class="language-css">a[href^=&quot;http&quot;]:after {
-  content: &quot; (&quot; attr(href) &quot;)&quot;;
+<pre class="language-css"><code class="language-css"><span class="token selector">a[href^="http"]:after</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">" ("</span> <span class="token function">attr</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span> <span class="token string">")"</span><span class="token punctuation">;</span>
 </code></pre>
-<p>If you’re working in <code>https://example.com</code> and don’t want to add the URL to local links you can modify the rule as follows:</p>
-<pre><code class="language-css">a[href^='http']:not([href*='example.com']):after {
-  content: ' (' attr(href) ')';
-}
+<p>If you're working in <code>https://example.com</code> and don't want to add the URL to local links you can modify the rule as follows:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">a[href^='http']:not([href*='example.com']):after</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">' ('</span> <span class="token function">attr</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span> <span class="token string">')'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<p>The new rule adds <code>:not</code> to indicate that we don’t want to apply the rule if the <code>href</code> attribute contains <code>example.com</code> anywhere.</p>
-<p>And that’s it we have</p>
-<h2>Using the print styles</h2>
+<p>The new rule adds <code>:not</code> to indicate that we don't want to apply the rule if the <code>href</code> attribute contains <code>example.com</code> anywhere.</p>
+<p>And that's it we have</p>
+<h2 id="using-the-print-styles">Using the print styles</h2>
 <p>When it comes to using print media styles we have two options.</p>
-<p>We can creeate a print-specific stylesheet and link it from the document. This adds an HTTP roundtrip but shouldn’t block the rendering of the page since the media for it is not screen.</p>
+<p>We can creeate a print-specific stylesheet and link it from the document. This adds an HTTP roundtrip but shouldn't block the rendering of the page since the media for it is not screen.</p>
 <p>The only change we need to make to the regular way we link stylesheets is to add the <code>media=&quot;print&quot;</code> attribute.</p>
-<pre><code class="language-html">&lt;link rel=&quot;stylesheet&quot; media=&quot;print&quot; href=&quot;print.css&quot;&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>print<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>print.css<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 </code></pre>
-<p>If we’re making just a few changes to the stylesheet then we can include them in an existing stylesheet by putting them inside a <code>@media print</code> block.</p>
-<pre><code class="language-css">@media print {
-  a[href^=&quot;http&quot;]:after {
-    content: &quot; (&quot; attr(href) &quot;)&quot;;
-  }
+<p>If we're making just a few changes to the stylesheet then we can include them in an existing stylesheet by putting them inside a <code>@media print</code> block.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@media</span> print</span> <span class="token punctuation">{</span>
+  <span class="token selector">a[href^="http"]:after</span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">" ("</span> <span class="token function">attr</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span> <span class="token string">")"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 </code></pre>
 <p>If we add information to links in the page we may also want to add more print-related enhancements like those in <a href="https://publishing-project.rivendellweb.net/creating-print-css-stylesheets/">Creating Print CSS stylesheets</a>.</p>
 <p>Sadly browser support for paged media and most of the generated content for paged media specs is severely lacking, even in browsers that support reading ebooks in the browser (Edge). So we have to work around these deficits by being creating in how we format our content to print from the web.</p>
-<h2>Links and resources</h2>
+<h2 id="links-and-resources">Links and resources</h2>
 <ul>
 <li><a href="https://publishing-project.rivendellweb.net/creating-print-css-stylesheets/">Creating Print CSS stylesheets</a></li>
 <li><a href="https://www.smashingmagazine.com/2018/05/print-stylesheets-in-2018/">A Guide To The State Of Print Stylesheets In 2018</a></li>

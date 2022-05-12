@@ -1,86 +1,86 @@
-<h1>Static Site Generators</h1>
-<p>I’ve looked at static site generators like Hugo, Gatsby, and Jekyll among others. They all have their strengths and weaknesses but they are overkill if all you want to do is throw together a quick prototype with a few pages and stylesheets.</p>
-<h2>Markdown, HTML and templates: Version 1</h2>
-<p>Before we start we’ll take the following steps:</p>
+<h1 id="static-site-generators">Static Site Generators</h1>
+<p>I've looked at static site generators like Hugo, Gatsby, and Jekyll among others. They all have their strengths and weaknesses but they are overkill if all you want to do is throw together a quick prototype with a few pages and stylesheets.</p>
+<h2 id="markdown%2C-html-and-templates%3A-version-1">Markdown, HTML and templates: Version 1</h2>
+<p>Before we start we'll take the following steps:</p>
 <ul>
 <li>Create our root directory (<code>static-gen</code>)</li>
 <li>Create two working directories (<code>public</code> and <code>src</code>)</li>
 <li>Initialize <code>package.json</code></li>
 </ul>
-<pre><code class="language-bash">mkdir -p static-gen/src
-mkdir -p static-gen/public
-npm init --yes
+<pre class="language-bash"><code class="language-bash"><span class="token function">mkdir</span> -p static-gen/src
+<span class="token function">mkdir</span> -p static-gen/public
+<span class="token function">npm</span> init --yes
 </code></pre>
-<p>The first version uses the wrap-around system that I use to generate content for my blog. I’ve described the process in detail in <a href="https://publishing-project.rivendellweb.net/generating-html-and-pdf-from-markdown/">Generating HTML and PDF from Markdown</a>.</p>
+<p>The first version uses the wrap-around system that I use to generate content for my blog. I've described the process in detail in <a href="https://publishing-project.rivendellweb.net/generating-html-and-pdf-from-markdown/">Generating HTML and PDF from Markdown</a>.</p>
 <p>Install the packages we need to run the conversion tasks:</p>
-<pre><code class="language-bash">npm i -D  gulp@3.9.1 gulp-remarkable gulp-newer gulp-wrap
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D  gulp@3.9.1 gulp-remarkable gulp-newer gulp-wrap
 </code></pre>
 <p>The two tasks that run the conversion are shown below. The first task converts the Markdown into an HTML fragment using the Remarkable markdown parser.</p>
-<pre><code class="language-js">gulp.task('markdown', () =&gt; {
-  return gulp.src('src/pages/*.md')
-      .pipe(markdown({
-        preset: 'commonmark',
-        html: true,
-        remarkableOptions: {
-          html: true,
-          typographer: true,
-          linkify: true,
-          breaks: false,
-        },
-      }))
-      .pipe(gulp.dest('src/converted-md/'));
-});
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'markdown'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/pages/*.md'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">markdown</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        preset<span class="token operator">:</span> <span class="token string">'commonmark'</span><span class="token punctuation">,</span>
+        html<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        remarkableOptions<span class="token operator">:</span> <span class="token punctuation">{</span>
+          html<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          typographer<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          linkify<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          breaks<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'src/converted-md/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The second task inserts the resulting HTML into an HTML template that contains all the styles and scripts that we want to run on the pages.</p>
-<pre><code class="language-js">gulp.task('build-template', ['markdown'], () =&gt; {
-  return gulp.src('./src/converted-md/*.md')
-      .pipe(wrap({
-        src: './src/templates/template.html',
-      }))
-      .pipe(extReplace('.html'))
-      .pipe(gulp.dest('docs/'));
-});
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-template'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">'markdown'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/converted-md/*.md'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">wrap</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        src<span class="token operator">:</span> <span class="token string">'./src/templates/template.html'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">extReplace</span><span class="token punctuation">(</span><span class="token string">'.html'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>This version has a problem: It keeps escaping the code and presenting it as a preformated code inside <code>pre</code> and <code>code</code> tags. for the templates to work with both Markdown and HTML we must handle template creation seprately for each format. These are still not full HTML pages but are written in HTML rather than Markdown so using the HTML extension is important.</p>
-<p>The new template looks very similar to the one we’re using to handle Markdown:</p>
-<pre><code class="language-js">gulp.task('build-html-template', () =&gt; {
-  return gulp.src('./src/pages/*.html')
-      .pipe(wrap({
-        src: './src/templates/template.html',
-      }))
-      .pipe(gulp.dest('docs/'));
-});
+<p>The new template looks very similar to the one we're using to handle Markdown:</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-html-template'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/pages/*.html'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">wrap</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        src<span class="token operator">:</span> <span class="token string">'./src/templates/template.html'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>We’ve only covered the HTML generation portions of the template-based static site generator but it does more. Out of the box it will handle SCSS to css transpilation, ES2015+ to ES5 transpilation and image compression using Imagemin. Since it’s Gulp-based you can integrate any other Gulp supported task into the process.</p>
-<p>Because we’re passing the results directly to the template we can add any type of HTML that we want, whether directly as HTML tags and attributes or Markdown to be interpreted.</p>
-<h3>Future Evolutions</h3>
-<p>Right now all pages are converted using the same template. This works but it’s inflexible. We could create additional templates and associated Gulp tasks to create different HTML based on the templates but it’s not really productive. In the next post we will look at using a templating engine to generate our content.</p>
-<h2>Using a templating engine by hand: Nunjucks</h2>
-<p>A next step is to build our own templating solution using Gulp. I’ve spent longer than I wanted in crafting this solution and it’s still, like idea I based this from, has a lot of things I’m working on understanding and changing.</p>
+<p>We've only covered the HTML generation portions of the template-based static site generator but it does more. Out of the box it will handle SCSS to css transpilation, ES2015+ to ES5 transpilation and image compression using Imagemin. Since it's Gulp-based you can integrate any other Gulp supported task into the process.</p>
+<p>Because we're passing the results directly to the template we can add any type of HTML that we want, whether directly as HTML tags and attributes or Markdown to be interpreted.</p>
+<h3 id="future-evolutions">Future Evolutions</h3>
+<p>Right now all pages are converted using the same template. This works but it's inflexible. We could create additional templates and associated Gulp tasks to create different HTML based on the templates but it's not really productive. In the next post we will look at using a templating engine to generate our content.</p>
+<h2 id="using-a-templating-engine-by-hand%3A-nunjucks">Using a templating engine by hand: Nunjucks</h2>
+<p>A next step is to build our own templating solution using Gulp. I've spent longer than I wanted in crafting this solution and it's still, like idea I based this from, has a lot of things I'm working on understanding and changing.</p>
 <p>The idea of using a templating engine is to have options when creating content. We can create partial content blocks and define different layouts for our content.</p>
 <p>Granted, this moves away from our simple model when using templates but we gain more flexibility in what we can do with the templated content.</p>
 <p>We need to install the NPM packages that we need to make this work.</p>
-<pre><code class="language-bash">npm i -D nunjucks-markdown \
-marked \
-gulp-rename \
-nunjucks\
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D nunjucks-markdown <span class="token punctuation">\</span>
+marked <span class="token punctuation">\</span>
+gulp-rename <span class="token punctuation">\</span>
+nunjucks<span class="token punctuation">\</span>
 gulp-nunjucks
 </code></pre>
 <p>We then require the packages we installed.</p>
-<pre><code class="language-js">// Nunjucks and Markdown
-const nunjucks = require('nunjucks');
-const markdown = require('nunjucks-markdown');
-const marked = require('marked');
-const gulpnunjucks = require('gulp-nunjucks');
+<pre class="language-js"><code class="language-js"><span class="token comment">// Nunjucks and Markdown</span>
+<span class="token keyword">const</span> nunjucks <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'nunjucks'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> markdown <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'nunjucks-markdown'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> marked <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'marked'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> gulpnunjucks <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-nunjucks'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Rather than copy our directory paths in multiple places we write them down one and then reference them wherever we need them.</p>
-<pre><code class="language-js">// Nunjucks consts for file location
-const dist = 'docs';
-const src = 'src';
-const templates = src + '/partials';
+<pre class="language-js"><code class="language-js"><span class="token comment">// Nunjucks consts for file location</span>
+<span class="token keyword">const</span> dist <span class="token operator">=</span> <span class="token string">'docs'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> src <span class="token operator">=</span> <span class="token string">'src'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> templates <span class="token operator">=</span> src <span class="token operator">+</span> <span class="token string">'/partials'</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Here is also the first difference with our template copy. Rather than separate our partials (files with <code>.njk</code> as the extension) and our pages (<code>.html</code> files) we put them all in once place. The partials directory I used while developing this project looks like this.</p>
-<pre><code class="language-bash">partials
+<pre class="language-bash"><code class="language-bash">partials
 ├── about.html
 ├── base.njk
 ├── css-containment.html
@@ -93,34 +93,34 @@ const templates = src + '/partials';
 └── voice-ui-agent.html
 </code></pre>
 <p>Next we use the <a href="https://mozilla.github.io/nunjucks/api.html#environment">Environment</a> class and the <a href="https://mozilla.github.io/nunjucks/api.html#filesystemloader">FileSystemLoader</a> to load templates from the specified directory; the one we defined in the <code>template</code> variable.</p>
-<pre><code class="language-js">// Where to pull files from?
-const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates));
+<pre class="language-js"><code class="language-js"><span class="token comment">// Where to pull files from?</span>
+<span class="token keyword">const</span> env <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">nunjucks<span class="token punctuation">.</span>Environment</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">nunjucks<span class="token punctuation">.</span>FileSystemLoader</span><span class="token punctuation">(</span>templates<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The next step is optional and configures the <a href="https://github.com/markedjs/marked">Marked</a> Markdown parser.  Because all assets are compiled at build time there is not as much worry about sanitizing the output of Marked.</p>
-<p><strong>Do not change the <code>sanitize</code> setting if you will accept user templates or if you’re using third party code.</strong></p>
+<p><strong>Do not change the <code>sanitize</code> setting if you will accept user templates or if you're using third party code.</strong></p>
 <p>Once the configuration is complete we register the <code>marked</code> instance to work with <code>nunjucks-markdown</code>.</p>
-<pre><code class="language-js">// Markdown options
-marked.setOptions({
-  renderer: new marked.Renderer(),
-  gfm: true,
-  tables: true,
-  breaks: false,
-  pedantic: false,
-  sanitize: false,
-  smartLists: true,
-  smartypants: true,
-});
+<pre class="language-js"><code class="language-js"><span class="token comment">// Markdown options</span>
+marked<span class="token punctuation">.</span><span class="token function">setOptions</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  renderer<span class="token operator">:</span> <span class="token keyword">new</span> <span class="token class-name">marked<span class="token punctuation">.</span>Renderer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  gfm<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  tables<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  breaks<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  pedantic<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  sanitize<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  smartLists<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  smartypants<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-markdown.register(env, marked);
+markdown<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span>env<span class="token punctuation">,</span> marked<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Now that configuration is complete we can work with Gulp to create the rendering task.</p>
-<p>We use all the HTML files in our <code>partials</code> directories and them compile them. This will take care of creating the fully templated HTML and converting any Markdown inside the pages to HTML. It will place the resulting pages inside the <code>docs</code> directory. I chose <code>docs</code> because it’s one of the default directories that Github Pages allows you to use when documenting a repository.</p>
-<pre><code class="language-js">gulp.task('pages', function() {
-  return gulp.src([templates + '/*.html', templates + '/**/*.html'])
-      // Renders template with nunjucks and marked
-      .pipe(gulpnunjucks.compile('', {env: env}))
-      .pipe(gulp.dest(dist));
-});
+<p>We use all the HTML files in our <code>partials</code> directories and them compile them. This will take care of creating the fully templated HTML and converting any Markdown inside the pages to HTML. It will place the resulting pages inside the <code>docs</code> directory. I chose <code>docs</code> because it's one of the default directories that Github Pages allows you to use when documenting a repository.</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'pages'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token punctuation">[</span>templates <span class="token operator">+</span> <span class="token string">'/*.html'</span><span class="token punctuation">,</span> templates <span class="token operator">+</span> <span class="token string">'/**/*.html'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+      <span class="token comment">// Renders template with nunjucks and marked</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulpnunjucks<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>env<span class="token operator">:</span> env<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span>dist<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>That’s it. We have a far more flexible structure to build from and we can create our own <a href="https://www.designbetter.co/design-systems-handbook">design system</a> components to make out lives easier in the long run.</p>
-<p>As with the templating solution we can create additional tasks to enhance the resulting HTML pages. I’ve created a <a href="https://github.com/caraya/static-gen-njk">proof of concept project</a> that illustrates how this works.</p>
+<p>That's it. We have a far more flexible structure to build from and we can create our own <a href="https://www.designbetter.co/design-systems-handbook">design system</a> components to make out lives easier in the long run.</p>
+<p>As with the templating solution we can create additional tasks to enhance the resulting HTML pages. I've created a <a href="https://github.com/caraya/static-gen-njk">proof of concept project</a> that illustrates how this works.</p>

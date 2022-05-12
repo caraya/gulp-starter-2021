@@ -1,175 +1,175 @@
-<h2>Asm.js and Web Assembly: Speeding Up The Web</h2>
-<p>I’ve been hearing about Web Assembly and its predecessor, ASM.js for a while. The idea is that we can bring C and C++ code into the web and use it directly on the browser without having plugins get in the way. This would also make it easier to port high end games and other C/C++ code to Javascript and leverage existing APIs and features</p>
-<h3>Asm.js</h3>
+<h2 id="asm.js-and-web-assembly%3A-speeding-up-the-web">Asm.js and Web Assembly: Speeding Up The Web</h2>
+<p>I've been hearing about Web Assembly and its predecessor, ASM.js for a while. The idea is that we can bring C and C++ code into the web and use it directly on the browser without having plugins get in the way. This would also make it easier to port high end games and other C/C++ code to Javascript and leverage existing APIs and features</p>
+<h3 id="asm.js">Asm.js</h3>
 <blockquote>
 <p>Asm.js is a subset of JavaScript that is heavily restricted in what it can do and how it can operate. This is done so that the compiled Asm.js code can run as fast as possible making as few assumptions as it can, converting the Asm.js code directly into assembly. It’s important to note that Asm.js is just JavaScript – there is no special browser plugin or feature needed in order to make it work (although a browser that is able to detect and optimize Asm.js code will certainly run faster). It’s a specialized subset of JavaScript that’s optimized for performance, especially for this use case of applications compiled to JavaScript.</p>
 <p>— <a href="http://ejohn.org/blog/asmjs-javascript-compile-target/">Asm.js: The JavaScript Compile Target</a></p>
 </blockquote>
 <p>The first attempt at using Javascript as a target language for cross compilation is <a href="http://asmjs.org/faq.html">asm.js</a>. Using <a href="http://kripken.github.io/emscripten-site/">Emscripten</a> asm.js allowed developers to compile massive C/C++ code bases to Javascript that that ran natively in the browser and leverages web technologies and APIs like WebGL being able to port games created with Unity and Unreal engine directly to the web like the Unreal demo below, circa 2013</p>
-<div class="video">
-<iframe width="560" height="315" src="https://www.youtube.com/embed/XsyogXtyU9o?rel=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<p>The process can be illustrated with the diagram below (taken from <a href="http://ejohn.org">ejohn.org</a>):</p>
-<figure>
-<img data-src="http://i2.wp.com/i.imgur.com/1yoy1Fal.png">
-<figcaption>ASM.js compilation and execution pipeline from <a href="http://ejohn.org/blog/asmjs-javascript-compile-target/">ejohn.org</a></figcaption>
-</figure>
+<p>&lt;div class=&quot;video&quot;&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/XsyogXtyU9o?rel=0&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;</p>
+<p>The process can be illustrated with the diagram below (taken from ejohn.org):</p>
+<p>&lt;figure&gt;
+&lt;img data-src=&quot;http://i2.wp.com/i.imgur.com/1yoy1Fal.png&quot;&gt;
+&lt;figcaption&gt;ASM.js compilation and execution pipeline from &lt;a href=&quot;http://ejohn.org/blog/asmjs-javascript-compile-target/&quot;&gt;ejohn.org&lt;/a&gt;&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
 <p>The code is not meant to be written, or read, by humans. The example below was <a href="https://gist.github.com/jeresig/5293608#file-bananabread-asm-js">created by John Ressig</a> to demonstrate the differences between asm.js and the regular Javascript code developers normally work with. The code has been formatted for clarity and sanity preservation, standard asm.js is heavily minified into one continuous blog of text.</p>
-<pre><code class="language-javascript">function Vb(d) {
-    d = d | 0;
-    var e = 0, f = 0, h = 0, j = 0, k = 0, l = 0, m = 0, n = 0,
-        o = 0, p = 0, q = 0, r = 0, s = 0;
-    e = i;
-    i = i + 12 | 0;
-    f = e | 0;
-    h = d + 12 | 0;
-    j = c[h &gt;&gt; 2] | 0;
-    if ((j | 0) &gt; 0) {
-        c[h &gt;&gt; 2] = 0;
-        k = 0
-    } else {
-        k = j
-    }
-    j = d + 24 | 0;
-    if ((c[j &gt;&gt; 2] | 0) &gt; 0) {
-        c[j &gt;&gt; 2] = 0
-    }
-    l = d + 28 | 0;
-    c[l &gt;&gt; 2] = 0;
-    c[l + 4 &gt;&gt; 2] = 0;
-    l = (c[1384465] | 0) + 3 | 0;
-    do {
-        if (l &gt;&gt;&gt; 0 &lt; 26) {
-            if ((4980736 &gt;&gt;&gt; (l &gt;&gt;&gt; 0) &amp; 1 | 0) == 0) {
-                break
-            }
-            if ((c[1356579] | 0) &gt; 0) {
-                m = d + 4 | 0;
-                n = 0;
-                while (1) {
-                    o = c[(c[1356577] | 0) + (n &lt;&lt; 2) &gt;&gt; 2] | 0;
-                    do {
-                        if (a[o + 22 | 0] &lt;&lt; 24 &gt;&gt; 24 == 24) {
-                            if (!(Vp(d, o | 0) | 0)) {
-                                break
-                            }
-                            p = (c[m &gt;&gt; 2] | 0) + (((c[h &gt;&gt; 2] | 0) - 1 | 0) * 40 &amp; -1) + 12 | 0;
-                            q = o + 28 | 0;
-                            c[p &gt;&gt; 2] = c[q &gt;&gt; 2] | 0;
-                            c[p + 4 &gt;&gt; 2] = c[q + 4 &gt;&gt; 2] | 0;
-                            c[p + 8 &gt;&gt; 2] = c[q + 8 &gt;&gt; 2] | 0;
-                            c[p + 12 &gt;&gt; 2] = c[q + 12 &gt;&gt; 2] | 0;
-                            c[p + 16 &gt;&gt; 2] = c[q + 16 &gt;&gt; 2] | 0;
-                            c[p + 20 &gt;&gt; 2] = c[q + 20 &gt;&gt; 2] | 0;
-                            c[p + 24 &gt;&gt; 2] = c[q + 24 &gt;&gt; 2] | 0
-                        }
-                    } while (0);
-                    o = n + 1 | 0;
-                    if ((o | 0) &lt; (c[1356579] | 0)) {
-                        n = o
-                    } else {
-                        break
-                    }
-                }
-                r = c[h &gt;&gt; 2] | 0
-            } else {
-                r = k
-            } if ((r | 0) == 0) {
-                i = e;
-                return
-            }
-            n = c[j &gt;&gt; 2] | 0;
-            if ((n | 0) &gt;= 1) {
-                i = e;
-                return
-            }
-            m = f | 0;
-            o = f + 4 | 0;
-            q = f + 8 | 0;
-            p = n;
-            while (1) {
-                g[m &gt;&gt; 2] = 0.0;
-                g[o &gt;&gt; 2] = 0.0;
-                g[q &gt;&gt; 2] = 0.0;
-                Vq(d, p, f, 0, -1e3);
-                n = c[j &gt;&gt; 2] | 0;
-                if ((n | 0) &lt; 1) {
-                    p = n
-                } else {
-                    break
-                }
-            }
-            i = e;
-            return
-        }
-    } while (0);
-    if ((c[1356579] | 0) &lt;= 0) {
-        i = e;
-        return
-    }
-    f = d + 16 | 0;
-    r = 0;
-    while (1) {
-        k = c[(c[1356577] | 0) + (r &lt;&lt; 2) &gt;&gt; 2] | 0;
-        do {
-            if (a[k + 22 | 0] &lt;&lt; 24 &gt;&gt; 24 == 30) {
-                h = b[k + 14 &gt;&gt; 1] | 0;
-                if ((h - 1 &amp; 65535) &gt; 1) {
-                    break
-                }
-                l = c[j &gt;&gt; 2] | 0;
-                p = (c[1384465] | 0) + 3 | 0;
-                if (p &gt;&gt;&gt; 0 &lt; 26) {
-                    s = (2293760 &gt;&gt;&gt; (p &gt;&gt;&gt; 0) &amp; 1 | 0) != 0 ? 0 : -1e3
-                } else {
-                    s = -1e3
-                } if (!(Vq(d, l, k | 0, h &lt;&lt; 16 &gt;&gt; 16, s) | 0)) {
-                    break
-                }
-                g[(c[f &gt;&gt; 2] | 0) + (l * 112 &amp; -1) + 56 &gt;&gt; 2] = +(b[k + 12 &gt;&gt; 1] &lt;&lt; 16 &gt;&gt; 16 | 0);
-                h = (c[f &gt;&gt; 2] | 0) + (l * 112 &amp; -1) + 60 | 0;
-                l = k + 28 | 0;
-                c[h &gt;&gt; 2] = c[l &gt;&gt; 2] | 0;
-                c[h + 4 &gt;&gt; 2] = c[l + 4 &gt;&gt; 2] | 0;
-                c[h + 8 &gt;&gt; 2] = c[l + 8 &gt;&gt; 2] | 0;
-                c[h + 12 &gt;&gt; 2] = c[l + 12 &gt;&gt; 2] | 0;
-                c[h + 16 &gt;&gt; 2] = c[l + 16 &gt;&gt; 2] | 0;
-                c[h + 20 &gt;&gt; 2] = c[l + 20 &gt;&gt; 2] | 0;
-                c[h + 24 &gt;&gt; 2] = c[l + 24 &gt;&gt; 2] | 0
-            }
-        } while (0);
-        k = r + 1 | 0;
-        if ((k | 0) &lt; (c[1356579] | 0)) {
-            r = k
-        } else {
-            break
-        }
-    }
-    i = e;
-    return
-}
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">Vb</span><span class="token punctuation">(</span><span class="token parameter">d</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	d <span class="token operator">=</span> d <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">var</span> e <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> f <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> h <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> k <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> l <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> m <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> n <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
+		o <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> p <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> q <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> r <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> s <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	e <span class="token operator">=</span> i<span class="token punctuation">;</span>
+	i <span class="token operator">=</span> i <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	f <span class="token operator">=</span> e <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	h <span class="token operator">=</span> d <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	j <span class="token operator">=</span> c<span class="token punctuation">[</span>h <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>j <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		c<span class="token punctuation">[</span>h <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		k <span class="token operator">=</span> <span class="token number">0</span>
+	<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+		k <span class="token operator">=</span> j
+	<span class="token punctuation">}</span>
+	j <span class="token operator">=</span> d <span class="token operator">+</span> <span class="token number">24</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span>j <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		c<span class="token punctuation">[</span>j <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span>
+	<span class="token punctuation">}</span>
+	l <span class="token operator">=</span> d <span class="token operator">+</span> <span class="token number">28</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	c<span class="token punctuation">[</span>l <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	l <span class="token operator">=</span> <span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1384465</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">3</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">do</span> <span class="token punctuation">{</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span>l <span class="token operator">>>></span> <span class="token number">0</span> <span class="token operator">&lt;</span> <span class="token number">26</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">4980736</span> <span class="token operator">>>></span> <span class="token punctuation">(</span>l <span class="token operator">>>></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">1</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				<span class="token keyword">break</span>
+			<span class="token punctuation">}</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1356579</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				m <span class="token operator">=</span> d <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				n <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				<span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					o <span class="token operator">=</span> c<span class="token punctuation">[</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1356577</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span>n <span class="token operator">&lt;&lt;</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+					<span class="token keyword">do</span> <span class="token punctuation">{</span>
+						<span class="token keyword">if</span> <span class="token punctuation">(</span>a<span class="token punctuation">[</span>o <span class="token operator">+</span> <span class="token number">22</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">&lt;&lt;</span> <span class="token number">24</span> <span class="token operator">>></span> <span class="token number">24</span> <span class="token operator">==</span> <span class="token number">24</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+							<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token function">Vp</span><span class="token punctuation">(</span>d<span class="token punctuation">,</span> o <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+								<span class="token keyword">break</span>
+							<span class="token punctuation">}</span>
+							p <span class="token operator">=</span> <span class="token punctuation">(</span>c<span class="token punctuation">[</span>m <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span>h <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">40</span> <span class="token operator">&amp;</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							q <span class="token operator">=</span> o <span class="token operator">+</span> <span class="token number">28</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">+</span> <span class="token number">8</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">+</span> <span class="token number">8</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">+</span> <span class="token number">16</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">+</span> <span class="token number">16</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">+</span> <span class="token number">20</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">+</span> <span class="token number">20</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+							c<span class="token punctuation">[</span>p <span class="token operator">+</span> <span class="token number">24</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>q <span class="token operator">+</span> <span class="token number">24</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span>
+						<span class="token punctuation">}</span>
+					<span class="token punctuation">}</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+					o <span class="token operator">=</span> n <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+					<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>o <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1356579</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+						n <span class="token operator">=</span> o
+					<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+						<span class="token keyword">break</span>
+					<span class="token punctuation">}</span>
+				<span class="token punctuation">}</span>
+				r <span class="token operator">=</span> c<span class="token punctuation">[</span>h <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span>
+			<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+				r <span class="token operator">=</span> k
+			<span class="token punctuation">}</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>r <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				i <span class="token operator">=</span> e<span class="token punctuation">;</span>
+				<span class="token keyword">return</span>
+			<span class="token punctuation">}</span>
+			n <span class="token operator">=</span> c<span class="token punctuation">[</span>j <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>n <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">>=</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				i <span class="token operator">=</span> e<span class="token punctuation">;</span>
+				<span class="token keyword">return</span>
+			<span class="token punctuation">}</span>
+			m <span class="token operator">=</span> f <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+			o <span class="token operator">=</span> f <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+			q <span class="token operator">=</span> f <span class="token operator">+</span> <span class="token number">8</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+			p <span class="token operator">=</span> n<span class="token punctuation">;</span>
+			<span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				g<span class="token punctuation">[</span>m <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0.0</span><span class="token punctuation">;</span>
+				g<span class="token punctuation">[</span>o <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0.0</span><span class="token punctuation">;</span>
+				g<span class="token punctuation">[</span>q <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0.0</span><span class="token punctuation">;</span>
+				<span class="token function">Vq</span><span class="token punctuation">(</span>d<span class="token punctuation">,</span> p<span class="token punctuation">,</span> f<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1e3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				n <span class="token operator">=</span> c<span class="token punctuation">[</span>j <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>n <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					p <span class="token operator">=</span> n
+				<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+					<span class="token keyword">break</span>
+				<span class="token punctuation">}</span>
+			<span class="token punctuation">}</span>
+			i <span class="token operator">=</span> e<span class="token punctuation">;</span>
+			<span class="token keyword">return</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1356579</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		i <span class="token operator">=</span> e<span class="token punctuation">;</span>
+		<span class="token keyword">return</span>
+	<span class="token punctuation">}</span>
+	f <span class="token operator">=</span> d <span class="token operator">+</span> <span class="token number">16</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	r <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		k <span class="token operator">=</span> c<span class="token punctuation">[</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1356577</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span>r <span class="token operator">&lt;&lt;</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		<span class="token keyword">do</span> <span class="token punctuation">{</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span>a<span class="token punctuation">[</span>k <span class="token operator">+</span> <span class="token number">22</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">&lt;&lt;</span> <span class="token number">24</span> <span class="token operator">>></span> <span class="token number">24</span> <span class="token operator">==</span> <span class="token number">30</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				h <span class="token operator">=</span> b<span class="token punctuation">[</span>k <span class="token operator">+</span> <span class="token number">14</span> <span class="token operator">>></span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>h <span class="token operator">-</span> <span class="token number">1</span> <span class="token operator">&amp;</span> <span class="token number">65535</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					<span class="token keyword">break</span>
+				<span class="token punctuation">}</span>
+				l <span class="token operator">=</span> c<span class="token punctuation">[</span>j <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				p <span class="token operator">=</span> <span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1384465</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">3</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				<span class="token keyword">if</span> <span class="token punctuation">(</span>p <span class="token operator">>>></span> <span class="token number">0</span> <span class="token operator">&lt;</span> <span class="token number">26</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					s <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">2293760</span> <span class="token operator">>>></span> <span class="token punctuation">(</span>p <span class="token operator">>>></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">1</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span> <span class="token operator">?</span> <span class="token number">0</span> <span class="token operator">:</span> <span class="token operator">-</span><span class="token number">1e3</span>
+				<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+					s <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1e3</span>
+				<span class="token punctuation">}</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token function">Vq</span><span class="token punctuation">(</span>d<span class="token punctuation">,</span> l<span class="token punctuation">,</span> k <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">,</span> h <span class="token operator">&lt;&lt;</span> <span class="token number">16</span> <span class="token operator">>></span> <span class="token number">16</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					<span class="token keyword">break</span>
+				<span class="token punctuation">}</span>
+				g<span class="token punctuation">[</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span>f <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span>l <span class="token operator">*</span> <span class="token number">112</span> <span class="token operator">&amp;</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">56</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token operator">+</span><span class="token punctuation">(</span>b<span class="token punctuation">[</span>k <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">>></span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">&lt;&lt;</span> <span class="token number">16</span> <span class="token operator">>></span> <span class="token number">16</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				h <span class="token operator">=</span> <span class="token punctuation">(</span>c<span class="token punctuation">[</span>f <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span>l <span class="token operator">*</span> <span class="token number">112</span> <span class="token operator">&amp;</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">60</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				l <span class="token operator">=</span> k <span class="token operator">+</span> <span class="token number">28</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">+</span> <span class="token number">8</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">8</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">12</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">+</span> <span class="token number">16</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">16</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">+</span> <span class="token number">20</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">20</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+				c<span class="token punctuation">[</span>h <span class="token operator">+</span> <span class="token number">24</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> c<span class="token punctuation">[</span>l <span class="token operator">+</span> <span class="token number">24</span> <span class="token operator">>></span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span>
+			<span class="token punctuation">}</span>
+		<span class="token punctuation">}</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		k <span class="token operator">=</span> r <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">1356579</span><span class="token punctuation">]</span> <span class="token operator">|</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			r <span class="token operator">=</span> k
+		<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+			<span class="token keyword">break</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span>
+	i <span class="token operator">=</span> e<span class="token punctuation">;</span>
+	<span class="token keyword">return</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Handwritten asm.js code is marginally easier to understand. the example below, taken from the asm.js specification shows what it looks like when we write asm.js code by hand</p>
-<pre><code class="language-javascript">function DiagModule(stdlib, foreign, heap) {
-  &quot;use asm&quot;;
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">DiagModule</span><span class="token punctuation">(</span><span class="token parameter">stdlib<span class="token punctuation">,</span> foreign<span class="token punctuation">,</span> heap</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token string">"use asm"</span><span class="token punctuation">;</span>
 
-  // Variable Declarations
-  var sqrt = stdlib.Math.sqrt;
+  <span class="token comment">// Variable Declarations</span>
+  <span class="token keyword">var</span> sqrt <span class="token operator">=</span> stdlib<span class="token punctuation">.</span>Math<span class="token punctuation">.</span>sqrt<span class="token punctuation">;</span>
 
-  // Function Declarations
-  function square(x) {
-      x = +x;
-      return +(x*x);
-  }
+  <span class="token comment">// Function Declarations</span>
+  <span class="token keyword">function</span> <span class="token function">square</span><span class="token punctuation">(</span><span class="token parameter">x</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      x <span class="token operator">=</span> <span class="token operator">+</span>x<span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token operator">+</span><span class="token punctuation">(</span>x<span class="token operator">*</span>x<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  function diag(x, y) {
-      x = +x;
-      y = +y;
-      return +sqrt(square(x) + square(y));
-  }
+  <span class="token keyword">function</span> <span class="token function">diag</span><span class="token punctuation">(</span><span class="token parameter">x<span class="token punctuation">,</span> y</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      x <span class="token operator">=</span> <span class="token operator">+</span>x<span class="token punctuation">;</span>
+      y <span class="token operator">=</span> <span class="token operator">+</span>y<span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token operator">+</span><span class="token function">sqrt</span><span class="token punctuation">(</span><span class="token function">square</span><span class="token punctuation">(</span>x<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">square</span><span class="token punctuation">(</span>y<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  return { diag: diag };
-}
+  <span class="token keyword">return</span> <span class="token punctuation">{</span> diag<span class="token operator">:</span> diag <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Am asm.js module is contained within a function and starts with the <code>&quot;use asm&quot;;</code> directive at the top. This tells the interpreter that everything inside the function should be handled as asm.js and be compiled to assembly directly without going through the regular Javascript interpreter / optimization cycles.</p>
 <p>Note the three arguments for the asm.js function: <code>stdlib</code>, <code>foreign</code>, and <code>heap</code>.</p>
@@ -180,32 +180,32 @@
 </ul>
 <p>The rest of the module is broken up into three parts: variable declarations, function declarations, and finally an object exporting the functions to expose to the user.</p>
 <p>The export is an essential point to understand. It allows all of the code within the module to be handled as asm.js but still be available to other, normal, JavaScript code. You could, theoretically, have some code that looks like the following, using the above DiagModule code:</p>
-<pre><code class="language-javascript">document.body.onclick = function() {
-  function DiagModule(stdlib){&quot;use asm&quot;; ... return { ... };}
+<pre class="language-javascript"><code class="language-javascript">document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function-variable function">onclick</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">function</span> <span class="token function">DiagModule</span><span class="token punctuation">(</span><span class="token parameter">stdlib</span><span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token string">"use asm"</span><span class="token punctuation">;</span> <span class="token operator">...</span> <span class="token keyword">return</span> <span class="token punctuation">{</span> <span class="token operator">...</span> <span class="token punctuation">}</span><span class="token punctuation">;</span><span class="token punctuation">}</span>
 
-  var diag = DiagModule({ Math: Math }).diag;
-  alert(diag(10, 100));
-};
+  <span class="token keyword">var</span> diag <span class="token operator">=</span> <span class="token function">DiagModule</span><span class="token punctuation">(</span><span class="token punctuation">{</span> Math<span class="token operator">:</span> Math <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>diag<span class="token punctuation">;</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token function">diag</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>This would result in an asm.js DiagModule that’s handled special by the JavaScript interpreter but still made available to other JavaScript code that could still access it and use it within a click handler.</p>
 <p>The result is that, within limits, we can bring C and C++ content directly into the web platform. Games and other large codebases written in C and C++ can be ported to work on the web.
-Mozilla Hacks’ <a href="https://hacks.mozilla.org/2014/11/porting-to-emscripten/">Porting to Emscripten</a> tells of one project’s migration to asm.js.</p>
-<h3>Web Assembly</h3>
+Mozilla Hacks' <a href="https://hacks.mozilla.org/2014/11/porting-to-emscripten/">Porting to Emscripten</a> tells of one project's migration to asm.js.</p>
+<h3 id="web-assembly">Web Assembly</h3>
 <p><a href="http://webassembly.org/">Web Assembly</a> is an evolution of asm.js that has taken a lot of the lessons browser vendors and implementors learned from working with asm.js. The Web Assembly generated code is binary rather than text-based but can still provide two-way interaction with native Javascript code.</p>
-<h4>Installing Emscripten SDK</h4>
-<p>To compile C/C++ code to web assembly you need to have the Emscripten SDK installed on your system. I will only cover installing the portable SDK as it works across platforms and doesn’t require administrator privileges in any platform (Windoes, Mac or Linud). For other installation methods check</p>
+<h4 id="installing-emscripten-sdk">Installing Emscripten SDK</h4>
+<p>To compile C/C++ code to web assembly you need to have the Emscripten SDK installed on your system. I will only cover installing the portable SDK as it works across platforms and doesn't require administrator privileges in any platform (Windoes, Mac or Linud). For other installation methods check</p>
 <p>The Portable Emscripten SDK is a no-installer version of the SDK package. It is identical to the NSIS installer, except that it does not interact with the Windows registry. This allows Emscripten to be used on a computer without administrative privileges, and means that the installation can be migrated from one location (directory or computer) to another by simply copying the directory contents to the new location.</p>
 <p>First check the Platform-specific notes below (or <a href="https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#installation-instructions">online</a>) and install any prerequisites.</p>
 <p>Install or update the SDK using the following steps:</p>
 <p>Download and unzip the portable SDK package to a directory of your choice. This directory will contain the Emscripten SDK.</p>
 <p>Open a command prompt inside the SDK directory and run the following emsdk commands to get the latest tools from Github and set them as active:</p>
-<pre><code class="language-bash"># Fetch the latest registry of available tools.
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Fetch the latest registry of available tools.</span>
 ./emsdk update
 
-# Download and install the latest SDK tools.
-./emsdk install latest
+<span class="token comment"># Download and install the latest SDK tools.</span>
+./emsdk <span class="token function">install</span> latest
 
-# Make the &quot;latest&quot; SDK &quot;active&quot;
+<span class="token comment"># Make the "latest" SDK "active"</span>
 ./emsdk activate latest
 </code></pre>
 <p><strong>Notes:</strong></p>
@@ -237,76 +237,76 @@ Mozilla Hacks’ <a href="https://hacks.mozilla.org/2014/11/porting-to-emscripte
 </ol>
 <p>Linux</p>
 <p>Pre-built binaries of tools are not available on Linux. Installing a tool will automatically clone and build that tool from the sources inside the emsdk directory.</p>
-<div class="message info">
-<p>Emsdk does not install any tools to the system, or otherwise interact with Linux package managers. All file changes are done inside the <strong>emsdk/</strong> directory.</p>
-</div>
+<p>&lt;div class=&quot;message info&quot;&gt;
+&lt;p&gt;Emsdk does not install any tools to the system, or otherwise interact with Linux package managers. All file changes are done inside the &lt;strong&gt;emsdk/&lt;/strong&gt; directory.&lt;/p&gt;
+&lt;/div&gt;</p>
 <p><strong>Set the current Emscripten path on Linux/Mac OS X</strong></p>
 <p><code>source ./emsdk_env.sh</code></p>
 <p>This step is not required on Windows because calling the activate command also sets the correct system path (this is not possible on Linux due to security restrictions).</p>
 <p>Whenever you change the location of the Portable SDK (e.g. take it to another computer), re-run the <code>./emsdk activate latest</code> command (and <code>source ./emsdk_env.sh</code> for Linux).</p>
-<h3>Compiling an application</h3>
+<h3 id="compiling-an-application">Compiling an application</h3>
 <p>Now that we have the portable SDK installed we can begin working on compiling code.</p>
-<p>We’ll run two examples. The first one will print <code>hello, world</code>. The second example is more complex and will produce a gradient square in WebGL, using the SDL library on the C side.</p>
-<p>For each example we’ll compile the code and generate a webpage to make sure the code works.</p>
-<pre><code class="language-c">#include &lt;stdio.h&gt;
+<p>We'll run two examples. The first one will print <code>hello, world</code>. The second example is more complex and will produce a gradient square in WebGL, using the SDL library on the C side.</p>
+<p>For each example we'll compile the code and generate a webpage to make sure the code works.</p>
+<pre class="language-c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
 
-int main() {
-  printf(&quot;hello, world!\n&quot;);
-  return 0;
-}
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"hello, world!\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>To compile the code and generate the web page associated with it the command to run is:</p>
-<pre><code class="language-bash">./emcc tests/hello_world.c -o hello_word.html
+<pre class="language-bash"><code class="language-bash">./emcc tests/hello_world.c -o hello_word.html
 </code></pre>
-<p>I’m running the command from within the Emscripten directory. Adjust your path as needed.</p>
-<pre><code class="language-c">#include &lt;stdio.h&gt;
-#include &lt;SDL/SDL.h&gt;
+<p>I'm running the command from within the Emscripten directory. Adjust your path as needed.</p>
+<pre class="language-c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;SDL/SDL.h></span></span>
 
-#ifdef __EMSCRIPTEN__
-#include &lt;emscripten.h&gt;
-#endif
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">__EMSCRIPTEN__</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;emscripten.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
 
-extern &quot;C&quot; int main(int argc, char** argv) {
-  printf(&quot;hello, world!\n&quot;);
+<span class="token keyword">extern</span> <span class="token string">"C"</span> <span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword">int</span> argc<span class="token punctuation">,</span> <span class="token keyword">char</span><span class="token operator">*</span><span class="token operator">*</span> argv<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"hello, world!\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  SDL_Init(SDL_INIT_VIDEO);
-  SDL_Surface *screen = SDL_SetVideoMode(256, 256, 32, SDL_SWSURFACE);
+  <span class="token function">SDL_Init</span><span class="token punctuation">(</span>SDL_INIT_VIDEO<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  SDL_Surface <span class="token operator">*</span>screen <span class="token operator">=</span> <span class="token function">SDL_SetVideoMode</span><span class="token punctuation">(</span><span class="token number">256</span><span class="token punctuation">,</span> <span class="token number">256</span><span class="token punctuation">,</span> <span class="token number">32</span><span class="token punctuation">,</span> SDL_SWSURFACE<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-#ifdef TEST_SDL_LOCK_OPTS
-  EM_ASM(&quot;SDL.defaults.copyOnLock = false; SDL.defaults.discardOnLock = true; SDL.defaults.opaqueFrontBuffer = false;&quot;);
-#endif
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">TEST_SDL_LOCK_OPTS</span></span>
+  <span class="token function">EM_ASM</span><span class="token punctuation">(</span><span class="token string">"SDL.defaults.copyOnLock = false; SDL.defaults.discardOnLock = true; SDL.defaults.opaqueFrontBuffer = false;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
 
-  if (SDL_MUSTLOCK(screen)) SDL_LockSurface(screen);
-  for (int i = 0; i &lt; 256; i++) {
-    for (int j = 0; j &lt; 256; j++) {
-#ifdef TEST_SDL_LOCK_OPTS
-      // Alpha behaves like in the browser, so write proper opaque pixels.
-      int alpha = 255;
-#else
-      // To emulate native behavior with blitting to screen, alpha component 
-      // is ignored. Test that it is so by outputting data (and testing 
-      // that it does get discarded)
-      int alpha = (i+j) % 255;
-#endif
-      *((Uint32*)screen-&gt;pixels + i * 256 + j) = SDL_MapRGBA(screen-&gt;format, i, j, 255-i, alpha);
-    }
-  }
-  if (SDL_MUSTLOCK(screen)) SDL_UnlockSurface(screen);
-  SDL_Flip(screen); 
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">SDL_MUSTLOCK</span><span class="token punctuation">(</span>screen<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token function">SDL_LockSurface</span><span class="token punctuation">(</span>screen<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">256</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> <span class="token number">256</span><span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">TEST_SDL_LOCK_OPTS</span></span>
+      <span class="token comment">// Alpha behaves like in the browser, so write proper opaque pixels.</span>
+      <span class="token keyword">int</span> alpha <span class="token operator">=</span> <span class="token number">255</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+      <span class="token comment">// To emulate native behavior with blitting to screen, alpha component </span>
+      <span class="token comment">// is ignored. Test that it is so by outputting data (and testing </span>
+      <span class="token comment">// that it does get discarded)</span>
+      <span class="token keyword">int</span> alpha <span class="token operator">=</span> <span class="token punctuation">(</span>i<span class="token operator">+</span>j<span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">255</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+      <span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">(</span>Uint32<span class="token operator">*</span><span class="token punctuation">)</span>screen<span class="token operator">-></span>pixels <span class="token operator">+</span> i <span class="token operator">*</span> <span class="token number">256</span> <span class="token operator">+</span> j<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token function">SDL_MapRGBA</span><span class="token punctuation">(</span>screen<span class="token operator">-></span>format<span class="token punctuation">,</span> i<span class="token punctuation">,</span> j<span class="token punctuation">,</span> <span class="token number">255</span><span class="token operator">-</span>i<span class="token punctuation">,</span> alpha<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">SDL_MUSTLOCK</span><span class="token punctuation">(</span>screen<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token function">SDL_UnlockSurface</span><span class="token punctuation">(</span>screen<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">SDL_Flip</span><span class="token punctuation">(</span>screen<span class="token punctuation">)</span><span class="token punctuation">;</span> 
 
-  printf(&quot;you should see a smoothly-colored square - no sharp lines but the square borders!\n&quot;);
-  printf(&quot;and here is some text that should be HTML-friendly: amp: |&amp;| double-quote: |\&quot;| quote: |'| less-than, greater-than, html-like tags: |&lt;cheez&gt;&lt;/cheez&gt;|\nanother line.\n&quot;);
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"you should see a smoothly-colored square - no sharp lines but the square borders!\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"and here is some text that should be HTML-friendly: amp: |&amp;| double-quote: |\"| quote: |'| less-than, greater-than, html-like tags: |&lt;cheez>&lt;/cheez>|\nanother line.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  SDL_Quit();
+  <span class="token function">SDL_Quit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  return 0;
-}
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>The second demo works the same way. The code is more complex than the <code>hello_world</code> example and serves as an example of what you can do with the technology, incorporating additional libraries and outputting to WebGL.</p>
 <p>To run the compiler run the following command from the root of your Emscripten SDK:</p>
-<pre><code class="language-c">./emcc tests/hello_world_sdl.cpp -o hello2.htm
+<pre class="language-c"><code class="language-c"><span class="token punctuation">.</span><span class="token operator">/</span>emcc tests<span class="token operator">/</span>hello_world_sdl<span class="token punctuation">.</span>cpp <span class="token operator">-</span>o hello2<span class="token punctuation">.</span>htm
 </code></pre>
-<h3>So what do we use asm.js Web Assembly for?</h3>
+<h3 id="so-what-do-we-use-asm.js-web-assembly-for%3F">So what do we use asm.js Web Assembly for?</h3>
 <p>Let me start by stating this very clearly: <strong>asm.js and Web Assembly are not replacements for Javascript</strong>. They provide direct access to the underlying C libraries and functionality and are usually faster than equivalent code in Javascript.</p>
 <p>THey also bring large codebases to the browser without needing plugins or runtime environments. Unity used to have a plugin that users must install before running any Unity content. The plugin is no longer supported by the browsers and Unity games are moving to browser-based experiences. This becomes essential in mobile where installing apps is less attractive than just downloading content.</p>
 <p>As Web Assembly matures I expect to see mixed libraries where most of the code is written in Javascript and the computationally expensive code (video compression and decompression, cryptography and others) are written in C, C++ or any other language supported by Web Assembly tools.</p>

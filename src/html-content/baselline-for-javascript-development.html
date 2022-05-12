@@ -1,5 +1,5 @@
-<h1>Baseline for Javascript development: modules in the browser without transpilation</h1>
-<p>Last April, I wrote <a href="https://publishing-project.rivendellweb.net/evergreen-browsers-and-looking-for-a-sane-js-baseline/">Evergreen browsers and looking for a sane JS baseline</a> looking for a sane Javaascript baseline where I could write scripts without having to worry about transpilation for those browsers that didn’t support the features.</p>
+<h1 id="baseline-for-javascript-development%3A-modules-in-the-browser-without-transpilation">Baseline for Javascript development: modules in the browser without transpilation</h1>
+<p>Last April, I wrote <a href="https://publishing-project.rivendellweb.net/evergreen-browsers-and-looking-for-a-sane-js-baseline/">Evergreen browsers and looking for a sane JS baseline</a> looking for a sane Javaascript baseline where I could write scripts without having to worry about transpilation for those browsers that didn't support the features.</p>
 <p>I took a basic set of features from  <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a>) and wrote about how to use them in ESModules that would run in Node.js.</p>
 <p>This post follows up on that one and will cover two approaches to using ESModules in the browser.</p>
 <p>The process below assumes that you already have a browserslist file or section in your package.json file ready to use. See the Browserslist <a href="https://github.com/browserslist/browserslist#readme">Readme</a> for more information about configuring your browserslist file.</p>
@@ -12,50 +12,50 @@
 </li>
 <li><a href="https://github.com/babel/preset-modules/">@babel/preset-modules</a> plugin to smooth out the features we want to use in browsers that support some of our target features but not others
 <ul>
-<li>Here’s the problem that <code>preset-modules</code> addresses: if any version of any browser in that the target list contains a bug triggered by modern syntax, the only solution is to enable the corresponding transform group that fixes that bug. In other words, <code>preset-env</code> converts code to ES5 in order to get around syntax bugs in ES2017</li>
+<li>Here's the problem that <code>preset-modules</code> addresses: if any version of any browser in that the target list contains a bug triggered by modern syntax, the only solution is to enable the corresponding transform group that fixes that bug. In other words, <code>preset-env</code> converts code to ES5 in order to get around syntax bugs in ES2017</li>
 <li><code>preset-modules</code> compiles the problem code to the closest functioning syntax that is supported by the target browsers</li>
 </ul>
 </li>
 </ul>
 <p>We can make both <code>preset-env</code> and <code>preset-modules</code> work together in the same <a href="https://babeljs.io/docs/en/configuration">Babel configuration</a>.</p>
 <p>First step is to install the plugins:</p>
-<pre><code class="language-bash">npm install -D @babel/preset-env @babel/preset-modules
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> -D @babel/preset-env @babel/preset-modules
 </code></pre>
 <p>Next, we enable the plugins in our Babel configuration:</p>
-<pre><code class="language-json">{
-  &quot;presets&quot;: [
-    &quot;@babel/preset-env&quot;,
-    &quot;@babel/preset-modules&quot;
-  ]
-}
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"presets"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"@babel/preset-env"</span><span class="token punctuation">,</span>
+    <span class="token string">"@babel/preset-modules"</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Lastly, configure two environments to generate the different bundles of our code, this is one possible way to do it:</p>
-<pre><code class="language-json">{
-  &quot;env&quot;: {
-    &quot;modern&quot;: {
-      &quot;presets&quot;: [
-        &quot;@babel/preset-modules&quot;
-      ]
-    },
-    &quot;legacy&quot;: {
-      &quot;presets&quot;: [
-        &quot;@babel/preset-env&quot;
-      ]
-    }
-  }
-}
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"env"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"modern"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"presets"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"@babel/preset-modules"</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"legacy"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"presets"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"@babel/preset-env"</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Once we create the bundles, we can use them together in the <a href="https://philipwalton.com/articles/deploying-es2015-code-in-production-today/">module/nomodule pattern</a>.</p>
-<pre><code class="language-html">&lt;!-- transpiled with preset-modules: --&gt;
-&lt;script
-  type=&quot;module&quot;
-  src=&quot;modern.js&quot;&gt;
-&lt;/script&gt;
-&lt;!-- transpiled with preset-env: --&gt;
-&lt;script
-  nomodule
-  src=&quot;legacy.js&quot;&gt;
-&lt;/script&gt;
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- transpiled with preset-modules: --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>modern.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- transpiled with preset-env: --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">nomodule</span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>legacy.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>The modern.js branch will work in browsers that support modules and will use code that has been optimised for those browsers.</p>
-<p>If a browser doesn’t support modules (unlikely but possible) then it’ll run the legacy.js script and will use code transpiled to ES5.</p>
+<p>If a browser doesn't support modules (unlikely but possible) then it'll run the legacy.js script and will use code transpiled to ES5.</p>

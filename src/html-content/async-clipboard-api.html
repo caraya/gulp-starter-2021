@@ -1,25 +1,25 @@
-<h1>Async Clipboard API</h1>
-<p>One thing I’ve always figured out how to use the clipboard on web applications so we can copy and paste into the app.</p>
-<p>Until now, we can use <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand">document.execCommand</a> to interact with the clipboard; but it’s not supported in all browsers and has been deprecated.</p>
+<h1 id="async-clipboard-api">Async Clipboard API</h1>
+<p>One thing I've always figured out how to use the clipboard on web applications so we can copy and paste into the app.</p>
+<p>Until now, we can use <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand">document.execCommand</a> to interact with the clipboard; but it's not supported in all browsers and has been deprecated.</p>
 <p>in <a href="https://web.dev/async-clipboard/">Unblocking clipboard access</a> Jason Miller and Thomas Steiner present a new API for managing clipboard copying and pasting.</p>
 <p>This is a promise-based async API that will allow you to copy and paste text.</p>
-<p>For this example, we’ll assume we have the following HTML code</p>
-<pre><code class="language-html">&lt;div&gt;
-  &lt;input type=&quot;text&quot; id=&quot;to-copy&quot;&gt;
-  &lt;button id=&quot;write-btn&quot;&gt;Copy to clipboard&lt;/button&gt;
-&lt;/div&gt;
+<p>For this example, we'll assume we have the following HTML code</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>to-copy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>write-btn<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Copy to clipboard<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
 
-&lt;div&gt;
-  &lt;h3 id=&quot;clipboard-results&quot;&gt;&lt;/h3&gt;
-  &lt;button id=&quot;read-btn&quot;&gt;Paste from clipboard&lt;/button&gt;
-&lt;/div&gt;
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h3</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>clipboard-results<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h3</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>read-btn<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Paste from clipboard<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>The first block of Javascript will capture references to the items we want to use.</p>
-<pre><code class="language-js">const readBtn = document.getElementById('read-btn');
-const writeBtn = document.getElementById('write-btn');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> readBtn <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'read-btn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> writeBtn <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'write-btn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const resultsEl = document.getElementById('clipboard-results');
-const inputEl = document.getElementById('to-copy');
+<span class="token keyword">const</span> resultsEl <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'clipboard-results'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> inputEl <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'to-copy'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>To copy the text of the textarea element into the clipboard we need to attach the action to an event listener or some other type of user interaction.</p>
 <p>The function does the following:</p>
@@ -27,24 +27,24 @@ const inputEl = document.getElementById('to-copy');
 <li>Captures the white space trimmed value of the input field</li>
 <li>Writes the text to the clipboard</li>
 <li>Changes the text of the button to say <strong>Copied!</strong></li>
-<li>If there’s an error jump to the catch statement and log the eror to the console.</li>
+<li>If there's an error jump to the catch statement and log the eror to the console.</li>
 </ol>
-<pre><code class="language-js">writeBtn.addEventListener('click', () =&gt; {
-  const inputValue = inputEl.value.trim(); // 1
-  if (inputValue) {
-    navigator.clipboard.writeText(inputValue) // 2
-      .then(() =&gt; {
-        inputEl.value = '';
-        if (writeBtn.innerText !== 'Copied!') {
-          const originalText = writeBtn.innerText;
-          writeBtn.innerText = 'Copied!'; // 3
-        }
-      })
-      .catch(err =&gt; {
-        console.log('Something went wrong', err); // 4
-      })
-  }
-});
+<pre class="language-js"><code class="language-js">writeBtn<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> inputValue <span class="token operator">=</span> inputEl<span class="token punctuation">.</span>value<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 1</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>inputValue<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    navigator<span class="token punctuation">.</span>clipboard<span class="token punctuation">.</span><span class="token function">writeText</span><span class="token punctuation">(</span>inputValue<span class="token punctuation">)</span> <span class="token comment">// 2</span>
+      <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        inputEl<span class="token punctuation">.</span>value <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>writeBtn<span class="token punctuation">.</span>innerText <span class="token operator">!==</span> <span class="token string">'Copied!'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token keyword">const</span> originalText <span class="token operator">=</span> writeBtn<span class="token punctuation">.</span>innerText<span class="token punctuation">;</span>
+          writeBtn<span class="token punctuation">.</span>innerText <span class="token operator">=</span> <span class="token string">'Copied!'</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">err</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Something went wrong'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Pasting content from the clipboard is bot easier and more complicated.</p>
 <p>It is more complicated because it requires user permission to work and will only paste the text if the user authorizes it.</p>
@@ -54,73 +54,73 @@ const inputEl = document.getElementById('to-copy');
 <li>Insert the content into the desired element</li>
 <li>If there is an error jump to the catch statement and execute the code inside</li>
 </ol>
-<pre><code class="language-js">readBtn.addEventListener('click', () =&gt; {
-  navigator.clipboard.readText() // 1
-    .then((text) =&gt; {
-      resultsEl.innerText = text; // 2
-    })
-    .catch((err) =&gt; {
-      console.error('Something went wrong', err); // 3
-    })
-});
+<pre class="language-js"><code class="language-js">readBtn<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  navigator<span class="token punctuation">.</span>clipboard<span class="token punctuation">.</span><span class="token function">readText</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// 1</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">text</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      resultsEl<span class="token punctuation">.</span>innerText <span class="token operator">=</span> text<span class="token punctuation">;</span> <span class="token comment">// 2</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'Something went wrong'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Feature detection</h2>
+<h2 id="feature-detection">Feature detection</h2>
 <p>To make sure we can copy and paste text in as many browsers as possible we need to se feature detection by testing if the <code>navigator.clipboard</code> object exists or not.</p>
-<p>If it doesn’t we log it to console and use <code>execCommand</code> or another library.</p>
+<p>If it doesn't we log it to console and use <code>execCommand</code> or another library.</p>
 <p>If it exists then we execute the modern API commands. The code looks like the example below:</p>
-<pre><code class="language-js">if (!navigator.clipboard) {
-  console.error(`Not supported 😢. Use execCommand or leave the feature off`);
-  // Use execCommand or another alternative
-} else {
-  console.log('it works');
-  // The code for the previous examples goes here
-}
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>navigator<span class="token punctuation">.</span>clipboard<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Not supported 😢. Use execCommand or leave the feature off</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Use execCommand or another alternative</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'it works'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// The code for the previous examples goes here</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>What I left out, and limitations of the API</h2>
+<h2 id="what-i-left-out%2C-and-limitations-of-the-api">What I left out, and limitations of the API</h2>
 <p>The Async Clipboard API is deliberately simple. The examples we cover in this post copy and paste text, not any other media type.</p>
-<p>Thoma Steiner’ <a href="https://blog.tomayac.com/2020/03/20/multi-mime-type-copying-with-the-async-clipboard-api/">Multi-MIME Type Copying with the Async Clipboard API</a> provides examples and rationale for working with copy and pasting images and working with these images in different applications:</p>
+<p>Thoma Steiner' <a href="https://blog.tomayac.com/2020/03/20/multi-mime-type-copying-with-the-async-clipboard-api/">Multi-MIME Type Copying with the Async Clipboard API</a> provides examples and rationale for working with copy and pasting images and working with these images in different applications:</p>
 <blockquote>
-<p>If you copy an SVG image, then open macOS Preview, and finally click <code>&quot;File&quot; &gt; &quot;New from Clipboard&quot;</code>, you would probably expect an image to be pasted. However, if you copy an SVG image and paste it into Visual Studio Code or into SVGOMG’s <code>&quot;Paste markup&quot;</code> field, you would probably expect the source code to be pasted.</p>
+<p>If you copy an SVG image, then open macOS Preview, and finally click <code>&quot;File&quot; &gt; &quot;New from Clipboard&quot;</code>, you would probably expect an image to be pasted. However, if you copy an SVG image and paste it into Visual Studio Code or into SVGOMG's <code>&quot;Paste markup&quot;</code> field, you would probably expect the source code to be pasted.</p>
 </blockquote>
-<h2>Raw Clipboard API</h2>
+<h2 id="raw-clipboard-api">Raw Clipboard API</h2>
 <p>There is separate <a href="https://www.chromestatus.com/feature/5682768497344512">Raw Clipboard API</a> to handle other clipboard activities. This is significantly harder to achieve and both <a href="https://lists.w3.org/Archives/Public/public-editing-tf/2019Oct/0004.html">Firefox</a> and <a href="https://github.com/dway123/raw-clipboard-access/issues/3">Safari</a> have expressed unwillingness to implement the API on privacy grounds.</p>
-<p>The Raw Clipboard API <a href="https://docs.google.com/document/d/1XDOtTv8DtwTi4GaszwRFIJCOuzAEA4g9Tk0HrasQAdE/edit">design document</a> explains what the API is and how it’s expected to work.</p>
-<h2>The full code</h2>
-<p>The following listing includes both the feature detection and the code to copy and paste text, and that’s all it will copy.</p>
-<pre><code class="language-js">const readBtn = document.getElementById('read-btn');
-const writeBtn = document.getElementById('write-btn');
+<p>The Raw Clipboard API <a href="https://docs.google.com/document/d/1XDOtTv8DtwTi4GaszwRFIJCOuzAEA4g9Tk0HrasQAdE/edit">design document</a> explains what the API is and how it's expected to work.</p>
+<h2 id="the-full-code">The full code</h2>
+<p>The following listing includes both the feature detection and the code to copy and paste text, and that's all it will copy.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> readBtn <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'read-btn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> writeBtn <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'write-btn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const resultsEl = document.getElementById('clipboard-results');
-const inputEl = document.getElementById('to-copy');
+<span class="token keyword">const</span> resultsEl <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'clipboard-results'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> inputEl <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'to-copy'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-if (!navigator.clipboard) {
-  console.error('Async clipboard API not supported');
-} else {
-  readBtn.addEventListener('click', () =&gt; {
-    navigator.clipboard.readText()
-      .then((text) =&gt; {
-        resultsEl.innerText = text;
-      })
-      .catch((err) =&gt; {
-        console.error('Something went wrong', err);
-      })
-  });
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>navigator<span class="token punctuation">.</span>clipboard<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'Async clipboard API not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  readBtn<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    navigator<span class="token punctuation">.</span>clipboard<span class="token punctuation">.</span><span class="token function">readText</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">text</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        resultsEl<span class="token punctuation">.</span>innerText <span class="token operator">=</span> text<span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'Something went wrong'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  writeBtn.addEventListener('click', () =&gt; {
-    const inputValue = inputEl.value.trim();
-    if (inputValue) {
-      navigator.clipboard.writeText(inputValue)
-        .then(() =&gt; {
-          inputEl.value = '';
-          if (writeBtn.innerText !== 'Copied!') {
-            const originalText = writeBtn.innerText;
-            writeBtn.innerText = 'Copied!';
-          }
-        })
-        .catch(err =&gt; {
-          console.log('Something went wrong', err);
-        })
-    }
-  });
-}
+  writeBtn<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> inputValue <span class="token operator">=</span> inputEl<span class="token punctuation">.</span>value<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>inputValue<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      navigator<span class="token punctuation">.</span>clipboard<span class="token punctuation">.</span><span class="token function">writeText</span><span class="token punctuation">(</span>inputValue<span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+          inputEl<span class="token punctuation">.</span>value <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span>
+          <span class="token keyword">if</span> <span class="token punctuation">(</span>writeBtn<span class="token punctuation">.</span>innerText <span class="token operator">!==</span> <span class="token string">'Copied!'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">const</span> originalText <span class="token operator">=</span> writeBtn<span class="token punctuation">.</span>innerText<span class="token punctuation">;</span>
+            writeBtn<span class="token punctuation">.</span>innerText <span class="token operator">=</span> <span class="token string">'Copied!'</span><span class="token punctuation">;</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">err</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+          console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Something went wrong'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>

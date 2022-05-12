@@ -1,10 +1,10 @@
-<h1>Container Queries and new CSS to go along with them</h1>
+<h1 id="container-queries-and-new-css-to-go-along-with-them">Container Queries and new CSS to go along with them</h1>
 <p>The <a href="https://drafts.csswg.org/css-contain-3/#propdef-container-type">CSS Containment Module Level 3</a> has a formal definition of containers, container queries and container relative length units.</p>
 <p>This post contains both parts that are supported in Chromium browsers behind a flag and others that are under development. <strong>It is not production code and should not be used as such</strong>.</p>
-<h2>Defining the container</h2>
+<h2 id="defining-the-container">Defining the container</h2>
 <p>Before we use container relative length units we need to define a container that the units will refer to.</p>
 <p>Containers allow you to create finer grained level of sizing for components that will be more specific than regular units (that refer to a window) or viewport units that refer to the viewport (usually the same as the window)</p>
-<p>If you set a container, then you can choose to size the components based on the container’s size rather than the viewport or Window.</p>
+<p>If you set a container, then you can choose to size the components based on the container's size rather than the viewport or Window.</p>
 <p>The following table shows the different values for the <code>contain</code> property. Some of these values were defined in the level 2 CSS containment module so I indicate the spec version they were defined in.</p>
 <table>
 <thead>
@@ -38,12 +38,12 @@
 <tr>
 <td><strong>Inline-size</strong></td>
 <td>Level 3</td>
-<td>Descendants of the element will only respond to changes on the element’s width, the inline axis in left-to-write languages.</td>
+<td>Descendants of the element will only respond to changes on the element's width, the inline axis in left-to-write languages.</td>
 </tr>
 <tr>
 <td><strong>Block-size</strong></td>
 <td>Level 3</td>
-<td>Descendants of the element will only respond to changes on the element’s height, the block axis in left-to-write languages.</td>
+<td>Descendants of the element will only respond to changes on the element's height, the block axis in left-to-write languages.</td>
 </tr>
 </tbody>
 </table>
@@ -53,98 +53,98 @@
 <li><strong>strict</strong>: This is equivalent to contain: layout paint size style.</li>
 </ul>
 <p>An example of a container ready to handle container relative sizes could look like this:</p>
-<pre><code class="language-css">.card-container {
-  contain: layout content inline-size style;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">.card-container</span> <span class="token punctuation">{</span>
+  <span class="token property">contain</span><span class="token punctuation">:</span> layout content inline-size style<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>This container uses the new <code>inline-size</code> and the <code>layout</code> and <code>style</code> containment values from the level 2 specification to indicate the expected behavior for the children of the container.</p>
 <p>We then define the elements that we want to use inside the container.</p>
-<pre><code class="language-css">.card {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
+<pre class="language-css"><code class="language-css"><span class="token selector">.card</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+  <span class="token property">flex-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
+  <span class="token property">flex-wrap</span><span class="token punctuation">:</span> wrap<span class="token punctuation">;</span>
 
-  gap: 1rem;
-}
+  <span class="token property">gap</span><span class="token punctuation">:</span> 1rem<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-.card--thumb {
-  aspect-ratio: 1 / 1;
-  flex: 0 0 150px;
-  background-color: #663399;
-  border-radius: 7px;
-}
+<span class="token selector">.card--thumb</span> <span class="token punctuation">{</span>
+  <span class="token property">aspect-ratio</span><span class="token punctuation">:</span> 1 / 1<span class="token punctuation">;</span>
+  <span class="token property">flex</span><span class="token punctuation">:</span> 0 0 150px<span class="token punctuation">;</span>
+  <span class="token property">background-color</span><span class="token punctuation">:</span> #663399<span class="token punctuation">;</span>
+  <span class="token property">border-radius</span><span class="token punctuation">:</span> 7px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-.card-title {
-  font-weight: bold;
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-}
+<span class="token selector">.card-title</span> <span class="token punctuation">{</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> bold<span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 1.5rem<span class="token punctuation">;</span>
+  <span class="token property">margin-bottom</span><span class="token punctuation">:</span> 0.5rem<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-.card--content {
-  flex: 1;
-}
+<span class="token selector">.card--content</span> <span class="token punctuation">{</span>
+  <span class="token property">flex</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>We then use one or more <code>@container</code> at-rule to define the changes that we want to make based on the size of the container.</p>
-<pre><code class="language-css">@container (min-width: 400px) {
-  .card {
-    flex-direction: row;
-  }
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@container</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 400px<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.card</span> <span class="token punctuation">{</span>
+    <span class="token property">flex-direction</span><span class="token punctuation">:</span> row<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  .thumb {
-    flex: 0 0 100px;
-    align-self: flex-start;
-  }
-}
+  <span class="token selector">.thumb</span> <span class="token punctuation">{</span>
+    <span class="token property">flex</span><span class="token punctuation">:</span> 0 0 100px<span class="token punctuation">;</span>
+    <span class="token property">align-self</span><span class="token punctuation">:</span> flex-start<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
 
-@container (min-width: 600px) {
-  .card--thumb {
-    flex: 0 0 150px;
-  }
-}
+<span class="token atrule"><span class="token rule">@container</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 600px<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.card--thumb</span> <span class="token punctuation">{</span>
+    <span class="token property">flex</span><span class="token punctuation">:</span> 0 0 150px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@container (min-width: 800px) {
-  .card {
-    position: relative;
-    justify-content: center;
-    align-items: center;
-    min-height: 350px;
-  }
+<span class="token atrule"><span class="token rule">@container</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 800px<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.card</span> <span class="token punctuation">{</span>
+    <span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span>
+    <span class="token property">justify-content</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+    <span class="token property">align-items</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+    <span class="token property">min-height</span><span class="token punctuation">:</span> 350px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  .thumb {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.25;
-  }
+  <span class="token selector">.thumb</span> <span class="token punctuation">{</span>
+    <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+    <span class="token property">left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">top</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+    <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+    <span class="token property">opacity</span><span class="token punctuation">:</span> 0.25<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  .content {
-    position: relative;
-    flex: unset;
-  }
+  <span class="token selector">.content</span> <span class="token punctuation">{</span>
+    <span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span>
+    <span class="token property">flex</span><span class="token punctuation">:</span> unset<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  .title {
-    font-weight: bold;
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
+  <span class="token selector">.title</span> <span class="token punctuation">{</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> bold<span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> 1.5rem<span class="token punctuation">;</span>
+    <span class="token property">margin-bottom</span><span class="token punctuation">:</span> 0.5rem<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-  .desc {
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    color: #222;
-  }
-}
+  <span class="token selector">.desc</span> <span class="token punctuation">{</span>
+    <span class="token property">max-width</span><span class="token punctuation">:</span> 480px<span class="token punctuation">;</span>
+    <span class="token property">margin-left</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+    <span class="token property">margin-right</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+    <span class="token property">text-align</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+    <span class="token property">color</span><span class="token punctuation">:</span> #222<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>Container type</h3>
-<div class="message warning">
-<p><strong>Note:</strong></p>
-<p>The properties described below are different than the contain properties in the CSS Containment Module Level 2. You can use <code>container-type</code> without using <code>contain</code>.</p>
-</div>
+<h3 id="container-type">Container type</h3>
+<p>&lt;div class=&quot;message warning&quot;&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The properties described below are different than the contain properties in the CSS Containment Module Level 2. You can use &lt;code&gt;container-type&lt;/code&gt; without using &lt;code&gt;contain&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;</p>
 <p>The <code>container-type</code> property establishes the element as a query container for the purpose of container queries, allowing style rules styling its descendants to query various aspects of its sizing, layout, and style and respond accordingly.</p>
 <p>The available values are:</p>
 <p><code>size</code>
@@ -157,7 +157,7 @@
 : Establishes a query container for style queries.</p>
 <p><code>state</code>
 : Establishes a query container for state queries. They have been pushed to the next level of the CSS containment specification</p>
-<h3>Container name</h3>
+<h3 id="container-name">Container name</h3>
 <p>The container-name property specifies a list of query container names. These names can be used by <code>@container</code> rules to filter which query containers are targeted.</p>
 <p><code>none</code>
 : The query container has no query container name.</p>
@@ -166,35 +166,35 @@
 <p><code>&lt;string&gt;</code>
 : Specifies a query container name as a <code>&lt;string&gt;</code> value; this computes to an identifier with the same value as the given <code>&lt;string&gt;</code>.</p>
 <p>With <code>container-name</code> developers can specify which containers they want to target with <code>@container</code> queries and use the same container for multiple child elements.</p>
-<pre><code class="language-css">main {
-  container-type: size;
-  container-name: page-layout;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">main</span> <span class="token punctuation">{</span>
+  <span class="token property">container-type</span><span class="token punctuation">:</span> size<span class="token punctuation">;</span>
+  <span class="token property">container-name</span><span class="token punctuation">:</span> page-layout<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-.my-component {
-  container-type: inline-size;
-  container-name: component-library;
-}
+<span class="token selector">.my-component</span> <span class="token punctuation">{</span>
+  <span class="token property">container-type</span><span class="token punctuation">:</span> inline-size<span class="token punctuation">;</span>
+  <span class="token property">container-name</span><span class="token punctuation">:</span> component-library<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-@container page-layout (block-size &gt; 12em) {
-  .card { margin-block: 2em; }
-}
+<span class="token atrule"><span class="token rule">@container</span> page-layout <span class="token punctuation">(</span>block-size > 12em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.card</span> <span class="token punctuation">{</span> <span class="token property">margin-block</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@container component-library (inline-size &gt; 30em) {
-  .card { margin-inline: 2em; }
-}
+<span class="token atrule"><span class="token rule">@container</span> component-library <span class="token punctuation">(</span>inline-size > 30em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.card</span> <span class="token punctuation">{</span> <span class="token property">margin-inline</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>Container</h3>
+<h3 id="container">Container</h3>
 <p>This is a shorthand property to set both <code>container-type</code> and <code>container-name</code>. The values are separated by a slash <code>/</code>.</p>
-<pre><code class="language-css">main {
-  container: size / page-layout;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">main</span> <span class="token punctuation">{</span>
+  <span class="token property">container</span><span class="token punctuation">:</span> size / page-layout<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-.my-component {
-  container: inline-size / component-library;
-}
+<span class="token selector">.my-component</span> <span class="token punctuation">{</span>
+  <span class="token property">container</span><span class="token punctuation">:</span> inline-size / component-library<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Container relative length units</h2>
+<h2 id="container-relative-length-units">Container relative length units</h2>
 <p>These units are similar to  viewport units except that they are relative to the dimensions of a the closes element that defined a container with <code>container-type</code>.</p>
 <table>
 <thead>
@@ -231,28 +231,28 @@
 </tbody>
 </table>
 <p>We can use these units in a similar way to viewport units, but they will refer to the closest ancestor that defines a container.</p>
-<pre><code class="language-scss">aside, main {
-  container-type: inline-size;
-}
+<pre class="language-scss"><code class="language-scss"><span class="token selector">aside, main </span><span class="token punctuation">{</span>
+  <span class="token property">container-type</span><span class="token punctuation">:</span> inline-size<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-.container {
-  h2 {
-    font-weight: bolder;
-    font-size: clamp(1.25rem, 3qw, 2rem);
-    margin-bottom: clamp(0.5rem, 1.5qw, 1rem);
-  }
-}
+<span class="token selector">.container </span><span class="token punctuation">{</span>
+  <span class="token selector">h2 </span><span class="token punctuation">{</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> bolder<span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">clamp</span><span class="token punctuation">(</span>1.25rem<span class="token punctuation">,</span> 3qw<span class="token punctuation">,</span> 2rem<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">margin-bottom</span><span class="token punctuation">:</span> <span class="token function">clamp</span><span class="token punctuation">(</span>0.5rem<span class="token punctuation">,</span> 1.5qw<span class="token punctuation">,</span> 1rem<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>What Happens If We Use Query Units Without Defining Containers?</h3>
+<h3 id="what-happens-if-we-use-query-units-without-defining-containers%3F">What Happens If We Use Query Units Without Defining Containers?</h3>
 <p>If no eligible query container is available, then use the small viewport size for that axis.</p>
 <p>The browser will deal with query units as if they were viewport units.</p>
 <p>Consider the following example:</p>
-<pre><code class="language-css">h2 {
-    font-size: clamp(1.25rem, 3qw, 2rem);
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">h2</span> <span class="token punctuation">{</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">clamp</span><span class="token punctuation">(</span>1.25rem<span class="token punctuation">,</span> 3qw<span class="token punctuation">,</span> 2rem<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>If there is no container that is defined for the <code>&lt;h2&gt;</code> or parents, the browser will consider <code>3qw</code> as if it was <code>3%</code> of the viewport width, most likely not what you want to do.</p>
-<h2>Gotchas</h2>
+<h2 id="gotchas">Gotchas</h2>
 <p><strong>The @container API is not stable</strong>, and is subject to syntax changes. If you try it out on your own, you may encounter bugs.</p>
 <p><strong>Right now this only works in Chromium browsers</strong> (Chrome, Edge, Opera, and others) if you enable the <code>#enable-container-queries</code> flag in <code>chrome://flags</code>.</p>
 <p>Use the following links to track support on your browser:</p>
@@ -262,7 +262,7 @@
 <li><a href="https://bugs.webkit.org/query.cgi?format=specific&amp;product=WebKit">Safari</a></li>
 </ul>
 <p><strong>Currently, you cannot use height-based container queries, using only the block axis</strong>. In order to make grid children work with @container, you’ll need to add a wrapper element. Despite this, adding a wrapper lets you still get the effects you want.</p>
-<h2>Links and resources</h2>
+<h2 id="links-and-resources">Links and resources</h2>
 <ul>
 <li>Container Queries
 <ul>

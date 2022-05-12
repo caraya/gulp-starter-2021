@@ -1,48 +1,48 @@
-<h1>Building a website to host codelabs</h1>
-<h2>Introduction</h2>
+<h1 id="building-a-website-to-host-codelabs">Building a website to host codelabs</h1>
+<h2 id="introduction">Introduction</h2>
 <p>I use Codelabs to document processes and step-by-step instructions for given processes or topics.</p>
 <p>However, unlike tools for authoring codelabs, there is no real way to author a codelabs website that is not heavily geared towards Google Codelabs and <a href="https://codelabs.developers.google.com/">its website</a> which uses Google infrastructure and resources that may not be needed for codelabs hosted elsewhere.</p>
-<p>Rather than try to work around Google’s Codelab website tools, I decided to build my own website to host Codelabs.</p>
-<h3>The Idea</h3>
+<p>Rather than try to work around Google's Codelab website tools, I decided to build my own website to host Codelabs.</p>
+<h3 id="the-idea">The Idea</h3>
 <p>The idea for the website is to:</p>
 <ul>
 <li>Create a JSON file with information about the codelabs</li>
 <li>Build a website</li>
 <li>Insert the data from the JSON file into the template</li>
 </ul>
-<p>I first thought about using a templating engine like <a href="https://mozilla.github.io/nunjucks/">Nunjucks</a> or <a href="https://handlebarsjs.com/">Handlebars</a> to build the website, but I couldn’t get it to work so I will use a simple HTML file instead and use a minimal handlebar template. This change forced a few changes to the plan</p>
+<p>I first thought about using a templating engine like <a href="https://mozilla.github.io/nunjucks/">Nunjucks</a> or <a href="https://handlebarsjs.com/">Handlebars</a> to build the website, but I couldn't get it to work so I will use a simple HTML file instead and use a minimal handlebar template. This change forced a few changes to the plan</p>
 <ul>
 <li>Build the page to display the Codelabs</li>
 <li>Create an array of Codelab information on the script used to fill out the template</li>
 <li>Insert the data from the JSON array into the template</li>
 </ul>
-<h2>The template</h2>
+<h2 id="the-template">The template</h2>
 <p>The template is a combination of HTML tags and Handlebar templates. The root of the template is the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template">template</a> element rather than a script with a specific type attribute. The <code>template</code> element was specifically designed to create inert templates that are not read as  part of the document, even if they are loaded with it.</p>
-<p>Since we expect more than one codelab to be hosted, we use Handlebar’s <a href="https://handlebarsjs.com/guide/builtin-helpers.html#each">#each</a> helper to iterate over the list of codelabs.</p>
+<p>Since we expect more than one codelab to be hosted, we use Handlebar's <a href="https://handlebarsjs.com/guide/builtin-helpers.html#each">#each</a> helper to iterate over the list of codelabs.</p>
 <p>For each codelab we instantiate it and fil it out with the necessary information from the data on the script.</p>
 <p>The information inside double curly braces (llike <code>{{url}}</code> or <code>{{title}}</code> is extracted from the script data section</p>
-<pre><code class="language-html">&lt;template id=&quot;codelab-list-template&quot;&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>codelab-list-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   {{#each codelabs }}
-  &lt;div class=&quot;codelab-item&quot;&gt;
-    &lt;h3&gt;&lt;a href=&quot;codelabs/{{url}}&quot;&gt;{{title}}&lt;/a&gt;&lt;/h3&gt;
-    &lt;p&gt;{{summary}}&lt;/p&gt;
-    &lt;p class=&quot;small&quot;&gt;Last Updated: {{updated}}&lt;/p&gt;
-  &lt;/div&gt;
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>codelab-item<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h3</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>codelabs/{{url}}<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>{{title}}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h3</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>{{summary}}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>small<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Last Updated: {{updated}}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
   {{/each}}
-&lt;/template&gt;
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
 </code></pre>
-<h2>The script</h2>
+<h2 id="the-script">The script</h2>
 <p>The script has two sections: The first section is the data section and the second section is the template instantiation.</p>
 <p>The data section is a constant holding an array of objects corresponding to the codelabs.</p>
-<pre><code class="language-js">const codelabs = [
-  {
-    'updated': '2022-03-15T04:17:23-07:00',
-    'title': 'How to build an API using Express.js and MongoDB',
-    'summary': 'How to build an API using Express.js and MongoDB',
-    'source': 'building-database-backed-app-node.md',
-    'url': 'codelab-api-backend',
-  }
-];
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> codelabs <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token string">'updated'</span><span class="token operator">:</span> <span class="token string">'2022-03-15T04:17:23-07:00'</span><span class="token punctuation">,</span>
+    <span class="token string">'title'</span><span class="token operator">:</span> <span class="token string">'How to build an API using Express.js and MongoDB'</span><span class="token punctuation">,</span>
+    <span class="token string">'summary'</span><span class="token operator">:</span> <span class="token string">'How to build an API using Express.js and MongoDB'</span><span class="token punctuation">,</span>
+    <span class="token string">'source'</span><span class="token operator">:</span> <span class="token string">'building-database-backed-app-node.md'</span><span class="token punctuation">,</span>
+    <span class="token string">'url'</span><span class="token operator">:</span> <span class="token string">'codelab-api-backend'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The template instantiation does the following:</p>
 <ul>
@@ -50,14 +50,14 @@
 <li>Grabs a reference to the Handlebars compiler with the template as a paramenter</li>
 <li>Inserts the rendered template into the DOM using the data from the <code>codelabs</code> array</li>
 </ul>
-<pre><code class="language-js">const template = document.getElementById('codelab-list-template').innerHTML;
-const renderCats = Handlebars.compile(template);
-document.getElementById('codelab-list').innerHTML = renderCats({
-  codelabs: codelabs,
-});
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> template <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'codelab-list-template'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML<span class="token punctuation">;</span>
+<span class="token keyword">const</span> renderCats <span class="token operator">=</span> Handlebars<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span>template<span class="token punctuation">)</span><span class="token punctuation">;</span>
+document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'codelab-list'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token function">renderCats</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  codelabs<span class="token operator">:</span> codelabs<span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>Since this is the only template that we need to render, that’s it. The rest of the HTML code loads fonts, provides a proper structure for the content and loadss the Handlebars library and the script we just discussed.</p>
-<h2>Remaining issues</h2>
-<p>There are a couple issues remaining. I’ll document them here as I try to get them working.</p>
-<p>I would like to be able to fetch the JSON file rather than hardcoding it on the script. I can’t figure out if this is possible or how to do it if it is.</p>
-<p>The last updated date is not displayed in a human friendly format. There are Handlebars helpers to do it, I just don’t know if I can use them in the browser.</p>
+<p>Since this is the only template that we need to render, that's it. The rest of the HTML code loads fonts, provides a proper structure for the content and loadss the Handlebars library and the script we just discussed.</p>
+<h2 id="remaining-issues">Remaining issues</h2>
+<p>There are a couple issues remaining. I'll document them here as I try to get them working.</p>
+<p>I would like to be able to fetch the JSON file rather than hardcoding it on the script. I can't figure out if this is possible or how to do it if it is.</p>
+<p>The last updated date is not displayed in a human friendly format. There are Handlebars helpers to do it, I just don't know if I can use them in the browser.</p>

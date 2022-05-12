@@ -1,10 +1,10 @@
-<h1>Updating jQuery without breaking WordPress</h1>
-<p>I’ve been working on WordPress performance issues for a while and one of the things that I found is that the version of jQuery used in WordPress is not secure and is far from the latest version.</p>
-<p>Normally this would be a non issue. WordPress updates jQuery to the latest 3.x version and we’re set, right?</p>
+<h1 id="updating-jquery-without-breaking-wordpress">Updating jQuery without breaking WordPress</h1>
+<p>I've been working on WordPress performance issues for a while and one of the things that I found is that the version of jQuery used in WordPress is not secure and is far from the latest version.</p>
+<p>Normally this would be a non issue. WordPress updates jQuery to the latest 3.x version and we're set, right?</p>
 <p>Well, with a project as large as WordPress is not as easy to do so. There are hundreds if not thousands of plugins and themes using the version of jQuery currently installed with WordPress so just updating will likely break a lot of sites.</p>
-<p>So what’s the alternative?</p>
+<p>So what's the alternative?</p>
 <p>We can change the jQuery version we use in the front end and leave the version used in the administrator and customizer screens.</p>
-<p>For my own theme, I chose to add this to my theme’s <code>functions.php</code>. For client work I would create a plugin for it.</p>
+<p>For my own theme, I chose to add this to my theme's <code>functions.php</code>. For client work I would create a plugin for it.</p>
 <p>The code consists of two parts:</p>
 <ol>
 <li>The definition of the function that we want to use</li>
@@ -14,60 +14,60 @@
 <p>Next we remove jQuery, jQuery Core, and jQuery Migrate.</p>
 <p>We follow this by adding the scripts again with <code>register_script</code> and <code>enqueue_scripts</code>. The thing we need to pay particular attention to is how we add <code>jquery</code> with <code>jquery-core</code> as a dependency so that other scripts can just use jquery as a dependency as well.</p>
 <p>The final step on this part of the script is to use the <code>enqueue_scripts</code> action to run the code in the function.</p>
-<pre><code class="language-php">&lt;?php
-Function wp_jquery_manager_plugin_front_end_scripts() {
-    $wp_admin = is_admin();
-    $wp_customizer = is_customize_preview();
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">Function</span> <span class="token function-definition function">wp_jquery_manager_plugin_front_end_scripts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token variable">$wp_admin</span> <span class="token operator">=</span> <span class="token function">is_admin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token variable">$wp_customizer</span> <span class="token operator">=</span> <span class="token function">is_customize_preview</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    // jQuery
-    if ( $wp_admin || $wp_customizer ) {
-        // echo 'We are in the WP Admin or in the WP Customizer';
-        return;
-    }
-    else {
-        // jquery is an alias for jquery-core
-        wp_deregister_script( 'jquery' );
-        // Deregister WP jQuery
-        wp_deregister_script( 'jquery-core' );
-        // Deregister WP jQuery Migrate
-        wp_deregister_script( 'jquery-migrate' );
+    <span class="token comment">// jQuery</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token variable">$wp_admin</span> <span class="token operator">||</span> <span class="token variable">$wp_customizer</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// echo 'We are in the WP Admin or in the WP Customizer';</span>
+        <span class="token keyword">return</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        <span class="token comment">// jquery is an alias for jquery-core</span>
+        <span class="token function">wp_deregister_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Deregister WP jQuery</span>
+        <span class="token function">wp_deregister_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-core'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Deregister WP jQuery Migrate</span>
+        <span class="token function">wp_deregister_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-migrate'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        // Register jQuery
-        wp_register_script( 'jquery-core', 'https://code.jquery.com/jquery-3.5.1.min.js', array(), null, true );
-        // Register jQuery Migrate in the head
-        wp_register_script( 'jquery-migrate', 'https://code.jquery.com/jquery-migrate-3.3.1.min.js', array(), null, true );
+        <span class="token comment">// Register jQuery</span>
+        <span class="token function">wp_register_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-core'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'https://code.jquery.com/jquery-3.5.1.min.js'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">null</span><span class="token punctuation">,</span> <span class="token constant boolean">true</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Register jQuery Migrate in the head</span>
+        <span class="token function">wp_register_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-migrate'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'https://code.jquery.com/jquery-migrate-3.3.1.min.js'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">null</span><span class="token punctuation">,</span> <span class="token constant boolean">true</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        // Register jquery using jquery-core as a dependency
-        //so other scripts could use the jquery handle
-        wp_register_script( 'jquery', false, array( 'jquery-core' ), null, false );
-        wp_enqueue_script( 'jquery' );
+        <span class="token comment">// Register jquery using jquery-core as a dependency</span>
+        <span class="token comment">//so other scripts could use the jquery handle</span>
+        <span class="token function">wp_register_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery'</span><span class="token punctuation">,</span> <span class="token constant boolean">false</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-core'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">null</span><span class="token punctuation">,</span> <span class="token constant boolean">false</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        wp_register_script( 'jquery-migrate', false, array(), null, true );
-        wp_enqueue_script( 'jquery-migrate' );
-    }
-}
-add_action( 'wp_enqueue_scripts', 'wp_jquery_manager_plugin_front_end_scripts' );
-</code></pre>
-<p>Before the scripts will work we have to modify the tags to include <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity">Sub Resource Integrity</a> (SRI) to verify that the script hasn’t been changed and  <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">Cross-Origin Resource Sharing</a> (CORS) to ensure that the origin you’re serving the resource from allows it to be used on your site.</p>
-<p>This is very repetitive and I haven’t found a way to make one function work on multiple tags.</p>
+        <span class="token function">wp_register_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-migrate'</span><span class="token punctuation">,</span> <span class="token constant boolean">false</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">null</span><span class="token punctuation">,</span> <span class="token constant boolean">true</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-migrate'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp_jquery_manager_plugin_front_end_scripts'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>Before the scripts will work we have to modify the tags to include <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity">Sub Resource Integrity</a> (SRI) to verify that the script hasn't been changed and  <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">Cross-Origin Resource Sharing</a> (CORS) to ensure that the origin you're serving the resource from allows it to be used on your site.</p>
+<p>This is very repetitive and I haven't found a way to make one function work on multiple tags.</p>
 <p>The idea for these functions is that we replace the <code>/&gt;&lt;/script&gt;</code> elements of the script tag  with the integrity and crossorigin attributes before putting <code>/&gt;&lt;/script&gt;</code> back on the string.</p>
 <p>Once the function is written we use the <a href="https://developer.wordpress.org/reference/hooks/script_loader_tag/">script_loader_tag</a> hook to call the function we created for each script and insert the attributes we need.</p>
-<pre><code class="language-php">&lt;?php
-function add_jquery_attributes( $tag, $handle ) {
-  if ( 'jquery-core' === $handle ) {
-    return str_replace( &quot;&gt;&lt;/script&gt;&quot;, &quot;integrity='sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=' crossorigin='anonymous'&gt;&lt;/script&gt;&quot;, $tag );
-  }
-  return $tag;
-}
-add_filter( 'script_loader_tag', 'add_jquery_attributes', 10, 2 );
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">add_jquery_attributes</span><span class="token punctuation">(</span> <span class="token variable">$tag</span><span class="token punctuation">,</span> <span class="token variable">$handle</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-core'</span> <span class="token operator">===</span> <span class="token variable">$handle</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token function">str_replace</span><span class="token punctuation">(</span> <span class="token string double-quoted-string">">&lt;/script>"</span><span class="token punctuation">,</span> <span class="token string double-quoted-string">"integrity='sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=' crossorigin='anonymous'>&lt;/script>"</span><span class="token punctuation">,</span> <span class="token variable">$tag</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">return</span> <span class="token variable">$tag</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'script_loader_tag'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'add_jquery_attributes'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">2</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-function add_jquery_migrate_attributes( $tag, $handle ) {
-    if ( 'jquery-migrate' === $handle ) {
-    return str-replace( &quot;&gt;&lt;/script&gt;&quot;, &quot;integrity='sha256-APllMc0V4lf/Rb5Cz4idWUCYlBDG3b0EcN1Ushd3hpE=' crossorigin='anonymous'&gt;&lt;/script&gt;&quot;, $tag );
-  }
-  return $tag;
-}
-add_filter( 'script_loader_tag', 'add_jquery_migrate_attributes', 10, 2 );
-</code></pre>
-<p>It is important to remember that the integrity attribute is exclusive to the CDN where you’re pulling the code from. In this case, the integrity attribute will fail if you try to download a different version from the same CDN or the same verision from a different CDN.</p>
-<p><strong><em>It is also important to test these changes on your code. It worked for me but it may not work with your plugins and themes.</em></strong></p>
+<span class="token keyword">function</span> <span class="token function-definition function">add_jquery_migrate_attributes</span><span class="token punctuation">(</span> <span class="token variable">$tag</span><span class="token punctuation">,</span> <span class="token variable">$handle</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token string single-quoted-string">'jquery-migrate'</span> <span class="token operator">===</span> <span class="token variable">$handle</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> str<span class="token operator">-</span><span class="token function">replace</span><span class="token punctuation">(</span> <span class="token string double-quoted-string">">&lt;/script>"</span><span class="token punctuation">,</span> <span class="token string double-quoted-string">"integrity='sha256-APllMc0V4lf/Rb5Cz4idWUCYlBDG3b0EcN1Ushd3hpE=' crossorigin='anonymous'>&lt;/script>"</span><span class="token punctuation">,</span> <span class="token variable">$tag</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">return</span> <span class="token variable">$tag</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'script_loader_tag'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'add_jquery_migrate_attributes'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">2</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>It is important to remember that the integrity attribute is exclusive to the CDN where you're pulling the code from. In this case, the integrity attribute will fail if you try to download a different version from the same CDN or the same verision from a different CDN.</p>
+<p><em><strong>It is also important to test these changes on your code. It worked for me but it may not work with your plugins and themes.</strong></em></p>

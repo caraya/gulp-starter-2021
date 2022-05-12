@@ -1,17 +1,17 @@
-<h1>Resource Hints in WordPress</h1>
+<h1 id="resource-hints-in-wordpress">Resource Hints in WordPress</h1>
 <p>Resource hints is a relationship used to oindicated that a given origin or resource should be acted upon before they are actually loaded.</p>
 <p>Doing this in WordPress is more complicated. While we could add the resources directly to the templates it would require changing the templates whenever we change fonts or any detail of the type of resource hint.</p>
 <p>The code below is taken from the <a href="https://wordpress.org/support/article/twenty-seventeen/">Twenty Seventeen</a> theme and with some modifications will work on any theme running on recent versions ooof WordPress.</p>
 <p>It requires enqueuing the fonts generated through <code>twentyseventeen_fonts_url()</code>, which is outside the scope of this post but is available on their <a href="https://themes.svn.wordpress.org/twentyseventeen/2.2/functions.php">Subversion repository</a></p>
 <p>The enqueuing script is similar to how we normally enqueue scripts and fonts to use with WordPress but the second parameter calls a theme function rather than a static asset. The modified code looks like this.</p>
-<pre><code class="language-php">&lt;?php
-function twentyseventeen_scripts() {
-    // Add custom fonts, used in the main stylesheet.
-  wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), null );
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">twentyseventeen_scripts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token comment">// Add custom fonts, used in the main stylesheet.</span>
+  <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'twentyseventeen-fonts'</span><span class="token punctuation">,</span> <span class="token function">twentyseventeen_fonts_url</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token constant">null</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-add_action( 'wp_enqueue_scripts', 'twentyseventeen_scripts' );
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'twentyseventeen_scripts'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-?&gt;
+<span class="token delimiter important">?></span></span>
 </code></pre>
 <p>We then create resource hints in <code>twentyseventeen_resource_hints()</code>. It takes two parameters:</p>
 <ul>
@@ -19,19 +19,19 @@ add_action( 'wp_enqueue_scripts', 'twentyseventeen_scripts' );
 <li><strong>@param string <em>$relation_type</em></strong> The relation type the URLs are printed.</li>
 </ul>
 <p>And returns an array of URLs of resource hints to print.</p>
-<pre><code class="language-php">&lt;?php
- function twentyseventeen_resource_hints( $urls, $relation_type ) {
-  if ( wp_style_is( 'twentyseventeen-fonts', 'queue' ) &amp;&amp; 'preconnect' === $relation_type ) {
-    $urls[] = array(
-      'href' =&gt; 'https://fonts.gstatic.com',
-      'crossorigin',
-    );
-  }
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+ <span class="token keyword">function</span> <span class="token function-definition function">twentyseventeen_resource_hints</span><span class="token punctuation">(</span> <span class="token variable">$urls</span><span class="token punctuation">,</span> <span class="token variable">$relation_type</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">wp_style_is</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'twentyseventeen-fonts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'queue'</span> <span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token string single-quoted-string">'preconnect'</span> <span class="token operator">===</span> <span class="token variable">$relation_type</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token variable">$urls</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'href'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'https://fonts.gstatic.com'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'crossorigin'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
 
-    return $urls;
-}
-add_filter( 'wp_resource_hints', 'twentyseventeen_resource_hints', 10, 2 );
-?&gt;
+	<span class="token keyword">return</span> <span class="token variable">$urls</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_resource_hints'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'twentyseventeen_resource_hints'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">2</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
 </code></pre>
 <p>We choose what URL to create by checking if the style has been enqueued and if the type or relation (indicated in the <code>$relation_type</code> variable) is preconnect.</p>
 <p>Finally we add the <code>wp_resoource_hint</code> fileter with the function we just defined.</p>

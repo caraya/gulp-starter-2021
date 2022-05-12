@@ -1,65 +1,65 @@
-<h1>Performance auditing using Chrome Dev Tools, Web Page Test and Page Speed Insight</h1>
-<p>Although Chrome Dev Tools gives us an approximation of what a connection would be like in a given device it’s not 100% accurate, it can’t be since our Macbooks and Windows devices don’t have to deal with the additional constraints that a mobile device has.</p>
-<h2>Why should we test in an actual device?</h2>
+<h1 id="performance-auditing-using-chrome-dev-tools%2C-web-page-test-and-page-speed-insight">Performance auditing using Chrome Dev Tools, Web Page Test and Page Speed Insight</h1>
+<p>Although Chrome Dev Tools gives us an approximation of what a connection would be like in a given device it's not 100% accurate, it can't be since our Macbooks and Windows devices don't have to deal with the additional constraints that a mobile device has.</p>
+<h2 id="why-should-we-test-in-an-actual-device%3F">Why should we test in an actual device?</h2>
 <p>All cores in a laptop or desktop systems are symmetric as opposed to mobile devices where some of the cores are powerful and some of the cores (the ones that happen to do all of the work) are less powerful, use less power and generate less heat.</p>
-<p>All laptops and desktops have large heat sinks over the CPU and fans (or liquid systems for some gaming rigs) to dissipate the heat. Mobile devices have no such things, that’s why we’re always concerned about burning ourselves with mobile devices.</p>
-<p>Best explanation on how this affects performance and why we should care is Alex Russell’s presentation at the Polymer Summit</p>
-<div class="video">
-<iframe width="560" height="315" src="https://www.youtube.com/embed/K1SFnrf4jZo" frameborder="0" allowfullscreen></iframe>
-</div>
-<p>So we have unreliable hardware (we can’t tell if the right CPU cores will be ready when the user first access an application) in a flat out hostile network with high RTT that, potentially, takes a long time to actually complete.</p>
+<p>All laptops and desktops have large heat sinks over the CPU and fans (or liquid systems for some gaming rigs) to dissipate the heat. Mobile devices have no such things, that's why we're always concerned about burning ourselves with mobile devices.</p>
+<p>Best explanation on how this affects performance and why we should care is Alex Russell's presentation at the Polymer Summit</p>
+<p>&lt;div class=&quot;video&quot;&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/K1SFnrf4jZo&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;</p>
+<p>So we have unreliable hardware (we can't tell if the right CPU cores will be ready when the user first access an application) in a flat out hostile network with high RTT that, potentially, takes a long time to actually complete.</p>
 <p>The graphic below shows the HTTP Archive Trend for Average number of requests for Javascript resources and the average size of all responses for a single website between November, 2015 and November, 2016. HTTP Archive only deals with resources as they are transferred through the wire.</p>
-<p><strong><em>JS Transfer Size and Average # of Requests from HTTP Archive</em></strong></p>
-<figure>
-<img src="http://chart.googleapis.com/chart?chd=t:-1|18,18,18,18,18,18,18,26,28,29,27,26,27,27,27,22,21,21,21,21,21,21,22,22,22|-1|304,305,303,299,297,304,307,401,410,409,399,403,408,422,416,375,373,378,372,374,377,384,385,392,392&chxl=0:|11%2F15%7C+%7C12%2F15%7C+%7C1%2F16%7C+%7C2%2F16%7C+%7C3%2F16%7C+%7C4%2F16%7C+%7C5%2F16%7C+%7C6%2F16%7C+%7C7%2F16%7C+%7C8%2F16%7C+%7C9%2F16%7C+%7C10%2F16%7C+%7C11%2F16&chxt=x,y,r&chs=600x300&cht=lxy&chco=E63C0B,982807&chm=N,E63C0B,0,::2,12,,h::8|N**kB,982807,1,::2,12,,h::8&chds=9,99,0,45,9,99,100,500&chts=982807,24&chtt=JS+Transfer+Size+%26+JS+Requests&chma=5,5,5,25&chls=1,6,3|1&chxr=1,100,500,100|2,0,45,10&chxs=1,982807,11.5,-0.5,lt,982807,982807|2,E63C0B,11.5,-0.5,lt,E63C0B,E63C0B&chxtc=0,4|1,4&chxp=0&chdl=JS+Requests|JS+Transfer+Size+(kB)&chdlp=bv|r" alt="">
-<figcaption>JS Transfer Size and Average # of Requests from HTTP Archive</figcaption>
-</figure>
+<p><em><strong>JS Transfer Size and Average # of Requests from HTTP Archive</strong></em></p>
+<p>&lt;figure&gt;
+&lt;img src=&quot;http://chart.googleapis.com/chart?chd=t:-1|18,18,18,18,18,18,18,26,28,29,27,26,27,27,27,22,21,21,21,21,21,21,22,22,22|-1|304,305,303,299,297,304,307,401,410,409,399,403,408,422,416,375,373,378,372,374,377,384,385,392,392&amp;chxl=0:|11%2F15%7C+%7C12%2F15%7C+%7C1%2F16%7C+%7C2%2F16%7C+%7C3%2F16%7C+%7C4%2F16%7C+%7C5%2F16%7C+%7C6%2F16%7C+%7C7%2F16%7C+%7C8%2F16%7C+%7C9%2F16%7C+%7C10%2F16%7C+%7C11%2F16&amp;chxt=x,y,r&amp;chs=600x300&amp;cht=lxy&amp;chco=E63C0B,982807&amp;chm=N,E63C0B,0,::2,12,,h::8|N**kB,982807,1,::2,12,,h::8&amp;chds=9,99,0,45,9,99,100,500&amp;chts=982807,24&amp;chtt=JS+Transfer+Size+%26+JS+Requests&amp;chma=5,5,5,25&amp;chls=1,6,3|1&amp;chxr=1,100,500,100|2,0,45,10&amp;chxs=1,982807,11.5,-0.5,lt,982807,982807|2,E63C0B,11.5,-0.5,lt,E63C0B,E63C0B&amp;chxtc=0,4|1,4&amp;chxp=0&amp;chdl=JS+Requests|JS+Transfer+Size+(kB)&amp;chdlp=bv|r&quot; alt=&quot;&quot;&gt;
+&lt;figcaption&gt;JS Transfer Size and Average # of Requests from HTTP Archive&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
 <p>If we accept that the default Dev Tools emulation in Chrome Desktop is not a faithful representation of how a site will load in a mobile device.  We can create custom profiles and adjust the latency for each of our connections we cannot account for the unpredictability of mobile networks.</p>
-<p>In the rest of the post we’ll look at 3 tools that will allow us to get a better read on how our application is performing:</p>
+<p>In the rest of the post we'll look at 3 tools that will allow us to get a better read on how our application is performing:</p>
 <ul>
 <li>Chrome Remote Debugging</li>
 <li>Page Speed Test to run your app closer to where your users are</li>
 <li>Page Speed Insight to get feedback and metrics on your app performance</li>
 </ul>
-<h3>Using Chrome Remote Debugging</h3>
-<p>If you use Android, you can plug your device and run your app on the device to trace your app’s performance in an actual mobile device using your desktop’s Dev Tools. This will eliminate some of the issues Alex discussed on the video above. Running remotely through Dev Tools using the device will use the devices cell or wifi connectivity and will fire the device’s cores as it would when working independently of the computer it’s tethered to.</p>
-<p>Because we can’t rely on the results from simulating connection speed using desktop Chrome’s Dev Tools this will produce a much more accurate Dev Tools trace of your application. The trace can be opened in other instances of Chrome for review and further analysis.</p>
+<h3 id="using-chrome-remote-debugging">Using Chrome Remote Debugging</h3>
+<p>If you use Android, you can plug your device and run your app on the device to trace your app's performance in an actual mobile device using your desktop's Dev Tools. This will eliminate some of the issues Alex discussed on the video above. Running remotely through Dev Tools using the device will use the devices cell or wifi connectivity and will fire the device's cores as it would when working independently of the computer it's tethered to.</p>
+<p>Because we can't rely on the results from simulating connection speed using desktop Chrome's Dev Tools this will produce a much more accurate Dev Tools trace of your application. The trace can be opened in other instances of Chrome for review and further analysis.</p>
 <p><a href="https://developers.google.com/web/tools/chrome-devtools/remote-debugging/">Chrome Dev Tools Remote Debugger</a> describes how to plug in your Android device and use your desktop Chrome Dev Tools to create traces and debug your application.</p>
 <p>In the video below Boris Smus shows how to remote debug an application on your mobile device using Desktop Chrome.</p>
-<div class="video">
-<iframe width="560" height="315" src="https://www.youtube.com/embed/Hl_5hpJi-p4?rel=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<h3>Using WebPage Speed Test</h3>
-<figure>
-<img src="http://cdn.sixrevisions.com/0223-04_test_website_speed_webpagetest.jpg">
-<figcaption>Webpagetest entry page</figcaption>
-</figure>
+<p>&lt;div class=&quot;video&quot;&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/Hl_5hpJi-p4?rel=0&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;</p>
+<h3 id="using-webpage-speed-test">Using WebPage Speed Test</h3>
+<p>&lt;figure&gt;
+&lt;img src=&quot;http://cdn.sixrevisions.com/0223-04_test_website_speed_webpagetest.jpg&quot;&gt;
+&lt;figcaption&gt;Webpagetest entry page&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
 <p><a href="https://www.webpagetest.org/">Webpage Speed Test</a> provides tools to test your application in the same geographical location you expect your users to be. Depending on the region you will have different browsers and devices to test with.</p>
 <p>If using Chrome (any version) you can generate trace of the test Pagespeed test runs. These tests can be imported into other instances of Chrome or Chromium-based browser and used for collaborative debugging and performance analysis.</p>
-<h3>Using Page Speed Insight</h3>
-<figure>
-<img src="http://www.webpagefx.com/blog/wp-content/uploads/2014/09/PageSpeed-Insights.png">
-<figcaption>Googl PageSpeed Insights</figcaption>
-</figure>
+<h3 id="using-page-speed-insight">Using Page Speed Insight</h3>
+<p>&lt;figure&gt;
+&lt;img src=&quot;http://www.webpagefx.com/blog/wp-content/uploads/2014/09/PageSpeed-Insights.png&quot;&gt;
+&lt;figcaption&gt;Googl PageSpeed Insights&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
 <p>Page Speed Insights works slightly different than WPST. It runs tests against the given website but instead of providing metrics and statistics it provides suggestions and solutions for improving the page load speed. A score of 85 or higher (out of 100) indicates that the page is performing well and, of course, the higher the score the better.</p>
 <ul>
 <li><strong>time to above-the-fold load</strong>: How long does it take to load the content the user sees when she first loads the site/app</li>
 <li><strong>time to full page load</strong>: How long does it take for the browser to fully render the page</li>
 </ul>
 <p>Network performance is a tricky thing and can vary considerably between browsers, devices and networks. Because of this PageSpeed Insights only considers the network-independent aspects of page performance: the server configuration, the HTML structure of a page, and its use of external resources such as images, JavaScript, and CSS.  The results will vary according to your network.</p>
-<h2>PWA auditing with Lighthouse</h2>
+<h2 id="pwa-auditing-with-lighthouse">PWA auditing with Lighthouse</h2>
 <p>Progressive Web Applications describe a set of technologies that make web applications look and behave like native applications without sacrificing the ease of authoring and the tools we use to create our apps.</p>
-<p>There are many things that go into making a PWA and it’s extremely hard to keep everything in mind as you’re developin and testing your content. That’s where Lighthouse comes in.</p>
-<p>Lighthouse is a tool developed by Google’s Chrome Team to detect and measure features of PWAs, provide best practices and performance advice for your application.</p>
+<p>There are many things that go into making a PWA and it's extremely hard to keep everything in mind as you're developin and testing your content. That's where Lighthouse comes in.</p>
+<p>Lighthouse is a tool developed by Google's Chrome Team to detect and measure features of PWAs, provide best practices and performance advice for your application.</p>
 <p>Lighthouse is available as a chrome extension</p>
-<figure>
-<img src="https://cloud.githubusercontent.com/assets/238208/20411484/851a02ca-acd6-11e6-96f8-f90204801581.png">
-<figcaption>Lighthouse Chrome extension</figcaption>
-</figure>
+<p>&lt;figure&gt;
+&lt;img src=&quot;https://cloud.githubusercontent.com/assets/238208/20411484/851a02ca-acd6-11e6-96f8-f90204801581.png&quot;&gt;
+&lt;figcaption&gt;Lighthouse Chrome extension&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
 <p>and as a Node-CLI tool.</p>
-<figure>
-<img src="https://cloud.githubusercontent.com/assets/39191/19172762/60358d9a-8bd8-11e6-8c22-7fcb119ea0f5.png">
-<figcaption>Lighthouse CLI</figcaption>
-</figure>
-<h3>Install Lighthouse</h3>
+<p>&lt;figure&gt;
+&lt;img src=&quot;https://cloud.githubusercontent.com/assets/39191/19172762/60358d9a-8bd8-11e6-8c22-7fcb119ea0f5.png&quot;&gt;
+&lt;figcaption&gt;Lighthouse CLI&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
+<h3 id="install-lighthouse">Install Lighthouse</h3>
 <p>You can find instructions for installing Lighthouse, both the Chrome Extension and the CLI in the Github Repository <a href="https://github.com/GoogleChrome/lighthouse/blob/master/readme.md">README</a> file.</p>

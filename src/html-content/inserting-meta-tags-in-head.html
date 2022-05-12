@@ -1,7 +1,7 @@
-<h1>Inserting meta tags in the head of the page</h1>
-<p>When researching client hints, I came accross an interesting use case for dynamically inserting <code>meta</code> tags on a Handlebars template based on the route I’m accessing.</p>
-<p>The different pages of the experiment ue different sets of client hints so each needs to request the different hints from the server, an Express application in this case. I wasn’t able to do it within Express or Handlebars so I had to hack my way through getting it done with Javascript.</p>
-<p>We also use local storage to set up a variable when we successfully add the meta tag. If the variable exists then we don’t need to add the tag again.</p>
+<h1 id="inserting-meta-tags-in-the-head-of-the-page">Inserting meta tags in the head of the page</h1>
+<p>When researching client hints, I came accross an interesting use case for dynamically inserting <code>meta</code> tags on a Handlebars template based on the route I'm accessing.</p>
+<p>The different pages of the experiment ue different sets of client hints so each needs to request the different hints from the server, an Express application in this case. I wasn't able to do it within Express or Handlebars so I had to hack my way through getting it done with Javascript.</p>
+<p>We also use local storage to set up a variable when we successfully add the meta tag. If the variable exists then we don't need to add the tag again.</p>
 <p>While this solution works in the context of an Express/Handlebars solution, it should also work on regular pages.</p>
 <p>The script block does the following:</p>
 <ol>
@@ -12,30 +12,30 @@
 <li>Appends the link we created to the first (and only) <code>head</code> element on the page. You can trim it to add as many or as few of the hints you need to meet your needs</li>
 <li>Follow the same steps to add the <code>Accept-CH-Lifetime</code> meta tag</li>
 <li>Set up the <code>addedTag</code> local storage variable</li>
-<li>If the tags exist log a message to console and end. There’s no need to add the tags every time</li>
+<li>If the tags exist log a message to console and end. There's no need to add the tags every time</li>
 </ol>
 <p>The code to add the meta tags now looks like this:</p>
-<pre><code class="language-js">let metaTagExists = localStorage.getItem('addedTag');// 1
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> metaTagExists <span class="token operator">=</span> localStorage<span class="token punctuation">.</span><span class="token function">getItem</span><span class="token punctuation">(</span><span class="token string">'addedTag'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">// 1</span>
 
-if (!metaTagExists) {
-  const link = document.createElement('meta'); // 2
-  link.setAttribute('http-equiv', 'Accept-CH'); // 3
-  link.content = 'Width, Viewport-Width, DPR, Device-Memory, RTT, Downlink, ECT, Sec-CH-UA-Full-Version, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version, Sec-CH-UA-Arch, Sec-CH-UA-Model, Sec-CH-UA-Mobile' // 4
-  document.getElementsByTagName('head')[0].appendChild(link); // 5
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>metaTagExists<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> link <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'meta'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
+  link<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'http-equiv'</span><span class="token punctuation">,</span> <span class="token string">'Accept-CH'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+  link<span class="token punctuation">.</span>content <span class="token operator">=</span> <span class="token string">'Width, Viewport-Width, DPR, Device-Memory, RTT, Downlink, ECT, Sec-CH-UA-Full-Version, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version, Sec-CH-UA-Arch, Sec-CH-UA-Model, Sec-CH-UA-Mobile'</span> <span class="token comment">// 4</span>
+  document<span class="token punctuation">.</span><span class="token function">getElementsByTagName</span><span class="token punctuation">(</span><span class="token string">'head'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>link<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 5</span>
   
-  const link2 = document.createElement('meta');  // 6
-  link2.setAttribute('http-equiv', 'Accept-CH-Lifetime');
-  link2.content = '86400'
-  document.getElementsByTagName('head')[0].appendChild(link2); 
+  <span class="token keyword">const</span> link2 <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'meta'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 6</span>
+  link2<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'http-equiv'</span><span class="token punctuation">,</span> <span class="token string">'Accept-CH-Lifetime'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  link2<span class="token punctuation">.</span>content <span class="token operator">=</span> <span class="token string">'86400'</span>
+  document<span class="token punctuation">.</span><span class="token function">getElementsByTagName</span><span class="token punctuation">(</span><span class="token string">'head'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>link2<span class="token punctuation">)</span><span class="token punctuation">;</span> 
   
-  localStorage.setItem('addedTag', '🤡'); // 7 
-} else {
-  console.log('meta tag already exists, no need to add it again'); // 8
-}
+  localStorage<span class="token punctuation">.</span><span class="token function">setItem</span><span class="token punctuation">(</span><span class="token string">'addedTag'</span><span class="token punctuation">,</span> <span class="token string">'🤡'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 7 </span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'meta tag already exists, no need to add it again'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 8</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>The code produces the following HTML without the formating:</p>
-<pre><code class="language-html">&lt;meta http-equiv=&quot;Accept-CH&quot; 
-content=&quot;Width, 
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">http-equiv</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accept-CH<span class="token punctuation">"</span></span> 
+<span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Width, 
         Viewport-Width, 
         DPR, Device-Memory,
         RTT,
@@ -45,8 +45,8 @@ content=&quot;Width,
         Sec-CH-UA-Platform, 
         Sec-CH-UA-Platform-Version, 
         Sec-CH-UA-Arch, Sec-CH-UA-Model, 
-        Sec-CH-UA-Mobile&quot;&gt;
+        Sec-CH-UA-Mobile<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 
-&lt;meta http-equiv=&quot;Accept-CH-Lifetime&quot; 
-content=&quot;86400&quot;&gt;
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">http-equiv</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accept-CH-Lifetime<span class="token punctuation">"</span></span> 
+<span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>86400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 </code></pre>

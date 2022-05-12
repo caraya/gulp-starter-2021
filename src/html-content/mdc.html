@@ -1,7 +1,7 @@
-<h1>Material Design: What’s New</h1>
-<p>I first looked at <a href="https://material.io">Material Design</a> when it was first released along with the Polymer Team’s paper elements (the reference implementation of Material Design). Back then it wasn’t themable so most applications and sites that used Material Design looked the same.</p>
+<h1 id="material-design%3A-what's-new">Material Design: What's New</h1>
+<p>I first looked at <a href="https://material.io">Material Design</a> when it was first released along with the Polymer Team's paper elements (the reference implementation of Material Design). Back then it wasn't themable so most applications and sites that used Material Design looked the same.</p>
 <p>I was surprised to see a lot of sessions about Material Design at Google I/O this year. It picked my attention; I wanted to see what, if anything, changed.</p>
-<h2>What is Material Design?</h2>
+<h2 id="what-is-material-design%3F">What is Material Design?</h2>
 <p>Material Design is many things, among them:</p>
 <ul>
 <li>A design system</li>
@@ -10,81 +10,81 @@
 <li>A customizer to make the components and design process better fit brands other than Google</li>
 </ul>
 <p>The idea is to provide a common framework to talk and exectute design projects.</p>
-<h2>Getting everything ready</h2>
+<h2 id="getting-everything-ready">Getting everything ready</h2>
 <p>The new Material Design (that I call Material Design 2.0) uses NPM to host the components. So we need to run the following command to generate a <code>package.json</code> NPM configuration file.</p>
-<pre><code class="language-bash">npm init -y
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> init -y
 </code></pre>
-<p>You can later edit the file to change the information. I generate the file automatically to make life easier (what can I say, I’m lazy).</p>
-<h3>SCSS</h3>
+<p>You can later edit the file to change the information. I generate the file automatically to make life easier (what can I say, I'm lazy).</p>
+<h3 id="scss">SCSS</h3>
 <p>It uses SCSS to style the document so we need to make sure that Node-SASS is available.</p>
-<pre><code class="language-bash">npm i -D node-sass
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D node-sass
 </code></pre>
-<h3>Javascript and Typescript</h3>
+<h3 id="javascript-and-typescript">Javascript and Typescript</h3>
 <p>MDC works with ES2015 and Webpack on the Javascript side so we need to install Babel, ESLint and Webpack related packages.</p>
-<p>Eventually I want to move to Typescript to work with this project to unify all the scripts I write into one language. That’s why I add both the ES2015 and Typescript presets; so I can work in either language to start and then migrate to Typescript without having to change my Webpack configuration, all the work has been done up front.</p>
+<p>Eventually I want to move to Typescript to work with this project to unify all the scripts I write into one language. That's why I add both the ES2015 and Typescript presets; so I can work in either language to start and then migrate to Typescript without having to change my Webpack configuration, all the work has been done up front.</p>
 <p>I also use <a href="https://eslint.org/">ESLint</a> to lint my ES2016 code. The nice thing is that we can use ESLint for both ES2015 an Typescript. Just to be on the safe side I also install.</p>
-<p>In the process of implementing this project I found out that you have to install an additional package if you’re working with Typescript. <code>@types/npm</code> provides <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html">type definitions</a> for NPM making a series of errors disappear when linting.</p>
-<pre><code class="language-bash"># Load Babel Core and the ES2015 and Typescript presets
-# Save them as dev dependencies
-npm i -D @babel/core @babel/preset-es2015 @babel/preset-typescript
-# Install @types/npm to make sure NPM and Typescript
-# play well together
-# Save it as dev dependency
-npm i -D @types/npm
-# Load Webpack and loaders
-# Save them as dev dependencies
-npm i -D webpack webpack-dev-server babel-loader \
+<p>In the process of implementing this project I found out that you have to install an additional package if you're working with Typescript. <code>@types/npm</code> provides <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html">type definitions</a> for NPM making a series of errors disappear when linting.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Load Babel Core and the ES2015 and Typescript presets</span>
+<span class="token comment"># Save them as dev dependencies</span>
+<span class="token function">npm</span> i -D @babel/core @babel/preset-es2015 @babel/preset-typescript
+<span class="token comment"># Install @types/npm to make sure NPM and Typescript</span>
+<span class="token comment"># play well together</span>
+<span class="token comment"># Save it as dev dependency</span>
+<span class="token function">npm</span> i -D @types/npm
+<span class="token comment"># Load Webpack and loaders</span>
+<span class="token comment"># Save them as dev dependencies</span>
+<span class="token function">npm</span> i -D webpack webpack-dev-server babel-loader <span class="token punctuation">\</span>
 css-loader extract-loader file-loader sass-loader
-# Load ESLint and Google's eslint config
-# Save them as dev dependencies
-npm i -D eslint eslint-config-google
-# (OPTIONAL) Load Typescript and TSLint
-# Save it as dev dependency
-# npm i -D typescript tslint
+<span class="token comment"># Load ESLint and Google's eslint config</span>
+<span class="token comment"># Save them as dev dependencies</span>
+<span class="token function">npm</span> i -D eslint eslint-config-google
+<span class="token comment"># (OPTIONAL) Load Typescript and TSLint</span>
+<span class="token comment"># Save it as dev dependency</span>
+<span class="token comment"># npm i -D typescript tslint</span>
 </code></pre>
-<p>The other part of configuring the application is to create scripts that will run from the command line. This is different than configuring a task runner to run specific tasks (something we may end up doing anyways). Some of the tasks we’ll run from NPM include:</p>
+<p>The other part of configuring the application is to create scripts that will run from the command line. This is different than configuring a task runner to run specific tasks (something we may end up doing anyways). Some of the tasks we'll run from NPM include:</p>
 <ul>
-<li>Initializing the project’s Typescript configuration</li>
-<li>Start Webpack’s development server</li>
+<li>Initializing the project's Typescript configuration</li>
+<li>Start Webpack's development server</li>
 <li>Lint Javascript files</li>
 <li>Lint Typescript files</li>
 </ul>
 <p>We may add others as we walk through the process.</p>
-<pre><code class="language-json">{
-  &quot;name&quot;: &quot;mdc-demo&quot;,
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;description&quot;: &quot;Test implementation of an application using Express for the backend
-   and material design components for the UI&quot;,
-  &quot;main&quot;: &quot;index.js&quot;,
-  &quot;scripts&quot;: {
-    &quot;init&quot;: &quot;test -f tsconfig.json || (tsc --init -t ESNext -m ESNext)&quot;,
-    &quot;start&quot;: &quot;webpack-dev-server --progress --open&quot;,
-    &quot;lint:js&quot;: &quot;eslint ./src/js/**/*.js&quot;,
-    &quot;lint:ts&quot;: &quot;tslint ./src/ts/**/*.ts&quot;
-  },
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"mdc-demo"</span><span class="token punctuation">,</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token string">"1.0.0"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> "Test implementation of an application using Express for the backend
+   and material design components for the UI"<span class="token punctuation">,</span>
+  <span class="token property">"main"</span><span class="token operator">:</span> <span class="token string">"index.js"</span><span class="token punctuation">,</span>
+  <span class="token property">"scripts"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"init"</span><span class="token operator">:</span> <span class="token string">"test -f tsconfig.json || (tsc --init -t ESNext -m ESNext)"</span><span class="token punctuation">,</span>
+    <span class="token property">"start"</span><span class="token operator">:</span> <span class="token string">"webpack-dev-server --progress --open"</span><span class="token punctuation">,</span>
+    <span class="token property">"lint:js"</span><span class="token operator">:</span> <span class="token string">"eslint ./src/js/**/*.js"</span><span class="token punctuation">,</span>
+    <span class="token property">"lint:ts"</span><span class="token operator">:</span> <span class="token string">"tslint ./src/ts/**/*.ts"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
 
-  &quot;keywords&quot;: [],
-  &quot;author&quot;: &quot;Carlos Araya &lt;carlos.araya@gmail.com&gt;&quot;,
-  &quot;license&quot;: &quot;MIT&quot;,
-  &quot;dependencies&quot;: {},
-  &quot;devDependencies&quot;: {
-    &quot;@types/npm&quot;: &quot;^2.0.29&quot;,
-    &quot;babel-core&quot;: &quot;^6.22.1&quot;,
-    &quot;babel-loader&quot;: &quot;^7.0.0&quot;,
-    &quot;babel-preset-es2015&quot;: &quot;^6.9.0&quot;,
-    &quot;css-loader&quot;: &quot;^0.28.0&quot;,
-    &quot;eslint&quot;: &quot;^4.19.1&quot;,
-    &quot;eslint-config-google&quot;: &quot;^0.9.1&quot;,
-    &quot;extract-loader&quot;: &quot;^1.0.2&quot;,
-    &quot;file-loader&quot;: &quot;^1.1.11&quot;,
-    &quot;node-sass&quot;: &quot;^4.9.0&quot;,
-    &quot;sass-loader&quot;: &quot;^6.0.4&quot;,
-    &quot;webpack&quot;: &quot;^3.0.0&quot;,
-    &quot;webpack-dev-server&quot;: &quot;^2.4.3&quot;
-  }
-}
+  <span class="token property">"keywords"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"author"</span><span class="token operator">:</span> <span class="token string">"Carlos Araya &lt;carlos.araya@gmail.com>"</span><span class="token punctuation">,</span>
+  <span class="token property">"license"</span><span class="token operator">:</span> <span class="token string">"MIT"</span><span class="token punctuation">,</span>
+  <span class="token property">"dependencies"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"devDependencies"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"@types/npm"</span><span class="token operator">:</span> <span class="token string">"^2.0.29"</span><span class="token punctuation">,</span>
+    <span class="token property">"babel-core"</span><span class="token operator">:</span> <span class="token string">"^6.22.1"</span><span class="token punctuation">,</span>
+    <span class="token property">"babel-loader"</span><span class="token operator">:</span> <span class="token string">"^7.0.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"babel-preset-es2015"</span><span class="token operator">:</span> <span class="token string">"^6.9.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"css-loader"</span><span class="token operator">:</span> <span class="token string">"^0.28.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"eslint"</span><span class="token operator">:</span> <span class="token string">"^4.19.1"</span><span class="token punctuation">,</span>
+    <span class="token property">"eslint-config-google"</span><span class="token operator">:</span> <span class="token string">"^0.9.1"</span><span class="token punctuation">,</span>
+    <span class="token property">"extract-loader"</span><span class="token operator">:</span> <span class="token string">"^1.0.2"</span><span class="token punctuation">,</span>
+    <span class="token property">"file-loader"</span><span class="token operator">:</span> <span class="token string">"^1.1.11"</span><span class="token punctuation">,</span>
+    <span class="token property">"node-sass"</span><span class="token operator">:</span> <span class="token string">"^4.9.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"sass-loader"</span><span class="token operator">:</span> <span class="token string">"^6.0.4"</span><span class="token punctuation">,</span>
+    <span class="token property">"webpack"</span><span class="token operator">:</span> <span class="token string">"^3.0.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"webpack-dev-server"</span><span class="token operator">:</span> <span class="token string">"^2.4.3"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>ESLint Configuration</h3>
+<h3 id="eslint-configuration">ESLint Configuration</h3>
 <p>To make sure ESLint work as intended run <code>eslint --init</code> to create a blank configuration file. Give the following answers when prompted</p>
 <ul>
 <li>How would you like to configure ESLint? <strong>Use a popular style guide</strong></li>
@@ -92,238 +92,238 @@ npm i -D eslint eslint-config-google
 <li>What format do you want your config file to be in? <strong>JavaScript</strong></li>
 </ul>
 <p>The <code>--init</code> option will create an</p>
-<pre><code class="language-javascript">module.exports = {
-  &quot;extends&quot;: &quot;google&quot;,
+<pre class="language-javascript"><code class="language-javascript">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token string">"extends"</span><span class="token operator">:</span> <span class="token string">"google"</span><span class="token punctuation">,</span>
 
-  &quot;parserOptions&quot;: {
-    &quot;ecmaVersion&quot;: 6,
-    &quot;sourceType&quot;: &quot;script&quot;,
-  },
-  &quot;env&quot;: {
-    &quot;browser&quot;: true,
-    &quot;node&quot;: true,
-    &quot;es6&quot;: true
-  }
+  <span class="token string">"parserOptions"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"ecmaVersion"</span><span class="token operator">:</span> <span class="token number">6</span><span class="token punctuation">,</span>
+    <span class="token string">"sourceType"</span><span class="token operator">:</span> <span class="token string">"script"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token string">"env"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"browser"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token string">"node"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token string">"es6"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span>
 
-};
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Webpack Configuration</h3>
-<p>Since we’re using Webpack we need a Webpack configuration file to tell Webpack how to work with our content. I’ve set up entry points for each of the types of content I expect to work with: SCSS, and Javascript.</p>
-<p>I’ll delay working with Typescript until I can figure out issues with Webpack Dev Server.</p>
-<pre><code class="language-javascript">// const path = require('path');
+<h3 id="webpack-configuration">Webpack Configuration</h3>
+<p>Since we're using Webpack we need a Webpack configuration file to tell Webpack how to work with our content. I've set up entry points for each of the types of content I expect to work with: SCSS, and Javascript.</p>
+<p>I'll delay working with Typescript until I can figure out issues with Webpack Dev Server.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// const path = require('path');</span>
 
-module.exports = [
-  {
-    entry: './src/sass/app.scss',
-    output: {
-      // This is necessary for webpack to compile
-      // But we never use style-bundle.js
-      filename: './src/css/app.js',
-    },
-    module: {
-      rules: [{
-        test: /\.scss$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: './dist/css/bundle.css',
-            },
-          },
-          {loader: 'extract-loader'},
-          {loader: 'css-loader'},
-          {
-            loader: 'sass-loader',
-            options: {
-              includePaths: ['./node_modules'],
-            },
-          },
-        ],
-      }],
-    },
-  },
-  {
-    entry: './src/js/app.js',
-    output: {
-      filename: './dist/js/bundle.js',
-    },
-    module: {
-      loaders: [{
-        test: /\.js$/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015'],
-        },
-      }],
-    },
-  }
-];
+module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    entry<span class="token operator">:</span> <span class="token string">'./src/sass/app.scss'</span><span class="token punctuation">,</span>
+    output<span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token comment">// This is necessary for webpack to compile</span>
+      <span class="token comment">// But we never use style-bundle.js</span>
+      filename<span class="token operator">:</span> <span class="token string">'./src/css/app.js'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    module<span class="token operator">:</span> <span class="token punctuation">{</span>
+      rules<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+        test<span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.scss$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+        use<span class="token operator">:</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">{</span>
+            loader<span class="token operator">:</span> <span class="token string">'file-loader'</span><span class="token punctuation">,</span>
+            options<span class="token operator">:</span> <span class="token punctuation">{</span>
+              name<span class="token operator">:</span> <span class="token string">'./dist/css/bundle.css'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>loader<span class="token operator">:</span> <span class="token string">'extract-loader'</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>loader<span class="token operator">:</span> <span class="token string">'css-loader'</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            loader<span class="token operator">:</span> <span class="token string">'sass-loader'</span><span class="token punctuation">,</span>
+            options<span class="token operator">:</span> <span class="token punctuation">{</span>
+              includePaths<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'./node_modules'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    entry<span class="token operator">:</span> <span class="token string">'./src/js/app.js'</span><span class="token punctuation">,</span>
+    output<span class="token operator">:</span> <span class="token punctuation">{</span>
+      filename<span class="token operator">:</span> <span class="token string">'./dist/js/bundle.js'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    module<span class="token operator">:</span> <span class="token punctuation">{</span>
+      loaders<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+        test<span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.js$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+        loader<span class="token operator">:</span> <span class="token string">'babel-loader'</span><span class="token punctuation">,</span>
+        query<span class="token operator">:</span> <span class="token punctuation">{</span>
+          presets<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'es2015'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
 
 </code></pre>
-<h3>Typescript Configuration</h3>
-<p>I’ve also configured Typescript for future work. It appears that Typescript doesn’t work with the Webpack Dev Server. Until I can figure out what the issue is I can’t use Typescript directly in the project but I can transpile the code manually and then run it through the Webpack pipeline. Nevertheless, here’s the configuration I’m using.</p>
-<pre><code class="language-json">{
-  &quot;compilerOptions&quot;: {
-    // Specify ECMAScript target version: 'ES3'
-    // (default), 'ES5', 'ES2015', 'ES2016',
-    // 'ES2017','ES2018' or 'ESNEXT'.
-    &quot;target&quot;: &quot;es2015&quot;,
-    //  Specify module code generation
-    &quot;module&quot;: &quot;es2015&quot;,
-    // Allow javascript files to be compiled.
-    &quot;allowJs&quot;: true,
-    // Report errors in .js files.
-    &quot;checkJs&quot;: false,
-    // Specify JSX code generation
-    &quot;jsx&quot;: &quot;react&quot;,
-    // Generates corresponding '.map' file.
-    &quot;sourceMap&quot;: true,
-    // Redirect output structure to the directory.
-    &quot;outDir&quot;: &quot;./dist/&quot;,
-    //Enable all strict type-checking options.
-    &quot;strict&quot;: true,
-    // Allow default imports from modules with no
-    // default export. This does not affect code
-    // emit, just typechecking.
-    &quot;allowSyntheticDefaultImports&quot;: true,
-    // Enables emit interoperability between CommonJS
-    // and ES Modules. Implies 'allowSyntheticDefaultImports'
-    &quot;esModuleInterop&quot;: true
-  }
-}
+<h3 id="typescript-configuration">Typescript Configuration</h3>
+<p>I've also configured Typescript for future work. It appears that Typescript doesn't work with the Webpack Dev Server. Until I can figure out what the issue is I can't use Typescript directly in the project but I can transpile the code manually and then run it through the Webpack pipeline. Nevertheless, here's the configuration I'm using.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"compilerOptions"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Specify ECMAScript target version: 'ES3'</span>
+    <span class="token comment">// (default), 'ES5', 'ES2015', 'ES2016',</span>
+    <span class="token comment">// 'ES2017','ES2018' or 'ESNEXT'.</span>
+    <span class="token property">"target"</span><span class="token operator">:</span> <span class="token string">"es2015"</span><span class="token punctuation">,</span>
+    <span class="token comment">//  Specify module code generation</span>
+    <span class="token property">"module"</span><span class="token operator">:</span> <span class="token string">"es2015"</span><span class="token punctuation">,</span>
+    <span class="token comment">// Allow javascript files to be compiled.</span>
+    <span class="token property">"allowJs"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token comment">// Report errors in .js files.</span>
+    <span class="token property">"checkJs"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    <span class="token comment">// Specify JSX code generation</span>
+    <span class="token property">"jsx"</span><span class="token operator">:</span> <span class="token string">"react"</span><span class="token punctuation">,</span>
+    <span class="token comment">// Generates corresponding '.map' file.</span>
+    <span class="token property">"sourceMap"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token comment">// Redirect output structure to the directory.</span>
+    <span class="token property">"outDir"</span><span class="token operator">:</span> <span class="token string">"./dist/"</span><span class="token punctuation">,</span>
+    <span class="token comment">//Enable all strict type-checking options.</span>
+    <span class="token property">"strict"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token comment">// Allow default imports from modules with no</span>
+    <span class="token comment">// default export. This does not affect code</span>
+    <span class="token comment">// emit, just typechecking.</span>
+    <span class="token property">"allowSyntheticDefaultImports"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token comment">// Enables emit interoperability between CommonJS</span>
+    <span class="token comment">// and ES Modules. Implies 'allowSyntheticDefaultImports'</span>
+    <span class="token property">"esModuleInterop"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>Editorconfig</h3>
-<p>To save myself the hassle I use the default <a href="http://editorconfig.org/">editorconfig</a> configuration to make sure that I don’t have to worry about tabs/spaces, line ending and other issues that come when working in different operating systems and with programmers with different habits.</p>
-<pre><code class="language-ini">root = true
+<h3 id="editorconfig">Editorconfig</h3>
+<p>To save myself the hassle I use the default <a href="http://editorconfig.org/">editorconfig</a> configuration to make sure that I don't have to worry about tabs/spaces, line ending and other issues that come when working in different operating systems and with programmers with different habits.</p>
+<pre class="language-ini"><code class="language-ini"><span class="token key attr-name">root</span> <span class="token punctuation">=</span> <span class="token value attr-value">true</span>
 
-[*]
-indent_style = space
-indent_size = 2
-end_of_line = lf
-charset = utf-8
-trim_trailing_whitespace = true
-insert_final_newline = true
+<span class="token header"><span class="token punctuation">[</span><span class="token section-name selector">*</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">indent_style</span> <span class="token punctuation">=</span> <span class="token value attr-value">space</span>
+<span class="token key attr-name">indent_size</span> <span class="token punctuation">=</span> <span class="token value attr-value">2</span>
+<span class="token key attr-name">end_of_line</span> <span class="token punctuation">=</span> <span class="token value attr-value">lf</span>
+<span class="token key attr-name">charset</span> <span class="token punctuation">=</span> <span class="token value attr-value">utf-8</span>
+<span class="token key attr-name">trim_trailing_whitespace</span> <span class="token punctuation">=</span> <span class="token value attr-value">true</span>
+<span class="token key attr-name">insert_final_newline</span> <span class="token punctuation">=</span> <span class="token value attr-value">true</span>
 
-[*.md]
-trim_trailing_whitespace = false
+<span class="token header"><span class="token punctuation">[</span><span class="token section-name selector">*.md</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">trim_trailing_whitespace</span> <span class="token punctuation">=</span> <span class="token value attr-value">false</span>
 </code></pre>
-<p>So after all this configuration script and files, we’re finally ready to look at how to create Material Design coomponents.</p>
-<h2>How does it work?</h2>
+<p>So after all this configuration script and files, we're finally ready to look at how to create Material Design coomponents.</p>
+<h2 id="how-does-it-work%3F">How does it work?</h2>
 <p>Material Design uses SASS for styling and ES2016 (Typescript for us) alongside HTML markup that tells the browser what to render and how to style it.</p>
-<h3>Building elements</h3>
-<p>For this example we’ll build a card element, like something I would use to display content like short tidbits of information, photos or similar content.</p>
+<h3 id="building-elements">Building elements</h3>
+<p>For this example we'll build a card element, like something I would use to display content like short tidbits of information, photos or similar content.</p>
 <p>The process is fairly straightforward. We first install the module using NPM:</p>
-<pre><code class="language-bash">npm install @material/card
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> @material/card
 </code></pre>
-<p>Note that all Material Design Components are scoped under the <code>@material</code> owner. This way you know you’re installing the correct component when scoping it like I did in the example.</p>
-<p>Once it’s installed we must do two things:</p>
+<p>Note that all Material Design Components are scoped under the <code>@material</code> owner. This way you know you're installing the correct component when scoping it like I did in the example.</p>
+<p>Once it's installed we must do two things:</p>
 <ol>
 <li>Write Markup</li>
 <li>Write the SASS styles for the component</li>
 <li>If we need to, write JavaScript to add behaviors  to the component</li>
 </ol>
-<h3>The Markup: HTML</h3>
+<h3 id="the-markup%3A-html">The Markup: HTML</h3>
 <p>The card markup can be as simple as a plain container with nothing else inside but text:</p>
-<pre><code class="language-html">&lt;div class=&quot;mdc-card&quot;&gt;
-  &lt;h1&gt;Title&lt;/h1&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-  &lt;p&gt;The content goes here&lt;/p&gt;
-&lt;/div&gt;
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>The content goes here<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>To fairly complex cards with multimedia text and navigation items at the bottom.</p>
-<pre><code class="language-html">&lt;div class=&quot;mdc-card&quot;&gt;
-  &lt;div class=&quot;mdc-card__media mdc-card__media--square&quot;&gt;
-    &lt;div class=&quot;mdc-card__media-content&quot;&gt;Title&lt;/div&gt;
-  &lt;/div&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__media mdc-card__media--square<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__media-content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
 
-  &lt;p&gt;The content goes here&lt;/p&gt;
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>The content goes here<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
 
-  &lt;div class=&quot;mdc-card__actions&quot;&gt;
-    &lt;div class=&quot;mdc-card__action-buttons&quot;&gt;
-      &lt;button class=&quot;mdc-button mdc-card__action mdc-card__action--button&quot;&gt;Action 1&lt;/button&gt;
-      &lt;button class=&quot;mdc-button mdc-card__action mdc-card__action--button&quot;&gt;Action 2&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;mdc-card__action-icons&quot;&gt;
-      &lt;i class=&quot;material-icons mdc-card__action mdc-card__action--icon&quot; tabindex=&quot;0&quot; role=&quot;button&quot; title=&quot;Share&quot;&gt;share&lt;/i&gt;
-      &lt;i class=&quot;material-icons mdc-card__action mdc-card__action--icon&quot; tabindex=&quot;0&quot; role=&quot;button&quot; title=&quot;More options&quot;&gt;more_vert&lt;/i&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__actions<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__action-buttons<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-button mdc-card__action mdc-card__action--button<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Action 1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-button mdc-card__action mdc-card__action--button<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Action 2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__action-icons<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>i</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>material-icons mdc-card__action mdc-card__action--icon<span class="token punctuation">"</span></span> <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span> <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Share<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>share<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>i</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>i</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>material-icons mdc-card__action mdc-card__action--icon<span class="token punctuation">"</span></span> <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span> <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>More options<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>more_vert<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>i</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>When creating a card there are many CSS classes that will help in structuring the card and, later, give you the names to use when adding styles.</p>
-<h3>Styling the component: SASS/SCSS</h3>
-<p>When I first saw how many classes you had available I got scared. There seems to be enough to drive yourself crazy if you haven’t read the docs and look at what you’re options are. There are also some gotchas that I would not have figure out if I hadn’t gone back to re-read the docs again.</p>
+<h3 id="styling-the-component%3A-sass%2Fscss">Styling the component: SASS/SCSS</h3>
+<p>When I first saw how many classes you had available I got scared. There seems to be enough to drive yourself crazy if you haven't read the docs and look at what you're options are. There are also some gotchas that I would not have figure out if I hadn't gone back to re-read the docs again.</p>
 <p>All the classes in the table (taken from mdc-card README on the <a href="https://github.com/material-components/material-components-web/blob/master/packages/mdc-card/README.md">Github Repo</a>) are provided by the component. Anything else is up to you to create.</p>
-<table>
-  <thead>
-    <tr>
-      <th>CSS Class</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>mdc-card</code></td>
-      <td>Mandatory, for the card element</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card--outlined</code></td>
-      <td>Removes the shadow and displays a hairline outline instead</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__primary-action</code></td>
-      <td>The main tappable area of the card. Typically contains most (or all) card content <em>except</em> <code>mdc-card__actions</code>. Only applicable to cards that have a primary action that the main surface should trigger.</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__media</code></td>
-      <td>Media area that displays a custom <code>background-image</code> with <code>background-size: cover</code></td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__media--square</code></td>
-      <td>Automatically scales the media area's height to equal its width</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__media--16-9</code></td>
-      <td>Automatically scales the media area's height according to its width, maintaining a 16:9 aspect ratio</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__media-content</code></td>
-      <td>An absolutely-positioned box the same size as the media area, for displaying a title or icon on top of the <code>background-image</code></td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__actions</code></td>
-      <td>Row containing action buttons and/or icons</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__actions--full-bleed</code></td>
-      <td>Removes the action area's padding and causes its only child (an <code>mdc-card__action</code> element) to consume 100% of the action area's width</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__action-buttons</code></td>
-      <td>A group of action buttons, displayed on the left side of the card (in LTR), adjacent to <code>mdc-card__action-icons</code></td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__action-icons</code></td>
-      <td>A group of supplemental action icons, displayed on the right side of the card (in LTR), adjacent to <code>__action-buttons</code></td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__action</code></td>
-      <td>An individual action button or icon</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__action--button</code></td>
-      <td>An action button with text</td>
-    </tr>
-    <tr>
-      <td><code>mdc-card__action--icon</code></td>
-      <td>An action icon with no text</td>
-    </tr>
-  </tbody>
-</table>
-<p>Now that we’ve got the markup ready to go, we can look at the SCSS/SASS we need to write to make it look the way we want it to.</p>
-<h2>Build a site with MDC</h2>
-<h3>Firebase for Static Site Hosting</h3>
-<h2>Links and Resources</h2>
+<p>&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;CSS Class&lt;/th&gt;
+&lt;th&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Mandatory, for the card element&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card--outlined&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Removes the shadow and displays a hairline outline instead&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__primary-action&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;The main tappable area of the card. Typically contains most (or all) card content &lt;em&gt;except&lt;/em&gt; &lt;code&gt;mdc-card__actions&lt;/code&gt;. Only applicable to cards that have a primary action that the main surface should trigger.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__media&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Media area that displays a custom &lt;code&gt;background-image&lt;/code&gt; with &lt;code&gt;background-size: cover&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__media--square&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Automatically scales the media area's height to equal its width&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__media--16-9&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Automatically scales the media area's height according to its width, maintaining a 16:9 aspect ratio&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__media-content&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;An absolutely-positioned box the same size as the media area, for displaying a title or icon on top of the &lt;code&gt;background-image&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__actions&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Row containing action buttons and/or icons&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__actions--full-bleed&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Removes the action area's padding and causes its only child (an &lt;code&gt;mdc-card__action&lt;/code&gt; element) to consume 100% of the action area's width&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__action-buttons&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;A group of action buttons, displayed on the left side of the card (in LTR), adjacent to &lt;code&gt;mdc-card__action-icons&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__action-icons&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;A group of supplemental action icons, displayed on the right side of the card (in LTR), adjacent to &lt;code&gt;__action-buttons&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__action&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;An individual action button or icon&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__action--button&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;An action button with text&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;mdc-card__action--icon&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;An action icon with no text&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</p>
+<p>Now that we've got the markup ready to go, we can look at the SCSS/SASS we need to write to make it look the way we want it to.</p>
+<h2 id="build-a-site-with-mdc">Build a site with MDC</h2>
+<h3 id="firebase-for-static-site-hosting">Firebase for Static Site Hosting</h3>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://material.io">Material Design</a></li>
 <li><a href="https://github.com/material-components/material-components-web">Material Component Github Repo</a></li>

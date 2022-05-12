@@ -1,43 +1,43 @@
-<h1>Event Delegation</h1>
+<h1 id="event-delegation">Event Delegation</h1>
 <p>One of the things that took me a while to fully understand is event delegation and the associated concepts of <code>event bubbling</code> and <code>event targeting</code>.</p>
 <p>The idea is that, when we add an event listener to an element, there are multiple events triggered and not just on the element the event is attached to.</p>
 <p>If we take the following HTML. How can we attach a single event so that it will work in all <code>li</code> elements and those we might add in the future?</p>
-<pre><code class="language-html">&lt;ul id=&quot;menu&quot;&gt;
-  &lt;li&gt;item 01&lt;/li&gt;
-  &lt;li&gt;item 02&lt;/li&gt;
-  &lt;li&gt;item 03&lt;/li&gt;
-  &lt;li&gt;item 04&lt;/li&gt;
-  &lt;li&gt;item 05&lt;/li&gt;
-  &lt;li&gt;item 06&lt;/li&gt;
-  &lt;li&gt;item 07&lt;/li&gt;
-  &lt;li&gt;item 08&lt;/li&gt;
-  &lt;li&gt;item 09&lt;/li&gt;
-  &lt;li&gt;item 10&lt;/li&gt;
-&lt;/ul&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ul</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>menu<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 01<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 02<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 03<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 04<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 05<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 06<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 07<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 08<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 09<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>item 10<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ul</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>When an event is fired on an element that has parent elements (in this case, the <code>li</code> has the <code>ul</code> as a parent), modern browsers run two different phases — the capturing phase and the bubbling phase.</p>
 <p>The capturing phase moves from the root of the document (the <code>html</code> element) to the element that triggered the event and executes all the matching event handler code that it finds along the way.</p>
-<p>The bubbling phase the exact opposite happens, we start at the element we interacted with has a matching event and, if it doesn’t it ‘bubbles’ upward in the chain, until it hits the root element of the page (<code>html</code>) executing the event handlers it finds along the way.</p>
+<p>The bubbling phase the exact opposite happens, we start at the element we interacted with has a matching event and, if it doesn't it 'bubbles' upward in the chain, until it hits the root element of the page (<code>html</code>) executing the event handlers it finds along the way.</p>
 <p>In modern browsers, by default, all event handlers are registered for the bubbling phase.</p>
 <p>If, at any point, you want to stop the propagation use <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/stopPropagation">stopPropagation</a>.</p>
-<p>If we want to stop the default behavior of an element, for example stop links from navigating to the destination, we need <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">preventDefault</a>. Note that <code>preventDefault()</code> does not stop propagation, only the element’s default behavior.</p>
+<p>If we want to stop the default behavior of an element, for example stop links from navigating to the destination, we need <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">preventDefault</a>. Note that <code>preventDefault()</code> does not stop propagation, only the element's default behavior.</p>
 <p>This example uses the default bubbling mechanism to create <a href="https://davidwalsh.name/event-delegate">event delegation</a>.</p>
 <p>We set up a single click event handler in the <code>ul</code> element rather than the individual children. That way when we click on an <code>li</code> element we get the event we want. Furthermore, if we add <code>li</code> elements to the list to any depth, they will still work with our event.</p>
-<pre><code class="language-js">const menu = document.querySelector('#menu');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> menu <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#menu'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-menu.addEventListener('click', e =&gt; {
-    // What was clicked?
-    let t = e.target; 
-    // if the list item was clicked
-    if (t.nodeName.toLowerCase() === 'li') { 
-      // print out the link
-      console.log(t.innerHTML);
-      // Do whatever else you need
-      output.innerHTML = t.innerHTML; 
-  }
-  // Don't follow the links
-  e.preventDefault(); 
-});
+menu<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token parameter">e</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token comment">// What was clicked?</span>
+    <span class="token keyword">let</span> t <span class="token operator">=</span> e<span class="token punctuation">.</span>target<span class="token punctuation">;</span> 
+    <span class="token comment">// if the list item was clicked</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>t<span class="token punctuation">.</span>nodeName<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">===</span> <span class="token string">'li'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+      <span class="token comment">// print out the link</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>t<span class="token punctuation">.</span>innerHTML<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token comment">// Do whatever else you need</span>
+      output<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> t<span class="token punctuation">.</span>innerHTML<span class="token punctuation">;</span> 
+  <span class="token punctuation">}</span>
+  <span class="token comment">// Don't follow the links</span>
+  e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>To set the event listener to capture events from the bottom down, add <code>true</code> as the second parameter of the event listener.</p>
 <p>In cases where both types of event handlers are present, bubbling and capturing, the capturing phase will run first, followed by the bubbling phase.</p>

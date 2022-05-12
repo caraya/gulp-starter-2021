@@ -35,10 +35,14 @@ const squoosh = require('gulp-libsquoosh');
 const del = require('del');
 // Act only on newer files
 const newer = require('gulp-newer');
+// Tap into Gulp pipelines
+const tap = require('gulp-tap');
+// Replace extensions
+const replaceExt = require('replace-ext');
 
 // MARKDOWN AND PLUGINS
 // Testing Markdown configuration and whether this will be enough
-const markdownPlugin = require('gulp-markdown-it');
+const markdownIt = require('markdown-it');
 
 // load the plugins
 const abbr = require("markdown-it-abbr");
@@ -49,7 +53,7 @@ const embed = require("markdown-it-block-embed");
 const fn = require("markdown-it-footnote");
 const figs = require("markdown-it-implicit-figures");
 const kbd = require("markdown-it-kbd");
-const mermaid = require("markdown-it-mermaid");
+// const mermaid = require("markdown-it-mermaid");
 const prism = require("markdown-it-prism");
 const toc = require("markdown-it-table-of-contents");
 const list = require("markdown-it-task-lists");
@@ -60,6 +64,36 @@ const eslintPlugin = require('gulp-eslint');
 // ------------
 // HTML & Markdown
 // ------------
+/**
+ * @name md
+ * @description Instantiates
+ */
+const md = new markdownIt();
+md.use(abbr);
+md.use(alerts);
+md.use(anc);
+md.use(attrs);
+md.use(embed);
+md.use(fn);
+md.use(figs);
+md.use(kbd);
+// md.use(mermaid);
+md.use(prism);
+md.use(toc);
+md.use(list);
+
+/**
+ * @name markdownToHtml
+ * @description Converts markdown to HTML using gulp-markdown-it and a set of plugins.
+ * @param {*} file
+ * @return {void}
+ */
+function markdownToHtml(file) {
+  const result = md.render(file.contents.toString());
+  file.contents = new Buffer(result);
+  file.path = replaceExt(file.path, '.html');
+  return;
+}
 
 /**
  * @name markdown
@@ -72,33 +106,9 @@ const eslintPlugin = require('gulp-eslint');
  *
  */
 function markdown() {
-  const config = {
-    plugins: [
-      abbr,
-      alerts,
-      anc,
-      attrs,
-      embed,
-      fn,
-      figs,
-      kbd,
-      mermaid,
-      prism,
-      toc,
-      list,
-    ],
-    options: {
-      preset: 'commonmark',
-      html: true,
-      xhtmlOut: true,
-      linkify: true,
-      typographer: true,
-    },
-  };
-
   return gulp
       .src('src/md-content/*.md')
-      .pipe(markdownPlugin(config))
+      .pipe(tap(markdownToHtml))
       .pipe(gulp.dest('src/html-content/'));
 }
 
@@ -143,7 +153,7 @@ function buildPMTemplate(done) {
  */
 function buildPDF() {
   const options = {
-    continueOnError: false, // default = false, true means don't emit error event
+    continueOnError: true, // default = false, true means don't emit error event
     pipeStdout: false, // default = false, true means stdout is written to file.contents
   };
   const reportOptions = {

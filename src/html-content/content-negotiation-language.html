@@ -1,44 +1,44 @@
-<h1>Serving the right language via content negotiation</h1>
-<p><strong>The problem Statement</strong>: I want the server to deliver the right document (variant) based on the browser’s language preferences. Browsers send an Accept-Language header which lists their preferred language(s).</p>
-<h2>Apache</h2>
-<p>Before we configure our language negotiation parameters we need to setup things on the server. You can set this on the default <code>httpd.conf</code> configuration file (meaning that it’ll work in all virtual hosts) or you can set in in each virtual host configuration (meaning it’ll only work for that virtual host)</p>
+<h1 id="serving-the-right-language-via-content-negotiation">Serving the right language via content negotiation</h1>
+<p><strong>The problem Statement</strong>: I want the server to deliver the right document (variant) based on the browser's language preferences. Browsers send an Accept-Language header which lists their preferred language(s).</p>
+<h2 id="apache">Apache</h2>
+<p>Before we configure our language negotiation parameters we need to setup things on the server. You can set this on the default <code>httpd.conf</code> configuration file (meaning that it'll work in all virtual hosts) or you can set in in each virtual host configuration (meaning it'll only work for that virtual host)</p>
 <p>The two items are:</p>
 <ul>
 <li><code>LanguagePriority</code> allows you the language precedence during content negotiation. If more than one version of a file is availab</li>
 <li><code>ForceLanguagePriority</code> allows you to serve a result page rather than MULTIPLE CHOICES (Prefer) in case of a tie or NOT ACCEPTABLE (Fallback) in case no accepted languages matched the available variants.</li>
 </ul>
-<pre><code class="language-apacheconf">&lt;IfModule mod_negotiation.c&gt;
+<pre class="language-apacheconf"><code class="language-apacheconf"><span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>IfModule</span><span class="token directive-block-parameter attr-value"> mod_negotiation.c</span><span class="token punctuation">></span></span>
 
-LanguagePriority en-US en ca cs de el es pt pt-BR zh-CN zh-TW
+<span class="token directive-inline property">LanguagePriority</span> en-US en ca cs de el es pt pt-BR zh-CN zh-TW
 
-ForceLanguagePriority Prefer Fallback
+<span class="token directive-inline property">ForceLanguagePriority</span> Prefer Fallback
 
-&lt;/IfModule&gt;
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>IfModule</span><span class="token punctuation">></span></span>
 </code></pre>
-<h3>MultiViews</h3>
+<h3 id="multiviews">MultiViews</h3>
 <p>MultiViews works as follows: if you request a resource named foo, and foo does not exist in the directory, Apache will search for all files named <code>foo.*</code>.</p>
-<p>If we have this and the client’s browser is configured with German as the primary language then the server will send <code>index.html.de</code> as the first option.</p>
-<pre><code class="language-bash">root@server1:~# ls -la /var/www/
-total 20
-drwxr-xr-x  2 root root 4096 Jul 20 00:13 .
-drwxr-xr-x 14 root root 4096 Feb 14 18:43 ..
--rw-r--r--  1 root root  196 Jul 20 00:06 index.html.de
--rw-r--r--  1 root root  186 Jul 20 00:03 index.html.en
--rw-r--r--  1 root root  207 Jul 20 00:09 index.html.fr
-root@server1:~#
+<p>If we have this and the client's browser is configured with German as the primary language then the server will send <code>index.html.de</code> as the first option.</p>
+<pre class="language-bash"><code class="language-bash">root@server1:~<span class="token comment"># ls -la /var/www/</span>
+total <span class="token number">20</span>
+drwxr-xr-x  <span class="token number">2</span> root root <span class="token number">4096</span> Jul <span class="token number">20</span> 00:13 <span class="token builtin class-name">.</span>
+drwxr-xr-x <span class="token number">14</span> root root <span class="token number">4096</span> Feb <span class="token number">14</span> <span class="token number">18</span>:43 <span class="token punctuation">..</span>
+-rw-r--r--  <span class="token number">1</span> root root  <span class="token number">196</span> Jul <span class="token number">20</span> 00:06 index.html.de
+-rw-r--r--  <span class="token number">1</span> root root  <span class="token number">186</span> Jul <span class="token number">20</span> 00:03 index.html.en
+-rw-r--r--  <span class="token number">1</span> root root  <span class="token number">207</span> Jul <span class="token number">20</span> 00:09 index.html.fr
+root@server1:~<span class="token comment">#</span>
 </code></pre>
 <p>MultiViews is a per-directory setting, i.e., it has to be set with an Options directive in a <code>&lt;Directory&gt;</code>, <code>&lt;Location&gt;</code>, or <code>&lt;Files&gt;</code> section in the Apache configuration. It has to be set explicitly with <code>Options MultiViews</code>. Using <code>Options All</code> does not set it.</p>
 <p>The documentation for <a href="https://httpd.apache.org/docs/2.4/mod/core.html#options">options</a> lists valid values you can use in the directive.</p>
-<pre><code class="language-apacheconf">&lt;Directory /var/www/&gt;
-  Options Indexes FollowSymLinks MultiViews
-  DirectoryIndex index.html
-    AllowOverride None
-    Order allow,deny
-    allow from all
-&lt;/Directory&gt;
+<pre class="language-apacheconf"><code class="language-apacheconf"><span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>Directory</span><span class="token directive-block-parameter attr-value"> /var/www/</span><span class="token punctuation">></span></span>
+  <span class="token directive-inline property">Options</span> Indexes FollowSymLinks MultiViews
+  <span class="token directive-inline property">DirectoryIndex</span> index.html
+    <span class="token directive-inline property">AllowOverride</span> None
+    <span class="token directive-inline property">Order</span> <span class="token directive-inline property">allow</span>,deny
+    <span class="token directive-inline property">allow</span> from all
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>Directory</span><span class="token punctuation">></span></span>
 </code></pre>
-<p>That’s basically all we need for content negotiation. Using Language Priority, Force Language Priority and multiviews allows Apache to handle multiple versions of a page without us having to do anything on the client other than write the different versions of the page.</p>
-<h2>Nginx</h2>
+<p>That's basically all we need for content negotiation. Using Language Priority, Force Language Priority and multiviews allows Apache to handle multiple versions of a page without us having to do anything on the client other than write the different versions of the page.</p>
+<h2 id="nginx">Nginx</h2>
 <p>The code is taken from this <a href="https://serverfault.com/questions/815168/serve-different-files-depending-on-the-browser-language">serverfault</a> answer.</p>
 <p>If the browser sends headers like this one: <code>accept-language: en,en-US;q=0.8,ja;q=0.6</code> we can configure the server to handle content negotiation with the following block.</p>
 <p>The configuration does the following:</p>
@@ -49,15 +49,15 @@ root@server1:~#
 <li>If the first language is Japanese (<code>ja</code>) then set the language suffix to Japanese</li>
 </ol>
 <p>This will make the server render the page with the given language suffix.</p>
-<pre><code class="language-nginx">set $first_language $http_accept_language; #1
-if ($http_accept_language ~* '^(.+?),') {
-    set $first_language $1;
-}
+<pre class="language-nginx"><code class="language-nginx"><span class="token directive"><span class="token keyword">set</span> <span class="token variable">$first_language</span> <span class="token variable">$http_accept_language</span></span><span class="token punctuation">;</span> <span class="token comment">#1</span>
+<span class="token directive"><span class="token keyword">if</span> (<span class="token variable">$http_accept_language</span> ~* <span class="token string">'^(.+?),'</span>)</span> <span class="token punctuation">{</span>
+    <span class="token directive"><span class="token keyword">set</span> <span class="token variable">$first_language</span> <span class="token variable">$1</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-set $language_suffix 'en';
-if ($first_language ~* 'ja') {
-    set $language_suffix 'ja';
-}
+<span class="token directive"><span class="token keyword">set</span> <span class="token variable">$language_suffix</span> <span class="token string">'en'</span></span><span class="token punctuation">;</span>
+<span class="token directive"><span class="token keyword">if</span> (<span class="token variable">$first_language</span> ~* <span class="token string">'ja'</span>)</span> <span class="token punctuation">{</span>
+    <span class="token directive"><span class="token keyword">set</span> <span class="token variable">$language_suffix</span> <span class="token string">'ja'</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>One shortcoming of this approach is that we need to have a list of our supported languages in hand as we prepare this configuration and every time we add a language we have to add if statements to the later block.</p>
 <p>The <a href="https://www.nginx.com/resources/wiki/modules/accept_language/">nginx_accept_language_module</a> module parses the <code>Accept-Language</code> field in HTTP headers and chooses the most suitable locale for the user from the list of locales supported at your website.</p>

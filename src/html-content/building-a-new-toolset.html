@@ -1,9 +1,9 @@
-<h1>Building a new toolset</h1>
+<h1 id="building-a-new-toolset">Building a new toolset</h1>
 <p>I had first thought about adopting and modifying Kent C. Dodds <a href="https://www.npmjs.com/package/kcd-scripts">kcd-scripts</a> and hade made a first pass at it. But it broke when I made custom changes to acommodate my needs beyond the package tools.</p>
-<p>Rather than build something using CLI tools, the goal for this project is to modify <code>kcd-scripts</code> as I try to understand the code and what’s the best way to expand the package and remove functionality I don’t use in my projects.</p>
-<h2>Ideas for packages</h2>
+<p>Rather than build something using CLI tools, the goal for this project is to modify <code>kcd-scripts</code> as I try to understand the code and what's the best way to expand the package and remove functionality I don't use in my projects.</p>
+<h2 id="ideas-for-packages">Ideas for packages</h2>
 <p>These are the tools that I want to incorporate into my toolset.</p>
-<h3>WordPress related</h3>
+<h3 id="wordpress-related">WordPress related</h3>
 <p>These are the WordPress related tools that I want to incorporate into my toolset. While they can be run using <a href="https://www.npmjs.com/package/npx">npx</a> I prefer to run them locally.</p>
 <table>
 <thead>
@@ -21,7 +21,7 @@
 </tr>
 </tbody>
 </table>
-<h3>Tools</h3>
+<h3 id="tools">Tools</h3>
 <p>These are the tools that I want to include in the toolset. Some of these were part of kcd-scripts and some of them are my own</p>
 <table>
 <thead>
@@ -80,7 +80,7 @@
 </tbody>
 </table>
 <p>Potential ideas</p>
-<p>These are some tools that I’m debating whether to include in the toolset or not.</p>
+<p>These are some tools that I'm debating whether to include in the toolset or not.</p>
 <table>
 <thead>
 <tr>
@@ -112,53 +112,53 @@
 </tr>
 </tbody>
 </table>
-<h2>Building the package</h2>
-<p>The first script that we’ll look at is the index script (<code>index.js</code>). This till check that we’re using a supported version of Node and then runs the script runner.</p>
+<h2 id="building-the-package">Building the package</h2>
+<p>The first script that we'll look at is the index script (<code>index.js</code>). This till check that we're using a supported version of Node and then runs the script runner.</p>
 <p>The script runner script (<code>run-script</code>) will run the other parts of the package.</p>
 <p>It will parse flags and arguments and pass them to the script that we want to run.</p>
 <p>It will also account for issues in the cross-spawn library and will normalize paths between Unix-like systems and Windows.</p>
 <p>Once we have that in place we can look at individual scripts to run the tools we want.</p>
 <p>I will pick one tool as an example, most tools work the same.</p>
 <p>We first require the necessary Node modules and the functions from within out utils package.</p>
-<pre><code class="language-js">const path = require('path');
-const spawn = require('cross-spawn');
-const yargsParser = require('yargs-parser');
-const {resolveBin, hasFile} = require('../utils');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> spawn <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'cross-spawn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> yargsParser <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'yargs-parser'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>resolveBin<span class="token punctuation">,</span> hasFile<span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'../utils'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We then parse the arguments and options.</p>
-<pre><code class="language-js">let args = process.argv.slice(2);
-const here = (p) =&gt; path.join(__dirname, p);
-const hereRelative = (p) =&gt; here(p).replace(process.cwd(), '.');
-const parsedArgs = yargsParser(args);
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> args <span class="token operator">=</span> process<span class="token punctuation">.</span>argv<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token function-variable function">here</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">p</span><span class="token punctuation">)</span> <span class="token operator">=></span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> p<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token function-variable function">hereRelative</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">p</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token function">here</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span>process<span class="token punctuation">.</span><span class="token function">cwd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">'.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> parsedArgs <span class="token operator">=</span> <span class="token function">yargsParser</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The next step is to check and build the configuration for the tool we’re using. First, we check if we have a configuration flag (<code>--config</code>) and a configuration file (<code>.markdownlint.json</code>).</p>
-<pre><code class="language-js">const useBuiltinConfig =
-  !args.includes('--config') &amp;&amp;
-  !hasFile('.markdownlint.json');
+<p>The next step is to check and build the configuration for the tool we're using. First, we check if we have a configuration flag (<code>--config</code>) and a configuration file (<code>.markdownlint.json</code>).</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> useBuiltinConfig <span class="token operator">=</span>
+  <span class="token operator">!</span>args<span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span><span class="token string">'--config'</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+  <span class="token operator">!</span><span class="token function">hasFile</span><span class="token punctuation">(</span><span class="token string">'.markdownlint.json'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const config = useBuiltinConfig ?
-  ['--config', hereRelative('../config/.markdownlint.json')] :
-  [];
+<span class="token keyword">const</span> config <span class="token operator">=</span> useBuiltinConfig <span class="token operator">?</span>
+  <span class="token punctuation">[</span><span class="token string">'--config'</span><span class="token punctuation">,</span> <span class="token function">hereRelative</span><span class="token punctuation">(</span><span class="token string">'../config/.markdownlint.json'</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">:</span>
+  <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-js">const defaultExtensions = 'md,mdx,markdown';
-const ext = args.includes('--ext') ? [] : ['--ext', defaultExtensions];
-const extensions = (parsedArgs.ext || defaultExtensions).split(',');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> defaultExtensions <span class="token operator">=</span> <span class="token string">'md,mdx,markdown'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> ext <span class="token operator">=</span> args<span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span><span class="token string">'--ext'</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'--ext'</span><span class="token punctuation">,</span> defaultExtensions<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> extensions <span class="token operator">=</span> <span class="token punctuation">(</span>parsedArgs<span class="token punctuation">.</span>ext <span class="token operator">||</span> defaultExtensions<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">','</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-js">const filesGiven = parsedArgs._.length &gt; 0;
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> filesGiven <span class="token operator">=</span> parsedArgs<span class="token punctuation">.</span>_<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">;</span>
 
-const filesToApply = filesGiven ? [] : ['.'];
+<span class="token keyword">const</span> filesToApply <span class="token operator">=</span> filesGiven <span class="token operator">?</span> <span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'.'</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
 
-if (filesGiven) {
-  args = args.filter(
-      (a) =&gt; !parsedArgs._.includes(a) || extensions.some((e) =&gt; a.endsWith(e)),
-  );
-}
+<span class="token keyword">if</span> <span class="token punctuation">(</span>filesGiven<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  args <span class="token operator">=</span> args<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>
+      <span class="token punctuation">(</span><span class="token parameter">a</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token operator">!</span>parsedArgs<span class="token punctuation">.</span>_<span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span> <span class="token operator">||</span> extensions<span class="token punctuation">.</span><span class="token function">some</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token operator">=></span> a<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-const result = spawn.sync(
-    resolveBin('markdownlint'),
-    [...config, ...ext, ...args, ...filesToApply],
-    {stdio: 'inherit'},
-);
+<span class="token keyword">const</span> result <span class="token operator">=</span> spawn<span class="token punctuation">.</span><span class="token function">sync</span><span class="token punctuation">(</span>
+    <span class="token function">resolveBin</span><span class="token punctuation">(</span><span class="token string">'markdownlint'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token operator">...</span>config<span class="token punctuation">,</span> <span class="token operator">...</span>ext<span class="token punctuation">,</span> <span class="token operator">...</span>args<span class="token punctuation">,</span> <span class="token operator">...</span>filesToApply<span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>stdio<span class="token operator">:</span> <span class="token string">'inherit'</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-process.exit(result.status);
+process<span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>status<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>

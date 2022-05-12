@@ -1,6 +1,6 @@
-<h1>Working with scripts directly in Gulp</h1>
+<h1 id="working-with-scripts-directly-in-gulp">Working with scripts directly in Gulp</h1>
 <p>This is an interesting trick to help consolidate assets and reduce the number of network requests you need to make.</p>
-<p>Let’s assume that your project depends on one big library like jQuery or Backbone to work properly. Instead of depending on the network (which may or may not be available) or caches (where you’re at the mercy of the user and the browser) you want to have control of the entire dependency tree for the build.</p>
+<p>Let's assume that your project depends on one big library like jQuery or Backbone to work properly. Instead of depending on the network (which may or may not be available) or caches (where you're at the mercy of the user and the browser) you want to have control of the entire dependency tree for the build.</p>
 <p>The explanaiton for the code below is as follows:</p>
 <ol>
 <li>We request the latest jQuery version from the jQuery CDN using the <code>request</code> library. What we get is a readable stream.</li>
@@ -10,20 +10,20 @@
 <li>The contents of both streams are converted to text buffers so <code>gulp-concat</code> can handle them.</li>
 </ol>
 <p><code>gulp-concat</code> and <code>gulp.dest</code> work normally</p>
-<pre><code class="language-javascript">var gulp = require('gulp');
-var source = require('vinyl-source-stream');
-var request = require('request');
-var merge = require('merge2');
-var concat = require('gulp-concat');
-var buffer = require('gulp-buffer');
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> source <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'vinyl-source-stream'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'request'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> merge <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'merge2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> concat <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-concat'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> buffer <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-buffer'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-gulp.task('js', function() {
-    var jquery = request('http://code.jquery.com/jquery-latest.js') /* 1 */
-      .pipe(source('jquery.js'));     /* 2 */
-      var main = gulp.src('main.js'); /* 3 */
-      return merge(jquery, main)      /* 4 */
-      .pipe(buffer())                 /* 5 */
-      .pipe(concat('concat.js'))
-      .pipe(gulp.dest('dist'));})
+gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'js'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">var</span> jquery <span class="token operator">=</span> <span class="token function">request</span><span class="token punctuation">(</span><span class="token string">'http://code.jquery.com/jquery-latest.js'</span><span class="token punctuation">)</span> <span class="token comment">/* 1 */</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">source</span><span class="token punctuation">(</span><span class="token string">'jquery.js'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">/* 2 */</span>
+      <span class="token keyword">var</span> main <span class="token operator">=</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'main.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">/* 3 */</span>
+      <span class="token keyword">return</span> <span class="token function">merge</span><span class="token punctuation">(</span>jquery<span class="token punctuation">,</span> main<span class="token punctuation">)</span>      <span class="token comment">/* 4 */</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">buffer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>                 <span class="token comment">/* 5 */</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">'concat.js'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
 <p>Yes, there are few use cases where this is 100% necessary. I still think this is cool to have because, while it may not reduce the amount of work we have to do, it packages it all in one place.</p>

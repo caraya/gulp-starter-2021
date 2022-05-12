@@ -1,80 +1,80 @@
-<h1>Looking forward: CSS Layers and the @layer at-rule</h1>
-<div class ="message warning">
-<p><strong>Warning:</strong></p>
-<p>This post is about CSS specifications that are still under development and, as far as I know, have no implementation in production browsers yet. Furthermore, the specification may change in the future.</p>
-<p>To keep track of the progress, please follow the <code>Cascade Layers</code> section of the <a href="https://www.w3.org/TR/css-cascade-5/">CSS Cascading and Inheritance Level 5</a> specification.</p>
-</div>
-<p>Looking at some of the current draft specifications, I found something that looks very promising and, when implemented, will be a very useful feature. The feature is called CSS Layers and it’s a way to group elements together so they will cascade as a unit.</p>
+<h1 id="looking-forward%3A-css-layers-and-the-%40layer-at-rule">Looking forward: CSS Layers and the @layer at-rule</h1>
+<p>&lt;div class =&quot;message warning&quot;&gt;
+&lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt;&lt;/p&gt;</p>
+<p>&lt;p&gt;This post is about CSS specifications that are still under development and, as far as I know, have no implementation in production browsers yet. Furthermore, the specification may change in the future.&lt;/p&gt;
+&lt;p&gt;To keep track of the progress, please follow the &lt;code&gt;Cascade Layers&lt;/code&gt; section of the &lt;a href=&quot;https://www.w3.org/TR/css-cascade-5/&quot;&gt;CSS Cascading and Inheritance Level 5&lt;/a&gt; specification.&lt;/p&gt;
+&lt;/div&gt;</p>
+<p>Looking at some of the current draft specifications, I found something that looks very promising and, when implemented, will be a very useful feature. The feature is called CSS Layers and it's a way to group elements together so they will cascade as a unit.</p>
 <blockquote>
 <p>In the same way that cascade origins provide a balance of power between user and author styles, cascade layers provide a structured way to organize and balance concerns within a single origin. Rules within a single cascade layer cascade together, without interleaving with style rules outside the layer.</p>
 <p>Authors can create layers to represent element defaults, third-party libraries, themes, components, overrides, and other styling concerns—and are able to re-order the cascade of layers in an explicit way, without altering selectors or specificity within each layer, or relying on source-order to resolve conflicts across layers.</p>
 </blockquote>
 <p>What I find the most intriguing about this functionality is how it groups elements together.</p>
 <p>Layers allow you to organize styles in groups and to specify the order in which those groups cascade and get applied to a document.</p>
-<figure>
-  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1636390574/publishing-project.rivendellweb.net/css-cascade-cascade-layers-bramus-1120x630-1/css-cascade-cascade-layers-bramus-1120x630-1.png?_i=AA' alt='Where layers sit in deteriming styles' width='800px' height='auto'/>
-  <figcaption>Where layers sit in deteriming styles. Taken from <a href="https://www.bram.us/2021/09/15/the-future-of-css-cascade-layers-css-at-layer/">The Future of CSS: Cascade Layers (CSS @layer)</a></figcaption>
-</figure>
+<p>&lt;figure&gt;
+&lt;img src='https://res.cloudinary.com/dfh6ihzvj/images/v1636390574/publishing-project.rivendellweb.net/css-cascade-cascade-layers-bramus-1120x630-1/css-cascade-cascade-layers-bramus-1120x630-1.png?_i=AA' alt='Where layers sit in deteriming styles' width='800px' height='auto'/&gt;
+&lt;figcaption&gt;Where layers sit in deteriming styles. Taken from &lt;a href=&quot;https://www.bram.us/2021/09/15/the-future-of-css-cascade-layers-css-at-layer/&quot;&gt;The Future of CSS: Cascade Layers (CSS @layer)&lt;/a&gt;&lt;/figcaption&gt;
+&lt;/figure&gt;</p>
 <p>Layers are processed before the browser looks at specificity and the order of appearance of CSS so they help reduce some of the problems that come with specificity and the order of appearance of CSS selectors. They also provide grouping for styles; you can create layers that group styles together for specific purposes. For example, you could use a layer for reset styles, one for generic theme elements, and a different layer for specific element overrides.</p>
 <p>This example will create a default layer, a library layer, and a theme layer. It will also define the order in which the layers cascade and are applied to the document.</p>
 <p>The first layer declaration tells the browser the order of the layers, how they will be applied to the document.</p>
 <p>Subsequent layer declarations define each individual layer. When rule names overlap they will cascade in the order we defined the layers in.</p>
-<p>The document order becomes less relevant when working with layers because we’ve provided an explicit order to the layers.</p>
-<pre><code class="language-css">/* 
+<p>The document order becomes less relevant when working with layers because we've provided an explicit order to the layers.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* 
   establish the layer order, so the
-  &quot;override&quot; layer takes precedence
-*/
-@layer framework, override;
+  "override" layer takes precedence
+*/</span>
+<span class="token atrule"><span class="token rule">@layer</span> framework<span class="token punctuation">,</span> override<span class="token punctuation">;</span></span>
 
-@layer override {
-  @keyframes slide-left {
-    from { translate: 0; }
-    to { translate: -100% 0; }
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> override</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@keyframes</span> slide-left</span> <span class="token punctuation">{</span>
+    <span class="token selector">from</span> <span class="token punctuation">{</span> <span class="token property">translate</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+    <span class="token selector">to</span> <span class="token punctuation">{</span> <span class="token property">translate</span><span class="token punctuation">:</span> -100% 0<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@layer framework {
-  @keyframes slide-left {
-    from { margin-left: 0; }
-    to { margin-left: -100%; }
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> framework</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@keyframes</span> slide-left</span> <span class="token punctuation">{</span>
+    <span class="token selector">from</span> <span class="token punctuation">{</span> <span class="token property">margin-left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+    <span class="token selector">to</span> <span class="token punctuation">{</span> <span class="token property">margin-left</span><span class="token punctuation">:</span> -100%<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-.sidebar { animation: slide-left 300ms; }
+<span class="token selector">.sidebar</span> <span class="token punctuation">{</span> <span class="token property">animation</span><span class="token punctuation">:</span> slide-left 300ms<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 </code></pre>
 <p>We can also assign imported blocks to layers using the <code>layer</code> attribute in the import.</p>
 <p>In the following example, the imported rules in <code>headings.css</code> and <code>links.css</code> are assigned to the <code>default</code> layer.</p>
-<pre><code class="language-css">@import url(headings.css) layer(default);
-@import url(links.css) layer(default);
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>headings.css<span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>default<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>links.css<span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>default<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
 
-@layer default {
-  audio[controls] {
-    display: block;
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> default</span> <span class="token punctuation">{</span>
+  <span class="token selector">audio[controls]</span> <span class="token punctuation">{</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Details and gotchas</h2>
+<h2 id="details-and-gotchas">Details and gotchas</h2>
 <p>Some things that are worth keeping in mind about the at-rule.</p>
-<h3>Unlayered content</h3>
-<p>Unlayered content takes precedence over layered content, even if it wouldn’t under normal rules.</p>
-<pre><code class="language-css">audio {
-  display: flex;
-}
+<h3 id="unlayered-content">Unlayered content</h3>
+<p>Unlayered content takes precedence over layered content, even if it wouldn't under normal rules.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">audio</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-@layer reset {
-  audio[controls] {
-    display: block;
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> reset</span> <span class="token punctuation">{</span>
+  <span class="token selector">audio[controls]</span> <span class="token punctuation">{</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>In the previous example, the unlayered audio declaration will take precedence, even though the declaration of the <code>audio[controls]</code> element has a higher specificity and the layer is defined later in the declaration.</p>
-<h3>Naming layers is optional, but…</h3>
-<p>Naming your layers is not required but if you don’t they automatically become “anonymous” layers that are not accessible from anywhere else in the stylesheet; you can’t append to them and you can’t combine them with other layers.</p>
+<h3 id="naming-layers-is-optional%2C-but%E2%80%A6">Naming layers is optional, but…</h3>
+<p>Naming your layers is not required but if you don't they automatically become &quot;anonymous&quot; layers that are not accessible from anywhere else in the stylesheet; you can't append to them and you can't combine them with other layers.</p>
 <p>This will create two different layers, not append the content of the second layer declaration to the first.</p>
-<pre><code class="language-css">@layer { /* layer 1 */}
-@layer { /* layer 2 */}
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span></span> <span class="token punctuation">{</span> <span class="token comment">/* layer 1 */</span><span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@layer</span></span> <span class="token punctuation">{</span> <span class="token comment">/* layer 2 */</span><span class="token punctuation">}</span>
 </code></pre>
-<h3>Layer Nesting</h3>
+<h3 id="layer-nesting">Layer Nesting</h3>
 <p>You can also nest layer declarations. In the next example, the declaration of a <code>base</code> layer inside the <code>framework</code> layer is different than the <code>base</code> layer at the top level of the stylesheet.</p>
 <p>Nested layers can be expressed using a <code>dot</code> notation. The base layer inside the framework layer can be referenced as <strong><code>framework.base</code></strong>.</p>
 <p>The layers from the example below can be referenced as:</p>
@@ -83,28 +83,28 @@
 <li><code>framework.base</code></li>
 <li><code>framework.theme</code></li>
 </ol>
-<pre><code class="language-css">@layer base {
-  p { max-width: 70ch; }
-}
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> base</span> <span class="token punctuation">{</span>
+  <span class="token selector">p</span> <span class="token punctuation">{</span> <span class="token property">max-width</span><span class="token punctuation">:</span> 70ch<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@layer framework {
-  @layer base {
-    p { margin-block: 0.75em; }
-  }
+<span class="token atrule"><span class="token rule">@layer</span> framework</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@layer</span> base</span> <span class="token punctuation">{</span>
+    <span class="token selector">p</span> <span class="token punctuation">{</span> <span class="token property">margin-block</span><span class="token punctuation">:</span> 0.75em<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
 
-  @layer theme {
-    p { color: #222; }
-  }
-}
+  <span class="token atrule"><span class="token rule">@layer</span> theme</span> <span class="token punctuation">{</span>
+    <span class="token selector">p</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> #222<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Caveats and things to keep in mind</h2>
-<p>While the spec is still in development and we don’t know if they will stay this way, there are still some things to keep in mind.</p>
-<p>This section will get very technical so it’s ok if you skip it and jump to browser support :)</p>
-<h3>Cascade Layers and the use of !important</h3>
+<h2 id="caveats-and-things-to-keep-in-mind">Caveats and things to keep in mind</h2>
+<p>While the spec is still in development and we don't know if they will stay this way, there are still some things to keep in mind.</p>
+<p>This section will get very technical so it's ok if you skip it and jump to browser support :)</p>
+<h3 id="cascade-layers-and-the-use-of-!important">Cascade Layers and the use of !important</h3>
 <p><code>!important</code> is a very powerful feature that will definitely help and mess up your code on equal measures.</p>
-<p>Without going into details, which I’m not sure I fully understand, the <code>!important</code> keyword will invert the order of the rules as it increases the importance of the rule it’s applied to.</p>
+<p>Without going into details, which I'm not sure I fully understand, the <code>!important</code> keyword will invert the order of the rules as it increases the importance of the rule it's applied to.</p>
 <p>using these layers</p>
-<pre><code class="language-css">@layer reset, base, theme, utilities;
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> reset<span class="token punctuation">,</span> base<span class="token punctuation">,</span> theme<span class="token punctuation">,</span> utilities<span class="token punctuation">;</span></span>
 </code></pre>
 <p>Then the normal order would be:</p>
 <ul>
@@ -121,89 +121,89 @@
 <li>Important reset</li>
 </ul>
 <p>Because “Normal Unlayered Styles” implicitly go last, this also means that “Important Unlayered Styles” will go first.</p>
-<p>For more information see Bramus’ <a href="https://www.bram.us/2021/09/15/the-future-of-css-cascade-layers-css-at-layer/">The Future of CSS: Cascade Layers (CSS @layer)</a></p>
-<h3>Cascade Layers and conditional CSS</h3>
+<p>For more information see Bramus' <a href="https://www.bram.us/2021/09/15/the-future-of-css-cascade-layers-css-at-layer/">The Future of CSS: Cascade Layers (CSS @layer)</a></p>
+<h3 id="cascade-layers-and-conditional-css">Cascade Layers and conditional CSS</h3>
 <p>When a layer is inside a conditional CSS statement like a Media Query or a and the conditional evaluates to false, the <code>@layer</code> will not be included in the layer order.</p>
 <p>If the media query later evaluates to true the <code>@layer</code> order will be recalculated and your CSS may change as a result.</p>
 <p>In the example below the following things may happen:</p>
 <ul>
 <li>If none of the media queries match then there <code>@layer</code> array will be empty</li>
-<li>If the width media query matches but the color scheme doesn’t then the only the <code>layout</code> @layer will apply</li>
-<li>Likewise, if the <code>prefers-color-scheme</code> query matches but the size doesn’t then the <code>theme</code> @layer will apply</li>
+<li>If the width media query matches but the color scheme doesn't then the only the <code>layout</code> @layer will apply</li>
+<li>Likewise, if the <code>prefers-color-scheme</code> query matches but the size doesn't then the <code>theme</code> @layer will apply</li>
 <li>If both queries match then the @layer order will be <code>layout, theme</code></li>
 </ul>
-<pre><code class="language-css">@media (min-width: 30em) {
-  @layer layout {
-    .title { font-size: x-large; }
-  }
-}
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 30em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@layer</span> layout</span> <span class="token punctuation">{</span>
+    <span class="token selector">.title</span> <span class="token punctuation">{</span> <span class="token property">font-size</span><span class="token punctuation">:</span> x-large<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@media (prefers-color-scheme: dark) {
-  @layer theme {
-    .title { color: white; }
-  }
-}
+<span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">prefers-color-scheme</span><span class="token punctuation">:</span> dark<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@layer</span> theme</span> <span class="token punctuation">{</span>
+    <span class="token selector">.title</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>What happens if you reuse a @layer</h3>
+<h3 id="what-happens-if-you-reuse-a-%40layer">What happens if you reuse a @layer</h3>
 <p>If you reuse a named @layer, the rules in the second and subsequent declarations will be appended to the first one.</p>
-<p>The following example, while it’s a little contrived, presents a case where we reuse the <code>base</code> @layer.</p>
-<pre><code class="language-css">@layer base {
-  p {
-    color: rebeccapurple;
-  }
-}
+<p>The following example, while it's a little contrived, presents a case where we reuse the <code>base</code> @layer.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> base</span> <span class="token punctuation">{</span>
+  <span class="token selector">p</span> <span class="token punctuation">{</span>
+    <span class="token property">color</span><span class="token punctuation">:</span> rebeccapurple<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@layer base {
-  /* Will append to the base layer */
-  p {
-    font-size: 1.25em;
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> base</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* Will append to the base layer */</span>
+  <span class="token selector">p</span> <span class="token punctuation">{</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> 1.25em<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@layer base {
-  /* Will append to the base layer */
-  p {
-    line-height: 1.3;
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> base</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* Will append to the base layer */</span>
+  <span class="token selector">p</span> <span class="token punctuation">{</span>
+    <span class="token property">line-height</span><span class="token punctuation">:</span> 1.3<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h3>Cascade Layers vs. “Name-Defining Rules”</h3>
+<h3 id="cascade-layers-vs.-%E2%80%9Cname-defining-rules%E2%80%9D">Cascade Layers vs. “Name-Defining Rules”</h3>
 <p>Name defining rules like <code>@keyframes</code>, <code>@scroll-timeline</code>, <code>@font-face</code>, and others follow Layer Order.</p>
 <p>This example, a repetition of an earlier example, provides two layers, each defining a different set of rules.</p>
 <p>Since we declared the order of the layers, the last layer in the order we specified will take precedence.</p>
-<pre><code class="language-css">/* establish the layer order, so the &quot;override&quot; layer takes precedence */
-@layer framework, override;
+<pre class="language-css"><code class="language-css"><span class="token comment">/* establish the layer order, so the "override" layer takes precedence */</span>
+<span class="token atrule"><span class="token rule">@layer</span> framework<span class="token punctuation">,</span> override<span class="token punctuation">;</span></span>
 
-@layer override {
-  @keyframes slide-left {
-    from { translate: 0; }
-    to { translate: -100% 0; }
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> override</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@keyframes</span> slide-left</span> <span class="token punctuation">{</span>
+    <span class="token selector">from</span> <span class="token punctuation">{</span> <span class="token property">translate</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+    <span class="token selector">to</span> <span class="token punctuation">{</span> <span class="token property">translate</span><span class="token punctuation">:</span> -100% 0<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@layer framework {
-  @keyframes slide-left {
-    from { margin-left: 0; }
-    to { margin-left: -100%; }
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> framework</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@keyframes</span> slide-left</span> <span class="token punctuation">{</span>
+    <span class="token selector">from</span> <span class="token punctuation">{</span> <span class="token property">margin-left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+    <span class="token selector">to</span> <span class="token punctuation">{</span> <span class="token property">margin-left</span><span class="token punctuation">:</span> -100%<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-.sidebar { animation: slide-left 300ms; }
+<span class="token selector">.sidebar</span> <span class="token punctuation">{</span> <span class="token property">animation</span><span class="token punctuation">:</span> slide-left 300ms<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 </code></pre>
-<h3>No Interleaving of @import/@namespace and @layer</h3>
+<h3 id="no-interleaving-of-%40import%2F%40namespace-and-%40layer">No Interleaving of @import/@namespace and @layer</h3>
 <p>The CSS Working Group <a href="https://github.com/w3c/csswg-drafts/issues/6522">decided</a> to not allow interleaving of @import and @namespace and @layer at-rules.</p>
-<pre><code class="language-css">@layer default;
-@import url(theme.css) layer(theme);
-@layer components; /*  This @layer statement
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> default<span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>theme.css<span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>theme<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@layer</span> components<span class="token punctuation">;</span></span> <span class="token comment">/*  This @layer statement
 here will make all subsequent @import rules 
 be ignored. In this example however 
-there are none */
+there are none */</span>
 
-@layer default {
-  audio[controls] {
-    display: block;
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> default</span> <span class="token punctuation">{</span>
+  <span class="token selector">audio[controls]</span> <span class="token punctuation">{</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Instead, you should do the following:</p>
 <ul>
@@ -211,19 +211,19 @@ there are none */
 <li>group all your @import and @namespace rules</li>
 <li>add your @layer rules</li>
 </ul>
-<pre><code class="language-css">@layer default;
-@import url(theme.css) layer(theme);
-@import url(default.css) layer(default);
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> default<span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>theme.css<span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>theme<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>default.css<span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>default<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
 
-@layer components;
-@layer default {
-  audio[controls] {
-    display: block;
-  }
-}
+<span class="token atrule"><span class="token rule">@layer</span> components<span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@layer</span> default</span> <span class="token punctuation">{</span>
+  <span class="token selector">audio[controls]</span> <span class="token punctuation">{</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Browser support</h2>
-<p>The support for the CSS Cascade Layers is wider than I thought it would be, even though it’s still under development.</p>
+<h2 id="browser-support">Browser support</h2>
+<p>The support for the CSS Cascade Layers is wider than I thought it would be, even though it's still under development.</p>
 <p>All major browsers support the @layer at-rule in their development versions and will release sometime between now and summer 2022 (or whenever Apple releases the next version of the operating system).</p>
 <table>
 <thead>
@@ -243,13 +243,13 @@ there are none */
 </tr>
 <tr>
 <td>Safari (WebKit)</td>
-<td>Available in Safari Technology Preview 133. To enable it, choose <strong><em>Experimental Features → CSS Cascade Layers</em></strong> from the Develop menu.</td>
+<td>Available in Safari Technology Preview 133. To enable it, choose <em><strong>Experimental Features → CSS Cascade Layers</strong></em> from the Develop menu.</td>
 </tr>
 </tbody>
 </table>
 <p>Use this Codepen from <a href="https://twitter.com/TerribleMia/">Miriam</a> to test if your browser supports Layers.</p>
-<iframe height="300" style="width: 100%;" scrolling="no" title="OMG, Layers" src="https://codepen.io/miriamsuzanne/embed/poweapY?default-tab=html%2Cresult" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
-  See the Pen <a href="https://codepen.io/miriamsuzanne/pen/poweapY">
-  OMG, Layers</a> by Miriam Suzanne (<a href="https://codepen.io/miriamsuzanne">@miriamsuzanne</a>)
-  on <a href="https://codepen.io">CodePen</a>.
-</iframe>
+<p>&lt;iframe height=&quot;300&quot; style=&quot;width: 100%;&quot; scrolling=&quot;no&quot; title=&quot;OMG, Layers&quot; src=&quot;https://codepen.io/miriamsuzanne/embed/poweapY?default-tab=html%2Cresult&quot; frameborder=&quot;no&quot; loading=&quot;lazy&quot; allowtransparency=&quot;true&quot; allowfullscreen=&quot;true&quot;&gt;
+See the Pen &lt;a href=&quot;https://codepen.io/miriamsuzanne/pen/poweapY&quot;&gt;
+OMG, Layers&lt;/a&gt; by Miriam Suzanne (&lt;a href=&quot;https://codepen.io/miriamsuzanne&quot;&gt;@miriamsuzanne&lt;/a&gt;)
+on &lt;a href=&quot;https://codepen.io&quot;&gt;CodePen&lt;/a&gt;.
+&lt;/iframe&gt;</p>
