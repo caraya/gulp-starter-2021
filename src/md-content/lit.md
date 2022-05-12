@@ -75,7 +75,7 @@ export class MyElement extends LitElement {
 customElements.define('my-element', MyElement);
 ```
 
-[Styles](https://lit.dev/docs/components/styles/) and [Scoped Styles](https://lit.dev/docs/components/scoped-styles/)
+[Styles](https://lit.dev/docs/components/styles/) and [Scoped Styles](https://lit.dev/docs/components/scoped-styles/) provide ways to style the custom element's content without fear that they will spill out of the components and where the parent styles will not override the component's
 
 ### Lifecycle Events
 
