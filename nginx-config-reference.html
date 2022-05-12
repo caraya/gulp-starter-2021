@@ -17,297 +17,288 @@
 
 <body>
 <article class="container">
-  <h1>Nginx Configuration Docs</h1>
-<p>Nginx does not have an equivalent to <code>.htaccess</code> configuration files to override default configurations. Every change that you want to make must go into the main server configuration, either a server or a location block.</p>
-<p>See the Nginx <a class="external" href="https://nginx.org/en/docs/">documentation</a> for more information about configuration instructions, and <a class="external" href="https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts">Understanding the Nginx Configuration File Structure and Configuration Contexts</a> for more inforation about the different contexts where you can put your configuration.</p>
-<p><h2>Checking configuration and restaryting Nginx</h2></p>
-<p>Because Nginx uses a single configuration file we want to test the configuration before pushing it into production. To test the configuration, run the following command:</p>
-<pre class="brush: bash">
+  <p>&lt;h1&gt;Nginx Configuration Docs&lt;/h1&gt;</p>
+<p>&lt;p&gt;Nginx does not have an equivalent to &lt;code&gt;.htaccess&lt;/code&gt; configuration files to override default configurations. Every change that you want to make must go into the main server configuration, either a server or a location block.&lt;/p&gt;</p>
+<p>&lt;p&gt;See the Nginx &lt;a class=&quot;external&quot; href=&quot;https://nginx.org/en/docs/&quot;&gt;documentation&lt;/a&gt; for more information about configuration instructions, and &lt;a class=&quot;external&quot; href=&quot;https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts&quot;&gt;Understanding the Nginx Configuration File Structure and Configuration Contexts&lt;/a&gt; for more inforation about the different contexts where you can put your configuration.&lt;/p&gt;</p>
+<p>&lt;h2&gt;Checking configuration and restaryting Nginx&lt;/h2&gt;</p>
+<p>&lt;p&gt;Because Nginx uses a single configuration file we want to test the configuration before pushing it into production. To test the configuration, run the following command:&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 nginx -T
-</pre>
-<p>You may need to run the command with <code>sudo</code>, like this:</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;You may need to run the command with &lt;code&gt;sudo&lt;/code&gt;, like this:&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 sudo nginx -T
-</pre>
-<p>If the tests are successful then you can restart the server to enable the configuration changes.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;If the tests are successful then you can restart the server to enable the configuration changes.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 sudo systemctl restart nginx #systemd
 sudo service nginx restart   #sysv init
-</pre>
-<p><h2>Redirects</h2></p>
-<p>Nginx provides three different ways to do redirections: <code>retur</code>, <code>rewrite</code> and <code>try_files</code>. They each do different things with different levels of difficulty.</p>
-<p>This guide will only cover <code>return</code>. For the other directives see <a class="external" href="https://www.nginx.com/blog/creating-nginx-rewrite-rules/">Creating NGINX Rewrite Rules</a>.</p>
-<p><h3>return</h3></p>
-<p><code>return</code> is the first and simplest way to do redirects. For basic 3xx series redirects, it takes the numerical code for the redirect and the new URL to redirect to.</p>
-<p>For a code in the 3xx series, the url parameter defines the new (rewritten) URL.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Redirects&lt;/h2&gt;</p>
+<p>&lt;p&gt;Nginx provides three different ways to do redirections: &lt;code&gt;retur&lt;/code&gt;, &lt;code&gt;rewrite&lt;/code&gt; and &lt;code&gt;try_files&lt;/code&gt;. They each do different things with different levels of difficulty.&lt;/p&gt;</p>
+<p>&lt;p&gt;This guide will only cover &lt;code&gt;return&lt;/code&gt;. For the other directives see &lt;a class=&quot;external&quot; href=&quot;https://www.nginx.com/blog/creating-nginx-rewrite-rules/&quot;&gt;Creating NGINX Rewrite Rules&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;h3&gt;return&lt;/h3&gt;</p>
+<p>&lt;p&gt;&lt;code&gt;return&lt;/code&gt; is the first and simplest way to do redirects. For basic 3xx series redirects, it takes the numerical code for the redirect and the new URL to redirect to.&lt;/p&gt;</p>
+<p>&lt;p&gt;For a code in the 3xx series, the url parameter defines the new (rewritten) URL.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 return (301 | 302 | 303 | 307) url;
-</pre>
-<p>For other codes, you optionally define a text string which appears in the body of the response (the standard text for the HTTP code, such as Not Found for 404, is still included in the header). The text can contain NGINX variables.</p>
-<pre class="brush: bash">
-return (1xx | 2xx | 4xx | 5xx) ["text"];
-</pre>
-<p>This example that redirects clients to a new domain name.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;For other codes, you optionally define a text string which appears in the body of the response (the standard text for the HTTP code, such as Not Found for 404, is still included in the header). The text can contain NGINX variables.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+return (1xx | 2xx | 4xx | 5xx) [&quot;text&quot;];
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;This example that redirects clients to a new domain name.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 server {
-  listen 80;
-  listen 443 ssl;
-  server_name www.old-example.com;
-  return 301 $scheme://www.new-name.com$request_uri;
+listen 80;
+listen 443 ssl;
+server_name www.old-example.com;
+return 301 $scheme://www.new-name.com$request_uri;
 }
-</pre>
-<p>The rewritten URL uses two NGINX variables to capture and replicate values from the original request URL: <code>$scheme</code> is the protocol (http or https) and <code>$request_uri</code> is the full URI including arguments.</p>
-<div class="note">
-  <p>To convert Apache rewrites to their Nginx equivalens see <a class="external" href="https://www.nginx.com/blog/converting-apache-to-nginx-rewrite-rules/">Converting Apache Rewrite Rules to NGINX Rewrite Rules</a></p>
-</div>
-<p><h3>Redirect all traffic to HTTPS</h3></p>
-<p>If you haven't done so, you should redirect all traffic to HTTPS to increase the site's security and to allow access to modern APIs like service workers.</p>
-<p>The following server snippet:</p>
-<ol>
-  <li>Defines the to listening ports, 80 for regular traffic and 443 for SSL</li>
-  <li>Sets the server name</li>
-  </li>Uses a 301 (moved permanently) redirect to point to the HTTPS version of the resource</li>
-</ol>
-<p>This snippet assumes that HTTPS is properly configured for your server. See <a href="http://nginx.org/en/docs/http/configuring_https_servers.html">Configuring HTTPS Servers</a> in the Nginx documentation for instructionws on how to configure HTTPS for your server.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;The rewritten URL uses two NGINX variables to capture and replicate values from the original request URL: &lt;code&gt;$scheme&lt;/code&gt; is the protocol (http or https) and &lt;code&gt;$request_uri&lt;/code&gt; is the full URI including arguments.&lt;/p&gt;</p>
+<p>&lt;div class=&quot;note&quot;&gt;
+&lt;p&gt;To convert Apache rewrites to their Nginx equivalens see &lt;a class=&quot;external&quot; href=&quot;https://www.nginx.com/blog/converting-apache-to-nginx-rewrite-rules/&quot;&gt;Converting Apache Rewrite Rules to NGINX Rewrite Rules&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;</p>
+<p>&lt;h3&gt;Redirect all traffic to HTTPS&lt;/h3&gt;</p>
+<p>&lt;p&gt;If you haven't done so, you should redirect all traffic to HTTPS to increase the site's security and to allow access to modern APIs like service workers.&lt;/p&gt;</p>
+<p>&lt;p&gt;The following server snippet:&lt;/p&gt;</p>
+<p>&lt;ol&gt;
+&lt;li&gt;Defines the to listening ports, 80 for regular traffic and 443 for SSL&lt;/li&gt;
+&lt;li&gt;Sets the server name&lt;/li&gt;
+&lt;/li&gt;Uses a 301 (moved permanently) redirect to point to the HTTPS version of the resource&lt;/li&gt;
+&lt;/ol&gt;</p>
+<p>&lt;p&gt;This snippet assumes that HTTPS is properly configured for your server. See &lt;a href=&quot;http://nginx.org/en/docs/http/configuring_https_servers.html&quot;&gt;Configuring HTTPS Servers&lt;/a&gt; in the Nginx documentation for instructionws on how to configure HTTPS for your server.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 server {
-  listen 80 default_server;
-  listen 443 ssl;
-  server_name example.com;
-  return 301 https://$host$request_uri;
+listen 80 default_server;
+listen 443 ssl;
+server_name example.com;
+return 301 https://$host$request_uri;
 }
-</pre>
-<p><h3>Redirecting from <code>www.</code> URLs</h3></p>
-<p>There are times when we want to move content from <code>www.example.com</code> to <code>example.com</code>. This is one way of doing it.</p>
-<p>Instead of using the <code>$host</code> variable we specify the name of the host we're redirecting to.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Redirecting from &lt;code&gt;www.&lt;/code&gt; URLs&lt;/h3&gt;</p>
+<p>&lt;p&gt;There are times when we want to move content from &lt;code&gt;www.example.com&lt;/code&gt; to &lt;code&gt;example.com&lt;/code&gt;. This is one way of doing it.&lt;/p&gt;</p>
+<p>&lt;p&gt;Instead of using the &lt;code&gt;$host&lt;/code&gt; variable we specify the name of the host we're redirecting to.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 server {
-  server_name www.example.com;
-  return 301 $scheme://example.com$request_uri;
+server_name www.example.com;
+return 301 $scheme://example.com$request_uri;
 }
-</pre>
-<p>You should not have the same content accessible from different URLs. This will cause problems with search engines and SEO. If you must keep the same content on both side, then use <a class="external" href="https://ahrefs.com/blog/canonical-tags/">Canonical URLs</a> to tell search engines which URL they should show users in the search results.</p>
-<p><h3>Inserting the www. at the beginning of URLs</h3></p>
-<p>There may be situations where we want to redirect all traffic to the `www.example.com` URL. For this we specify the name of the URL.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;You should not have the same content accessible from different URLs. This will cause problems with search engines and SEO. If you must keep the same content on both side, then use &lt;a class=&quot;external&quot; href=&quot;https://ahrefs.com/blog/canonical-tags/&quot;&gt;Canonical URLs&lt;/a&gt; to tell search engines which URL they should show users in the search results.&lt;/p&gt;</p>
+<p>&lt;h3&gt;Inserting the www. at the beginning of URLs&lt;/h3&gt;</p>
+<p>&lt;p&gt;There may be situations where we want to redirect all traffic to the <code>www.example.com</code> URL. For this we specify the name of the URL.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 server {
-  server_name example.com;
-  return 301 $scheme://www.example.com$request_uri;
+server_name example.com;
+return 301 $scheme://www.example.com$request_uri;
 }
-</pre>
-<p>Remember that you shouldn't duplicate content in different sites under the same domain. If you must keep the content at different locations, then use <a class="external" href="https://ahrefs.com/blog/canonical-tags/">Canonical URLs</a>.</p>
-<p><h2>Cross-origin resources</h2></p>
-<p>The first set of directives control <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a> (Cross-Origin Resource Sharing) access to resources from the server. CORS is an HTTP-header based mechanism that allows a server to indicate the external origins (domain, protocol, or port) which a browser should permit loading of resources.</p>
-<p>For security reasons, browsers restrict cross-origin HTTP requests initiated from scripts. For example, XMLHttpRequest and the Fetch API follow the same-origin policy. A web application using those APIs can only request resources from the same origin the application was loaded from unless the response from other origins includes the apprpriate CORS headers.
-<p><h3>General CORS access</h3></p>
-<p>The following directive will allow external clients to access all resources from your server.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;Remember that you shouldn't duplicate content in different sites under the same domain. If you must keep the content at different locations, then use &lt;a class=&quot;external&quot; href=&quot;https://ahrefs.com/blog/canonical-tags/&quot;&gt;Canonical URLs&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;h2&gt;Cross-origin resources&lt;/h2&gt;</p>
+<p>&lt;p&gt;The first set of directives control &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS&quot;&gt;CORS&lt;/a&gt; (Cross-Origin Resource Sharing) access to resources from the server. CORS is an HTTP-header based mechanism that allows a server to indicate the external origins (domain, protocol, or port) which a browser should permit loading of resources.&lt;/p&gt;</p>
+<p>&lt;p&gt;For security reasons, browsers restrict cross-origin HTTP requests initiated from scripts. For example, XMLHttpRequest and the Fetch API follow the same-origin policy. A web application using those APIs can only request resources from the same origin the application was loaded from unless the response from other origins includes the apprpriate CORS headers.</p>
+<p>&lt;h3&gt;General CORS access&lt;/h3&gt;</p>
+<p>&lt;p&gt;The following directive will allow external clients to access all resources from your server.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 add_header Access-Control-Allow-Origin '*'
-</pre>
-<p>Think very carefully if this is what you want to do as this will give everyone permission to embed your content on their sites. It may work better if you limit the permission to hosts you define, using something like this code:</p>
-<p>The code will first check if the domain is one of the authorized domains. If it is, it will set the variable `$cors` to true.</p>
-<p>The second block will only add the headers if `$cors` is true, meaning the request is coming from an authorized host.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;Think very carefully if this is what you want to do as this will give everyone permission to embed your content on their sites. It may work better if you limit the permission to hosts you define, using something like this code:&lt;/p&gt;</p>
+<p>&lt;p&gt;The code will first check if the domain is one of the authorized domains. If it is, it will set the variable <code>$cors</code> to true.&lt;/p&gt;</p>
+<p>&lt;p&gt;The second block will only add the headers if <code>$cors</code> is true, meaning the request is coming from an authorized host.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 set $cors '';
-if ($http_origin ~ '^https?://(localhost|www\.yourdomain\.com|www\.yourotherdomain\.com)') {
-  set $cors 'true';
+if ($http_origin ~ '^https?://(localhost|www.yourdomain.com|www.yourotherdomain.com)') {
+set $cors 'true';
+}</p>
+<p>if ($cors = 'true') {
+add_header 'Access-Control-Allow-Origin' &quot;$http_origin&quot; always;
+add_header 'Access-Control-Allow-Credentials' 'true' always;
+add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With' always;</p>
+<h1 id="required-to-be-able-to-read-authorization-header-in-frontend">required to be able to read Authorization header in frontend</h1>
+<p>#add_header 'Access-Control-Expose-Headers' 'Authorization' always;
+}</p>
+<p>if ($request_method = 'OPTIONS') {</p>
+<h1 id="tell-client-that-this-pre-flight-info-is-valid-for-20-days">Tell client that this pre-flight info is valid for 20 days</h1>
+<p>add_header 'Access-Control-Max-Age' 1728000;
+add_header 'Content-Type' 'text/plain charset=UTF-8';
+add_header 'Content-Length' 0;
+return 204;
 }
-
-if ($cors = 'true') {
-  add_header 'Access-Control-Allow-Origin' "$http_origin" always;
-  add_header 'Access-Control-Allow-Credentials' 'true' always;
-  add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
-  add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With' always;
-  # required to be able to read Authorization header in frontend
-  #add_header 'Access-Control-Expose-Headers' 'Authorization' always;
+&lt;/pre&gt;</p>
+<p>&lt;p&gt;The code to conditionally add CORS headers is taken from &lt;a class=&quot;external&quot; href=&quot;https://gist.github.com/Stanback/7145487#file-nginx-conf&quot;&gt;CORS header support&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;h3&gt;Cross-origin resource timing&lt;/h3&gt;</p>
+<p>&lt;p&gt;The &lt;a class=&quot;external&quot; href=&quot;https://www.w3.org/TR/resource-timing/&quot;&gt;Resource Timing Level 1&lt;/a&gt; specification defines an interface for web applications to access the complete timing information for resources in a document.&lt;/p&gt;</p>
+<p>&lt;p&gt;The &lt;a href=&quot;/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
+&quot;&gt;Timing-Allow-Origin&lt;/a&gt; response header specifies origins that are allowed to see values of attributes retrieved via features of the Resource Timing API, which would otherwise be reported as zero due to cross-origin restrictions.&lt;/p&gt;</p>
+<p>&lt;p&gt;If a resource isn't served with a &lt;code&gt;Timing-Allow-Origin&lt;/code&gt; or if the header does not include the origin making the request some of the attributes of the &lt;code&gt;PerformanceResourceTiming&lt;/code&gt; object will be set to zero.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+add_header Timing-Allow-Origin &quot;*&quot;;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Cross-origin images&lt;/h3&gt;</p>
+<p>&lt;p&gt;As reported in the &lt;a class=&quot;external&quot; href=&quot;https://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html&quot;&gt;Chromium Blog&lt;/a&gt; and documented in &lt;a href=&quot;/en-US/docs/Web/HTML/CORS_enabled_image&quot;&gt;Allowing cross-origin use of images and canvas&lt;/a&gt; can lead to fingerprinting attacks.&lt;/p&gt;</p>
+<p>&lt;p&gt;To mitigate the possibility of these attacks, you should use the &lt;code&gt;&lt;a href=&quot;/en-US/docs/Web/HTML/Attributes/crossorigin&quot;&gt;crossorigin&lt;/a&gt;&lt;/code&gt; attribute in the images you request and the code snippet below to set the CORS header from the server.</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+location ~* .(bmp|cur|gif|ico|jpg|jpeg|png|apng|svg|webp|heic|heif|avif)$ {
+add_header Access-Control-Allow-Origin '*';
 }
-
-if ($request_method = 'OPTIONS') {
-  # Tell client that this pre-flight info is valid for 20 days
-  add_header 'Access-Control-Max-Age' 1728000;
-  add_header 'Content-Type' 'text/plain charset=UTF-8';
-  add_header 'Content-Length' 0;
-  return 204;
+&lt;/pre&gt;</p>
+<p>&lt;h3&gt;Cross-origin web fonts&lt;/h3&gt;</p>
+<p>&lt;p&gt;Google Chrome's &lt;a class=&quot;external&quot; href=&quot;https://developers.google.com/fonts/docs/troubleshooting&quot;&gt;Google Fonts troubleshooting guide&lt;/a&gt; tells us that, while Google Fonts may send the CORS header with every response, some proxy servers may strip it before the browser can use it to render the font.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+location ~* .(eot|otf|ttf|woff|woff2)$ {
+add_header
+Access-Control-Allow-Origin '*';
 }
-</pre>
-<p>The code to conditionally add CORS headers is taken from <a class="external" href="https://gist.github.com/Stanback/7145487#file-nginx-conf">CORS header support</a>.</p>
-<p><h3>Cross-origin resource timing</h3></p>
-<p>The <a class="external" href="https://www.w3.org/TR/resource-timing/">Resource Timing Level 1</a> specification defines an interface for web applications to access the complete timing information for resources in a document.</p>
-<p>The <a href="/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
-">Timing-Allow-Origin</a> response header specifies origins that are allowed to see values of attributes retrieved via features of the Resource Timing API, which would otherwise be reported as zero due to cross-origin restrictions.</p>
-<p>If a resource isn't served with a <code>Timing-Allow-Origin</code> or if the header does not include the origin making the request some of the attributes of the <code>PerformanceResourceTiming</code> object will be set to zero.</p>
-<pre class="brush: bash">
-add_header Timing-Allow-Origin "*";
-</pre>
-<p><h3>Cross-origin images</h3></p>
-<p>As reported in the <a class="external" href="https://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html">Chromium Blog</a> and documented in <a href="/en-US/docs/Web/HTML/CORS_enabled_image">Allowing cross-origin use of images and canvas</a> can lead to fingerprinting attacks.</p>
-<p>To mitigate the possibility of these attacks, you should use the <code><a href="/en-US/docs/Web/HTML/Attributes/crossorigin">crossorigin</a></code> attribute in the images you request and the code snippet below to set the CORS header from the server.
-<pre class="brush: bash">
-location ~* \.(bmp|cur|gif|ico|jpg|jpeg|png|apng|svg|webp|heic|heif|avif)$ {
-  add_header Access-Control-Allow-Origin '*';
-}
-</pre>
-<p><h3>Cross-origin web fonts</h3></p>
-<p>Google Chrome's <a class="external" href="https://developers.google.com/fonts/docs/troubleshooting">Google Fonts troubleshooting guide</a> tells us that, while Google Fonts may send the CORS header with every response, some proxy servers may strip it before the browser can use it to render the font.</p>
-<pre class="brush: bash">
-location ~* \.(eot|otf|ttf|woff|woff2)$ {
-    add_header
-  Access-Control-Allow-Origin '*';
-}
-</pre>
-<p><h2>Custom Error Pages/Messsages</h2></p>
-<p>The following snippets use the <code><a class="external" href="http://nginx.org/en/docs/http/ngx_http_core_module.html#error_page">error_page</a></code> directive to point to the location of custom error pages.</p>
-<p>Both examples use <code><a class="external" href="http://nginx.org/en/docs/http/ngx_http_core_module.html#internal">internal</a></code> to specify that the matching directive will only handle internal requests. You cannot call <code>errors/404.html</code> or <code>errors/50x.html</code> directly.</p>
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Custom Error Pages/Messsages&lt;/h2&gt;</p>
+<p>&lt;p&gt;The following snippets use the &lt;code&gt;&lt;a class=&quot;external&quot; href=&quot;http://nginx.org/en/docs/http/ngx_http_core_module.html#error_page&quot;&gt;error_page&lt;/a&gt;&lt;/code&gt; directive to point to the location of custom error pages.&lt;/p&gt;</p>
+<p>&lt;p&gt;Both examples use &lt;code&gt;&lt;a class=&quot;external&quot; href=&quot;http://nginx.org/en/docs/http/ngx_http_core_module.html#internal&quot;&gt;internal&lt;/a&gt;&lt;/code&gt; to specify that the matching directive will only handle internal requests. You cannot call &lt;code&gt;errors/404.html&lt;/code&gt; or &lt;code&gt;errors/50x.html&lt;/code&gt; directly.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 server {
-  error_page 404 /errors/404.html;
-  location = /errors/404.html {
-    internal;
-  }
-
-  error_page 500 502 503 504 /errors/50x.html;
-  location = /errors/50x.html {
-    internal;
-  }
+error_page 404 /errors/404.html;
+location = /errors/404.html {
+internal;
+}</p>
+<p>error_page 500 502 503 504 /errors/50x.html;
+location = /errors/50x.html {
+internal;
 }
-</pre>
-<p><h2>Media Types and Character Encodings</h2></p>
-<p><h3>Serve resources with the proper media types (a.k.a MIME types)</h3></p>
-<pre class="brush: bash">
+}
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Media Types and Character Encodings&lt;/h2&gt;</p>
+<p>&lt;h3&gt;Serve resources with the proper media types (a.k.a MIME types)&lt;/h3&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 include mime.types;
 default_type application/octet-stream;
-</pre>
-<pre class="brush: bash">
-types {
-
-# Data interchange
-
-  application/atom+xml         atom;
-  application/json             json map topojson;
-  application/ld+json          jsonld;
-  application/rss+xml          rss;
-  # Normalize to standard type.
-  application/geo+json         geojson;
-  application/xml              xml;
-  # Normalize to standard type.
-  application/rdf+xml          rdf;
-# JavaScript
-  # Servers should use text/javascript for JavaScript resources.
-  text/javascript              js mjs;
-  application/wasm             wasm;
-# Manifest files
-  application/manifest+json    webmanifest;
-  application/x-web-app-manifest+json   webapp;
-  text/cache-manifest          appcache;
-  
-# Media files
-  audio/midi                   mid midi kar;
-  audio/mp4                    aac f4a f4b m4a;
-  audio/mpeg                   mp3;
-  audio/ogg                    oga ogg opus;
-  audio/x-realaudio            ra;
-  audio/x-wav                  wav;
-  audio/x-matroska             mka;
-  image/bmp                    bmp;
-  image/gif                    gif;
-  image/jpeg                   jpeg jpg;
-  image/jxr                    jxr hdp wdp;
-  image/png                    png;
-  image/svg+xml                svg svgz;
-  image/tiff                   tif tiff;
-  image/vnd.wap.wbmp           wbmp;
-  image/webp                   webp;
-  image/x-jng                  jng;
-  video/3gpp                   3gp 3gpp;
-  video/mp4                    f4p f4v m4v mp4;
-  video/mpeg                   mpeg mpg;
-  video/ogg                    ogv;
-  video/quicktime              mov;
-  video/webm                   webm;
-  video/x-flv                  flv;
-  video/x-mng                  mng;
-  video/x-ms-asf               asf asx;
-  video/x-ms-wmv               wmv;
-  video/x-msvideo              avi;
-  video/x-matroska             mkv mk3d;
-
-# Web fonts
-  font/woff                      woff;
-  font/woff2                     woff2;
-  application/vnd.ms-fontobject  eot;
-  font/ttf                       ttf;
-  font/collection                ttc;
-  font/otf                       otf;
-</pre>
-<p><h2>Set the default Charset attribute</h2></p>
-<p>Unless you have a good reason, and know what you're doing, you should set the character set of all text files to UTF-8 using the <a class="external" href="http://nginx.org/en/docs/http/ngx_http_charset_module.html#charset">charset</a> and <a class="external" href="http://nginx.org/en/docs/http/ngx_http_charset_module.html#source_charset">source_charset</a> directives.</p>
-<p><a class="external" href="http://nginx.org/en/docs/http/ngx_http_charset_module.html#charset">charset</a> is the initial character set for the document
-<pre class="brush: bash">
+&lt;/pre&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
+types {</p>
+<h1 id="data-interchange">Data interchange</h1>
+<p>application/atom+xml         atom;
+application/json             json map topojson;
+application/ld+json          jsonld;
+application/rss+xml          rss;</p>
+<h1 id="normalize-to-standard-type.">Normalize to standard type.</h1>
+<p>application/geo+json         geojson;
+application/xml              xml;</p>
+<h1 id="normalize-to-standard-type.-1">Normalize to standard type.</h1>
+<p>application/rdf+xml          rdf;</p>
+<h1 id="javascript">JavaScript</h1>
+<h1 id="servers-should-use-text%2Fjavascript-for-javascript-resources.">Servers should use text/javascript for JavaScript resources.</h1>
+<p>text/javascript              js mjs;
+application/wasm             wasm;</p>
+<h1 id="manifest-files">Manifest files</h1>
+<p>application/manifest+json    webmanifest;
+application/x-web-app-manifest+json   webapp;
+text/cache-manifest          appcache;</p>
+<h1 id="media-files">Media files</h1>
+<p>audio/midi                   mid midi kar;
+audio/mp4                    aac f4a f4b m4a;
+audio/mpeg                   mp3;
+audio/ogg                    oga ogg opus;
+audio/x-realaudio            ra;
+audio/x-wav                  wav;
+audio/x-matroska             mka;
+image/bmp                    bmp;
+image/gif                    gif;
+image/jpeg                   jpeg jpg;
+image/jxr                    jxr hdp wdp;
+image/png                    png;
+image/svg+xml                svg svgz;
+image/tiff                   tif tiff;
+image/vnd.wap.wbmp           wbmp;
+image/webp                   webp;
+image/x-jng                  jng;
+video/3gpp                   3gp 3gpp;
+video/mp4                    f4p f4v m4v mp4;
+video/mpeg                   mpeg mpg;
+video/ogg                    ogv;
+video/quicktime              mov;
+video/webm                   webm;
+video/x-flv                  flv;
+video/x-mng                  mng;
+video/x-ms-asf               asf asx;
+video/x-ms-wmv               wmv;
+video/x-msvideo              avi;
+video/x-matroska             mkv mk3d;</p>
+<h1 id="web-fonts">Web fonts</h1>
+<p>font/woff                      woff;
+font/woff2                     woff2;
+application/vnd.ms-fontobject  eot;
+font/ttf                       ttf;
+font/collection                ttc;
+font/otf                       otf;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Set the default Charset attribute&lt;/h2&gt;</p>
+<p>&lt;p&gt;Unless you have a good reason, and know what you're doing, you should set the character set of all text files to UTF-8 using the &lt;a class=&quot;external&quot; href=&quot;http://nginx.org/en/docs/http/ngx_http_charset_module.html#charset&quot;&gt;charset&lt;/a&gt; and &lt;a class=&quot;external&quot; href=&quot;http://nginx.org/en/docs/http/ngx_http_charset_module.html#source_charset&quot;&gt;source_charset&lt;/a&gt; directives.&lt;/p&gt;</p>
+<p>&lt;p&gt;&lt;a class=&quot;external&quot; href=&quot;http://nginx.org/en/docs/http/ngx_http_charset_module.html#charset&quot;&gt;charset&lt;/a&gt; is the initial character set for the document</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 charset utf-8;
 source_charset utf-8
-</pre>
-<p><h2>Frame Options</h2></p>
-<p>The example below sends the <code>X-Frame-Options</code> response header with the value <code>DENY</code>, informing browsers not to display the content of the web page in any frame to protect website against <a class="external" href="https://www.owasp.org/index.php/Clickjacking">clickjacking</a>.</p>
-<p>While you could send the <code>X-Frame-Options</code> header for all of your website's pages, this has the potential downside that it forbids even any framing of your content (e.g.: when users visit your website using a Google Image Search results page).</p>
-<p>Nonetheless, you should ensure that you send the <code>X-Frame-Options</code> header for all pages that allow a user to make a state-changing operation (e.g: pages that contain one-click purchase links, checkout or bank-transfer confirmation pages, pages that make permanent configuration changes, etc.).</p>
-<pre class="brush: bash">
-# This sets the default value for the x_frame_options variable on HTML elements
-map $sent_http_content_type $x_frame_options {
-  ~*text/html DENY;
-}
-
-# This uses the variable defined above
-add_header X-Frame-Options $x_frame_options always;
-</pre>
-<p><h2>Content Security Policy (CSP)</h2></p>
-<p><a class="external" href="https://content-security-policy.com/">CSP (Content Security Policy)</a> mitigates the risk of cross-site scripting and other content-injection attacks by setting a <code>Content Security Policy</code> which whitelists trusted sources of content for your website.</p>
-<p>There is no policy that fits all websites, the example below is meant as a guideline for you to modify for your site.</p>
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Frame Options&lt;/h2&gt;</p>
+<p>&lt;p&gt;The example below sends the &lt;code&gt;X-Frame-Options&lt;/code&gt; response header with the value &lt;code&gt;DENY&lt;/code&gt;, informing browsers not to display the content of the web page in any frame to protect website against &lt;a class=&quot;external&quot; href=&quot;https://www.owasp.org/index.php/Clickjacking&quot;&gt;clickjacking&lt;/a&gt;.&lt;/p&gt;</p>
+<p>&lt;p&gt;While you could send the &lt;code&gt;X-Frame-Options&lt;/code&gt; header for all of your website's pages, this has the potential downside that it forbids even any framing of your content (e.g.: when users visit your website using a Google Image Search results page).&lt;/p&gt;</p>
+<p>&lt;p&gt;Nonetheless, you should ensure that you send the &lt;code&gt;X-Frame-Options&lt;/code&gt; header for all pages that allow a user to make a state-changing operation (e.g: pages that contain one-click purchase links, checkout or bank-transfer confirmation pages, pages that make permanent configuration changes, etc.).&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;</p>
+<h1 id="this-sets-the-default-value-for-the-x_frame_options-variable-on-html-elements">This sets the default value for the x_frame_options variable on HTML elements</h1>
+<p>map $sent_http_content_type $x_frame_options {
+~*text/html DENY;
+}</p>
+<h1 id="this-uses-the-variable-defined-above">This uses the variable defined above</h1>
+<p>add_header X-Frame-Options $x_frame_options always;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Content Security Policy (CSP)&lt;/h2&gt;</p>
+<p>&lt;p&gt;&lt;a class=&quot;external&quot; href=&quot;https://content-security-policy.com/&quot;&gt;CSP (Content Security Policy)&lt;/a&gt; mitigates the risk of cross-site scripting and other content-injection attacks by setting a &lt;code&gt;Content Security Policy&lt;/code&gt; which whitelists trusted sources of content for your website.&lt;/p&gt;</p>
+<p>&lt;p&gt;There is no policy that fits all websites, the example below is meant as a guideline for you to modify for your site.&lt;/p&gt;</p>
 <p>The example policy below:</p>
-<ol>
-  <li>Restricts all fetches by default to the origin of the current website by setting the <code>default-src</code> directive to <code>'self'</code> - which acts as a fallback to all <a href="/en-US/docs/Glossary/Fetch_directive">Fetch directives</a>.
-  <ul>
-    <li>This is convenient as you do not have to specify all Fetch directives that apply to your site, for example: <code>connect-src 'self'; font-src 'self'; script-src 'self'; style-src 'self'</code>, etc</li>
-    <li>This restriction also means that you must explicitly define from which site(s) your website is allowed to load resources from, otherwise it will be restricted to the same origin as the page making the request</li>
-  </ul>
-  <li>Disallows the <code>&lt;base></code> element on the website. This is to prevent attackers from changing the locations of resources loaded from relative URLs</li>
-  <ul>
-    <li>If you want to use the <code>&lt;base></code> element, then use <code>base-uri 'self'</code> instead</li>
-  </ul>
-  <li>Only allows form submissions are from the current origin with: <code>form-action 'self'</code></li>
-  <li>Prevents all websites (including your own) from embedding your webpages within e.g. the <code>&lt;iframe></code> or <code>&lt;object></code> element by setting: <code>frame-ancestors 'none'</code>.
-  <ul>
-    <li>The <code>frame-ancestors</code>directive helps avoid "Clickjacking" attacks and is similar to the <code>X-Frame-Options</code> header</li>
-    <li>Browsers that support the CSP header will ignore <code>X-Frame-Options</code> if <code>frame-ancestors</code> is also specified</li>
-  </ul>
-  <li>Forces the browser to treat all the resources that are served over HTTP as if they were loaded securely over HTTPS by setting the <code>upgrade-insecure-requests</code> directive</li>
-  <ul>
-    <li><strong><code>upgrade-insecure-requests</code> does not ensure HTTPS for the top-level navigation. If you want to force the website itself to be loaded over HTTPS you must include the <code>Strict-Transport-Security</code> header</strong></li>
-  </ul>
-  <li>Includes the <code>Content-Security-Policy</code> header in all responses that are able to execute scripting. This includes the commonly used file types: HTML, XML and PDF documents. Although Javascript files can not execute scripts in a "browsing context", they are included to target <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#CSP_in_workers">web workers</a></li>
-</ul>
-<p>To make your CSP implementation easier, you can use an online <a class="external" href="https://report-uri.com/home/generate/">CSP header
-generator</a>. You should also use a <a class="external" href="https://csp-evaluator.withgoogle.com">validator</a> to make sure your header does what you want it to do.</p>
-<pre class="brush: bash">
+<p>&lt;ol&gt;
+&lt;li&gt;Restricts all fetches by default to the origin of the current website by setting the &lt;code&gt;default-src&lt;/code&gt; directive to &lt;code&gt;'self'&lt;/code&gt; - which acts as a fallback to all &lt;a href=&quot;/en-US/docs/Glossary/Fetch_directive&quot;&gt;Fetch directives&lt;/a&gt;.
+&lt;ul&gt;
+&lt;li&gt;This is convenient as you do not have to specify all Fetch directives that apply to your site, for example: &lt;code&gt;connect-src 'self'; font-src 'self'; script-src 'self'; style-src 'self'&lt;/code&gt;, etc&lt;/li&gt;
+&lt;li&gt;This restriction also means that you must explicitly define from which site(s) your website is allowed to load resources from, otherwise it will be restricted to the same origin as the page making the request&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Disallows the &lt;code&gt;&lt;base&gt;&lt;/code&gt; element on the website. This is to prevent attackers from changing the locations of resources loaded from relative URLs&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;If you want to use the &lt;code&gt;&lt;base&gt;&lt;/code&gt; element, then use &lt;code&gt;base-uri 'self'&lt;/code&gt; instead&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Only allows form submissions are from the current origin with: &lt;code&gt;form-action 'self'&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Prevents all websites (including your own) from embedding your webpages within e.g. the &lt;code&gt;&lt;iframe&gt;&lt;/code&gt; or &lt;code&gt;&lt;object&gt;&lt;/code&gt; element by setting: &lt;code&gt;frame-ancestors 'none'&lt;/code&gt;.
+&lt;ul&gt;
+&lt;li&gt;The &lt;code&gt;frame-ancestors&lt;/code&gt;directive helps avoid &quot;Clickjacking&quot; attacks and is similar to the &lt;code&gt;X-Frame-Options&lt;/code&gt; header&lt;/li&gt;
+&lt;li&gt;Browsers that support the CSP header will ignore &lt;code&gt;X-Frame-Options&lt;/code&gt; if &lt;code&gt;frame-ancestors&lt;/code&gt; is also specified&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Forces the browser to treat all the resources that are served over HTTP as if they were loaded securely over HTTPS by setting the &lt;code&gt;upgrade-insecure-requests&lt;/code&gt; directive&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;upgrade-insecure-requests&lt;/code&gt; does not ensure HTTPS for the top-level navigation. If you want to force the website itself to be loaded over HTTPS you must include the &lt;code&gt;Strict-Transport-Security&lt;/code&gt; header&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Includes the &lt;code&gt;Content-Security-Policy&lt;/code&gt; header in all responses that are able to execute scripting. This includes the commonly used file types: HTML, XML and PDF documents. Although Javascript files can not execute scripts in a &quot;browsing context&quot;, they are included to target &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#CSP_in_workers&quot;&gt;web workers&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</p>
+<p>&lt;p&gt;To make your CSP implementation easier, you can use an online &lt;a class=&quot;external&quot; href=&quot;https://report-uri.com/home/generate/&quot;&gt;CSP header
+generator&lt;/a&gt;. You should also use a &lt;a class=&quot;external&quot; href=&quot;https://csp-evaluator.withgoogle.com&quot;&gt;validator&lt;/a&gt; to make sure your header does what you want it to do.&lt;/p&gt;</p>
+<p>&lt;pre class=&quot;brush: bash&quot;&gt;
 map $sent_http_content_type $content_security_policy {
-    ~*text/(html|javascript)|application/pdf|xml "default-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests";
-  }
-
-add_header Content-Security-Policy $content_security_policy always;
-</pre>
-<p><h2>Directory access</h2></p>
-<p></p>
-<p><h2>Block access to hidden files and directories</h2></p>
-<p><h2>Block access to files with sensitive information</h2></p>
-<p><h2>HTTP Strict Transport Security (HSTS)</h2></p>
-<p><h2>Prevent some browsers from MIME-sniffing the response</h2></p>
-<p><h2>Referrer Policy</h2></p>
-<p><h2>Disable TRACE HTTP Method</h2></p>
-<p><h2>Remove the X-Powered-By response header</h2></p>
-<p><h2>Remove Apache-generated Server Information Footer</h2></p>
-<p><h2>Fix broken AcceptEncoding Headers</h2></p>
-<p><h2>Compress media types</h2></p>
-<p><h2> Map extensions to media types</h2></p>
-<p><h2>Cache expiration</h2></p>
+~*text/(html|javascript)|application/pdf|xml &quot;default-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests&quot;;
+}</p>
+<p>add_header Content-Security-Policy $content_security_policy always;
+&lt;/pre&gt;</p>
+<p>&lt;h2&gt;Directory access&lt;/h2&gt;</p>
+<p>&lt;p&gt;&lt;/p&gt;</p>
+<p>&lt;h2&gt;Block access to hidden files and directories&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Block access to files with sensitive information&lt;/h2&gt;</p>
+<p>&lt;h2&gt;HTTP Strict Transport Security (HSTS)&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Prevent some browsers from MIME-sniffing the response&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Referrer Policy&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Disable TRACE HTTP Method&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Remove the X-Powered-By response header&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Remove Apache-generated Server Information Footer&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Fix broken AcceptEncoding Headers&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Compress media types&lt;/h2&gt;</p>
+<p>&lt;h2&gt; Map extensions to media types&lt;/h2&gt;</p>
+<p>&lt;h2&gt;Cache expiration&lt;/h2&gt;</p>
 
 </article>
 <!--

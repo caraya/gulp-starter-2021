@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1>Basic Web Content Build System</h1>
+  <h1 id="basic-web-content-build-system">Basic Web Content Build System</h1>
 <ul>
 <li>Introduction: Why a build system?</li>
 <li>Tasks to accomplish
@@ -80,7 +80,7 @@
 </li>
 </ul>
 <p>It used to be that building content for the web all we had to do was write HTML, CSS and Javascript and upload it to the server. Now the stacks for each of HTML, CSS and Javascript have become complex enough where doing it by hand, while possible, becomes too complicated to do it consistently well.</p>
-<p>That’s where build systems come in. When implementing a build system you automate a lot of the typing and manual configuration for the tasks that you do most often when building your content.</p>
+<p>That's where build systems come in. When implementing a build system you automate a lot of the typing and manual configuration for the tasks that you do most often when building your content.</p>
 <p>The idea is to accomplish the following tasks:</p>
 <ul>
 <li>CSS-Related
@@ -127,299 +127,299 @@
 </li>
 <li>Webpack for asset bundling</li>
 </ul>
-<p>We’ll explore creating a basic build systems using three different approaches: Gulp, NPM scripts and running the tools from the command line. This should cover a large percentage of build cases. If you want to use a different set of tools, we will assume that you know how to use them.</p>
-<h2>Common Requirements</h2>
-<p>The three approaches we’ll try require Node.js. So before we start we need to install Node. The recommended way is to install NVM.</p>
+<p>We'll explore creating a basic build systems using three different approaches: Gulp, NPM scripts and running the tools from the command line. This should cover a large percentage of build cases. If you want to use a different set of tools, we will assume that you know how to use them.</p>
+<h2 id="common-requirements">Common Requirements</h2>
+<p>The three approaches we'll try require Node.js. So before we start we need to install Node. The recommended way is to install NVM.</p>
 <p>Using <a href="https://curl.haxx.se/">curl</a></p>
-<pre><code class="language-bash">curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+<pre class="language-bash"><code class="language-bash"><span class="token function">curl</span> -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh <span class="token operator">|</span> <span class="token function">bash</span>
 </code></pre>
 <p>or <a href="https://www.gnu.org/software/wget/manual/wget.html">Wget</a></p>
-<pre><code class="language-bash">wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+<pre class="language-bash"><code class="language-bash"><span class="token function">wget</span> -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh <span class="token operator">|</span> <span class="token function">bash</span>
 </code></pre>
-<p>The script clones the nvm repository to ~/.nvm and adds the commands necessary to run it to your shell’s profile (~/.bash_profile, ~/.zshrc, ~/.profile, or ~/.bashrc).</p>
-<pre><code class="language-bash">export NVM_DIR='$HOME/.nvm'
-[ -s '$NVM_DIR/nvm.sh' ] &amp;&amp; \. '$NVM_DIR/nvm.sh' # This loads nvm
+<p>The script clones the nvm repository to ~/.nvm and adds the commands necessary to run it to your shell's profile (~/.bash_profile, ~/.zshrc, ~/.profile, or ~/.bashrc).</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">NVM_DIR</span><span class="token operator">=</span><span class="token string">'$HOME/.nvm'</span>
+<span class="token punctuation">[</span> -s <span class="token string">'$NVM_DIR/nvm.sh'</span> <span class="token punctuation">]</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>. <span class="token string">'$NVM_DIR/nvm.sh'</span> <span class="token comment"># This loads nvm</span>
 </code></pre>
 <p>To install the latest Long Term Support version, regardless of what version it is run the following commands from your shell or terminal.</p>
 <p>The first command installs the latest version of the Carbon LTS line</p>
 <p>The second creates a default alias for the version that you just installed</p>
 <p>The last command uses the alias we created.</p>
-<pre><code class="language-bash">nvm install --lts=Carbon
-nvm alias default 8.11.4
+<pre class="language-bash"><code class="language-bash">nvm <span class="token function">install</span> --lts<span class="token operator">=</span>Carbon
+nvm <span class="token builtin class-name">alias</span> default <span class="token number">8.11</span>.4
 nvm use default
 </code></pre>
-<p>If you’re using Windows 10, the suggested version of installing Node is to use the <a href="https://docs.microsoft.com/en-us/windows/wsl/about">Windows Subsystem for Linux</a> to install your favorite Linux distribution. You can then follow the instructions above.</p>
+<p>If you're using Windows 10, the suggested version of installing Node is to use the <a href="https://docs.microsoft.com/en-us/windows/wsl/about">Windows Subsystem for Linux</a> to install your favorite Linux distribution. You can then follow the instructions above.</p>
 <p>Once node is installed create a folder that will be the root for all the projects.</p>
-<pre><code class="language-bash">mkdir build-projects
-cd build-projects
+<pre class="language-bash"><code class="language-bash"><span class="token function">mkdir</span> build-projects
+<span class="token builtin class-name">cd</span> build-projects
 </code></pre>
-<p>Now we’re ready to move to the first version.</p>
-<h2>Gulp</h2>
+<p>Now we're ready to move to the first version.</p>
+<h2 id="gulp">Gulp</h2>
 <p><a href="https://gulpjs.com/">Gulp.js</a> is an automation tool that will make your work easier by not making you repeat tasks over and over.</p>
 <p>To run Node-based projects we must have a <code>package.json</code> file. To generate it run the following command.</p>
-<pre><code class="language-bash">npm init --yes
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> init --yes
 </code></pre>
 <p>Then we install Gulp both globally and for the project. The first version will install the package globally and the second one will install it for the project as a development dependency.</p>
-<pre><code class="language-bash">npm install gulp-cli -g
-npm install gulp -D
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> gulp-cli -g
+<span class="token function">npm</span> <span class="token function">install</span> gulp -D
 </code></pre>
-<p>Finally create a <code>gulpfile.js</code> file. This will hold all the tasks we’re about to create.</p>
-<h3>CSS-Related</h3>
-<p>SASS has become one of the main ways to write CSS. We’ll leverage the <a href="https://www.npmjs.com/package/gulp-sass">gulp-sass</a> to run the conversion. This plugin will use the Node bindings</p>
+<p>Finally create a <code>gulpfile.js</code> file. This will hold all the tasks we're about to create.</p>
+<h3 id="css-related">CSS-Related</h3>
+<p>SASS has become one of the main ways to write CSS. We'll leverage the <a href="https://www.npmjs.com/package/gulp-sass">gulp-sass</a> to run the conversion. This plugin will use the Node bindings</p>
 <p><a href="https://postcss.org/">PostCSS</a> labels itself as a tool to transform CSS with Javascript. We will use two plugins:</p>
 <ul>
 <li>Autoprefixer</li>
 <li>UNCSS</li>
 </ul>
 <p>We will use <a href="https://www.npmjs.com/package/gulp-csslint">gulp-csslint</a> to lint the resulting CSS to make sure that it transformed correctly</p>
-<h4>Installing the required packages</h4>
-<pre><code class="language-bash">npm i -D gulp-sass gulp-sourcemaps gulp-postcss autoprefixer uncss gulp-csslint
+<h4 id="installing-the-required-packages">Installing the required packages</h4>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D gulp-sass gulp-sourcemaps gulp-postcss autoprefixer uncss gulp-csslint
 </code></pre>
-<h4>The tasks</h4>
-<pre><code class="language-javascript">const sass = require('gulp-sass');
-const sourcemaps = require('gulp-sourcemaps');
+<h4 id="the-tasks">The tasks</h4>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> sass <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-sass'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> sourcemaps <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-sourcemaps'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const gulp = require('gulp');
-const critical = require('critical').stream;
+<span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> critical <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'critical'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>stream<span class="token punctuation">;</span>
 
-const postcss = require('gulp-postcss');
-const gulp = require('gulp');
-const autoprefixer = require('autoprefixer');
-const cssnano = require('cssnano');
+<span class="token keyword">const</span> postcss <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-postcss'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> autoprefixer <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'autoprefixer'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> cssnano <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'cssnano'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-javascript">gulp.task('sass', function() {
-  return gulp
-    .src('./sass/**/*.scss')
-    .pipe(sourcemaps.init())
-    .pipe(
-      sass({
-        outputStyle: 'expanded',
-      }).on('error', sass.logError),
-    )
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('./css'));
-});
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'sass'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./sass/**/*.scss'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>sourcemaps<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      <span class="token function">sass</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        outputStyle<span class="token operator">:</span> <span class="token string">'expanded'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'error'</span><span class="token punctuation">,</span> sass<span class="token punctuation">.</span>logError<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>sourcemaps<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-javascript">gulp.task('css', function () {
-  const plugins = [
-    autoprefixer({
-      browsers: [
-        'last 2 versions'
-      ]
-    })
-    cssnano(),
-  ];
-  return gulp.src('./src/*.css')
-    .pipe(postcss(plugins))
-    .pipe(gulp.dest('./dist'));
-});
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'css'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> plugins <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token function">autoprefixer</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      browsers<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token string">'last 2 versions'</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token function">cssnano</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/*.css'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">postcss</span><span class="token punctuation">(</span>plugins<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./dist'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Javascript-related</h3>
-<h4>installing the plugins</h4>
-<pre><code class="language-bash">npm i -D gulp-babel babel-core babel-preset-env
-npm i -D gulp-concat
-npm i -D gulp-eslint
-npm i -D gulp-uglify-es gulp-rename
+<h3 id="javascript-related">Javascript-related</h3>
+<h4 id="installing-the-plugins">installing the plugins</h4>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D gulp-babel babel-core babel-preset-env
+<span class="token function">npm</span> i -D gulp-concat
+<span class="token function">npm</span> i -D gulp-eslint
+<span class="token function">npm</span> i -D gulp-uglify-es gulp-rename
 </code></pre>
-<pre><code class="language-javascript">const babel = require('gulp-babel');
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> babel <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-babel'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const concat = require('gulp-concat');
+<span class="token keyword">const</span> concat <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-concat'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const eslint = requier('eslint');
+<span class="token keyword">const</span> eslint <span class="token operator">=</span> <span class="token function">requier</span><span class="token punctuation">(</span><span class="token string">'eslint'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const rename = require('gulp-rename');
-const uglify = require('gulp-uglify-es').default;
+<span class="token keyword">const</span> rename <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-rename'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> uglify <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-uglify-es'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>default<span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-javascript">gulp.task('transpile', () =&gt; {
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'transpile'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   gulp
-    .src('src/app.js')
-    .pipe(
-      babel({
-        presets: ['env'],
-      }),
-    )
-    .pipe(gulp.dest('dist'));
-});
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/app.js'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      <span class="token function">babel</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        presets<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'env'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-javascript">gulp.task('scripts', function() {
-  return gulp
-    .src('./lib/*.js')
-    .pipe(concat('all.js'))
-    .pipe(gulp.dest('./dist/'));
-});
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'scripts'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./lib/*.js'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">'all.js'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./dist/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-javascript">gulp
-  .src(['**/*.js', '!node_modules/**'])
-  .pipe(eslint())
-  .pipe(
-    eslint.result(result =&gt; {
-      // Called for each ESLint result.
-      console.log(`ESLint result: ${result.filePath}`);
-      console.log(`# Messages: ${result.messages.length}`);
-      console.log(`# Warnings: ${result.warningCount}`);
-      console.log(`# Errors: ${result.errorCount}`);
-    }),
-  );
+<pre class="language-javascript"><code class="language-javascript">gulp
+  <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'**/*.js'</span><span class="token punctuation">,</span> <span class="token string">'!node_modules/**'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">eslint</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+    eslint<span class="token punctuation">.</span><span class="token function">result</span><span class="token punctuation">(</span><span class="token parameter">result</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token comment">// Called for each ESLint result.</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">ESLint result: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>result<span class="token punctuation">.</span>filePath<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string"># Messages: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>result<span class="token punctuation">.</span>messages<span class="token punctuation">.</span>length<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string"># Warnings: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>result<span class="token punctuation">.</span>warningCount<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string"># Errors: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>result<span class="token punctuation">.</span>errorCount<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<pre><code class="language-javascript">gulp.task('uglify', function() {
-  return gulp
-    .src('lib/bundle.js')
-    .pipe(rename('bundle.min.js'))
-    .pipe(uglify(/* options */))
-    .pipe(gulp.dest('lib/'));
-});
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'uglify'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'lib/bundle.js'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">rename</span><span class="token punctuation">(</span><span class="token string">'bundle.min.js'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">uglify</span><span class="token punctuation">(</span><span class="token comment">/* options */</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'lib/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Image related</h3>
-<pre><code class="language-javascript">npm i -D imagemin imagemin-mozjpeg imagemin-webp
+<h3 id="image-related">Image related</h3>
+<pre class="language-javascript"><code class="language-javascript">npm i <span class="token operator">-</span><span class="token constant">D</span> imagemin imagemin<span class="token operator">-</span>mozjpeg imagemin<span class="token operator">-</span>webp
 </code></pre>
-<h4>Imagemin for Image Compression</h4>
-<pre><code class="language-javascript">gulp.task('imagemin', () =&gt; {
-  return gulp
-    .src('src/images')
-    .pipe(
-      imagemin({
-        progressive: true,
-        svgoPlugins: [{ removeViewBox: false }, { cleanupIDs: false }],
-        use: [mozjpeg()],
-      }),
-    )
-    .pipe(gulp.dest('static/images'))
-    .pipe(
-      $.size({
-        pretty: true,
-        title: 'imagemin',
-      }),
-    );
-});
+<h4 id="imagemin-for-image-compression">Imagemin for Image Compression</h4>
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'imagemin'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/images'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      <span class="token function">imagemin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        progressive<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        svgoPlugins<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span> removeViewBox<span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> cleanupIDs<span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        use<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token function">mozjpeg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'static/images'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      $<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        pretty<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        title<span class="token operator">:</span> <span class="token string">'imagemin'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h4>Generating images for Responsive image sets</h4>
-<pre><code class="language-javascript">gulp.task('processImages', () =&gt; {
-  return gulp
-    .src(['src/images/**/*.{jpg,png}', '!src/images/touch/*.png'])
-    .pipe(
-      $.responsive({
-        '*': [
-          {
-            // image-small.jpg is 200 pixels wide
-            width: 200,
-            rename: {
-              suffix: '-small',
-              extname: '.jpg',
-            },
-          },
-          {
-            // image-small@2x.jpg is 400 pixels wide
-            width: 200 * 2,
-            rename: {
-              suffix: '-small@2x',
-              extname: '.jpg',
-            },
-          },
-          {
-            // image-large.jpg is 480 pixels wide
-            width: 480,
-            rename: {
-              suffix: '-large',
-              extname: '.jpg',
-            },
-          },
-          {
-            // image-large@2x.jpg is 960 pixels wide
-            width: 480 * 2,
-            rename: {
-              suffix: '-large@2x',
-              extname: '.jpg',
-            },
-          },
-          {
-            // image-extralarge.jpg is 1280 pixels wide
-            width: 1280,
-            rename: {
-              suffix: '-extralarge',
-              extname: '.jpg',
-            },
-          },
-          {
-            // image-extralarge@2x.jpg is 2560 pixels wide
-            width: 1280 * 2,
-            rename: {
-              suffix: '-extralarge@2x',
-              extname: '.jpg',
-            },
-          },
-          {
-            // image-small.webp is 200 pixels wide
-            width: 200,
-            rename: {
-              suffix: '-small',
-              extname: '.webp',
-            },
-          },
-          {
-            // image-small@2x.webp is 400 pixels wide
-            width: 200 * 2,
-            rename: {
-              suffix: '-small@2x',
-              extname: '.webp',
-            },
-          },
-          {
-            // image-large.webp is 480 pixels wide
-            width: 480,
-            rename: {
-              suffix: '-large',
-              extname: '.webp',
-            },
-          },
-          {
-            // image-large@2x.webp is 960 pixels wide
-            width: 480 * 2,
-            rename: {
-              suffix: '-large@2x',
-              extname: '.webp',
-            },
-          },
-          {
-            // image-extralarge.webp is 1280 pixels wide
-            width: 1280,
-            rename: {
-              suffix: '-extralarge',
-              extname: '.webp',
-            },
-          },
-          {
-            // image-extralarge@2x.webp is 2560 pixels wide
-            width: 1280 * 2,
-            rename: {
-              suffix: '-extralarge@2x',
-              extname: '.webp',
-            },
-          },
-          {
-            quality: 80,
-            progressive: true,
-            skipOnEnlargement: false,
-            withMetadata: true,
-          },
-        ],
-      }).pipe(gulp.dest('dist/images')),
-    );
-});
+<h4 id="generating-images-for-responsive-image-sets">Generating images for Responsive image sets</h4>
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'processImages'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'src/images/**/*.{jpg,png}'</span><span class="token punctuation">,</span> <span class="token string">'!src/images/touch/*.png'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      $<span class="token punctuation">.</span><span class="token function">responsive</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token string">'*'</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-small.jpg is 200 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-small@2x.jpg is 400 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-large.jpg is 480 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">480</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-large'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-large@2x.jpg is 960 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">480</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-large@2x'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-extralarge.jpg is 1280 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">1280</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-extralarge'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-extralarge@2x.jpg is 2560 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">1280</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-extralarge@2x'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-small.webp is 200 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-small@2x.webp is 400 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-large.webp is 480 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">480</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-large'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-large@2x.webp is 960 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">480</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-large@2x'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-extralarge.webp is 1280 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">1280</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-extralarge'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            <span class="token comment">// image-extralarge@2x.webp is 2560 pixels wide</span>
+            width<span class="token operator">:</span> <span class="token number">1280</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+              suffix<span class="token operator">:</span> <span class="token string">'-extralarge@2x'</span><span class="token punctuation">,</span>
+              extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            quality<span class="token operator">:</span> <span class="token number">80</span><span class="token punctuation">,</span>
+            progressive<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+            skipOnEnlargement<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+            withMetadata<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist/images'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Webpack for asset bundling</h3>
-<pre><code class="language-javascript">const webpack = require('webpack-stream');
+<h3 id="webpack-for-asset-bundling">Webpack for asset bundling</h3>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> webpack <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'webpack-stream'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-gulp.task('default', function() {
-  return gulp
-    .src('src/app.js')
-    .pipe(webpack())
-    .pipe(gulp.dest('dist/'));
-});
+gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'default'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/app.js'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">webpack</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Default task to tie it all together</h3>
-<h3>What the gulpfile looks together</h3>
-<h2>NPM Scripts</h2>
-<h2>Command Line Tools</h2>
+<h3 id="default-task-to-tie-it-all-together">Default task to tie it all together</h3>
+<h3 id="what-the-gulpfile-looks-together">What the gulpfile looks together</h3>
+<h2 id="npm-scripts">NPM Scripts</h2>
+<h2 id="command-line-tools">Command Line Tools</h2>
 
 </article>
 <!--

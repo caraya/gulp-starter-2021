@@ -17,68 +17,68 @@
 
 <body>
 <article class="container">
-  <h1>WordPress Hooks</h1>
+  <h1 id="wordpress-hooks">WordPress Hooks</h1>
 <p>Hooks are a way for one piece of code to interact/modify another piece of code. In the context of WordPress, they provide means for plugins, themes, and even WordPress itself to interact with WordPress core functinality.</p>
-<p>If you’ve worked with Javascript and callbacks you may be familiar with the concept of callbacks.</p>
-<p>There are two types of hooks: Actions and Filters. We’ll discuss them in more detail below.</p>
+<p>If you've worked with Javascript and callbacks you may be familiar with the concept of callbacks.</p>
+<p>There are two types of hooks: Actions and Filters. We'll discuss them in more detail below.</p>
 <p>WordPress provides many hooks that you can use, but you can also create your own so that other developers can extend and modify your plugin or theme.</p>
-<h2>Filters</h2>
+<h2 id="filters">Filters</h2>
 <p>Filters allow you to intercept and modify data as it is processed like what you need to do to add the <code>defer</code> attribute to scripts on the page or change other areas of your WordPress pages.</p>
 <p>In this example we add the defer attribute to certain scripts but not others. This shold make the scripts non-render-blocking and help, a little bit, with performance.</p>
-<p>The script was discussed in detail on <a href="https://publishing-project.rivendellweb.net/adding-async-defer-to-wordpress-site">Adding async/defer to WordPress site</a> so I won’t go into detail about it here but the idea is that we’ve changed selected script tags before they are printed on the page.</p>
-<pre><code class="language-php">function rivendellweb_js_defer_attr($tag){
-    // List scripts to work with
-    $scripts_to_include = array(
-    'prism.js',
-    'fontfaceobserver.standalone.js' );
+<p>The script was discussed in detail on <a href="https://publishing-project.rivendellweb.net/adding-async-defer-to-wordpress-site">Adding async/defer to WordPress site</a> so I won't go into detail about it here but the idea is that we've changed selected script tags before they are printed on the page.</p>
+<pre class="language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_js_defer_attr</span><span class="token punctuation">(</span><span class="token variable">$tag</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token comment">// List scripts to work with</span>
+	<span class="token variable">$scripts_to_include</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'prism.js'</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'fontfaceobserver.standalone.js'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    foreach($scripts_to_include as $include_script){
-            if(true == strpos($tag, $include_script ))
-            // Add defer attribute
-            return str_replace( ' src', ' defer src', $tag );
-    }
+	<span class="token keyword">foreach</span><span class="token punctuation">(</span><span class="token variable">$scripts_to_include</span> <span class="token keyword">as</span> <span class="token variable">$include_script</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+			<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token constant boolean">true</span> <span class="token operator">==</span> <span class="token function">strpos</span><span class="token punctuation">(</span><span class="token variable">$tag</span><span class="token punctuation">,</span> <span class="token variable">$include_script</span> <span class="token punctuation">)</span><span class="token punctuation">)</span>
+			<span class="token comment">// Add defer attribute</span>
+			<span class="token keyword">return</span> <span class="token function">str_replace</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">' src'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">' defer src'</span><span class="token punctuation">,</span> <span class="token variable">$tag</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
 
-    return $tag;
+	<span class="token keyword">return</span> <span class="token variable">$tag</span><span class="token punctuation">;</span>
 
-}
-add_filter( 'script_loader_tag', 'rivendellweb_js_defer_attr', 10 );
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'script_loader_tag'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_js_defer_attr'</span><span class="token punctuation">,</span> <span class="token number">10</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Actions</h2>
+<h2 id="actions">Actions</h2>
 <p>Actions allow you to add functionality at specific points in the page lifecycle; for example, you might want to add an inline script to the footer of all content pages or insert additional HTML at some points of the page.</p>
 <p>The hoook in the example inserts inline scripts needed to run <a href="https://fontfaceobserver.com/">Fontface Observer</a> using <a href="https://www.recursive.design/">Recursive</a> as the font, defined in CSS.</p>
-<pre><code class="language-php">function rivendell_add_ffo() {
-?&gt;
-    &lt;script&gt;
-        const recursive = new FontFaceObserver('Recursive VF');
+<pre class="language-php"><code class="language-php">function rivendell_add_ffo() {
+?>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+		<span class="token keyword">const</span> recursive <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'Recursive VF'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        recursive.load()
-        .then(() =&gt; {
-            console.log('Recursive has loaded.');
-            sessionStorage.fontsLoaded = true;
-    })
-    .catch(() =&gt; {
-            console.log('Recursive failed to load');
-            sessionStorage.fontsLoaded = false;
-        });
+		recursive<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+			console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Recursive has loaded.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			sessionStorage<span class="token punctuation">.</span>fontsLoaded <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+			console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Recursive failed to load'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			sessionStorage<span class="token punctuation">.</span>fontsLoaded <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        // Add a class based on whether the font loaded successfully
-        if (sessionStorage.fontsLoaded) {
-            const html = document.documentElement;
-            html.classList.add('fonts-loaded');
-        } else {
-            html.classList.add('fonts-failed');
-        }
-    &lt;/script&gt;
-&lt;?php
-};
-add_action('wp_footer', 'rivendell_add_ffo');
-</code></pre>
+		<span class="token comment">// Add a class based on whether the font loaded successfully</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span>sessionStorage<span class="token punctuation">.</span>fontsLoaded<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			<span class="token keyword">const</span> html <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
+			html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-loaded'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+			html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-failed'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+	</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'wp_footer'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendell_add_ffo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
 <p>The action is simple, we define a function that wraps a PHP function around an HTML <code>script</code> element and use it as the callback for a hook to <a href="https://developer.wordpress.org/reference/hooks/wp_footer/">wp_footer</a> so WordPress will insert the content of the callback function before the closing <code>body</code> tag of the page.</p>
-<h2>Conclusion and further readings</h2>
+<h2 id="conclusion-and-further-readings">Conclusion and further readings</h2>
 <p>Actions and filters give you very fine control over your WordPress installation.</p>
-<p>Their downside is that it takes some work to figure out whether it’s a filter or an action and once you’ve decided which one it is, then you have to choose which specific filter or action is the most appropriate.</p>
+<p>Their downside is that it takes some work to figure out whether it's a filter or an action and once you've decided which one it is, then you have to choose which specific filter or action is the most appropriate.</p>
 <p>Adam Brown provides a list of all <a href="https://adambrown.info/p/wp_hooks/hook/actions">action</a> and <a href="https://adambrown.info/p/wp_hooks/hook/filters">filter</a> hooks available as of WordPress 5.1. This should help you in figuring out what to use for a particular situation.</p>
-<h2>Further readings</h2>
+<h2 id="further-readings">Further readings</h2>
 <ul>
 <li><a href="https://adambrown.info/p/wp_hooks">List of all WordPress hooks</a></li>
 <li><a href="https://developer.wordpress.org/plugins/hooks/">Hooks</a></li>

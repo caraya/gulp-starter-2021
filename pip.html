@@ -17,85 +17,85 @@
 
 <body>
 <article class="container">
-  <h1>PiP on the web</h1>
-<p>I love listening to music in the background or having a video play while I’m doing something else, something like what iTunes does when you minimize the app.</p>
+  <h1 id="pip-on-the-web">PiP on the web</h1>
+<p>I love listening to music in the background or having a video play while I'm doing something else, something like what iTunes does when you minimize the app.</p>
 <p>There is an API that allows you to do somethng similar. The Picture in Picture API is currently <a href="https://github.com/WICG/picture-in-picture">under incubation</a> in the <a href="https://wicg.io/">Web Incubation Community Group</a> and an (incomplete) implementation available in Chrome since version 70 (behind the the <code>chrome://flags/#enable-surfaces-for-videos</code> flag) and Opera since version 57 (behind the the <code>opera://flags/#enable-surfaces-for-videos</code> flag).</p>
-<p>The HTML document looks like any other video. We use the <code>playsinline</code> attribute to make sure it won’t go to fullscreen in iOS devices.</p>
+<p>The HTML document looks like any other video. We use the <code>playsinline</code> attribute to make sure it won't go to fullscreen in iOS devices.</p>
 <p>We also add a button to trigger the picture in picture process.</p>
-<pre><code class="language-html">&lt;video id=&quot;video&quot;
-    controls
-    playsinline
-    src=&quot;video/short.mp4&quot;
-    poster=&quot;video/artwork-512.png&quot;&gt;&lt;/video&gt;
-&lt;button id=&quot;togglePipButton&quot;&gt;Toggle Picture-in-Picture&lt;/button&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>video</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video<span class="token punctuation">"</span></span>
+	<span class="token attr-name">controls</span>
+	<span class="token attr-name">playsinline</span>
+	<span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video/short.mp4<span class="token punctuation">"</span></span>
+	<span class="token attr-name">poster</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video/artwork-512.png<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>video</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>togglePipButton<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Toggle Picture-in-Picture<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
 </code></pre>
-<p>Since the code is promise based so we can either use raw promises or async/await code. In most circumstances I’d go with raw promises since it gives me slightly better browser support but, since the feature is brand new we don’t have to worry about browser support anyways… so async/await it is. :)</p>
+<p>Since the code is promise based so we can either use raw promises or async/await code. In most circumstances I'd go with raw promises since it gives me slightly better browser support but, since the feature is brand new we don't have to worry about browser support anyways... so async/await it is. :)</p>
 <p>The code is broken down into three events and an auxiliary function. The first function is a click event handler in the button.</p>
 <p>We disable the toggle button while we wait for the actions to happen.</p>
 <p>in the try block we test if the video is already in the picture in picture window. If it is not then we add it to the PiP window and if it is (meaning the video is already playing in the PiP window) we remove it.</p>
 <p>In the catch block we log an error to console.</p>
 <p>In the finally block we re-enable the PiP button. This will happen regardless of how we got to the finally block.</p>
-<pre><code class="language-js">let pipWindow;
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> pipWindow<span class="token punctuation">;</span>
 
-togglePipButton.addEventListener('click', async function(event) {
-  console.log('Toggling Picture-in-Picture...');
-  togglePipButton.disabled = true;
-  try {
-    if (video !== document.pictureInPictureElement)
-      await video.requestPictureInPicture();
-    else await document.exitPictureInPicture();
-  } catch (error) {
-    console.log(`I'm sorry David, I can't do that: ${error}`);
-  } finally {
-    togglePipButton.disabled = false;
-  }
-});
+togglePipButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Toggling Picture-in-Picture...'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  togglePipButton<span class="token punctuation">.</span>disabled <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token keyword">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>video <span class="token operator">!==</span> document<span class="token punctuation">.</span>pictureInPictureElement<span class="token punctuation">)</span>
+      <span class="token keyword">await</span> video<span class="token punctuation">.</span><span class="token function">requestPictureInPicture</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">else</span> <span class="token keyword">await</span> document<span class="token punctuation">.</span><span class="token function">exitPictureInPicture</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">I'm sorry David, I can't do that: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>error<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+    togglePipButton<span class="token punctuation">.</span>disabled <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The next two events are picture-in-picture related; Once for when the video enters the picture in picture window and the other for when the video is removed from the PiP window.</p>
 <p>The event sets <code>onPipWindowResize</code> as the resize event handler.</p>
-<pre><code class="language-js">video.addEventListener('enterpictureinpicture', function(event) {
-  console.log('Video Playing in Picture-in-Picture');
+<pre class="language-js"><code class="language-js">video<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'enterpictureinpicture'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Video Playing in Picture-in-Picture'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  pipWindow = event.pictureInPictureWindow;
-  console.log(`The new window size is
-    ${pipWindow.width}x${pipWindow.height}`);
+  pipWindow <span class="token operator">=</span> event<span class="token punctuation">.</span>pictureInPictureWindow<span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">The new window size is
+    </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>pipWindow<span class="token punctuation">.</span>width<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">x</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>pipWindow<span class="token punctuation">.</span>height<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  pipWindow.addEventListener('resize', onPipWindowResize);
-});
+  pipWindow<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'resize'</span><span class="token punctuation">,</span> onPipWindowResize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The <code>leavepictureinpicture</code> notifies when the video is removed from the PiP window and retakes the original position.</p>
 <p>The event removes <code>onPipWindowResize</code> as the resize event handler since we no longer need it.</p>
-<pre><code class="language-js">video.addEventListener('leavepictureinpicture', function(event) {
-  console.log('Exiting Picture-in-Picture');
+<pre class="language-js"><code class="language-js">video<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'leavepictureinpicture'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Exiting Picture-in-Picture'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  pipWindow.removeEventListener('resize', onPipWindowResize);
-});
+  pipWindow<span class="token punctuation">.</span><span class="token function">removeEventListener</span><span class="token punctuation">(</span><span class="token string">'resize'</span><span class="token punctuation">,</span> onPipWindowResize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p><code>onPipWindowResize</code> is the function that will get called when the PiP window is resized. In this example we just log the new window size to the console.</p>
-<pre><code class="language-js">function onPipWindowResize(event) {
-  console.log(
-    `New window size:
-    ${pipWindow.width}x${pipWindow.height}`,
-  );
-}
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">onPipWindowResize</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>
+    <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">New window size:
+    </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>pipWindow<span class="token punctuation">.</span>width<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">x</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>pipWindow<span class="token punctuation">.</span>height<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>The final portion of the script is to enable the button.</p>
-<pre><code class="language-js">if ('pictureInPictureEnabled' in document) {
-  setPipButton();
-  video.addEventListener('loadedmetadata', setPipButton);
-  video.addEventListener('emptied', setPipButton);
-} else {
-  togglePipButton.hidden = true;
-}
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'pictureInPictureEnabled'</span> <span class="token keyword">in</span> document<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">setPipButton</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  video<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'loadedmetadata'</span><span class="token punctuation">,</span> setPipButton<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  video<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'emptied'</span><span class="token punctuation">,</span> setPipButton<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  togglePipButton<span class="token punctuation">.</span>hidden <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-function setPipButton() {
-  togglePipButton.disabled =
-    video.readyState === 0 ||
-    !document.pictureInPictureEnabled ||
-    video.disablePictureInPicture;
-}
+<span class="token keyword">function</span> <span class="token function">setPipButton</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  togglePipButton<span class="token punctuation">.</span>disabled <span class="token operator">=</span>
+    video<span class="token punctuation">.</span>readyState <span class="token operator">===</span> <span class="token number">0</span> <span class="token operator">||</span>
+    <span class="token operator">!</span>document<span class="token punctuation">.</span>pictureInPictureEnabled <span class="token operator">||</span>
+    video<span class="token punctuation">.</span>disablePictureInPicture<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Links and Resources</h2>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://github.com/WICG/picture-in-picture/blob/master/explainer.md">Picture in Picture Explainer</a></li>
 <li><a href="https://googlechrome.github.io/samples/picture-in-picture/">Chrome Example</a></li>

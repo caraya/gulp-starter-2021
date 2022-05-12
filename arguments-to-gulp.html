@@ -17,32 +17,32 @@
 
 <body>
 <article class="container">
-  <h1>Passing argument to Gulp</h1>
-<p>There are times when we want to do different things based on whether we’re creating code for production or development.</p>
-<p>This is based on the example from the <a href="https://github.com/gulpjs/gulp/blob/master/docs/recipes/pass-arguments-from-cli.md">Gulp documentation</a>. We’ll use this as the base and then see if we can expand it further.</p>
+  <h1 id="passing-argument-to-gulp">Passing argument to Gulp</h1>
+<p>There are times when we want to do different things based on whether we're creating code for production or development.</p>
+<p>This is based on the example from the <a href="https://github.com/gulpjs/gulp/blob/master/docs/recipes/pass-arguments-from-cli.md">Gulp documentation</a>. We'll use this as the base and then see if we can expand it further.</p>
 <p>As with all Gulp projects we use NPM to install the packages we want to use</p>
-<pre><code class="language-bash">npm install -D gulp gulp-if \
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> -D gulp gulp-if <span class="token punctuation">\</span>
 gulp-uglify yargs
 </code></pre>
-<p>Then we requite the packages. We’re not using modules for this example.</p>
-<pre><code class="language-js">const gulp = require('gulp');
-const gulpif = require('gulp-if');
-const uglify = require('gulp-uglify');
-const args = require('yargs').argv;
+<p>Then we requite the packages. We're not using modules for this example.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> gulpif <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-if'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> uglify <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-uglify'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> args <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'yargs'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>argv<span class="token punctuation">;</span>
 </code></pre>
-<p>We then set the different options we want to control. In this case we create an <code>env</code> consts and make the value either the value of the <code>NODE_ENV</code> variable or <code>development</code> if we don’t add a value in the command line.</p>
-<pre><code class="language-js">const env = args.env ? process.env.NODE_ENV : 'development';
+<p>We then set the different options we want to control. In this case we create an <code>env</code> consts and make the value either the value of the <code>NODE_ENV</code> variable or <code>development</code> if we don't add a value in the command line.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> env <span class="token operator">=</span> args<span class="token punctuation">.</span>env <span class="token operator">?</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">NODE_ENV</span> <span class="token operator">:</span> <span class="token string">'development'</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The task uses <code>gulp-if</code> to test if we asked for a production environment (if <code>arg.env</code> is production) and uglifies the scripts if we did.</p>
-<pre><code class="language-js">gulp.task('scripts', function() {
-  return gulp.src('./src/js/**/*')
-     // only minify in production
-     .pipe(gulpif(args.env === 'production', uglify()))
-    .pipe(gulp.dest('dist'));
-});
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'scripts'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/js/**/*'</span><span class="token punctuation">)</span>
+     <span class="token comment">// only minify in production</span>
+     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">gulpif</span><span class="token punctuation">(</span>args<span class="token punctuation">.</span>env <span class="token operator">===</span> <span class="token string">'production'</span><span class="token punctuation">,</span> <span class="token function">uglify</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The following Bash command will produce uglified script output.</p>
-<pre><code class="language-sh">gulp scripts --env production
+<pre class="language-sh"><code class="language-sh">gulp scripts --env production
 </code></pre>
 <p>We could add other flags to add conditions elsewhere in the build file. For example, if we use SASS or other CSS preprocessors, we could use the same technique to only produce compressed output or generate sourcemaps for production.</p>
 

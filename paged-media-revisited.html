@@ -17,35 +17,35 @@
 
 <body>
 <article class="container">
-  <h1>Revisiting paged media stylesheets for the web</h1>
+  <h1 id="revisiting-paged-media-stylesheets-for-the-web">Revisiting paged media stylesheets for the web</h1>
 <p>One thing that the web is sorely lacking is the ability to create print-ready content from our web pages. CSS provides specifications for paged media but the support in browsers leaves a lot to be desired, forcing people into tools that accomplish the goals of creating high quality print content.</p>
 <p>In many instances I will cut pieces of the code where they are not relevant. You can find the full stylesheet along with the resulting PDF from the <a href="https://github.com/caraya/new-paged-media">Github Repo</a></p>
-<p>One thing we need to remembebr is that for this particular project we’re doing everything in the command line so download speed is not as big a concern as if we were doing this online at the same time as trying to serve our regular content.</p>
-<h2>Getting started</h2>
+<p>One thing we need to remembebr is that for this particular project we're doing everything in the command line so download speed is not as big a concern as if we were doing this online at the same time as trying to serve our regular content.</p>
+<h2 id="getting-started">Getting started</h2>
 <p>The first thing we do is to load the fonts using a simplified <code>@font-face</code> syntax. Rather than loading all the font formats like we would for a regular web page, we only load WOFF (compressed with Zopfli) to make our lives easier.</p>
 <p>No, we cannot use Variable Fonts with Paged Media Processors.</p>
-<p>In the next step we’ll define some global parameters that will apply to all content.</p>
+<p>In the next step we'll define some global parameters that will apply to all content.</p>
 <p>We use the <code>html</code> element to define the global font for the document.</p>
 <p>The <code>h1</code> element is interesting. We capture the content of the element (the value) to use later as the running header for our different types of content.</p>
 <p>Finally we define the <a href="https://en.wikipedia.org/wiki/Widows_and_orphans">widows and orphans</a> for the entire document.</p>
-<dl><dt>Widow</dt>
-<dd>A paragraph-ending line that falls at the beginning of the following page or column, thus separated from the rest of the text.</dd>
-<dt>Orphan</dt>
-<dd>A paragraph-opening line that appears by itself at the bottom of a page or column, thus separated from the rest of the text.</dd></dl>
+<p>&lt;dl&gt;&lt;dt&gt;Widow&lt;/dt&gt;
+&lt;dd&gt;A paragraph-ending line that falls at the beginning of the following page or column, thus separated from the rest of the text.&lt;/dd&gt;
+&lt;dt&gt;Orphan&lt;/dt&gt;
+&lt;dd&gt;A paragraph-opening line that appears by itself at the bottom of a page or column, thus separated from the rest of the text.&lt;/dd&gt;&lt;/dl&gt;</p>
 <p>Be mindful that setting the values for widows and orphans to high can generate large blocks of empty space in your pages.</p>
-<pre><code class="language-css">html {
-  font-family: 'PT Serif', serif;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">html</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'PT Serif'</span><span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-h1 {
-  string-set: doctitle content();
-  line-height: 1.3;
-}
+<span class="token selector">h1</span> <span class="token punctuation">{</span>
+  <span class="token property">string-set</span><span class="token punctuation">:</span> doctitle <span class="token function">content</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">line-height</span><span class="token punctuation">:</span> 1.3<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-p {
-  widows: 4;
-  orphans: 4;
-}
+<span class="token selector">p</span> <span class="token punctuation">{</span>
+  <span class="token property">widows</span><span class="token punctuation">:</span> 4<span class="token punctuation">;</span>
+  <span class="token property">orphans</span><span class="token punctuation">:</span> 4<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Next we define the global page for the document. This is what all the other pages will inherit from so we save ourselves from having to retype blocks of CSS over and over.</p>
 <p>We define the size of the printed page to be American Letter (8.5 by 11 inches) with a 1 inch margin all around.</p>
@@ -57,248 +57,248 @@ p {
 <li>When <strong>three</strong> values are specified, the first margin applies to the <strong>top</strong>, the second to the <strong>left and right</strong>, the third to the <strong>bottom</strong></li>
 <li>When <strong>four</strong> values are specified, the margins apply to the <strong>top</strong>, <strong>right</strong>, <strong>bottom</strong>, and <strong>left</strong> in that order (clockwise)</li>
 </ul>
-<p>Next we set what we want to put in the top right corner of the document. We indicate that we want to pull the <code>doctitle</code> string from <code>h1</code> element for the corresponding section and that we want it to be 9 points (where 1pt equals <sup>1</sup>/<sub>72</sub> of an inch)</p>
+<p>Next we set what we want to put in the top right corner of the document. We indicate that we want to pull the <code>doctitle</code> string from <code>h1</code> element for the corresponding section and that we want it to be 9 points (where 1pt equals &lt;sup&gt;1&lt;/sup&gt;/&lt;sub&gt;72&lt;/sub&gt; of an inch)</p>
 <p>Finally we set footnote attributes that we want to carry throughout the document.</p>
-<pre><code class="language-css">// DEFINE THE DEFAULT PAGE */
-@page {
-  size: 8.5in 11in;
-  margin: 1in;
-  @top-right {
-    content: string(doctitle);
-    font-size: 9pt;
-  }
-  @footnote {
-    counter-increment: footnote;
-    float: bottom;
-    column-span: all;
-    height: auto;
-  }
-}
+<pre class="language-css"><code class="language-css">// DEFINE THE DEFAULT PAGE */
+<span class="token atrule"><span class="token rule">@page</span></span> <span class="token punctuation">{</span>
+  <span class="token property">size</span><span class="token punctuation">:</span> 8.5in 11in<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 1in<span class="token punctuation">;</span>
+  <span class="token atrule"><span class="token rule">@top-right</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">string</span><span class="token punctuation">(</span>doctitle<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> 9pt<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token atrule"><span class="token rule">@footnote</span></span> <span class="token punctuation">{</span>
+    <span class="token property">counter-increment</span><span class="token punctuation">:</span> footnote<span class="token punctuation">;</span>
+    <span class="token property">float</span><span class="token punctuation">:</span> bottom<span class="token punctuation">;</span>
+    <span class="token property">column-span</span><span class="token punctuation">:</span> all<span class="token punctuation">;</span>
+    <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>We use <code>data-</code> attributes to indicate what part of our book each element corresponds to. We avoid name collisions between stylesheets where, for the same specificity, the last rule wins.</p>
 <p>We use <a href="https://www.nixsensor.com/what-is-cmyk-color/">CMYK</a> colors rather than RGB(a) or HSL. This is not a requirement but I thought it was cool.</p>
 <p>Once again we use points (pt) to define the default font size of the document.</p>
-<pre><code class="language-css">body[data-type='book'] {
-  color: cmyk(0%, 0%, 100%, 100%);
-  hyphens: auto;
-  font-size: 14pt;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">body[data-type='book']</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">cmyk</span><span class="token punctuation">(</span>0%<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 100%<span class="token punctuation">,</span> 100%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">hyphens</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 14pt<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>We will rely extensively on counters so we need to define them and reset them the first time.</p>
 <p>The rules below saay that if the first child is a part, a chapter or an appendix to reset the counters for appendix, chapter, figures and tables.</p>
-<p>However if there’s a chapter with a sibling chapter, we don’t want to reset any counters.</p>
-<pre><code class="language-css">body[data-type='book'] &gt; div[data-type='part']:first-of-type,
-body[data-type='book'] &gt; section[data-type='chapter']:first-of-type,
-body[data-type='book'] &gt; section[data-type='appendix']:first-of-type {
-  counter-reset: chapter;
-  counter-reset: appendix;
-  counter-reset: figure;
-  counter-reset: table;
-}
+<p>However if there's a chapter with a sibling chapter, we don't want to reset any counters.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">body[data-type='book'] > div[data-type='part']:first-of-type,
+body[data-type='book'] > section[data-type='chapter']:first-of-type,
+body[data-type='book'] > section[data-type='appendix']:first-of-type</span> <span class="token punctuation">{</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> chapter<span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> appendix<span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> figure<span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> table<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-body[data-type='book'] &gt; section[data-type='chapter'] + div[data-type='part'] {
-  counter-reset: none;
-}
+<span class="token selector">body[data-type='book'] > section[data-type='chapter'] + div[data-type='part']</span> <span class="token punctuation">{</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<p>We associate elements to pages that we’ll define later. It is at this stage where we define page breaks, counter increeases and other elements that are specific to some types of pages and not others.</p>
-<p>The code is not DRY and I’m ok with that. I’ve traded ease of reading and debuging for brevity.</p>
-<pre><code class="language-css">// Title Page */
-section[data-type='titlepage'] {
-  page: titlepage;
-  page-break-before: always;
-  page-break-after: always;
-}
+<p>We associate elements to pages that we'll define later. It is at this stage where we define page breaks, counter increeases and other elements that are specific to some types of pages and not others.</p>
+<p>The code is not DRY and I'm ok with that. I've traded ease of reading and debuging for brevity.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">// Title Page */
+section[data-type='titlepage']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> titlepage<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Copyright page */
-section[data-type='copyright'] {
-  page: copyright;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Copyright page */
+section[data-type='copyright']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> copyright<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Dedication */
-section[data-type='dedication'] {
-  page: dedication;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Dedication */
+section[data-type='dedication']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> dedication<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Foreword */
-section[data-type='foreword'] {
-  page: foreword;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Foreword */
+section[data-type='foreword']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> foreword<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Preface*/
-section[data-type='preface'] {
-  page: preface;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Preface*/
+section[data-type='preface']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> preface<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Part */
-div[data-type='part'] {
-  page: part;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Part */
+div[data-type='part']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> part<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Chapter */
-section[data-type='chapter'] {
-  counter-increment: chapter;
-  page: chapter;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Chapter */
+section[data-type='chapter']</span> <span class="token punctuation">{</span>
+  <span class="token property">counter-increment</span><span class="token punctuation">:</span> chapter<span class="token punctuation">;</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> chapter<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Appendix */
-section[data-type='appendix'] {
-  counter-increment: appendix;
-  page: appendix;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Appendix */
+section[data-type='appendix']</span> <span class="token punctuation">{</span>
+  <span class="token property">counter-increment</span><span class="token punctuation">:</span> appendix<span class="token punctuation">;</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> appendix<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Glossary */
-section[data-type='glossary'] {
-  page: glossary;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Glossary */
+section[data-type='glossary']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> glossary<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Bibliography */
-section[data-type='bibliography'] {
-  page: bibliography;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Bibliography */
+section[data-type='bibliography']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> bibliography<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Index */
-section[data-type='index'] {
-  page: index;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Index */
+section[data-type='index']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> index<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Colophon */
-section[data-type='colophon'] {
-  page: colophon;
-  page-break-before: always;
-  page-break-after: always;
-}
+<span class="token selector">// Colophon */
+section[data-type='colophon']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> colophon<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>The table of contents creates a leader for each item in the table of contents (a line of dots) pointing towards the page number at the far right of the entry.</p>
-<pre><code class="language-css">// TOC */
-section[data-type='toc'] {
-  page: toc;
-  page-break-before: always;
-  page-break-after: always;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">// TOC */
+section[data-type='toc']</span> <span class="token punctuation">{</span>
+  <span class="token property">page</span><span class="token punctuation">:</span> toc<span class="token punctuation">;</span>
+  <span class="token property">page-break-before</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+  <span class="token property">page-break-after</span><span class="token punctuation">:</span> always<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-// Leader for toc page */
-section[data-type='toc'] nav ol li a:after {
-  content: leader('.') target-counter(attr(href), page);
-}
+<span class="token selector">// Leader for toc page */
+section[data-type='toc'] nav ol li a:after</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">leader</span><span class="token punctuation">(</span><span class="token string">'.'</span><span class="token punctuation">)</span> <span class="token function">target-counter</span><span class="token punctuation">(</span><span class="token function">attr</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span><span class="token punctuation">,</span> page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<p>Now that we’ve done the association we can defined the different pages. Because we’re working with two-sided pages we have to define the items for both the right and left side pages.</p>
+<p>Now that we've done the association we can defined the different pages. Because we're working with two-sided pages we have to define the items for both the right and left side pages.</p>
 <p>All the front matter pages use lower-case roman page numbers while the rest of the content uses arabic numbers for page numbering.</p>
-<pre><code class="language-css">@page toc:right {
-  @bottom-right-corner {
-    content: counter(page, lower-roman);
-  }
-  @bottom-left-corner {
-    content: normal;
-  }
-}
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@page</span> <span class="token property">toc</span><span class="token punctuation">:</span>right</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@bottom-right-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">counter</span><span class="token punctuation">(</span>page<span class="token punctuation">,</span> lower-roman<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token atrule"><span class="token rule">@bottom-left-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@page toc:left {
-  @bottom-left-corner {
-    content: counter(page, lower-roman);
-  }
-  @bottom-right-corner {
-    content: normal;
-  }
-}
+<span class="token atrule"><span class="token rule">@page</span> <span class="token property">toc</span><span class="token punctuation">:</span>left</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@bottom-left-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">counter</span><span class="token punctuation">(</span>page<span class="token punctuation">,</span> lower-roman<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token atrule"><span class="token rule">@bottom-right-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@page chapter {
-  @bottom-center {
-    vertical-align: middle;
-    text-align: center;
-  }
-}
+<span class="token atrule"><span class="token rule">@page</span> chapter</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@bottom-center</span></span> <span class="token punctuation">{</span>
+    <span class="token property">vertical-align</span><span class="token punctuation">:</span> middle<span class="token punctuation">;</span>
+    <span class="token property">text-align</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@page chapter:right {
-  @bottom-right-corner {
-    content: counter(page);
-  }
-  @bottom-left-corner {
-    content: normal;
-  }
-}
+<span class="token atrule"><span class="token rule">@page</span> <span class="token property">chapter</span><span class="token punctuation">:</span>right</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@bottom-right-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">counter</span><span class="token punctuation">(</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token atrule"><span class="token rule">@bottom-left-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 
-@page chapter:left {
-  @bottom-left-corner {
-    content: counter(page);
-  }
-  @bottom-right-corner {
-    content: normal;
-  }
-}
+<span class="token atrule"><span class="token rule">@page</span> <span class="token property">chapter</span><span class="token punctuation">:</span>left</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@bottom-left-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">counter</span><span class="token punctuation">(</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token atrule"><span class="token rule">@bottom-right-corner</span></span> <span class="token punctuation">{</span>
+    <span class="token property">content</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>The next block covers footnotes. These are PrinceXML specific extensions covered in their <a href="https://www.princexml.com/doc-prince/#footnotes">footnotes documentation</a></p>
-<pre><code class="language-css">// Footnotes */
-span.footnote {
-  float: footnote;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">// Footnotes */
+span.footnote</span> <span class="token punctuation">{</span>
+  <span class="token property">float</span><span class="token punctuation">:</span> footnote<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-::footnote-marker {
-  content: counter(footnote);
-  list-style-position: inside;
-}
+<span class="token selector">::footnote-marker</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">counter</span><span class="token punctuation">(</span>footnote<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">list-style-position</span><span class="token punctuation">:</span> inside<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-::footnote-marker::after {
-  content: '. ';
-}
+<span class="token selector">::footnote-marker::after</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">'. '</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-::footnote-call {
-  content: counter(footnote);
-  vertical-align: super;
-  font-size: 65%;
-}
+<span class="token selector">::footnote-call</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">counter</span><span class="token punctuation">(</span>footnote<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">vertical-align</span><span class="token punctuation">:</span> super<span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 65%<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p><a href="https://www.princexml.com/doc-prince/#counter-target">Cross References</a> are also possible using generated contnt and Prince-specific extensions.</p>
 <p>We can target any counter available on the document and, with it, creaate interesting cross references.</p>
-<pre><code class="language-css">// XReferences */
-a.xref[href]::after {
-  content: ' [See page ' target-counter(attr(href), page) ']';
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">// XReferences */
+a.xref[href]::after</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">' [See page '</span> <span class="token function">target-counter</span><span class="token punctuation">(</span><span class="token function">attr</span><span class="token punctuation">(</span>href<span class="token punctuation">)</span><span class="token punctuation">,</span> page<span class="token punctuation">)</span> <span class="token string">']'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>One cool thing that AntennaHouse and Prince can do is generate PDF bookmarks from the headings in your document.</p>
 <p>We are generating bookmarks for chapter, apendix glossary, bibliography and index sections.</p>
 <p>h1 through h3 are open and will display the content of the h1 element as indicated.</p>
-<pre><code class="language-css">section[data-type='chapter'] h1,
+<pre class="language-css"><code class="language-css"><span class="token selector">section[data-type='chapter'] h1,
 section[data-type='apendix'] h1,
 section[data-type='glossary'] h1,
 section[data-type='bibliography'] h1,
-section[data-type='index'] h1 {
-  -ah-bookmark-level: 1;
-  -ah-bookmark-state: open;
-  -ah-bookmark-label: content();
-  prince-bookmark-level: 1;
-  prince-bookmark-state: open;
-  prince-bookmark-label: content();
-}
+section[data-type='index'] h1</span> <span class="token punctuation">{</span>
+  <span class="token property">-ah-bookmark-level</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+  <span class="token property">-ah-bookmark-state</span><span class="token punctuation">:</span> open<span class="token punctuation">;</span>
+  <span class="token property">-ah-bookmark-label</span><span class="token punctuation">:</span> <span class="token function">content</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">prince-bookmark-level</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+  <span class="token property">prince-bookmark-state</span><span class="token punctuation">:</span> open<span class="token punctuation">;</span>
+  <span class="token property">prince-bookmark-label</span><span class="token punctuation">:</span> <span class="token function">content</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>h4 through h6 do not need to be open mostly because we want to use the bookmarks as navigation references so we just ass the bookmark without a state or a label.</p>
-<pre><code class="language-css">section[data-type='chapter'] h4,
+<pre class="language-css"><code class="language-css"><span class="token selector">section[data-type='chapter'] h4,
 section[data-type='apendix'] h4,
 section[data-type='glossary'] h4,
 section[data-type='bibliography'] h4,
-section[data-type='index'] h4 {
-  -ah-bookmark-level: 4;
-  prince-bookmark-level: 4;
-}
+section[data-type='index'] h4</span> <span class="token punctuation">{</span>
+  <span class="token property">-ah-bookmark-level</span><span class="token punctuation">:</span> 4<span class="token punctuation">;</span>
+  <span class="token property">prince-bookmark-level</span><span class="token punctuation">:</span> 4<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Chapters and Apendices require some extra work. Because we usually have more than one chapter and can have multiple apendices, we are using counters and we want to indent all paragraphs after the first one we take some extra work to make sure it works correctly.</p>
 <p>For all <code>h1</code> elements inside chapter sections we want to do three things:</p>
@@ -309,45 +309,45 @@ section[data-type='index'] h4 {
 </ul>
 <p>Using the <code>:before</code> pseudo element we add a string containing the word Chapter and the current value of the chapter counter.</p>
 <p>We repeat the same process for the <code>apendix</code> section or sections.</p>
-<pre><code class="language-css">section[data-type='chapter'] h1 {
-  string-set: doctitle content();
-  counter-reset: figure;
-  counter-reset: table;
-}
+<pre class="language-css"><code class="language-css"><span class="token selector">section[data-type='chapter'] h1</span> <span class="token punctuation">{</span>
+  <span class="token property">string-set</span><span class="token punctuation">:</span> doctitle <span class="token function">content</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> figure<span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> table<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-section[data-type='chapter'] h1:before {
-  content: 'Chapter ' counter(chapter) '. ';
-}
+<span class="token selector">section[data-type='chapter'] h1:before</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">'Chapter '</span> <span class="token function">counter</span><span class="token punctuation">(</span>chapter<span class="token punctuation">)</span> <span class="token string">'. '</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-section[data-type='chapter'] p:not(:first-of-type) {
-  text-indent: 0.5in;
-}
+<span class="token selector">section[data-type='chapter'] p:not(:first-of-type)</span> <span class="token punctuation">{</span>
+  <span class="token property">text-indent</span><span class="token punctuation">:</span> 0.5in<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-section[data-type='apendix'] h1 {
-  string-set: doctitle content();
-  counter-reset: figure;
-  counter-reset: table;
-}
+<span class="token selector">section[data-type='apendix'] h1</span> <span class="token punctuation">{</span>
+  <span class="token property">string-set</span><span class="token punctuation">:</span> doctitle <span class="token function">content</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> figure<span class="token punctuation">;</span>
+  <span class="token property">counter-reset</span><span class="token punctuation">:</span> table<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-section[data-type='appendix'] h1:before {
-  content: 'Appendix ' counter(appendix, upper-alpha) ':  ';
-}
+<span class="token selector">section[data-type='appendix'] h1:before</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">'Appendix '</span> <span class="token function">counter</span><span class="token punctuation">(</span>appendix<span class="token punctuation">,</span> upper-alpha<span class="token punctuation">)</span> <span class="token string">':  '</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Putting it all together</h2>
+<h2 id="putting-it-all-together">Putting it all together</h2>
 <p>I build the files from the command line using iTerm in MacOS. The instructions should also work in Linux and Windows using WSL.</p>
 <p><a href="https://www.princexml.com/download/">Download Prince</a> for your operating system and install it.</p>
 <p>I use (Dart) SASS to generate the stylesheets.</p>
-<p>Once it’s installed run the following commands:</p>
+<p>Once it's installed run the following commands:</p>
 <ul>
-<li><strong>rm -rf book2.pdf</strong> to remove the pdf file. It will return without a message if the file doesn’t exist</li>
+<li><strong>rm -rf book2.pdf</strong> to remove the pdf file. It will return without a message if the file doesn't exist</li>
 <li><strong>sass sass:css</strong> converts files in the sass directory to the corresponding file in the css directory</li>
 <li><strong>prince index.html -s css/paged-media.css -o book2.pdf</strong> runs princeXML on index.html using the css/paged-media.css stylesheet and producing book2.pdf as the final output</li>
 </ul>
-<h2>Looking Forward</h2>
-<p>The version of the stylesheet we’ve presented in this post is geared to wards books and other complex forms of printed content.</p>
-<p>There is no reason why we couldn’t simplify it to work on one or more articlles without having to carry the full book baggage.</p>
+<h2 id="looking-forward">Looking Forward</h2>
+<p>The version of the stylesheet we've presented in this post is geared to wards books and other complex forms of printed content.</p>
+<p>There is no reason why we couldn't simplify it to work on one or more articlles without having to carry the full book baggage.</p>
 <p>There is a simplified article stylesheet in the <a href="https://github.com/caraya/new-paged-media">Github Repo</a> at <code>sass/article.scss</code> along with the resulting <code>article.pdf</code>.</p>
-<h2>Links and Resources</h2>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li>Spec
 <ul>
