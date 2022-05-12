@@ -17,22 +17,22 @@
 
 <body>
 <article class="container">
-  <h1>Using GetText based translations in node</h1>
+  <h1 id="using-gettext-based-translations-in-node">Using GetText based translations in node</h1>
 <p>When working with WordPress, one of the things I enjoyed was how easy it made it to use Gettext-based translation tooling and functionality to localize themes and plugins.</p>
 <p>I was thinking that it would be nice if there was an equivalent toolset for Javascript.</p>
 <p><a href="https://www.npmjs.com/package/node-gettext">node-gettext</a> seems to fit the bill nicely.</p>
 <p>It provides facilities to load and work with existing PO files and it provides the basic tooling that we need to work directly with PO files generate with other tools.</p>
-<p>Even though Node now supports ESM and their related methodss I’m sticking to CommonJS for a while longer so I can learn how to use them properly.</p>
-<p>The first step is to load the modules that we’ll use accross the demo,  in this case</p>
+<p>Even though Node now supports ESM and their related methodss I'm sticking to CommonJS for a while longer so I can learn how to use them properly.</p>
+<p>The first step is to load the modules that we'll use accross the demo,  in this case</p>
 <ul>
 <li>the <code>fs</code> native Node file system module</li>
 <li>the native <code>path</code> Node module</li>
 <li><code>node-gettext</code></li>
 <li><code>gettext-parser</code></li>
 </ul>
-<p>we then create a new instance of <code>node-gettext</code> that we’ll use to add the translation file (<code>addTranslations</code>), set the locale (<code>setLocale</code>) and then use the translated strings (<code>gettext</code>)</p>
-<p>On first impression, it doesn’t look like we’re actually using the translated strings. The <code>gettext</code> method is using English!</p>
-<p>No, it is not. What appears in English is actually the ID for the string we’re localizing. What <code>node-gettext</code> will do behind the scenes is take the ID, find the matching text in the locale we are using and then present that as the result of <code>gettext</code>.</p>
+<p>we then create a new instance of <code>node-gettext</code> that we'll use to add the translation file (<code>addTranslations</code>), set the locale (<code>setLocale</code>) and then use the translated strings (<code>gettext</code>)</p>
+<p>On first impression, it doesn't look like we're actually using the translated strings. The <code>gettext</code> method is using English!</p>
+<p>No, it is not. What appears in English is actually the ID for the string we're localizing. What <code>node-gettext</code> will do behind the scenes is take the ID, find the matching text in the locale we are using and then present that as the result of <code>gettext</code>.</p>
 <p>We then define the translations and their charcteristics. This example uses a single translation for Spanish but could accommodate multiple translations by adding them to the locales array.</p>
 <p>Next, we start loading the locale data. For each of our existing locales:</p>
 <ul>
@@ -41,41 +41,41 @@
 </ul>
 <p>We then parse the translation file using <code>gettext-parser</code>'s parse method.</p>
 <p>The final step is to load the parsed translations into memory using <code>node-gettext</code>'s <code>addTranslations</code>.</p>
-<pre><code class="language-js">const fs = require('fs');
-const path = require('path');
-const Gettext = require('node-gettext');
-const { po } = require('gettext-parser');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> Gettext <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'node-gettext'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span> po <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gettext-parser'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-// In this example, our translations are found at
-// path/to/languages/locale/locale.po
-const translationsDir = 'languages'
-const locales = ['es']
-const domain = 'messages'
+<span class="token comment">// In this example, our translations are found at</span>
+<span class="token comment">// path/to/languages/locale/locale.po</span>
+<span class="token keyword">const</span> translationsDir <span class="token operator">=</span> <span class="token string">'languages'</span>
+<span class="token keyword">const</span> locales <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'es'</span><span class="token punctuation">]</span>
+<span class="token keyword">const</span> domain <span class="token operator">=</span> <span class="token string">'messages'</span>
 
-const gt = new Gettext()
+<span class="token keyword">const</span> gt <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Gettext</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-locales.forEach((locale) =&gt; {
-    const fileName = `${locale}.po`
-    const translationsFilePath = path.join(translationsDir, locale, fileName)
-    const translationsContent = fs.readFileSync(translationsFilePath)
+locales<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">locale</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> fileName <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>locale<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">.po</span><span class="token template-punctuation string">`</span></span>
+    <span class="token keyword">const</span> translationsFilePath <span class="token operator">=</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>translationsDir<span class="token punctuation">,</span> locale<span class="token punctuation">,</span> fileName<span class="token punctuation">)</span>
+    <span class="token keyword">const</span> translationsContent <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span>translationsFilePath<span class="token punctuation">)</span>
 
-    const parsedTranslations = po.parse(translationsContent)
-    gt.addTranslations(locale, domain, parsedTranslations)
-})
+    <span class="token keyword">const</span> parsedTranslations <span class="token operator">=</span> po<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>translationsContent<span class="token punctuation">)</span>
+    gt<span class="token punctuation">.</span><span class="token function">addTranslations</span><span class="token punctuation">(</span>locale<span class="token punctuation">,</span> domain<span class="token punctuation">,</span> parsedTranslations<span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>When we’re ready to use the translations, we set the locale that we want to work with and then use the <code>gettext</code> method to retrieve the translations that we want. If you’ve worked with WordPress i10n tools, this is equivalent to the <code>__()</code> way of writing localizable strings.</p>
+<p>When we're ready to use the translations, we set the locale that we want to work with and then use the <code>gettext</code> method to retrieve the translations that we want. If you've worked with WordPress i10n tools, this is equivalent to the <code>__()</code> way of writing localizable strings.</p>
 <p>The parameter for gettext is not the string in English but the value of the ID attribute for the entry we want to use in the <code>.po</code> translation file.</p>
 <p>The result looks like this:</p>
-<pre><code class="language-js">gt.setLocale('es')
+<pre class="language-js"><code class="language-js">gt<span class="token punctuation">.</span><span class="token function">setLocale</span><span class="token punctuation">(</span><span class="token string">'es'</span><span class="token punctuation">)</span>
 
-console.log(gt.gettext('Newer'));
-// --&gt; Más nuevos
-console.log(gt.gettext('Older'));
-// --&gt; Mas antiguos
-console.log(gt.gettext('Most Used Categories'));
-// --&gt; Categorías más usadas
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>gt<span class="token punctuation">.</span><span class="token function">gettext</span><span class="token punctuation">(</span><span class="token string">'Newer'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// --> Más nuevos</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>gt<span class="token punctuation">.</span><span class="token function">gettext</span><span class="token punctuation">(</span><span class="token string">'Older'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// --> Mas antiguos</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>gt<span class="token punctuation">.</span><span class="token function">gettext</span><span class="token punctuation">(</span><span class="token string">'Most Used Categories'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// --> Categorías más usadas</span>
 </code></pre>
-<p>If you’re working with WordPress, this technique allows you to use the same translation file for both regular themes, written in PHP and HTML, and front ends written with other technologies and frameworks.</p>
+<p>If you're working with WordPress, this technique allows you to use the same translation file for both regular themes, written in PHP and HTML, and front ends written with other technologies and frameworks.</p>
 <p><code>node-gettext</code> is supposed to be an isomorphic library, it should work on Node and on the browser. I am still figuring out how to make it work directly on the browser.</p>
 
 </article>

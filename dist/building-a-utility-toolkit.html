@@ -17,8 +17,8 @@
 
 <body>
 <article class="container">
-  <h1>Building a utility toolkit</h1>
-<p>There are tools that you use in all your projects and you’d rather not have to manually install every time.</p>
+  <h1 id="building-a-utility-toolkit">Building a utility toolkit</h1>
+<p>There are tools that you use in all your projects and you'd rather not have to manually install every time.</p>
 <p>The project attempts to create a set of those scripts packed as an NPM module, modeled after the <code>kcd-scripts</code> <code>react-scripts</code> and <code>@wordpress/scripts</code> packages, that will make it easier to start new projects by adding the scripts package as a development dependency.</p>
 <p>The package will contain, at a minimum, the following:</p>
 <ul>
@@ -40,7 +40,7 @@
 <li>HTML</li>
 </ul>
 </li>
-<li>Carlos’s specic tools
+<li>Carlos's specic tools
 <ul>
 <li>WP-env</li>
 <li>Markdown Linting</li>
@@ -48,17 +48,17 @@
 </li>
 </ul>
 <p>If you have local configurations, they will override the ones provided in the package so you may not have to change the package unless you want to change the default.</p>
-<h2>Basic syntax</h2>
+<h2 id="basic-syntax">Basic syntax</h2>
 <p>The basic command looks like this:</p>
-<pre><code class="language-bash">cal-scripts command --flags
+<pre class="language-bash"><code class="language-bash">cal-scripts <span class="token builtin class-name">command</span> --flags
 </code></pre>
 <p>The idea is that all the parameters after the command will be passed to the command as paramters.</p>
-<h2>The Challenges</h2>
-<p>I came accross several challenges when it comes to adapting someone else’s projects for your own needs.</p>
-<h3>Deciding what to add</h3>
+<h2 id="the-challenges">The Challenges</h2>
+<p>I came accross several challenges when it comes to adapting someone else's projects for your own needs.</p>
+<h3 id="deciding-what-to-add">Deciding what to add</h3>
 <p>The first challenge is to decide what to add, what to change and what to leave alone.</p>
 <p>Because this is based on an existing project, I have to consider that making any changes will require a lot of work and time so I want to make sure that whatever defaults I change make sense for future projects. When are local defaults enough for the current project?</p>
-<h3>Adding @wordpress/env</h3>
+<h3 id="adding-%40wordpress%2Fenv">Adding @wordpress/env</h3>
 <p>This is an example of how to add tools to your scripts package so you can use them in all your projects without having to install them manually each time.</p>
 <p><a href="https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/"><code>@wordpress/env</code></a> uses Docker to run a development environment to test plugins and themes.</p>
 <p>Adding the package is a three step process:</p>
@@ -68,93 +68,93 @@
 <li>Modify the <code>run-scripts</code> script to include and run the <code>wpenv</code> script</li>
 </ol>
 <p>Importing the file works as normal.</p>
-<pre><code class="language-bash">npm i @wordpress/env
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i @wordpress/env
 </code></pre>
 <p>The <code>wpenv</code> script uses <a href="https://www.npmjs.com/package/cross-spawn">cross-spawn</a> and a utility script to run the <code>wp-env</code> command.</p>
-<pre><code class="language-js">const spawn = require('cross-spawn')
-const {resolveBin} = require('../utils')
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> spawn <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'cross-spawn'</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>resolveBin<span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'../utils'</span><span class="token punctuation">)</span>
 
-const args = process.argv.slice(2)
+<span class="token keyword">const</span> args <span class="token operator">=</span> process<span class="token punctuation">.</span>argv<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
 
-const result = spawn.sync(
-  resolveBin('wp-env', {
-    executable: 'wp-env',
-  }), args, {
-    stdio: 'inherit',
-})
+<span class="token keyword">const</span> result <span class="token operator">=</span> spawn<span class="token punctuation">.</span><span class="token function">sync</span><span class="token punctuation">(</span>
+  <span class="token function">resolveBin</span><span class="token punctuation">(</span><span class="token string">'wp-env'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    executable<span class="token operator">:</span> <span class="token string">'wp-env'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span> args<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    stdio<span class="token operator">:</span> <span class="token string">'inherit'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
 
-process.exit(result.status);
+process<span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>status<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The final part is to modify the <code>run-scripts</code> script to include and run <code>wpenv</code>.</p>
-<pre><code class="language-js">function spawnScript() {
-  const args = process.argv.slice(2)
-  const scriptIndex = args.findIndex(x =&gt;
-    [
-      'build',
-      'format',
-      'lint',
-      'pre-commit',
-      'test',
-      'validate',
-      'typecheck',
-      'wpenv',
-    ].includes(x),
-  )
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">spawnScript</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> args <span class="token operator">=</span> process<span class="token punctuation">.</span>argv<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+  <span class="token keyword">const</span> scriptIndex <span class="token operator">=</span> args<span class="token punctuation">.</span><span class="token function">findIndex</span><span class="token punctuation">(</span><span class="token parameter">x</span> <span class="token operator">=></span>
+    <span class="token punctuation">[</span>
+      <span class="token string">'build'</span><span class="token punctuation">,</span>
+      <span class="token string">'format'</span><span class="token punctuation">,</span>
+      <span class="token string">'lint'</span><span class="token punctuation">,</span>
+      <span class="token string">'pre-commit'</span><span class="token punctuation">,</span>
+      <span class="token string">'test'</span><span class="token punctuation">,</span>
+      <span class="token string">'validate'</span><span class="token punctuation">,</span>
+      <span class="token string">'typecheck'</span><span class="token punctuation">,</span>
+      <span class="token string">'wpenv'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span>
 
-// The rest of the script goes here
+<span class="token comment">// The rest of the script goes here</span>
 
-}
+<span class="token punctuation">}</span>
 </code></pre>
 <p>With these items in place, and assuming that Docker is up and running, you can run <code>cal-scripts wpenv start</code> in a plugin or theme directory to start a Dockerized development environment.</p>
-<h3>Switching ESLint to use Google’s shareable configuration</h3>
-<p>Most of my projects use Google’s <a href="https://github.com/google/eslint-config-google">eslint configuration</a> that supports the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript style guide (ES2015+ version)</a>.</p>
-<p>While the guide covers a lot of things I don’t use (like Closure Compiler), I still think it’s useful to have a configration to follow for my projects.</p>
+<h3 id="switching-eslint-to-use-google's-shareable-configuration">Switching ESLint to use Google's shareable configuration</h3>
+<p>Most of my projects use Google's <a href="https://github.com/google/eslint-config-google">eslint configuration</a> that supports the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript style guide (ES2015+ version)</a>.</p>
+<p>While the guide covers a lot of things I don't use (like Closure Compiler), I still think it's useful to have a configration to follow for my projects.</p>
 <p>Switching from one ESLint configuration requires a lot of work. The first part is to install the Google ESLint configuration.</p>
-<pre><code class="language-bash">npm i eslint-config-google
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i eslint-config-google
 </code></pre>
 <p>The first step is to configure the ESLint rules in the <code>package.json</code> file.</p>
 <p>I want to work with ES2017 and earlier so I set the <code>ecmaVersion</code> to <code>2017</code>.</p>
 <p>Setting the <code>env</code> variable to <code>es6</code> tells ESLint not to flag ES6 and later constructs that were reserved words in earlier versions of the language.</p>
 <p>The <code>extends</code> variable tells ESLint what configuration(s) to use. <strong>The order does matter</strong>: ESLint will evaluate configurations in the order they are listed so the rules on the last configuration listed will override previous, and possibly conflicting rules.</p>
-<p>The <code>rules</code> variable is where you define custom rules for the <code>cal-scripts</code> package. It is empty as I don’t have anything that I want to override yet. Instead, I chose to override rules in the files where the overrides happen.</p>
-<pre><code class="language-json">&quot;eslintConfig&quot;: {
-  &quot;parserOptions&quot;: {
-    &quot;ecmaVersion&quot;: 2017
-  },
+<p>The <code>rules</code> variable is where you define custom rules for the <code>cal-scripts</code> package. It is empty as I don't have anything that I want to override yet. Instead, I chose to override rules in the files where the overrides happen.</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"eslintConfig"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token property">"parserOptions"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"ecmaVersion"</span><span class="token operator">:</span> <span class="token number">2017</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
 
-  &quot;env&quot;: {
-    &quot;es6&quot;: true
-  },
-  &quot;extends&quot;: [
-    &quot;kentcdodds&quot;,
-    &quot;kentcdodds/jest&quot;,
-    &quot;google&quot;
-  ],
-  &quot;rules&quot;: {}
-},
-&quot;eslintIgnore&quot;: [
-  &quot;node_modules&quot;,
-  &quot;coverage&quot;,
-  &quot;dist&quot;
-],
+  <span class="token property">"env"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"es6"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"extends"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"kentcdodds"</span><span class="token punctuation">,</span>
+    <span class="token string">"kentcdodds/jest"</span><span class="token punctuation">,</span>
+    <span class="token string">"google"</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"rules"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token property">"eslintIgnore"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+  <span class="token string">"node_modules"</span><span class="token punctuation">,</span>
+  <span class="token string">"coverage"</span><span class="token punctuation">,</span>
+  <span class="token string">"dist"</span>
+<span class="token punctuation">]</span><span class="token punctuation">,</span>
 </code></pre>
 <p>The next step is to modify the ESLint configuration bundled with the scripts package and referenced from the ESLint configuration at the root of the package.</p>
-<p>The only difference is that this time I’m also loading ESLint’s React configuration if any dependencies in the host project use React.</p>
+<p>The only difference is that this time I'm also loading ESLint's React configuration if any dependencies in the host project use React.</p>
 <p>In the future I may also want to do something similar with Vue or any other tools that I use frequently.</p>
-<pre><code class="language-js">const {ifAnyDep} = require('../utils');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> <span class="token punctuation">{</span>ifAnyDep<span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'../utils'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-module.exports = {
-  extends: [
-    require.resolve('eslint-config-google'),
-    ifAnyDep('react', require.resolve('eslint-config-react')),
-  ].filter(Boolean),
-  rules: {},
-};
+module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token keyword">extends</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    require<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span><span class="token string">'eslint-config-google'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">ifAnyDep</span><span class="token punctuation">(</span><span class="token string">'react'</span><span class="token punctuation">,</span> require<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span><span class="token string">'eslint-config-react'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>Boolean<span class="token punctuation">)</span><span class="token punctuation">,</span>
+  rules<span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The rest is just linting the project file and fixing all the errors ESLint reports. Just make sure that you don’t introduce any new ones in the process of fixing the existing ones.</p>
-<h3>Lint Markdown files</h3>
-<p>Working with Markdown is troublesome. While <a href="https://commonmark.org/">CommonMark</a> standardized the Markddown syntax, there hasn’t been a good way to lint Markdown files to enforce conventions.</p>
-<p>I’ve chosen to use a <a href="https://github.com/igorshubovych/markdownlint-cli">MarkdownLint CLI Tool</a> to build into the scripts package. It is similar in concept to what the VS Code Markdown Lint extension uses so, in theory, it should be easy to work with.</p>
+<p>The rest is just linting the project file and fixing all the errors ESLint reports. Just make sure that you don't introduce any new ones in the process of fixing the existing ones.</p>
+<h3 id="lint-markdown-files">Lint Markdown files</h3>
+<p>Working with Markdown is troublesome. While <a href="https://commonmark.org/">CommonMark</a> standardized the Markddown syntax, there hasn't been a good way to lint Markdown files to enforce conventions.</p>
+<p>I've chosen to use a <a href="https://github.com/igorshubovych/markdownlint-cli">MarkdownLint CLI Tool</a> to build into the scripts package. It is similar in concept to what the VS Code Markdown Lint extension uses so, in theory, it should be easy to work with.</p>
 <p>Adding the tool is no different than adding <code>wp-env</code> to the package.</p>
 <ol>
 <li>Install the NPM package locally</li>
@@ -162,50 +162,50 @@ module.exports = {
 <li>Add it to the list of scripts available to run</li>
 <li>Test the script</li>
 </ol>
-<h3>Install the NPM package</h3>
+<h3 id="install-the-npm-package">Install the NPM package</h3>
 <p>We install the NPM package as normal.</p>
-<pre><code class="language-bash">npm install markdownlint-cli
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> markdownlint-cli
 </code></pre>
-<h3>Write a configuration file</h3>
+<h3 id="write-a-configuration-file">Write a configuration file</h3>
 <p>Markdownlint uses a <a href="https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md">list of rules</a> that are built into tool. We can override and customize the rules using a <code>.markdownlint.json</code> configuration file.</p>
 <p>The example below ignores line length and inline HTML rules for all the documents that use the configuration file.</p>
-<pre><code class="language-js">module.exports = {
-  'line-length': false,
-  'no-inline-html': false,
-};
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token string">'line-length'</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token string">'no-inline-html'</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We need to do this in two places. The first is in the <code>src/config/</code> directory where we create the <code>markdownlint.js</code> file where we store the rules we want to use.</p>
 <p>The second is at the root of the project where we create a shortcut to the configuration file.</p>
-<pre><code class="language-js">module.exports = require('./src/config/markdownlint');
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'./src/config/markdownlint'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3>Add it to the list of scripts available</h3>
+<h3 id="add-it-to-the-list-of-scripts-available">Add it to the list of scripts available</h3>
 <p>Next, we need to let the package know that the <code>markdownlint</code> script is available. We do this by adding the script name to the <code>spawnScript</code> functions in the <code>run-scripts</code> script</p>
-<pre><code class="language-js">function spawnScript() {
-  const args = process.argv.slice(2);
-  const scriptIndex = args.findIndex((x) =&gt;
-    [
-      'build',
-      'format',
-      'lint',
-      'pre-commit',
-      'test',
-      'validate',
-      'typecheck',
-      'wpenv',
-      'markdownlint',
-    ].includes(x),
-  );
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">spawnScript</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> args <span class="token operator">=</span> process<span class="token punctuation">.</span>argv<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> scriptIndex <span class="token operator">=</span> args<span class="token punctuation">.</span><span class="token function">findIndex</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">x</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+    <span class="token punctuation">[</span>
+      <span class="token string">'build'</span><span class="token punctuation">,</span>
+      <span class="token string">'format'</span><span class="token punctuation">,</span>
+      <span class="token string">'lint'</span><span class="token punctuation">,</span>
+      <span class="token string">'pre-commit'</span><span class="token punctuation">,</span>
+      <span class="token string">'test'</span><span class="token punctuation">,</span>
+      <span class="token string">'validate'</span><span class="token punctuation">,</span>
+      <span class="token string">'typecheck'</span><span class="token punctuation">,</span>
+      <span class="token string">'wpenv'</span><span class="token punctuation">,</span>
+      <span class="token string">'markdownlint'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  // Rest of the script goes here
+  <span class="token comment">// Rest of the script goes here</span>
 </code></pre>
-<h3>Test the script</h3>
-<p>I know I should write proper tests but I’m not sure how to do that with Jest just yet.</p>
-<p>Instead I’ve run the package both internally to validate and test the contents of the <code>cal-scripts</code> package and I’ve installed it in a standalone new project to validate that I can run the scripts. Even failure tells me that they worked.</p>
-<h2>Conclusion</h2>
+<h3 id="test-the-script">Test the script</h3>
+<p>I know I should write proper tests but I'm not sure how to do that with Jest just yet.</p>
+<p>Instead I've run the package both internally to validate and test the contents of the <code>cal-scripts</code> package and I've installed it in a standalone new project to validate that I can run the scripts. Even failure tells me that they worked.</p>
+<h2 id="conclusion">Conclusion</h2>
 <p>I have working set of scripts, there are still tests to be written but I need to become more familiar with Jest and the process of writing tests before I can finish that part.</p>
-<p>You’re welcome to test the scripts and see if they work for you.</p>
+<p>You're welcome to test the scripts and see if they work for you.</p>
 <p>The package has been published in the <a href="https://www.npmjs.com/package/cal-scripts">NPM registry</a>.</p>
-<p>The project is also <a href="https://github.com/caraya/cal-scripts">hosted on Github</a>. If you see something missing, wrong or that you think I should add, file an issue and let’s discuss it.</p>
+<p>The project is also <a href="https://github.com/caraya/cal-scripts">hosted on Github</a>. If you see something missing, wrong or that you think I should add, file an issue and let's discuss it.</p>
 
 </article>
 <!--

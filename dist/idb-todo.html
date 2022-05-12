@@ -17,153 +17,153 @@
 
 <body>
 <article class="container">
-  <h1>TODO with Indexed DB</h1>
+  <h1 id="todo-with-indexed-db">TODO with Indexed DB</h1>
 <p><a href="https://www.w3.org/TR/IndexedDB-2/">IndexedDB</a> (currently version 2) provides client-sided database storage for web applications. From the specification:</p>
 <blockquote>
 <p>This document defines APIs for a database of records holding simple values and hierarchical objects. Each record consists of a key and some value. Moreover, the database maintains indexes over records it stores. An application developer directly uses an API to locate records either by their key or by using an index. A query language can be layered on this API. An indexed database can be implemented using a persistent B-tree data structure.</p>
 </blockquote>
-<p>I’ve always found it hard to reason through IndexedDB, when it would be a good case to use it and whether it would be used on its own or in addition to other APIs.</p>
+<p>I've always found it hard to reason through IndexedDB, when it would be a good case to use it and whether it would be used on its own or in addition to other APIs.</p>
 <p>This time I will try using raw IDB to create a TODO list browser-side. The idea is that this app will not use external dependencies, they will all be hosted on the same server as the application.</p>
-<h2>Project Structure</h2>
+<h2 id="project-structure">Project Structure</h2>
 <p>The idea of the Todo list is to create a local copy of a Todo database and let the user work with it in the local computer without having to be online to interact with it.</p>
-<p>This is not meant for production. The very fact that it’ll work on an individual computer means that we need to be at that computer to make changes to the database.</p>
-<p>But it’s an interesting exercise to learn about IDB, see how it works and see what the shortcomings (other than locality) may be.</p>
-<h2>Initializing the database</h2>
+<p>This is not meant for production. The very fact that it'll work on an individual computer means that we need to be at that computer to make changes to the database.</p>
+<p>But it's an interesting exercise to learn about IDB, see how it works and see what the shortcomings (other than locality) may be.</p>
+<h2 id="initializing-the-database">Initializing the database</h2>
 <p>The first thing I do is to create a feature detection function that I will use shortly to make sure the browser supports IndexedDB before moving forward.</p>
-<pre><code class="language-javascript">function idbOK() {
-  return 'indexedDB' in window;)
-}
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">idbOK</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token string">'indexedDB'</span> <span class="token keyword">in</span> window<span class="token punctuation">;</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<p>We check if the browser supports IndexedDB and if it doesn’t then we bail early and log it to console. I might change the idbOK function to do the check and the bailout there.</p>
-<pre><code class="language-javascript">// No support? Go in the corner and pout.
-if (!idbOK()) {
-  console.log('Indexed DB not supported');
-}
+<p>We check if the browser supports IndexedDB and if it doesn't then we bail early and log it to console. I might change the idbOK function to do the check and the bailout there.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// No support? Go in the corner and pout.</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">idbOK</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Indexed DB not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>Now we can start working on creating the database and setting up the store and the indices that we want to use in the database.</p>
-<p>Because the database doesn’t exist the upgrade is needed and it’s only during the <code>onupgradeneeded</code> event that you can make changes to the databbase like setting it up for the first time.</p>
-<p>We first check if there is a <code>todos</code> object store, if there isn’t one then we create it.</p>
-<pre><code class="language-javascript">const todosdb = indexedDB.open('todosdb', 1);
+<p>Because the database doesn't exist the upgrade is needed and it's only during the <code>onupgradeneeded</code> event that you can make changes to the databbase like setting it up for the first time.</p>
+<p>We first check if there is a <code>todos</code> object store, if there isn't one then we create it.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> todosdb <span class="token operator">=</span> indexedDB<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span><span class="token string">'todosdb'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-todosdb.onupgradeneeded = function(e) {
-  const db = e.target.result;
-  console.log('running onupgradeneeded');
+todosdb<span class="token punctuation">.</span><span class="token function-variable function">onupgradeneeded</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> db <span class="token operator">=</span> e<span class="token punctuation">.</span>target<span class="token punctuation">.</span>result<span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'running onupgradeneeded'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  if (!db.objectStoreNames.contains('todos')) {
-    console.log('making a new object store');
-    let store = db.createObjectStore('todos', {
-        keyPath: 'id',
-        autoIncrement: true,
-    });
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>db<span class="token punctuation">.</span>objectStoreNames<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span><span class="token string">'todos'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'making a new object store'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> store <span class="token operator">=</span> db<span class="token punctuation">.</span><span class="token function">createObjectStore</span><span class="token punctuation">(</span><span class="token string">'todos'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+        keyPath<span class="token operator">:</span> <span class="token string">'id'</span><span class="token punctuation">,</span>
+        autoIncrement<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We set up indices for different fields in the database. These indices will help us when querying information later on.</p>
-<pre><code class="language-javascript">    let titleIndex = store.createIndex('by_title', 'title', {'unique': false});
-    let startIndex = store.createIndex('by_start', 'startDate');
-    let completeIndex = store.createIndex('by_completed', 'complete');
-  }
-};
+<pre class="language-javascript"><code class="language-javascript">    <span class="token keyword">let</span> titleIndex <span class="token operator">=</span> store<span class="token punctuation">.</span><span class="token function">createIndex</span><span class="token punctuation">(</span><span class="token string">'by_title'</span><span class="token punctuation">,</span> <span class="token string">'title'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">'unique'</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> startIndex <span class="token operator">=</span> store<span class="token punctuation">.</span><span class="token function">createIndex</span><span class="token punctuation">(</span><span class="token string">'by_start'</span><span class="token punctuation">,</span> <span class="token string">'startDate'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> completeIndex <span class="token operator">=</span> store<span class="token punctuation">.</span><span class="token function">createIndex</span><span class="token punctuation">(</span><span class="token string">'by_completed'</span><span class="token punctuation">,</span> <span class="token string">'complete'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>All functions related to IDB trigger success (<code>onsuccess</code>) and error (<code>onerror</code>) events.</p>
-<pre><code class="language-javascript">todosdb.onsuccess = function(e) {
-  console.log('running onsuccess');
-  db = e.target.result;
-  // console.dir(db.objectStoreNames);
-};
+<pre class="language-javascript"><code class="language-javascript">todosdb<span class="token punctuation">.</span><span class="token function-variable function">onsuccess</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'running onsuccess'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  db <span class="token operator">=</span> e<span class="token punctuation">.</span>target<span class="token punctuation">.</span>result<span class="token punctuation">;</span>
+  <span class="token comment">// console.dir(db.objectStoreNames);</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-todosdb.onerror = function(e) {
-  console.log('onerror!');
-  console.error(e);
-};
+todosdb<span class="token punctuation">.</span><span class="token function-variable function">onerror</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'onerror!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<p>I’ve moved this constant and event outside of functions to make sure that it works when calling a function.</p>
-<pre><code class="language-javascript">const addTodoButton = document.querySelector('#addTodo');
-addTodoButton.addEventListener('click', addTodo);
+<p>I've moved this constant and event outside of functions to make sure that it works when calling a function.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> addTodoButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#addTodo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+addTodoButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> addTodo<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Adding Todos</h2>
-<p>Now that we’ve created the database we can add new todos.</p>
+<h2 id="adding-todos">Adding Todos</h2>
+<p>Now that we've created the database we can add new todos.</p>
 <p>The first part is to capture the values from the form we have in the web page we use to access the IDB content.</p>
-<pre><code class="language-javascript">function addTodo() {
-  const title = document.getElementById('title').value;
-  const description = document.getElementById('description').value;
-  const dateStarted = document.getElementById('dateStarted').value;
-  const dateEnded = document.getElementById('dateEnded').value;
-  const completed = document.getElementById('dateStarted').value;
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">addTodo</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> title <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'title'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+  <span class="token keyword">const</span> description <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'description'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+  <span class="token keyword">const</span> dateStarted <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'dateStarted'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+  <span class="token keyword">const</span> dateEnded <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'dateEnded'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+  <span class="token keyword">const</span> completed <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'dateStarted'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
 </code></pre>
 <p>We then create a transaction and store objects. This tells IDB what objectStore what we want to work with and that we want to work with a transaction. A transaction is an atomic unit of work, either it all succeeds and gets pushed to IDB or things fail and nothing gets pushed.</p>
-<pre><code class="language-javascript">  // Get a transaction
-  const transaction = db.transaction(['todos'], 'readwrite');
-  // Ask for the objectStore
-  const store = transaction.objectStore('todos');
+<pre class="language-javascript"><code class="language-javascript">  <span class="token comment">// Get a transaction</span>
+  <span class="token keyword">const</span> transaction <span class="token operator">=</span> db<span class="token punctuation">.</span><span class="token function">transaction</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'todos'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'readwrite'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Ask for the objectStore</span>
+  <span class="token keyword">const</span> store <span class="token operator">=</span> transaction<span class="token punctuation">.</span><span class="token function">objectStore</span><span class="token punctuation">(</span><span class="token string">'todos'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Next we define a todo object matching the elements we captured from the form with the names that we want to use in the database.</p>
-<pre><code class="language-javascript">  // Define a todo
-  const todo = {
-    title: title,
-    description: description,
-    dateStarted: dateStarted,
-    dateEnded: dateEnded,
-    completed: completed,
-  };
+<pre class="language-javascript"><code class="language-javascript">  <span class="token comment">// Define a todo</span>
+  <span class="token keyword">const</span> todo <span class="token operator">=</span> <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> title<span class="token punctuation">,</span>
+    description<span class="token operator">:</span> description<span class="token punctuation">,</span>
+    dateStarted<span class="token operator">:</span> dateStarted<span class="token punctuation">,</span>
+    dateEnded<span class="token operator">:</span> dateEnded<span class="token punctuation">,</span>
+    completed<span class="token operator">:</span> completed<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Lastly we perform the addition using <code>store.add</code> and give success and error handlers in case we waant to do something special.</p>
-<pre><code class="language-javascript">  // Perform the add
-  let request = store.add(todo);
+<pre class="language-javascript"><code class="language-javascript">  <span class="token comment">// Perform the add</span>
+  <span class="token keyword">let</span> request <span class="token operator">=</span> store<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>todo<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  request.onerror = function(e) {
-    console.log('Error', e.target.error.name);
-    // some type of error handler
-  };
+  request<span class="token punctuation">.</span><span class="token function-variable function">onerror</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Error'</span><span class="token punctuation">,</span> e<span class="token punctuation">.</span>target<span class="token punctuation">.</span>error<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// some type of error handler</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-  request.onsuccess = function(e) {
-    console.log('Woot! Did it');
-  };
-}
+  request<span class="token punctuation">.</span><span class="token function-variable function">onsuccess</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Woot! Did it'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Show all records</h2>
+<h2 id="show-all-records">Show all records</h2>
 <p>Showing all the records combines retrieving them, creating a template for each instance and attaching the template to the page.</p>
 <p>We first open the database and, on success, we create a transaction and select the object store and open a cursort to the object store.</p>
-<pre><code class="language-javascript">function showAll() {
-  let dbrequest = window.indexedDB.open('todosdb');
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">showAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> dbrequest <span class="token operator">=</span> window<span class="token punctuation">.</span>indexedDB<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span><span class="token string">'todosdb'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  dbrequest.onsuccess = function(e) {
-    let transaction = db.transaction(['todos'], 'readonly');
-    let request = transaction.objectStore('todos').openCursor();
+  dbrequest<span class="token punctuation">.</span><span class="token function-variable function">onsuccess</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> transaction <span class="token operator">=</span> db<span class="token punctuation">.</span><span class="token function">transaction</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'todos'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'readonly'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> request <span class="token operator">=</span> transaction<span class="token punctuation">.</span><span class="token function">objectStore</span><span class="token punctuation">(</span><span class="token string">'todos'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">openCursor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>We iterate over the content of the cursor. If it’s empty then we return since we don’t have any data to display.</p>
-<pre><code class="language-javascript">    request.onsuccess = function(e) {
-      let cursor = request.result || e.result;
+<p>We iterate over the content of the cursor. If it's empty then we return since we don't have any data to display.</p>
+<pre class="language-javascript"><code class="language-javascript">    request<span class="token punctuation">.</span><span class="token function-variable function">onsuccess</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">let</span> cursor <span class="token operator">=</span> request<span class="token punctuation">.</span>result <span class="token operator">||</span> e<span class="token punctuation">.</span>result<span class="token punctuation">;</span>
 
-      if (!cursor) {
-        return;
-      }
+      <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>cursor<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
 </code></pre>
 <p>If the cursor is not empty we use it to iterate over the items in the database, popullate the template defined in <code>todoContent</code> and attach it to the existing document.</p>
-<p>Some of these values take advantrage of the fact that we can use Javascript values inside the parameters; I’ve used ternary if operators to make sure that the dates valuess don’t return undefined if there is nothing there but ooutput a blank space instead.</p>
-<pre><code class="language-javascript">      let container = document.getElementById('todos-listing');
+<p>Some of these values take advantrage of the fact that we can use Javascript values inside the parameters; I've used ternary if operators to make sure that the dates valuess don't return undefined if there is nothing there but ooutput a blank space instead.</p>
+<pre class="language-javascript"><code class="language-javascript">      <span class="token keyword">let</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'todos-listing'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-      // Define the content for each individual entry
-      let todoContent = `&lt;h2&gt;${cursor.value.title}&lt;/h2&gt;
-      &lt;div class=&quot;todo-desc&quot;&gt;
-        ${cursor.value.description ? cursor.value.description : ''}
-      &lt;/div&gt;
-      &lt;p&gt;Date Started:
-        ${cursor.value.dateStarted ? cursor.value.dateStarted : ''}&lt;/p&gt;
-      &lt;p&gt;Date Finished:
-        ${cursor.value.dateCompleted ? cursor.value.dateCompleted x: ''}&lt;/p&gt;
-      &lt;p&gt;Completed: ${cursor.value.completed}`;
+      <span class="token comment">// Define the content for each individual entry</span>
+      <span class="token keyword">let</span> todoContent <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">&lt;h2></span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>title<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">&lt;/h2>
+      &lt;div class="todo-desc">
+        </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>description <span class="token operator">?</span> cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>description <span class="token operator">:</span> <span class="token string">''</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+      &lt;/div>
+      &lt;p>Date Started:
+        </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>dateStarted <span class="token operator">?</span> cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>dateStarted <span class="token operator">:</span> <span class="token string">''</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">&lt;/p>
+      &lt;p>Date Finished:
+        </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>dateCompleted <span class="token operator">?</span> cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>dateCompleted x<span class="token operator">:</span> <span class="token string">''</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">&lt;/p>
+      &lt;p>Completed: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cursor<span class="token punctuation">.</span>value<span class="token punctuation">.</span>completed<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
 
-      let element = document.createElement('div');
-      element.innerHTML=todoContent;
-      container.appendChild(element);
-      cursor.continue();
-    };
+      <span class="token keyword">let</span> element <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'div'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      element<span class="token punctuation">.</span>innerHTML<span class="token operator">=</span>todoContent<span class="token punctuation">;</span>
+      container<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>element<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      cursor<span class="token punctuation">.</span><span class="token function">continue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-    request.onerror = function(e) {
-      console.log('Error', e.target.error.name);
-      // some type of error handler
-    };
-  };
-}
+    request<span class="token punctuation">.</span><span class="token function-variable function">onerror</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Error'</span><span class="token punctuation">,</span> e<span class="token punctuation">.</span>target<span class="token punctuation">.</span>error<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token comment">// some type of error handler</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>This is the basic functionality corresponding to Create and Display in a CRUD application. Update and is more complicated as it requires creating a form where the user can edit the content of the todo and delete requires some way for the user to confirm that they want to delete the content.</p>
 <p>Those two methods along with a way to update the database in place will come in another series of posts</p>

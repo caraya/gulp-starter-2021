@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1>First look: Bazel Build System</h1>
+  <h1 id="first-look%3A-bazel-build-system">First look: Bazel Build System</h1>
 <p>Google has an interesting build system for their internal applications and projects called Blaze. Bazel is the open-source version of that project.</p>
 <p>According to its <a href="https://docs.bazel.build/versions/master/bazel-overview.html#why-should-i-use-bazel">documentation</a>, Bazel offers the following advantages:</p>
 <ul>
@@ -29,91 +29,91 @@
 </ul>
 <p>The idea is that we trade using older versions of specific software that is added to our repository for reproducible, fast, multi-language builds.</p>
 <p>If you worked with Make in the early days of the web or when trying to compile C/C++ code the idea behind Bazel will look familiar.</p>
-<p>In the next sections, we’ll discuss the following items</p>
+<p>In the next sections, we'll discuss the following items</p>
 <ul>
 <li>Is Bazel the tool for your project?</li>
 <li>Bazel installation via <a href="https://brew.sh/">Homebrew</a> for the Mac</li>
 <li>Basic configuration for our setup</li>
 </ul>
-<p>In a follow-up post, we’ll look at toolchains and build files for different languages.</p>
-<h2>Is Bazel the right tool for the project?</h2>
-<p>Before we jump into installing and configuring Bazel we should take a step back and ask <strong><em>if Bazel is the right tool for the project</em></strong> and what are the alternatives.</p>
-<p>Bazel is the open-source version of Google’s Blaze build system used to build everything in their huge monorepo from C++ to Go to iOS and Android.</p>
-<div class="video">
-<iframe width="560" height="315" src="https://www.youtube.com/embed/W71BTkUbdqE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
+<p>In a follow-up post, we'll look at toolchains and build files for different languages.</p>
+<h2 id="is-bazel-the-right-tool-for-the-project%3F">Is Bazel the right tool for the project?</h2>
+<p>Before we jump into installing and configuring Bazel we should take a step back and ask <em><strong>if Bazel is the right tool for the project</strong></em> and what are the alternatives.</p>
+<p>Bazel is the open-source version of Google's Blaze build system used to build everything in their huge monorepo from C++ to Go to iOS and Android.</p>
+<p>&lt;div class=&quot;video&quot;&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/W71BTkUbdqE&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;</p>
 <p>Bazel is best for medium to larger projects that use multiple languages in a monorepo architecture; for example, a front-end written in a framework like Angular, React, or Vue or some other Typescript/Javascript-based architecture, and a front end written in Java or Go.</p>
 <p>You have to be careful in evaluating the tradeoffs between the complexity of learning a new tool and, potentially, migrating your code to a monorepo architecture, versus the advantages it provides by keeping all your code in one repository and the faster builds it generates.</p>
-<h2>Installing Bazel on macOS with Homebrew</h2>
+<h2 id="installing-bazel-on-macos-with-homebrew">Installing Bazel on macOS with Homebrew</h2>
 <p>As documented in <a href="https://docs.bazel.build/versions/master/install-os-x.html#install-on-mac-os-x-homebrew">Installing using Homebrew</a> the installation process is simple:</p>
-<p>If you don’t have it installed, then you must install Homebrew first. The command is:</p>
-<pre><code class="language-bash">/bin/bash -c &quot;$(curl -fsSL \
-https://raw.githubusercontent.com/Homebrew/install/master/install.sh)&quot;
+<p>If you don't have it installed, then you must install Homebrew first. The command is:</p>
+<pre class="language-bash"><code class="language-bash">/bin/bash -c <span class="token string">"<span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> -fsSL <span class="token punctuation">\</span>
+https://raw.githubusercontent.com/Homebrew/install/master/install.sh<span class="token variable">)</span></span>"</span>
 </code></pre>
 <p>This will make the <code>brew</code> command available. You can then install Bazel by running:</p>
-<pre><code class="language-bash">brew install bazel
+<pre class="language-bash"><code class="language-bash">brew <span class="token function">install</span> bazel
 </code></pre>
 <p>Verify a successful install with the following command:</p>
-<pre><code class="language-bash">bazel --version
+<pre class="language-bash"><code class="language-bash">bazel --version
 </code></pre>
-<p>This should return a version like <code>bazel 3.7.0-homebrew</code>. If it doesn’t return a similar string or reports <code>bazel command not found</code> or a similar error then the installation didn’t work. Try installing it again.</p>
-<h2>Configuring Bazel</h2>
+<p>This should return a version like <code>bazel 3.7.0-homebrew</code>. If it doesn't return a similar string or reports <code>bazel command not found</code> or a similar error then the installation didn't work. Try installing it again.</p>
+<h2 id="configuring-bazel">Configuring Bazel</h2>
 <p>Bazel uses its own DSL, <a href="https://github.com/bazelbuild/starlark/">Starlark</a> for its configuration files and build-time rules. This may take a little time as it is similar, but not exactly the same as, Python.</p>
-<h3>Global Configuration</h3>
+<h3 id="global-configuration">Global Configuration</h3>
 <p>To use the same Bazel settings for the project, create a <code>bazel.rc</code> file at the root of the Bazel workspace. These settings will work in all projects in the workspace, regardless of the language.</p>
 <p>Adding it to the workspace will check the file into version control and propagate it to others working on the project as well as the CI system.</p>
-<pre><code class="language-python">###############################
-# Directory structure         #
-###############################
+<pre class="language-python"><code class="language-python"><span class="token comment">###############################</span>
+<span class="token comment"># Directory structure         #</span>
+<span class="token comment">###############################</span>
 
-# Artifacts are typically placed in a directory called &quot;dist&quot;
-# Be aware that this setup will still create a bazel-out symlink in
-# your project directory, which you must exclude from version control and your
-# editor's search path.
-build --symlink_prefix=dist/
+<span class="token comment"># Artifacts are typically placed in a directory called "dist"</span>
+<span class="token comment"># Be aware that this setup will still create a bazel-out symlink in</span>
+<span class="token comment"># your project directory, which you must exclude from version control and your</span>
+<span class="token comment"># editor's search path.</span>
+build <span class="token operator">-</span><span class="token operator">-</span>symlink_prefix<span class="token operator">=</span>dist<span class="token operator">/</span>
 
-###############################
-# Output                      #
-###############################
+<span class="token comment">###############################</span>
+<span class="token comment"># Output                      #</span>
+<span class="token comment">###############################</span>
 
-# A more useful default output mode for bazel query, which
-# prints &quot;ng_module rule //foo:bar&quot; instead of just &quot;//foo:bar&quot;.
-query --output=label_kind
+<span class="token comment"># A more useful default output mode for bazel query, which</span>
+<span class="token comment"># prints "ng_module rule //foo:bar" instead of just "//foo:bar".</span>
+query <span class="token operator">-</span><span class="token operator">-</span>output<span class="token operator">=</span>label_kind
 
-# By default, failing tests don't print any output, it's logged to a
-# file instead.
-test --test_output=errors
+<span class="token comment"># By default, failing tests don't print any output, it's logged to a</span>
+<span class="token comment"># file instead.</span>
+test <span class="token operator">-</span><span class="token operator">-</span>test_output<span class="token operator">=</span>errors
 
-###############################
-# Typescript                  #
-###############################
-# Make TypeScript compilation fast, by keeping a few
-# copies of the compiler running as daemons, and cache
-# SourceFile ASTs to reduce parse time.
+<span class="token comment">###############################</span>
+<span class="token comment"># Typescript                  #</span>
+<span class="token comment">###############################</span>
+<span class="token comment"># Make TypeScript compilation fast, by keeping a few</span>
+<span class="token comment"># copies of the compiler running as daemons, and cache</span>
+<span class="token comment"># SourceFile ASTs to reduce parse time.</span>
 build
-  --strategy=TypeScriptCompile=worker
+  <span class="token operator">-</span><span class="token operator">-</span>strategy<span class="token operator">=</span>TypeScriptCompile<span class="token operator">=</span>worker
 </code></pre>
 <p>Note how we install both a Bazel-specific version and the tool itself. The @bazel package contains Bazel specific information</p>
-<h2>Target Configuration Examples</h2>
-<p>The following example, taken from Chapter 18 of <a href="https://www.oreilly.com/library/view/software-engineering-at/9781492082781/">Software Engineering at Google</a> illustrates Blaze / Bazel concepts. We’ll discuss them in more detail along with specifics for each type of content we’re building later in the post.</p>
-<pre><code class="language-python">java_binary(
-  name = &quot;MyBinary&quot;,
-  srcs = [&quot;MyBinary.java&quot;],
-  deps = [
-  &quot;:mylib&quot;,
-  ],
-)
+<h2 id="target-configuration-examples">Target Configuration Examples</h2>
+<p>The following example, taken from Chapter 18 of <a href="https://www.oreilly.com/library/view/software-engineering-at/9781492082781/">Software Engineering at Google</a> illustrates Blaze / Bazel concepts. We'll discuss them in more detail along with specifics for each type of content we're building later in the post.</p>
+<pre class="language-python"><code class="language-python">java_binary<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"MyBinary"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"MyBinary.java"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  deps <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token string">":mylib"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
 
-java_library(
-  name = &quot;mylib&quot;,
-  srcs = [&quot;MyLibrary.java&quot;, &quot;MyHelper.java&quot;],
-  visibility = [&quot;//java/com/example/myproduct:__subpackages__&quot;],
-  deps = [
-    &quot;//java/com/example/common&quot;,
-    &quot;//java/com/example/myproduct/otherlib&quot;,
-    &quot;@com_google_common_guava_guava//jar&quot;,
-  ],
-)
+java_library<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"mylib"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"MyLibrary.java"</span><span class="token punctuation">,</span> <span class="token string">"MyHelper.java"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  visibility <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"//java/com/example/myproduct:__subpackages__"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  deps <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token string">"//java/com/example/common"</span><span class="token punctuation">,</span>
+    <span class="token string">"//java/com/example/myproduct/otherlib"</span><span class="token punctuation">,</span>
+    <span class="token string">"@com_google_common_guava_guava//jar"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
 </code></pre>
 <p>In Bazel, BUILD files define targets — the two types of targets in the example are <code>java_binary</code> and <code>java_library</code>. Every target corresponds to an artifact that can be created by the system: binary targets produce binaries that can be
 executed directly, and library targets produce libraries that can be used by

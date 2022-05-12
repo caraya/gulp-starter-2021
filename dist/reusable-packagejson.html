@@ -17,141 +17,141 @@
 
 <body>
 <article class="container">
-  <h1>Reproducible Configs</h1>
-<p>A lot of the projects that I work with use a fairly standard setup of tools and scripts. Rather than reinstall them every time and have to fix paths and install dependencies outside the Node ecosystem I’ve created a script that will perform the following actions:</p>
+  <h1 id="reproducible-configs">Reproducible Configs</h1>
+<p>A lot of the projects that I work with use a fairly standard setup of tools and scripts. Rather than reinstall them every time and have to fix paths and install dependencies outside the Node ecosystem I've created a script that will perform the following actions:</p>
 <ol>
-<li>Check if <code>package.json</code> exists. If it doesn’t then create one with default values</li>
-<li>Install packages explaining what it’s doing when installing each group</li>
+<li>Check if <code>package.json</code> exists. If it doesn't then create one with default values</li>
+<li>Install packages explaining what it's doing when installing each group</li>
 <li>Run an additional script that will create configuration files</li>
 <li>Remove the .git directory and recreate it for the current directory</li>
 </ol>
 <p>This way I can initialize a new project using 2 files that will create a reproducible starting point yet retaining a degree of flexibility.</p>
-<p>That’s why we don’t force an ESLint configuration. If I’m writing React I’ll use Airbnb preset as it is geared towards working with React. For most other projects I’ll use Google’s preset; it is what I became comfortable with when developing PWA content and I think it’s still the one that makes most sense.</p>
-<p>There are two directories and a file that I’ve included to use for my type of projects. I create a <code>src</code> directory with the structure of files that I will use in the Gulpfile.</p>
-<p>The first thing we do is check if there is a <code>package.json</code> file in the directory we’re running the script in. If there is one we exit. I’d rather not overwrite the file that is there.</p>
-<p>If there isn’t one we initialize a default package.json file that we’ll install packages to.</p>
-<pre><code class="language-bash">#!/usr/bin/env bash
+<p>That's why we don't force an ESLint configuration. If I'm writing React I'll use Airbnb preset as it is geared towards working with React. For most other projects I'll use Google's preset; it is what I became comfortable with when developing PWA content and I think it's still the one that makes most sense.</p>
+<p>There are two directories and a file that I've included to use for my type of projects. I create a <code>src</code> directory with the structure of files that I will use in the Gulpfile.</p>
+<p>The first thing we do is check if there is a <code>package.json</code> file in the directory we're running the script in. If there is one we exit. I'd rather not overwrite the file that is there.</p>
+<p>If there isn't one we initialize a default package.json file that we'll install packages to.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/usr/bin/env bash</span>
 
-echo &quot;Checking if package.json exists&quot;
-if [ -f package.json ]
-  then
-    echo &quot;package.json exists.&quot;
-    exit 1
-  else
-    echo &quot;package.json doesn't exists... creating&quot;
-    npm init --yes
-fi
+<span class="token builtin class-name">echo</span> <span class="token string">"Checking if package.json exists"</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> -f package.json <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"package.json exists."</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"package.json doesn't exists... creating"</span>
+    <span class="token function">npm</span> init --yes
+<span class="token keyword">fi</span>
 </code></pre>
 <p>The rest of this script installs different sets of packages.  I will only highlight any specifics that I think are important.</p>
-<pre><code class="language-bash">echo &quot;installing NPM packages &quot;
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"installing NPM packages "</span>
 
-echo &quot;Installing Gulp 4.0 and load-plugins&quot;
-npm i -D gulp@next gulp-load-plugins
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Gulp 4.0 and load-plugins"</span>
+<span class="token function">npm</span> i -D gulp@next gulp-load-plugins
 </code></pre>
-<p>The first big change I’ve made is to fully embrace Gulp 4.0. I will modify the file to take into account the new methods it uses.</p>
-<pre><code class="language-bash">echo &quot;Installing PostCSS and related plugins&quot;
-npm i -D postcss autoprefixer cssnano gulp-postcss
+<p>The first big change I've made is to fully embrace Gulp 4.0. I will modify the file to take into account the new methods it uses.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Installing PostCSS and related plugins"</span>
+<span class="token function">npm</span> i -D postcss autoprefixer cssnano gulp-postcss
 
-echo &quot;Installing Babel Core and Preset Env&quot;
-npm i -D @babel/core @babel/preset-env
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Babel Core and Preset Env"</span>
+<span class="token function">npm</span> i -D @babel/core @babel/preset-env
 
-echo &quot;Installing Browser Sync&quot;
-npm i -D browser-sync connect-history-api-fallback
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Browser Sync"</span>
+<span class="token function">npm</span> i -D browser-sync connect-history-api-fallback
 
-echo &quot;Installing ESLint&quot;
-npm i -D eslint gulp-eslint
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing ESLint"</span>
+<span class="token function">npm</span> i -D eslint gulp-eslint
 </code></pre>
-<p>It’s important to notice that we’re only installing eslint. We’ll handle the preset installation later</p>
-<pre><code class="language-bash">echo &quot;Installing SASS and related plugins&quot;
-npm i -D gulp-sass gulp-sourcemaps
+<p>It's important to notice that we're only installing eslint. We'll handle the preset installation later</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Installing SASS and related plugins"</span>
+<span class="token function">npm</span> i -D gulp-sass gulp-sourcemaps
 
-echo &quot;Installing critical and uncss&quot;
-npm i -D critical uncss
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing critical and uncss"</span>
+<span class="token function">npm</span> i -D critical uncss
 
-echo &quot;Installing Remarkable and related plugins.  I use Remarkable and associated plugins to generate production-ready HTML&quot;
-npm i -D remarkable gulp-remarkable gulp-wrap
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Remarkable and related plugins.  I use Remarkable and associated plugins to generate production-ready HTML"</span>
+<span class="token function">npm</span> i -D remarkable gulp-remarkable gulp-wrap
 </code></pre>
 <p>I use Markdown as my authoring tool. I then use <code>Remarkable</code> and <code>gulp-remarkable</code> to convert it to HTML and <code>gulp-wrap</code> to put the content inside a template that has links to the CSS and Javascript that I use for particular projects. All we need to do to use different assets is to change the links in the template.</p>
-<pre><code class="language-bash">echo &quot;Installing miscelaneous plugins&quot;
-npm i -D  gulp-concat gulp-debug gulp-exec gulp-run gulp-size
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Installing miscelaneous plugins"</span>
+<span class="token function">npm</span> i -D  gulp-concat gulp-debug gulp-exec gulp-run gulp-size
 
-echo &quot;The following plugins are optional. &quot;
+<span class="token builtin class-name">echo</span> <span class="token string">"The following plugins are optional. "</span>
 
-echo &quot;Installs Google Cloud utilities to upload content to google cloud storage. Including gulp-gzip for compression.  Separating them to make sure this is still the best option&quot;
-npm i -D gulp-gcloud-publish gulp-gzip
+<span class="token builtin class-name">echo</span> <span class="token string">"Installs Google Cloud utilities to upload content to google cloud storage. Including gulp-gzip for compression.  Separating them to make sure this is still the best option"</span>
+<span class="token function">npm</span> i -D gulp-gcloud-publish gulp-gzip
 </code></pre>
-<p>The original project created PDF assets that were the uploaded to a Google Cloud storage bucket. I haven’t decided if I want to continue using GCloud Storage that way or if I want to move to Firebase hosting instead.</p>
-<pre><code class="language-bash">echo &quot;Utility Opentype adds classes for using Opentype font options&quot;
-npm i -D utility-opentype
+<p>The original project created PDF assets that were the uploaded to a Google Cloud storage bucket. I haven't decided if I want to continue using GCloud Storage that way or if I want to move to Firebase hosting instead.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Utility Opentype adds classes for using Opentype font options"</span>
+<span class="token function">npm</span> i -D utility-opentype
 
-echo &quot;Cheerio provides the means to query HTML and XML structures from a Gulp file.&quot;
-npm i -D cheerio
+<span class="token builtin class-name">echo</span> <span class="token string">"Cheerio provides the means to query HTML and XML structures from a Gulp file."</span>
+<span class="token function">npm</span> i -D cheerio
 
-echo &quot;Axe is an accessibility evaluation tool.&quot;
-npm i -D gulp-axe-webdriver
+<span class="token builtin class-name">echo</span> <span class="token string">"Axe is an accessibility evaluation tool."</span>
+<span class="token function">npm</span> i -D gulp-axe-webdriver
 
-echo &quot;Evaluates your node_modules file for vulnerabilities.  This is the tool that NPM runs when using npm audit.&quot;
-npm i -D gulp-snyk snyk
+<span class="token builtin class-name">echo</span> <span class="token string">"Evaluates your node_modules file for vulnerabilities.  This is the tool that NPM runs when using npm audit."</span>
+<span class="token function">npm</span> i -D gulp-snyk snyk
 
-echo &quot;External Dependecies Required&quot;
-echo &quot;SASSDoc and SCSS Lint depend on external Ruby dependencies.&quot;
-npm i -D sassdoc scss-lint gulp-scss-lint gulp-scss-lint-stylish
+<span class="token builtin class-name">echo</span> <span class="token string">"External Dependecies Required"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"SASSDoc and SCSS Lint depend on external Ruby dependencies."</span>
+<span class="token function">npm</span> i -D sassdoc scss-lint gulp-scss-lint gulp-scss-lint-stylish
 
-echo &quot;Running configuration script&quot;
-sh configure.sh
+<span class="token builtin class-name">echo</span> <span class="token string">"Running configuration script"</span>
+<span class="token function">sh</span> configure.sh
 </code></pre>
 <p>Rather than make the script longer than it needs to be I call a second script to do configuration. This script is more complex and uses some Bash tricks.</p>
-<pre><code class="language-bash">#!/usr/bin/env bash
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/usr/bin/env bash</span>
 
-# Configure ESLint
-echo &quot;ESLint configuration&quot;
-echo &quot;Checking if .eslintrc.json exists.  We're assuming it was written as a Javascript file&quot;
-if [ -f .eslintrc.js ]
-  then
-    echo &quot;.eslintrc.json exists.&quot;
-    exit 1
-  else
-    echo &quot;.eslintrc.json not found. Creating... &quot;
-    echo &quot;Please answer the questions below:&quot;
+<span class="token comment"># Configure ESLint</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"ESLint configuration"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Checking if .eslintrc.json exists.  We're assuming it was written as a Javascript file"</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> -f .eslintrc.js <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".eslintrc.json exists."</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".eslintrc.json not found. Creating... "</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"Please answer the questions below:"</span>
     npx eslint --init
-fi
+<span class="token keyword">fi</span>
 </code></pre>
-<p>If the <code>.eslintrc.js</code> file exists then we tell the user and exit. If it doesn’t exist then we run <code>npx eslint --init</code> to configure eslint based on our preferences and the needs of the project.</p>
-<pre><code class="language-bash"># Creating .babelrc file
-if [ -f .babelrc ]
-  then
-    echo &quot;.babelrc exists&quot;
-    exit 1
-  else
-    echo &quot;creating .babelrc&quot;
-fi
+<p>If the <code>.eslintrc.js</code> file exists then we tell the user and exit. If it doesn't exist then we run <code>npx eslint --init</code> to configure eslint based on our preferences and the needs of the project.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Creating .babelrc file</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> -f .babelrc <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".babelrc exists"</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"creating .babelrc"</span>
+<span class="token keyword">fi</span>
 
-touch .babelrc
-cat &gt; .babelrc &lt;&lt;- &quot;EOF&quot;
+<span class="token function">touch</span> .babelrc
+<span class="token function">cat</span> <span class="token operator">></span> .babelrc <span class="token operator">&lt;&lt;-</span> <span class="token string">"EOF"
 {
-  &quot;presets&quot;: [
-    [&quot;env&quot;, {
-      &quot;targets&quot;: {
-        &quot;browsers&quot;: [&quot;last 2 versions&quot;, &quot;safari &gt;= 7&quot;]
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": ["last 2 versions", "safari >= 7"]
       }
     }]
   ]
 }
-EOF
+EOF</span>
 </code></pre>
-<p>Configuring babel is slightly different. We test like we did with ESLint. When it doesn’t then we create the file using the <code>touch</code> command and then append the content of the file.</p>
-<pre><code class="language-bash"># Create and populate .editorconfig
-if [ -f .editorconfig ]
-  then
-    echo &quot;.editorconfig exists&quot;
-    exit 1
-  else
-    echo &quot;.editorconfig doesn't exist&quot;
-    echo &quot;creating...&quot;
-fi
+<p>Configuring babel is slightly different. We test like we did with ESLint. When it doesn't then we create the file using the <code>touch</code> command and then append the content of the file.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Create and populate .editorconfig</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> -f .editorconfig <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".editorconfig exists"</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".editorconfig doesn't exist"</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"creating..."</span>
+<span class="token keyword">fi</span>
 
-touch .editorconfig
-cat &gt; .editorconfig &lt;&lt;- &quot;EOF&quot;
+<span class="token function">touch</span> .editorconfig
+<span class="token function">cat</span> <span class="token operator">></span> .editorconfig <span class="token operator">&lt;&lt;-</span> <span class="token string">"EOF"
 # http://editorconfig.org
 root = true
 
@@ -187,34 +187,34 @@ indent_style = tab
 
 [*.md]
 trim_trailing_whitespace = false
-EOF
+EOF</span>
 </code></pre>
 <p><a href="https://editorconfig.org/">editorconfig</a> provides a standard way to tell your editor how to behave. The (defacto) standard is supported by most modern text editors.</p>
-<p>The file we’re adding to the project is a basic default that we can use for most projects. Check the website for additional information.</p>
-<pre><code class="language-bash"># Git configuration has to be the last step to make sure
-# that we get all the files we want are committed to the repo
-echo &quot;Reseting GIT configuration.Because I downloaded this as a Git Repo clone I want to remove it and start over&quot;
-echo &quot;If you're working with an existing project this may loose your project's history&quot;
-echo &quot;Removing .git directory&quot;
-rm -rf .git
-echo &quot;creating empty git repository&quot;
-git init
-echo &quot;creating .gitignore&quot;
-touch .gitignore
-echo &quot;adding node_modules and shell files to .gitignore&quot;
-#
-echo &quot;node_modules&quot; &gt;&gt; .gitignore
-echo &quot;install.sh&quot; &gt;&gt; .gitignore
-echo &quot;configure.sh&quot; &gt;&gt; .gitignore
-#
-echo &quot;adding files to repository&quot;
-git add .
-echo &quot;commit initial files&quot;
-git commit -am &quot;initial commit&quot;
+<p>The file we're adding to the project is a basic default that we can use for most projects. Check the website for additional information.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Git configuration has to be the last step to make sure</span>
+<span class="token comment"># that we get all the files we want are committed to the repo</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Reseting GIT configuration.Because I downloaded this as a Git Repo clone I want to remove it and start over"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"If you're working with an existing project this may loose your project's history"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Removing .git directory"</span>
+<span class="token function">rm</span> -rf .git
+<span class="token builtin class-name">echo</span> <span class="token string">"creating empty git repository"</span>
+<span class="token function">git</span> init
+<span class="token builtin class-name">echo</span> <span class="token string">"creating .gitignore"</span>
+<span class="token function">touch</span> .gitignore
+<span class="token builtin class-name">echo</span> <span class="token string">"adding node_modules and shell files to .gitignore"</span>
+<span class="token comment">#</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"node_modules"</span> <span class="token operator">>></span> .gitignore
+<span class="token builtin class-name">echo</span> <span class="token string">"install.sh"</span> <span class="token operator">>></span> .gitignore
+<span class="token builtin class-name">echo</span> <span class="token string">"configure.sh"</span> <span class="token operator">>></span> .gitignore
+<span class="token comment">#</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"adding files to repository"</span>
+<span class="token function">git</span> <span class="token function">add</span> <span class="token builtin class-name">.</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"commit initial files"</span>
+<span class="token function">git</span> commit -am <span class="token string">"initial commit"</span>
 </code></pre>
-<p>Working with Git in this setup is the last step in the process. It is important to note that if you’re working on an existing project this will blow up your project’s local history.</p>
+<p>Working with Git in this setup is the last step in the process. It is important to note that if you're working on an existing project this will blow up your project's local history.</p>
 <p>The first step of the process is to remove the existing <code>.git</code> directory. I choose to do it tto make sure that the next steps are done on what, for Git, is a clean repository.</p>
-<p>Next we create a <code>.gitignore</code> file and  add the files we don’t want to upload to Git. In this case I’ve chosen not to upload the shell (<code>install.sh</code> and <code>configure.sh</code> files and the <code>node_modules</code> directory.</p>
+<p>Next we create a <code>.gitignore</code> file and  add the files we don't want to upload to Git. In this case I've chosen not to upload the shell (<code>install.sh</code> and <code>configure.sh</code> files and the <code>node_modules</code> directory.</p>
 <p>Then we add the files to the repository and commit them. All that is left is to push them to your Git or Github repo.</p>
 <p>In a later post I will discuss the <code>gulpfile.js</code> build file and some alternatives for how to run build tasks without Gulp.</p>
 

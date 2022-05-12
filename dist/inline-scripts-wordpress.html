@@ -17,34 +17,34 @@
 
 <body>
 <article class="container">
-  <h1>Inline scripts in WordPress</h1>
+  <h1 id="inline-scripts-in-wordpress">Inline scripts in WordPress</h1>
 <p>There are times when we need to add scripts to the page that will run only when there is a script already enqueued and loaded before it happens.</p>
 <p>I got bit by this when trying to use FontFaceObserver. For some reason it worked fine in development but it would give a <code>FontFaceObserver is not defined</code> error  when I moved the theme to production.</p>
 <p>The solution was hidden in some older documentation. As of version 4.5 there is an additional script loading function for loading inline scripts: <code>wp_add_inline_script</code>. This function allows adding inline scripts that depend on scripts</p>
 <p>The only important thing to remember is that this will only work when using a script that was enqueued using <code>wp_enqueue_script</code>.</p>
 <p>The final solution  looks like this:</p>
-<pre><code class="language-php">&lt;?
-function rivendellweb_enqueue_fontfaceobserver() {
-    wp_enqueue_script( 'ffo_script',
-        get_stylesheet_directory_uri() . '/js/fontfaceobserver.js',
-        array(),
-        '20151215',
-        false );
-    wp_add_inline_script( 'ffo_script', 'const recursive = new FontFaceObserver(&quot;Recursive VF&quot;);let html = document.documentElement;
-            Promise.all([recursive.load()]).then(() =&gt; {sessionStorage.fontsLoaded = true;console.log(&quot;Recursive has loaded.&quot;);
-            }).catch((err) =&gt; {sessionStorage.fontsLoaded = false;console.log(&quot;Recursive failed to load&quot;, err);
-            });
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_enqueue_fontfaceobserver</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'ffo_script'</span><span class="token punctuation">,</span>
+		<span class="token function">get_stylesheet_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/js/fontfaceobserver.js'</span><span class="token punctuation">,</span>
+		<span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+		<span class="token string single-quoted-string">'20151215'</span><span class="token punctuation">,</span>
+		<span class="token constant boolean">false</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">wp_add_inline_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'ffo_script'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'const recursive = new FontFaceObserver("Recursive VF");let html = document.documentElement;
+			Promise.all([recursive.load()]).then(() => {sessionStorage.fontsLoaded = true;console.log("Recursive has loaded.");
+			}).catch((err) => {sessionStorage.fontsLoaded = false;console.log("Recursive failed to load", err);
+			});
 
-            // Add a class based on whether the font loaded successfully
-            if (sessionStorage.fontsLoaded) {html.classList.add(&quot;fonts-loaded&quot;);
-            } else {html.classList.add(&quot;fonts-failed&quot;);
-            }'
-        );
-}
+			// Add a class based on whether the font loaded successfully
+			if (sessionStorage.fontsLoaded) {html.classList.add("fonts-loaded");
+			} else {html.classList.add("fonts-failed");
+			}'</span>
+		<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 
-add_action( 'wp_enqueue_scripts', 'rivendellweb_enqueue_fontfaceobserver' );
-</code></pre>
-<h2>Links and References</h2>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_enqueue_fontfaceobserver'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<h2 id="links-and-references">Links and References</h2>
 <ul>
 <li><a href="https://make.wordpress.org/core/2016/03/08/enhanced-script-loader-in-wordpress-4-5/">Enhanced Script Loader in WordPress 4.5</a></li>
 <li><a href="https://digwp.com/2019/07/better-inline-script/">Better Way to Add Inline Scripts</a></li>

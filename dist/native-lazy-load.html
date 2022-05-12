@@ -17,82 +17,82 @@
 
 <body>
 <article class="container">
-  <h1>Native lazy loading in Chrome</h1>
+  <h1 id="native-lazy-loading-in-chrome">Native lazy loading in Chrome</h1>
 <p>Addy Osmani posted a note on twitter about native <a href="https://addyosmani.com/blog/lazy-loading/">lazy loading</a> support that will, hopefully, appear in Chrome 75 (canary builds as I write this). This is awesome and I hope that other browsers will implement this as a native feature but it introduces complexities that we need to evaluate before we implement this in development.</p>
-<h2>Before we start</h2>
-<p>Native lazy loading works for both images and iframes but it’s behind two flags. Surprisingly neither of them is <code>Experimental Web Platform features</code>.</p>
+<h2 id="before-we-start">Before we start</h2>
+<p>Native lazy loading works for both images and iframes but it's behind two flags. Surprisingly neither of them is <code>Experimental Web Platform features</code>.</p>
 <p>Go into <code>chrome://flags</code> and enable the following flags if you want both elements to work with lazy loading:</p>
 <ul>
 <li><code>enable-lazy-image-loading</code></li>
 <li><code>enable-lazy-frame-loading</code></li>
 </ul>
-<p>Restart your browser and you’re good to go.</p>
-<h2>The basics</h2>
+<p>Restart your browser and you're good to go.</p>
+<h2 id="the-basics">The basics</h2>
 <ul>
 <li><code>loading=&quot;lazy&quot;</code> Lazy loads an offscreen image when the user scrolls near it</li>
 <li><code>loading=&quot;eager&quot;</code> Loads an image right away instead of lazy-loading.
 This is the same as not using the attribute at all</li>
 <li><code>loading=&quot;auto&quot;</code>  lets the browser decides whether or not to lazy load the element</li>
 </ul>
-<pre><code class="language-html">&lt;img src=&quot;building1.jpg&quot; loading=&quot;lazy&quot; alt=&quot;..&quot;/&gt;
-&lt;img src=&quot;building1.jpg&quot; loading=&quot;eager&quot; alt=&quot;..&quot;/&gt;
-&lt;img src=&quot;building1.jpg&quot; loading=&quot;auto&quot; alt=&quot;..&quot;/&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>building1.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>..<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>building1.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>eager<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>..<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>building1.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>auto<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>..<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
 </code></pre>
 <p>The lazy loading feature will also work with <code>picture</code> elements as long as you add the <code>loading</code> attribute to the fallback image element. If I understand it correctly the <code>img</code> element drives the display of any image inside the <code>picture</code> element so, if you add <code>loading</code> to it, whatever image loads will be lazy loaded.</p>
-<pre><code class="language-html">&lt;picture&gt;
-  &lt;source media=&quot;(min-width: 40em)&quot; srcset=&quot;big.jpg 1x, big-hd.jpg 2x&quot;&gt;
-  &lt;source srcset=&quot;small.jpg 1x, small-hd.jpg 2x&quot;&gt;
-  &lt;img src=&quot;fallback.jpg&quot; loading=&quot;lazy&quot;&gt;
-&lt;/picture&gt;
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>picture</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(min-width: 40em)<span class="token punctuation">"</span></span> <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>big.jpg 1x, big-hd.jpg 2x<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span> <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>small.jpg 1x, small-hd.jpg 2x<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fallback.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>picture</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>Same thing happens if the image has <code>srcset</code> attributes. As long as the image has the <code>loading</code> attribute set to <code>lazy</code> then the image will be lazy loaded.</p>
-<pre><code class="language-html">&lt;!-- Lazy-load an image that has srcset specified --&gt;
-&lt;img src=&quot;small.jpg&quot;
-     srcset=&quot;large.jpg 1024w, medium.jpg 640w, small.jpg 320w&quot;
-     sizes=&quot;(min-width: 36em) 33.3vw, 100vw&quot;
-     alt=&quot;A rad wolf&quot; loading=&quot;lazy&quot;&gt;
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- Lazy-load an image that has srcset specified --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>small.jpg<span class="token punctuation">"</span></span>
+     <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>large.jpg 1024w, medium.jpg 640w, small.jpg 320w<span class="token punctuation">"</span></span>
+     <span class="token attr-name">sizes</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(min-width: 36em) 33.3vw, 100vw<span class="token punctuation">"</span></span>
+     <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>A rad wolf<span class="token punctuation">"</span></span> <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 </code></pre>
-<p>The one example I haven’t seen elsewhere is for iframes. The example below shows a Youtube iframe embed set up for lazy loading. The same values apply here as they apply for images.</p>
-<pre><code class="language-html">&lt;iframe   loading=&quot;lazy&quot;
-          width=&quot;560&quot; height=&quot;315&quot;
-          src=&quot;https://www.youtube.com/embed/yY1FSsUV-8c&quot;
-          frameborder=&quot;0&quot;
-          allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot;
-          allowfullscreen&gt;&lt;/iframe&gt;
+<p>The one example I haven't seen elsewhere is for iframes. The example below shows a Youtube iframe embed set up for lazy loading. The same values apply here as they apply for images.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span>   <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span>
+          <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span>
+          <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.youtube.com/embed/yY1FSsUV-8c<span class="token punctuation">"</span></span>
+          <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span>
+          <span class="token attr-name">allow</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture<span class="token punctuation">"</span></span>
+          <span class="token attr-name">allowfullscreen</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span>
 </code></pre>
-<h2>Feature Detection and Lazy Loading Crossbrowser</h2>
-<p>I’m using the <a href="https://github.com/malchata/yall.js/">yall</a> lazy loading library in this example and initialize it when we determine the browser doesn’t support native lazy loading. We need to load the library using something like the following command</p>
-<pre><code class="language-html">&lt;script defer src=&quot;scripts/yall.js&quot;&gt;&lt;/script&gt;
+<h2 id="feature-detection-and-lazy-loading-crossbrowser">Feature Detection and Lazy Loading Crossbrowser</h2>
+<p>I'm using the <a href="https://github.com/malchata/yall.js/">yall</a> lazy loading library in this example and initialize it when we determine the browser doesn't support native lazy loading. We need to load the library using something like the following command</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">defer</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>scripts/yall.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>This will load the library every time we load the page. I am willing to take the extra 2Kb (and potentially the additional weight of an intersection observer polyfill) if it means that page will load faster because not all images are loaded when the page loads.</p>
-<p>Once we’ve loaded yall.js, we check if the browser supports native lazyloading (<code>'loading' in HTMLImageElement.prototype</code>).</p>
+<p>Once we've loaded yall.js, we check if the browser supports native lazyloading (<code>'loading' in HTMLImageElement.prototype</code>).</p>
 <p>If it does, we store all the images we want to work with (the ones with a <code>lazyload</code> class) in a variable and then, for each of those images, we copy the <code>data-src</code>attribute to the source (<code>src</code>) attribute. This will lazy load the images.</p>
-<p>If the browser doesn’t support native lazy loading then we load the lazysizes script and initialize it. The script will take the <code>data-src</code> attribute and use it to lazy load the images instead.</p>
-<pre><code class="language-js">(async () =&gt; {
-  if ('loading' in HTMLImageElement.prototype) {
-    const images = document.querySelectorAll('img.lazy');
-    images.forEach(img =&gt; {
-        img.src = img.dataset.src;
-    });
-  } else {
-    // Make sure the library is already loaded
-    // Initialize yall
-    document.addEventListener(&quot;DOMContentLoaded&quot;, yall);
-  }
-})();
+<p>If the browser doesn't support native lazy loading then we load the lazysizes script and initialize it. The script will take the <code>data-src</code> attribute and use it to lazy load the images instead.</p>
+<pre class="language-js"><code class="language-js"><span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'loading'</span> <span class="token keyword">in</span> <span class="token class-name">HTMLImageElement</span><span class="token punctuation">.</span>prototype<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> images <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'img.lazy'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    images<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token parameter">img</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        img<span class="token punctuation">.</span>src <span class="token operator">=</span> img<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Make sure the library is already loaded</span>
+    <span class="token comment">// Initialize yall</span>
+    document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"DOMContentLoaded"</span><span class="token punctuation">,</span> yall<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Using the script above we can use the following to load an image above the fold immediately.</p>
-<pre><code class="language-html">&lt;!-- Let's load this in-viewport image normally --&gt;
-&lt;img src=&quot;hero.jpg&quot; alt=&quot;&quot;/&gt;
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- Let's load this in-viewport image normally --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hero.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
 </code></pre>
-<p>And this is the code we use to lazy load an image. Note how it doesn’t have a <code>src</code> attribute because we’ll change it programmatically.</p>
-<pre><code class="language-html">&lt;!-- Let's lazy-load the rest of these images --&gt;
-&lt;img  data-src=&quot;image1.jpg&quot;
-      loading=&quot;lazy&quot; alt=&quot;&quot;
-      class=&quot;lazy&quot;/&gt;
+<p>And this is the code we use to lazy load an image. Note how it doesn't have a <code>src</code> attribute because we'll change it programmatically.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- Let's lazy-load the rest of these images --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span>  <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image1.jpg<span class="token punctuation">"</span></span>
+      <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span>
+      <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
 </code></pre>
-<p>I’ve got a working example in this <a href="https://codepen.io/caraya/pen/GLOmmd">pen</a>.</p>
-<h1>References</h1>
+<p>I've got a working example in this <a href="https://codepen.io/caraya/pen/GLOmmd">pen</a>.</p>
+<h1 id="references">References</h1>
 <ul>
 <li><a href="https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/jxiJvQc-gVg/wurng4zZBQAJ">Blink intent to ship</a></li>
 <li><a href="https://github.com/whatwg/html/pull/3752">HTML specification PR</a></li>

@@ -17,14 +17,14 @@
 
 <body>
 <article class="container">
-  <h1>Working with dates in Javascript: The Temporal proposal</h1>
-<div class="message warning">
-  <p><strong>Note:</strong></p>
-  <p></p>
-  <p>The Temporal code is not ready for production, it is still possible (but not likely) that it'll change in incompatible ways before the final version is added to the ECMAScript specification, and because of that, it shouldn't be used in production until it reaches stage 4 in the TC39 process. However, you can test how it works now and decide if you want to use it in future projects.</p>
-</div>
+  <h1 id="working-with-dates-in-javascript%3A-the-temporal-proposal">Working with dates in Javascript: The Temporal proposal</h1>
+<p>&lt;div class=&quot;message warning&quot;&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;/p&gt;
+&lt;p&gt;The Temporal code is not ready for production, it is still possible (but not likely) that it'll change in incompatible ways before the final version is added to the ECMAScript specification, and because of that, it shouldn't be used in production until it reaches stage 4 in the TC39 process. However, you can test how it works now and decide if you want to use it in future projects.&lt;/p&gt;
+&lt;/div&gt;</p>
 <p>One of the most infuriating things to do in Javascript is date manipulation. The default Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a> object is hard to work with. This has lead to a proliferation of third-party libraries like <a href="https://momentjs.com/">Moment.js</a>, <a href="https://moment.github.io/luxon/">Luxon</a>, <a href="https://date-fns.org/">date-fns</a> and even the Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl">Intl API</a> for some types of data manipulation.</p>
-<p>For this post we’ll concentrate in the <a href="https://tc39.es/proposal-temporal/docs/#Temporal-TimeZone">Temporal Proposal</a>, currently at stage 3 in the TC39 process. The idea is that <code>Temporal</code> will sit alongside the <code>Date</code> object and provide better date/time handling functionality without breaking existing code that uses the <code>Date</code> object.</p>
+<p>For this post we'll concentrate in the <a href="https://tc39.es/proposal-temporal/docs/#Temporal-TimeZone">Temporal Proposal</a>, currently at stage 3 in the TC39 process. The idea is that <code>Temporal</code> will sit alongside the <code>Date</code> object and provide better date/time handling functionality without breaking existing code that uses the <code>Date</code> object.</p>
 <p>According to the <a href="https://tc39.es/proposal-temporal/docs/">Temporal documentation</a>:</p>
 <blockquote>
 <p>Date has been a long-standing pain point in ECMAScript. This is a proposal for Temporal, a global Object that acts as a top-level namespace (like Math), that brings a modern date/time API to the ECMAScript language. For a detailed look at some of the problems with Date, and the motivations for Temporal, see: <a href="https://maggiepint.com/2017/04/09/fixing-javascript-date-getting-started/">Fixing JavaScript Date</a>.</p>
@@ -37,108 +37,108 @@
 <li>Supporting non-Gregorian calendars</li>
 </ul>
 </blockquote>
-<p>SO with all the information out of the way, let’s look at some code. I wrote these demos using Node; so the first step, as usual, is to require the code or import it if you’re working with ESM Imports.</p>
-<pre><code class="language-js">const { Temporal } = require('proposal-temporal');
+<p>SO with all the information out of the way, let's look at some code. I wrote these demos using Node; so the first step, as usual, is to require the code or import it if you're working with ESM Imports.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> <span class="token punctuation">{</span> Temporal <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'proposal-temporal'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Date and Date/Time objects</h2>
+<h2 id="date-and-date%2Ftime-objects">Date and Date/Time objects</h2>
 <p>The first step in the research is to get the date right now. Note that this will provide the ISO calendar-based dates and date/time combinations using methods in the <code>Temporal.now</code> object.</p>
 <p><strong>If you run your own tests with this code your results will be different because the timing of now will be different than mine</strong> :)</p>
-<pre><code class="language-js">const date = Temporal.now.plainDateISO();
-// returns the date in ISO 8601 date format
-date.toString(); 
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateISO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// returns the date in ISO 8601 date format</span>
+date<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
 
-const date2 = Temporal.now.plainDateTimeISO();
-// returns the time in ISO 8601 format
-date2.toString();
+<span class="token keyword">const</span> date2 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// returns the time in ISO 8601 format</span>
+date2<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We can also get the time based on our time zone by using <code>zonedDateTimeISO</code> as the calendar instead of plain ISO as in the previous examples.</p>
-<pre><code class="language-js">const date2 = Temporal.now.zonedDateTimeISO();
-date2.toString();
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> date2 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">zonedDateTimeISO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+date2<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Using a time zone as a parameter we can specify different times for our object. We cam use individual variables to contain the different date and time strings.</p>
-<pre><code class="language-js">const dateWithTimezone4 = Temporal.now.plainDateTimeISO('America/Los_Angeles');
-console.log(`Local Time: ${dateWithTimezone4.toString()}`);
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> dateWithTimezone4 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'America/Los_Angeles'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Local Time: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>dateWithTimezone4<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const dateWithTimezone = Temporal.now.plainDateTimeISO('America/Chicago');
-console.log(`Chicago Time: ${dateWithTimezone.toString()}`);
+<span class="token keyword">const</span> dateWithTimezone <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'America/Chicago'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Chicago Time: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>dateWithTimezone<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const dateWithTimezone2 = Temporal.now.plainDateTimeISO('America/New_York');
-console.log(`New York Time: ${dateWithTimezone2.toString()}`);
+<span class="token keyword">const</span> dateWithTimezone2 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'America/New_York'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">New York Time: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>dateWithTimezone2<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const dateWithTimezone3 = Temporal.now.plainDateTimeISO('Asia/Tokyo');
-console.log(`Tokyo Time: ${dateWithTimezone3.toString()}`);
+<span class="token keyword">const</span> dateWithTimezone3 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'Asia/Tokyo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Tokyo Time: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>dateWithTimezone3<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const dateWithTimezone5 = Temporal.now.plainDateTimeISO('Chile/Continental');
-console.log(`Santiago, Chile Time: ${dateWithTimezone5.toString()}`);
+<span class="token keyword">const</span> dateWithTimezone5 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'Chile/Continental'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Santiago, Chile Time: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>dateWithTimezone5<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Or we can use a function to output the results we want. The function uses a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of">for of</a> ot iterate over a list of iterables from our <code>citiesToCheck</code> generated with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries">object.entries</a></p>
 <p>We then log to console the name of the city and the result of running <code>Temporal.now.zonedDateTimeISO</code> for the corresponding time zone.</p>
-<pre><code class="language-js">const citiesToCheck = {
-  'Los Angeles': 'America/Los_Angeles',
-  'Chicago': 'America/Chicago',
-  'New York': 'America/New_York',
-  'Tokyo': 'Asia/Tokyo',
-  'Santiago, Chile': 'Chile/Continental',
-};
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> citiesToCheck <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token string">'Los Angeles'</span><span class="token operator">:</span> <span class="token string">'America/Los_Angeles'</span><span class="token punctuation">,</span>
+  <span class="token string">'Chicago'</span><span class="token operator">:</span> <span class="token string">'America/Chicago'</span><span class="token punctuation">,</span>
+  <span class="token string">'New York'</span><span class="token operator">:</span> <span class="token string">'America/New_York'</span><span class="token punctuation">,</span>
+  <span class="token string">'Tokyo'</span><span class="token operator">:</span> <span class="token string">'Asia/Tokyo'</span><span class="token punctuation">,</span>
+  <span class="token string">'Santiago, Chile'</span><span class="token operator">:</span> <span class="token string">'Chile/Continental'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-for (const [name, timeZone] of Object.entries(citiesToCheck)) {
-  console.log(`${name}: ${Temporal.now.zonedDateTimeISO(timeZone)}`);
-}
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token punctuation">[</span>name<span class="token punctuation">,</span> timeZone<span class="token punctuation">]</span> <span class="token keyword">of</span> Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>citiesToCheck<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">zonedDateTimeISO</span><span class="token punctuation">(</span>timeZone<span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
 <p>We can use something like this to keep a world clock-like application. Every time you reload the page the times for all your cities and time zones will be updated or you could run it so it updates once a second.</p>
-<h2>Building dates and date/times from custom parts</h2>
-<p>So far we’ve worked with dates based on the current time. But we can also build specific dates.</p>
+<h2 id="building-dates-and-date%2Ftimes-from-custom-parts">Building dates and date/times from custom parts</h2>
+<p>So far we've worked with dates based on the current time. But we can also build specific dates.</p>
 <p>We can build the <code>Temporal.PlainDate</code> objects from an object containing key/value pairs for each element (year, month and day) or from an ISO 8601 date.</p>
-<pre><code class="language-js">const instant = Temporal.PlainDate.from({ year: 1974, month: 3, day: 14 });
-instant.toString();
-// Result = '1974-09-25'
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> instant <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> year<span class="token operator">:</span> <span class="token number">1974</span><span class="token punctuation">,</span> month<span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> day<span class="token operator">:</span> <span class="token number">14</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+instant<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Result = '1974-09-25'</span>
 
-const instant2 = Temporal.PlainDate.from(Temporal.now.plainDateTimeISO());
-instant2.toString();
-// Result = 2021-05-07
+<span class="token keyword">const</span> instant2 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+instant2<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Result = 2021-05-07</span>
 </code></pre>
 <p>We can further refine it by breaking out date and time elements.</p>
-<pre><code class="language-js">const instant3 = Temporal.PlainDate.from(
-  Temporal.now.plainDateTimeISO('Chile/Continental')
-);
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> instant3 <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>
+  Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'Chile/Continental'</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-const instant3a = Temporal.PlainTime.from(
-  Temporal.now.plainDateTimeISO('Chile/Continental')
-);
+<span class="token keyword">const</span> instant3a <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainTime<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>
+  Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">plainDateTimeISO</span><span class="token punctuation">(</span><span class="token string">'Chile/Continental'</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-instant3.toString();
-// Result = '2021-05-07'
-instant3a.toString();
-// Result = '11:49:24.125564123'
+instant3<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Result = '2021-05-07'</span>
+instant3a<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Result = '11:49:24.125564123'</span>
 </code></pre>
 <p>The last item I found interesting when playing with dates is that we can find out what day of the week a given date falls in that specific date.</p>
 <p>We create a <code>Temporal.PlainDate</code> object with the date we want to work with. Then we creaate a 2-dimensional array with the days of the week in one array and the specific day we want expressed as <code>instant.dayOfWeek -1</code>. This will return the correct day of the week for our instant date.</p>
-<pre><code class="language-js">// BUILDING TEMPORAL DATES FROM STRINGS AND OBJECTS
-const instant = Temporal.PlainDate.from({ year: 1974, month: 3, day: 14 });
-instant.toString();
-// Result = '1974-03-14'
+<pre class="language-js"><code class="language-js"><span class="token comment">// BUILDING TEMPORAL DATES FROM STRINGS AND OBJECTS</span>
+<span class="token keyword">const</span> instant <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> year<span class="token operator">:</span> <span class="token number">1974</span><span class="token punctuation">,</span> month<span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> day<span class="token operator">:</span> <span class="token number">14</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+instant<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Result = '1974-03-14'</span>
 
-['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
-  instant.dayOfWeek - 1
-];
-// Result = 'Thursday'
+<span class="token punctuation">[</span><span class="token string">'Monday'</span><span class="token punctuation">,</span> <span class="token string">'Tuesday'</span><span class="token punctuation">,</span> <span class="token string">'Wednesday'</span><span class="token punctuation">,</span> <span class="token string">'Thursday'</span><span class="token punctuation">,</span> <span class="token string">'Friday'</span><span class="token punctuation">,</span> <span class="token string">'Saturday'</span><span class="token punctuation">,</span> <span class="token string">'Sunday'</span><span class="token punctuation">]</span><span class="token punctuation">[</span>
+  instant<span class="token punctuation">.</span>dayOfWeek <span class="token operator">-</span> <span class="token number">1</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token comment">// Result = 'Thursday'</span>
 </code></pre>
-<h2>Time Stamps</h2>
+<h2 id="time-stamps">Time Stamps</h2>
 <p>Another area of interest is timestamp generation. We can use these are hashes for files or to measure time since the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix Epoch</a>. This is particularly useful when working with code.</p>
 <p>To generate the time stamp, use the <code>Temporal.now.instant()</code>, which will be the end time of the comparison, and then choose the precision you want to work with either milliseconds (<code>epochMilliseconds</code>) or seconds (<code>epochSeconds</code>). This will measure how many of your chose units have ocurred between the Unix Epoch  (1970-01-01) and the value of <code>now.instant</code></p>
-<pre><code class="language-js">const timeStamp = Temporal.now.instant();
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> timeStamp <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>now<span class="token punctuation">.</span><span class="token function">instant</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-// Timestamp in Milliseconds
-timeStamp.epochMilliseconds;
-// Timestamp in Seconds
-timeStamp.epochSeconds;
+<span class="token comment">// Timestamp in Milliseconds</span>
+timeStamp<span class="token punctuation">.</span>epochMilliseconds<span class="token punctuation">;</span>
+<span class="token comment">// Timestamp in Seconds</span>
+timeStamp<span class="token punctuation">.</span>epochSeconds<span class="token punctuation">;</span>
 </code></pre>
-<h2>Integrating with <code>Intl.DateTimeFormat</code></h2>
-<p>There is currently work in progress to integrate the Temporal proposal with ECMA 402’s <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat">Intl.DateTimeFormat()</a>.</p>
-<p>The current discussion is happening in a <a href="https://github.com/tc39/proposal-temporal/issues/129">Github issue</a> that I think is worth keeping track of. For now, there’s no integrated API for developers to experiment with.</p>
-<h2>Notes and closing</h2>
-<p>There is plenty more you can do with the Temporal Proposal. If you’re interested in tracking its evolution to stage 4 and publication as part of ECMAScript, the best place to do it is the Github Repository, particularly the cookbook, the issue tracker and the specification itself if you can understand the way specifications are written</p>
-<h2>Links and Resources</h2>
+<h2 id="integrating-with-intl.datetimeformat">Integrating with <code>Intl.DateTimeFormat</code></h2>
+<p>There is currently work in progress to integrate the Temporal proposal with ECMA 402's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat">Intl.DateTimeFormat()</a>.</p>
+<p>The current discussion is happening in a <a href="https://github.com/tc39/proposal-temporal/issues/129">Github issue</a> that I think is worth keeping track of. For now, there's no integrated API for developers to experiment with.</p>
+<h2 id="notes-and-closing">Notes and closing</h2>
+<p>There is plenty more you can do with the Temporal Proposal. If you're interested in tracking its evolution to stage 4 and publication as part of ECMAScript, the best place to do it is the Github Repository, particularly the cookbook, the issue tracker and the specification itself if you can understand the way specifications are written</p>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://blogs.igalia.com/compilers/2020/06/23/dates-and-times-in-javascript/">Dates and Times in Javascript</a> — Igalia</li>
 <li><a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> — Wikipedia</li>

@@ -17,15 +17,15 @@
 
 <body>
 <article class="container">
-  <h1>Building a PostCSS workflow (part 2)</h1>
+  <h1 id="building-a-postcss-workflow-(part-2)">Building a PostCSS workflow (part 2)</h1>
 <p>In the last post we built a basic PostCSS workflow using Gulp. This post will cover additional features that are nice to have in a workflow but are not required to run it.</p>
 <p>We will also look in some detail at <a href="https://preset-env.cssdb.org/">postcss-preset-env</a>, what it would allow us to do and how it would work.</p>
-<h2>The plugins (thoughts)</h2>
+<h2 id="the-plugins-(thoughts)">The plugins (thoughts)</h2>
 <p>The list of plugins that I want to use shows what they are, what I expect them to do and a little research on SASS equivalency.</p>
 <p><code>postcss-color-function</code>
 : <a href="https://github.com/postcss/postcss-color-function">postcss-color-function</a> provides color manipulation functions equivalent to SASS <code>@lighten</code> and <code>@darken</code>.
 : The color functions in this plugin were removed from the CSS Color Module level 5 spec so they are not available in browsers at all, at least not directly.
-: According to <a href="https://twitter.com/argyleink">Adam Argyle</a>, one of the <a href="https://drafts.csswg.org/css-color-5/">CSS Color Module Level 5 spec</a> editors, <a href="https://twitter.com/argyleink/status/1456301298769297408?s=20">tweet</a> <strong><em>“no replacements planned, rather succession via relative color syntax. they had too much overlap, so 1 was removed”</em></strong>
+: According to <a href="https://twitter.com/argyleink">Adam Argyle</a>, one of the <a href="https://drafts.csswg.org/css-color-5/">CSS Color Module Level 5 spec</a> editors, <a href="https://twitter.com/argyleink/status/1456301298769297408?s=20">tweet</a> <em><strong>&quot;no replacements planned, rather succession via relative color syntax. they had too much overlap, so 1 was removed&quot;</strong></em>
 : See the following <a href="https://codepen.io/argyleink/pen/WNoWadG?editors=1100">Codepen</a> for a demo of the <a href="https://drafts.csswg.org/css-color-5/#color-mix">color-mix()</a> function
 : See this <a href="https://codepen.io/argyleink/pen/poNXLwW?editors=1100">Codepen</a> for a demo of relative color syntax and the <a href="https://drafts.csswg.org/css-color-5/#colorcontrast">color-contrast()</a> function (<strong>this demo only work in Safari Technical Preview 125 and later</strong>)</p>
 <p>Conditional logic
@@ -37,55 +37,55 @@
 : This is useful when you want to make sure that you actually fix any warnings or errors in your CSS. However, <code>gulp-sass</code> seems to terminate the script on errors and warnings regardless, so this may be less of an issue</p>
 <p><code>postcss-simple-vars</code>
 : <a href="https://www.npmjs.com/package/postcss-simple-vars">postcss-simple-vars</a> allows us to use SASS variables (beginning with $) in our CSS.
-: Even though it was implemented in the initial version of the Gulpfile, I’m documenting here because I’m not sure if this is something I want to use over CSS native custom properties</p>
+: Even though it was implemented in the initial version of the Gulpfile, I'm documenting here because I'm not sure if this is something I want to use over CSS native custom properties</p>
 <p><code>postcss-define-property</code>
 : <a href="https://www.npmjs.com/package/postcss-define-property">postcss-define-property</a> allows us to use CSS Custom Properties as defined in <a href="https://drafts.css-houdini.org/css-properties-values-api/">CSS Properties and Values API Level 1</a>, a Houdini specification.
 : The definitions of these properties are more complete since they allow you do define the syntax of the property, a default value and whether it inherits or not. The down side is that <code>@property</code> only supported on Chromium browsers so you will likely have to define multiple versions of a given property, likely using <code>@support</code> to target different browsers (chromium browsers and everyone else).
-: The order of the plugins you use matters. See the plugin’s <a href="https://github.com/daleeidd/postcss-define-property/wiki/Compatibility">compatibility wiki</a> for more information.</p>
+: The order of the plugins you use matters. See the plugin's <a href="https://github.com/daleeidd/postcss-define-property/wiki/Compatibility">compatibility wiki</a> for more information.</p>
 <p><code>postcss-at-rules-variables</code>
 : <a href="https://www.npmjs.com/package/postcss-at-rules-variables">postcss-at-rules-variables</a> allows us to use variables in the <code>@media</code> and <code>@supports</code> at-rules.
-: I’ve chosen not to implement this yet as I’m not ceertain this is not taken care of by other plugins.</p>
+: I've chosen not to implement this yet as I'm not ceertain this is not taken care of by other plugins.</p>
 <p><code>postcss-preset-env</code>
 : This is the PostCSS equivalent to Babel for Javascript. The idea is that it will allows us to use a set of new CSS features at different level of maturity in the CSS specification process.
-: The problem is that the list is likely to change over time and it doesn’t account for properties that have been removed from the corresponding specification.</p>
-<h2>Adding the plugins to the workflow</h2>
-<p>Because we’ve already created the Gulpfile the process is simpler when adding additional functionalityis a two-step process instead of three steps that we discussed in the previous post.</p>
+: The problem is that the list is likely to change over time and it doesn't account for properties that have been removed from the corresponding specification.</p>
+<h2 id="adding-the-plugins-to-the-workflow">Adding the plugins to the workflow</h2>
+<p>Because we've already created the Gulpfile the process is simpler when adding additional functionalityis a two-step process instead of three steps that we discussed in the previous post.</p>
 <ol>
 <li>Install the plugins and require them at the top of the gulpfile</li>
 <li>Add the plugins to the processors constant</li>
 </ol>
 <p>The additional properties look like this:</p>
-<pre><code class="language-js">const property = require(`postcss-define-property`);
-const condition = require('postcss-conditionals');
-const each = require('postcss-each');
-const pcfor = require('postcss-for');
-const colors = require('postcss-color-function');
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> property <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">postcss-define-property</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> condition <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-conditionals'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> each <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-each'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> pcfor <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-for'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> colors <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-color-function'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The full list of processors, including the new ones, is as follows:</p>
-<pre><code class="language-css">const processors = [
-  importer({
-    glob: true
-  }),
+<pre class="language-css"><code class="language-css"><span class="token selector">const processors = [
+  importer(</span><span class="token punctuation">{</span>
+    <span class="token property">glob</span><span class="token punctuation">:</span> true
+  <span class="token punctuation">}</span><span class="token selector">),
   property,
   simpleVars,
   nesting,
   autoprefixer,
-  sorting({
-    order: [
-      'custom-properties',
-      'dollar-variables',
-      'declarations',
-      'at-rules',
-      'rules',
-    ],
-    'properties-order': 'alphabetical',
-    'unspecified-properties-position': 'bottom',
-  }),
-  colors,
-  condition,
-  each,
-  pcfor,
-];
+  sorting(</span><span class="token punctuation">{</span>
+    <span class="token property">order</span><span class="token punctuation">:</span> [
+      <span class="token string">'custom-properties'</span><span class="token punctuation">,</span>
+      <span class="token string">'dollar-variables'</span><span class="token punctuation">,</span>
+      <span class="token string">'declarations'</span><span class="token punctuation">,</span>
+      <span class="token string">'at-rules'</span><span class="token punctuation">,</span>
+      <span class="token string">'rules'</span><span class="token punctuation">,</span>
+    ]<span class="token punctuation">,</span>
+    <span class="token string">'properties-order'</span><span class="token punctuation">:</span> <span class="token string">'alphabetical'</span><span class="token punctuation">,</span>
+    <span class="token string">'unspecified-properties-position'</span><span class="token punctuation">:</span> <span class="token string">'bottom'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  colors<span class="token punctuation">,</span>
+  condition<span class="token punctuation">,</span>
+  each<span class="token punctuation">,</span>
+  pcfor<span class="token punctuation">,</span>
+]<span class="token punctuation">;</span>
 </code></pre>
 <p>The final test is to actually use the styles in selectors that use the functions and rules.</p>
 

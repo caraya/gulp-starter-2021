@@ -17,84 +17,84 @@
 
 <body>
 <article class="container">
-  <h1>Gulp and avif, part 2</h1>
+  <h1 id="gulp-and-avif%2C-part-2">Gulp and avif, part 2</h1>
 <p>Using the default encoder and settings, as described in <a href="https://publishing-project.rivendellweb.net/compressing-avif-images-with-gulp/">Compressing AVIF images with Gulp</a>, got the task running and produced the result we wanted: AVIF images that were smaller than the source image in either JPG or PNG format.</p>
 <p>This post will start from there and explore some further considerations on using <code>avifenc</code> to create images for the web.</p>
 <p>Unlike the previous post, the tasks here will try to mirror the following CLI commands.</p>
-<pre><code class="language-bash"># Default AOM encoder
-avifenc --codec aom \
---min 40 --max 40 \
---jobs 4 \
---speed 10 \
---output squosh3.avif \
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Default AOM encoder</span>
+avifenc --codec aom <span class="token punctuation">\</span>
+--min <span class="token number">40</span> --max <span class="token number">40</span> <span class="token punctuation">\</span>
+--jobs <span class="token number">4</span> <span class="token punctuation">\</span>
+--speed <span class="token number">10</span> <span class="token punctuation">\</span>
+--output squosh3.avif <span class="token punctuation">\</span>
 images/squosh.png
 </code></pre>
 <p>The first pass of the task looks like this.</p>
-<pre><code class="language-js">gulp.task('avif-aom', function() {
-  const destination = './converted'
-  return gulp.src('./images/*')
-    .pipe(exec((file) =&gt;
-        `avifenc --min 40 --max 40     --jobs 4 --speed 10 \
-         ${file.path} --out ${destination}/${file.path}`
-      ))
-    .pipe(rename({ extname: '.avif'}))
-    .pipe(gulp.dest(`${destination}`))
-});
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'avif-aom'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> destination <span class="token operator">=</span> <span class="token string">'./converted'</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./images/*'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">file</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">avifenc --min 40 --max 40     --jobs 4 --speed 10 \
+         </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> --out </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">rename</span><span class="token punctuation">(</span><span class="token punctuation">{</span> extname<span class="token operator">:</span> <span class="token string">'.avif'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The task kept crashing on execution but it would allow me to run <code>gulp -T</code> so the error was  in the command I was executing, not Gulp.</p>
 <p>I removed all the parameters to <code>gulp-exec</code> after avifenc and added them back one by one. The <code>--speed</code> parameter is the guilty one. I was able to remove it and leave it working at the default value.</p>
 <p>The final task looks like this:</p>
-<pre><code class="language-js">gulp.task('avif-aom', function() {
-  const destination = './converted'
-  return gulp.src('./images/*')
-    .pipe(exec((file) =&gt;
-        `avifenc --min 40 --max 40 --jobs 4 ${file.path} --out ${destination}/${file.path}`
-      ))
-    .pipe(rename({ extname: '.avif'}))
-    .pipe(gulp.dest(`${destination}`))
-});
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'avif-aom'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> destination <span class="token operator">=</span> <span class="token string">'./converted'</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./images/*'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">file</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">avifenc --min 40 --max 40 --jobs 4 </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> --out </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">rename</span><span class="token punctuation">(</span><span class="token punctuation">{</span> extname<span class="token operator">:</span> <span class="token string">'.avif'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Using a different encoder</h2>
+<h2 id="using-a-different-encoder">Using a different encoder</h2>
 <p>If you compile it to do so, you can choose different encoders to create AVIF images. We want to replicate the following command line script.</p>
-<pre><code class="language-bash">avifenc -c rav1e \
---min 40 --max 40 \
---jobs 4 \
---speed 10 \
---output squosh2.avif \
+<pre class="language-bash"><code class="language-bash">avifenc -c rav1e <span class="token punctuation">\</span>
+--min <span class="token number">40</span> --max <span class="token number">40</span> <span class="token punctuation">\</span>
+--jobs <span class="token number">4</span> <span class="token punctuation">\</span>
+--speed <span class="token number">10</span> <span class="token punctuation">\</span>
+--output squosh2.avif <span class="token punctuation">\</span>
 images/squosh.png
 </code></pre>
 <p>I was expecting that adding the encoder flag (<code>--codec rav1e</code>) would cause the same problem as the <code>avif-aom</code> where the speed parameter would cause the same problem. It did not.</p>
-<pre><code class="language-js">gulp.task('avif-rav1e', function() {
-  const destination = './converted'
-  return gulp.src('./images/*')
-    .pipe(exec((file) =&gt;
-        `avifenc --codec rav1e --min 40 --max 40 --jobs 4 --speed 10 ${file.path}  ${destination}/${file.path}`
-      ))
-    .pipe(rename({ extname: '.rav1e.avif'}))
-    .pipe(gulp.dest(`${destination}`))
-});
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'avif-rav1e'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> destination <span class="token operator">=</span> <span class="token string">'./converted'</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./images/*'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">file</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">avifenc --codec rav1e --min 40 --max 40 --jobs 4 --speed 10 </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">  </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">rename</span><span class="token punctuation">(</span><span class="token punctuation">{</span> extname<span class="token operator">:</span> <span class="token string">'.rav1e.avif'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>This task will take significantly longer than the previous task, even when set up to work at maximum speed.</p>
-<p>The one change I’ll make is remove the speed indication to make sure both tasks run as evenly as possible. The task now looks like this</p>
-<pre><code class="language-js">gulp.task('avif-rav1e', function() {
-  const destination = './converted'
-  return gulp.src('./images/*')
-    .pipe(exec((file) =&gt;
-        `avifenc --codec rav1e --min 40 --max 40 --jobs 4 ${file.path}  ${destination}/${file.path}`
-      ))
-    .pipe(rename({ extname: '.rav1e.avif'}))
-    .pipe(gulp.dest(`${destination}`))
-});
+<p>The one change I'll make is remove the speed indication to make sure both tasks run as evenly as possible. The task now looks like this</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'avif-rav1e'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> destination <span class="token operator">=</span> <span class="token string">'./converted'</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./images/*'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">file</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">avifenc --codec rav1e --min 40 --max 40 --jobs 4 </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">  </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">rename</span><span class="token punctuation">(</span><span class="token punctuation">{</span> extname<span class="token operator">:</span> <span class="token string">'.rav1e.avif'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Comparing the enconders</h2>
-<p>Although I wouldn’t expect a different in file sizes it’s still instructive to compare the two encoders.</p>
-<p>To do this I’ve created a default task that will run both encoders in parallel</p>
-<pre><code class="language-js">gulp.task('default', gulp.series(
-  'avif-aom',
-  'avif-rav1e'
-));
+<h2 id="comparing-the-enconders">Comparing the enconders</h2>
+<p>Although I wouldn't expect a different in file sizes it's still instructive to compare the two encoders.</p>
+<p>To do this I've created a default task that will run both encoders in parallel</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'default'</span><span class="token punctuation">,</span> gulp<span class="token punctuation">.</span><span class="token function">series</span><span class="token punctuation">(</span>
+  <span class="token string">'avif-aom'</span><span class="token punctuation">,</span>
+  <span class="token string">'avif-rav1e'</span>
+<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2>Further exploration</h2>
+<h2 id="further-exploration">Further exploration</h2>
 <p>There are a couple more items that I want to research but they are not essential for encoding images. The two that come to mind are:</p>
 <ul>
 <li>Will setting up a range, making <code>--min</code> smaller than <code>--max</code> change the encoding results?</li>

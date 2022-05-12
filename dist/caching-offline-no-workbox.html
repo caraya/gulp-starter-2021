@@ -17,55 +17,55 @@
 
 <body>
 <article class="container">
-  <h1>Caching individual pages for offline use</h1>
-<h2>Caching individual pages by hand</h2>
+  <h1 id="caching-individual-pages-for-offline-use">Caching individual pages for offline use</h1>
+<h2 id="caching-individual-pages-by-hand">Caching individual pages by hand</h2>
 <p>Most of the examples use a hand-coded service worker with a customized version of the registration event</p>
-<pre><code class="language-js">// This registers the service worker and sets
-// up the files to cache for the particular
-// page.
-if ('serviceWorker' in navigator) {
-  // Attempt to register it
-  navigator.serviceWorker.register('/sw.js').then(function() {
-    // Success
-    console.log('ServiceWorker registration successful');
-  }).catch(function(err) {
-    // Fail
-    console.log('ServiceWorker registration failed: ', err);
-  });
+<pre class="language-js"><code class="language-js"><span class="token comment">// This registers the service worker and sets</span>
+<span class="token comment">// up the files to cache for the particular</span>
+<span class="token comment">// page.</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'serviceWorker'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Attempt to register it</span>
+  navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token string">'/sw.js'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Success</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'ServiceWorker registration successful'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Fail</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'ServiceWorker registration failed: '</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  // Set variables for use in the event listener
-  var currentPath = window.location.pathname;
-  var cacheButton = document.querySelector('.offline-btn');
+  <span class="token comment">// Set variables for use in the event listener</span>
+  <span class="token keyword">var</span> currentPath <span class="token operator">=</span> window<span class="token punctuation">.</span>location<span class="token punctuation">.</span>pathname<span class="token punctuation">;</span>
+  <span class="token keyword">var</span> cacheButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'.offline-btn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  // Event listener
-  if(cacheButton) {
-    cacheButton.addEventListener('click', function(event) {
-        event.preventDefault();
+  <span class="token comment">// Event listener</span>
+  <span class="token keyword">if</span><span class="token punctuation">(</span>cacheButton<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    cacheButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        const urlsToCache = [
-          currentPath,
-          ...performance.getEntriesByType('resource').map((r) =&gt; r.name),
-        ];
+        <span class="token keyword">const</span> urlsToCache <span class="token operator">=</span> <span class="token punctuation">[</span>
+          currentPath<span class="token punctuation">,</span>
+          <span class="token operator">...</span>performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'resource'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">r</span><span class="token punctuation">)</span> <span class="token operator">=></span> r<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token punctuation">]</span><span class="token punctuation">;</span>
 
-      // Open the unique cache for this URL
-      caches.open('offline-' + currentPath).then(function(cache) {
-        var updateCache = cache.addAll(urlsToCache);
+      <span class="token comment">// Open the unique cache for this URL</span>
+      caches<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span><span class="token string">'offline-'</span> <span class="token operator">+</span> currentPath<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">cache</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">var</span> updateCache <span class="token operator">=</span> cache<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>urlsToCache<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        // Update UI to indicate success
-        // Or catch any errors if it doesn't succeed
-        updateCache.then(function() {
-          console.log('Article is now available offline.');
-        }).catch(function (error) {
-          console.log('Article could not be saved offline.');
-        });
-      });
-    });
-  }
-}
+        <span class="token comment">// Update UI to indicate success</span>
+        <span class="token comment">// Or catch any errors if it doesn't succeed</span>
+        updateCache<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Article is now available offline.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Article could not be saved offline.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<h2>Links and Resources</h2>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
-<li><a href="https://una.im/save-offline/">Implementing “Save For Offline” with Service Workers</a></li>
+<li><a href="https://una.im/save-offline/">Implementing &quot;Save For Offline&quot; with Service Workers</a></li>
 <li><a href="https://gist.github.com/dgrijuela/38cde675b70ed097dbbe">Service Worker Cache Script</a></li>
 <li><a href="https://jakearchibald.com/2014/offline-cookbook/">Jake Archibald’s Offline Cookbook</a></li>
 <li><a href="https://serviceworke.rs/">Mozilla Service Worker Cookbook</a></li>

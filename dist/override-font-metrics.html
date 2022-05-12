@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1>Overriding Font Metrics with CSS</h1>
+  <h1 id="overriding-font-metrics-with-css">Overriding Font Metrics with CSS</h1>
 <p>One of the things about web fonts that may be problematic is the care we need to take when choosing a fallback font. Unless we pick fonts with similar characteristics, there will be a layout shift that will negatively impact the LCS core web vitals metric.</p>
 <p>CSS has a potential solution to this problem. In CSS we can use special override descriptors in the @font-face at-rule to specify the exact dimensions for the following attributes:</p>
 <ul>
@@ -27,22 +27,22 @@
 <li>extra advance for horizontal character spacing</li>
 </ul>
 <p>The example <code>@font-face</code> declaration below shows how these descriptors work.</p>
-<pre><code class="language-css">@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&amp;display=swap');
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'https://fonts.googleapis.com/css2?family=Playfair+Display&amp;display=swap'</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span></span>
 
-@font-face {
-  font-family: &quot;Times New Roman&quot;;
-  /* These values are based on Fair Play's table data */
-  ascent-override: calc(138.496 / 128 * 100%);
-  descent-override: calc(32.128 / 128 * 100%);
-  line-gap-override: 0%;  
-  advance-override: 0.049;
-  src: local(&quot;Times New Roman&quot;);
-}
+<span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Times New Roman"</span><span class="token punctuation">;</span>
+  <span class="token comment">/* These values are based on Fair Play's table data */</span>
+  <span class="token property">ascent-override</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>138.496 / 128 * 100%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">descent-override</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>32.128 / 128 * 100%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">line-gap-override</span><span class="token punctuation">:</span> 0%<span class="token punctuation">;</span>  
+  <span class="token property">advance-override</span><span class="token punctuation">:</span> 0.049<span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token function">local</span><span class="token punctuation">(</span><span class="token string">"Times New Roman"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
 </code></pre>
-<p>For each of the new descriptors we provide a value we’ve calculated from the web font we’re downloading so that the fallback font, Times New Roman, will use the same dimensions and reduce or eliminate layout shift because of font metric differences</p>
-<h2>Proposed Descriptors</h2>
+<p>For each of the new descriptors we provide a value we've calculated from the web font we're downloading so that the fallback font, Times New Roman, will use the same dimensions and reduce or eliminate layout shift because of font metric differences</p>
+<h2 id="proposed-descriptors">Proposed Descriptors</h2>
 <p>These are the descriptors implemented in Chrome and being discussed in the CSS working group</p>
-<h3><strong>ascent-override, descent-override, line-gap-override</strong></h3>
+<h3 id="ascent-override%2C-descent-override%2C-line-gap-override"><strong>ascent-override, descent-override, line-gap-override</strong></h3>
 <ul>
 <li>Syntax: <code>&lt;percentage&gt;</code> | <code>normal</code></li>
 <li>Initial value: <code>normal</code></li>
@@ -50,18 +50,18 @@
 <p>These descriptors allow us to completely eliminate vertical layout shift.</p>
 <p>Having these values enables browsers to match fallback font metrics to those of the web font they are replacing, reducing layout shift.</p>
 <p>It is important to remember that <strong>the values for these descriptors are used in the fallback local font but use the values from the web font being replaced</strong></p>
-<h3><strong>advance-override</strong></h3>
+<h3 id="advance-override"><strong>advance-override</strong></h3>
 <ul>
 <li>Syntax: <code>&lt;number&gt;</code></li>
 <li>Initial value: 0</li>
 </ul>
 <p>This descriptor allows us to reduce horizontal layout shift, and helps to reduce vertical layout shift caused by different line wrapping.</p>
 <p>The descriptor sets an extra advance for each character using the font face. The amount of extra advance equals the descriptor value multiplied by the used font size.</p>
-<h2>Some remaining questions</h2>
+<h2 id="some-remaining-questions">Some remaining questions</h2>
 <p>The values of these descriptors should be set according to the <code>head</code> and <code>hhea</code> table of the target web font.</p>
-<p>Because of this, it’s hard to use the overrides well. We need a way to pull this data from the web font file without having to code it ourselves, maybe with tools like <a href="https://wakamaifondue.com/">wakamaifondue</a> or the browser’s DevTools (Firefox does an awesome job with their DevTools font editor already).</p>
+<p>Because of this, it's hard to use the overrides well. We need a way to pull this data from the web font file without having to code it ourselves, maybe with tools like <a href="https://wakamaifondue.com/">wakamaifondue</a> or the browser's DevTools (Firefox does an awesome job with their DevTools font editor already).</p>
 <p>I filed an <a href="https://github.com/Wakamai-Fondue/wakamai-fondue-site/issues/106">issue</a> in the Wakamai Fondue Github repository asking for the application to provide these metrics for you.</p>
-<h2>Links and References</h2>
+<h2 id="links-and-references">Links and References</h2>
 <ul>
 <li>CSS Fonts Module Level 4
 <ul>
