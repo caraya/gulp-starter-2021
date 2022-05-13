@@ -6,7 +6,7 @@ CSS provides four mathematical expression functions: `calc()`, `min()`, `max()`,
 
 The calc() function supports four arithmetic operations: addition (`+`), subtraction (`-`), multiplication (`*`) and division (`/`).
 
-This will allow you to combine different types of values (like `vw` and `px`) to create a new value.
+This will allow you to dynamically calculate the width and height of a container to create responsive layouts.
 
 In this example, you can set the margins of an element minus a fixed amount:
 
@@ -18,29 +18,49 @@ div {
 
 ## min()
 
-The min() function is used to set the smallest acceptable value.
+The min() function is used to set the smallest acceptable value for a rule.
 
-It takes 2 different values separated by a comma and may change.
+It takes 2 different comma-separate values that offer the values the browser will choose from.
+
+In this example the font-size will be `1vw` unless the computer value of 1vw is smaller than `25px` (I can only think of this happening in very large screens).
 
 ```css
 font-size: min(25px,1vw);
 ```
 
-In this example the font-size will never be larger than 25px and will shrink to 1vw depending on the viewport size.
-
 ## max()
 
-Out of the two values, we specify inside max() – the largest one will be prioritized.
+The `max()` function takes two values, like the `min()` function, and uses the largest of the two values.
+
+In this example the font will be at least 25px and never larger than 1vw if the 1vw is larger than 25px.
+
+```css
+font-size: max(25px,1vw);
+```
 
 ## clamp()
 
-The clamp() function is used to define the acceptable range of various values for a layout element: minimum, preferred, and maximum. Most commonly, clamp() is used to set a range of acceptable values for typography, to create the effect of fluid typography.
+The `clamp()` function defines an acceptable range of various values for a layout element: minimum, preferred, and maximum.
 
-It is, in essence, the culmination of both min() and max() features.
+The function takes three values separated by a comma and the values may be of different types.
 
-An example:
+* The first value representsthe minimum value. If the preferred value is less than this value, the minimum value will be used
+* The second value represents the preferred value. The value will be used as long as it stays between the minimum and maximum values
+* The third value represents the maximum allowed value. If the preferred value is larger than this value, this value will be used
 
-font-size: clamp(1rem, 4vw + 1rem, 4rem);
+It is, in essence, the combination of both `min()` and `max()` features where the value will never be smaller than the minimum value or larger than the maxium value.
+
+In this example, the font-size will be 4vw + 1rem, as long as the calculated value based on the base font size of the page and the size of the viewport is no smaller than 1rem or larger than 4rem.
+
+```css
+.example {
+  font-size: clamp(
+    1rem,
+    4vw + 1rem,
+    4rem
+  );
+}
+```
 
 ## Combining math fuctions with CSS variables
 
