@@ -1,5 +1,66 @@
 <h1 id="getting-markdown-plugins-to-work-with-gulp">Getting Markdown plugins to work with Gulp</h1>
 <p>I finally solved two big misteries: Why does Gulp give you the ability to write your own code and how to integrate plugins into a Gulp-based Markdown project.</p>
 <h2 id="why-write-your-own-code">Why write your own code</h2>
+<p>There are times when there is no plugin available for a certain task or the plugin doesn't as expected.</p>
+<p>In my <a href="https://github.com/caraya/gulp-starter-2021">gulp-starter</a> I use <a href="https://github.com/markdown-it/markdown-it">Markdown-It</a> to convert Markdown to HTML.</p>
+<p>I would love to use plugins to provide equivalent functionality to what I get using Markdown in WordPress via the Jetpack Plugin in the <a href="https://wordpress.com/support/markdown-quick-reference/">classic editor</a>.</p>
+<p>Using a Gulp plugin (<a href="https://www.npmjs.com/package/gulp-markdown-it">gulp-markdown-it</a>) is a good way to get started but I wasn't successful in adding Markdown-It plugins to work with the Gulp plugin.</p>
+<p>A solution I found was to write my own code and bypass the Gulp Markdown-It plugin altogether while still using Markdown-It as the parser.</p>
+<p>The next sections explain how I did it.</p>
 <h2 id="integrating-plugins-to-markdown-workflows">Integrating plugins to Markdown workflows</h2>
-<p><a href="https://www.broculos.net/2015/12/build-your-own-markdown-flavour-with.html">https://www.broculos.net/2015/12/build-your-own-markdown-flavour-with.html</a></p>
+<p>The first step is to require the plugins we want to use.</p>
+<p>I'm using CommonJS modules rather than ESM modules. Eventhough all currently supported versions of Node support ESM imports, not all modules I'm using do and I don't want to go through the hassle of converting them.</p>
+<p>I'm also using the Markdown-It tool directly rather than using a plugin. I will explain why in the next section.</p>
+<p>We require all the plugins we want to use before we use them.</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// require gulp first</span>
+<span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// require markdown-it</span>
+<span class="token keyword">const</span> markdownIt <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'markdown-it'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// require markdown-it plugins</span>
+<span class="token keyword">const</span> abbr <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-abbr"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> alerts <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-alerts"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> anc <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-anchor"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> attrs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-attrs"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> embed <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-block-embed"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> fn <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-footnote"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> figs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-implicit-figures"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> kbd <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-kbd"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> prism <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-prism"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> toc <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-table-of-contents"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> list <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"markdown-it-task-lists"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The next step is to initialize Markdown-It and then declare the plugins we want to use via the <a href="https://markdown-it.github.io/markdown-it/#MarkdownIt.use">use</a> method.</p>
+<p>The <code>use()</code> method also allows is to pass options to the plugins at initalization time.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> md <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">markdownIt</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>abbr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>alerts<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>anc<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>attrs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>embed<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>figs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>kbd<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>prism<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>toc<span class="token punctuation">)</span><span class="token punctuation">;</span>
+md<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The first custom function will actually convert the file to HTML and replace the extension with <code>.html</code>.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">markdownToHtml</span><span class="token punctuation">(</span><span class="token parameter">file</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> result <span class="token operator">=</span> md<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span>file<span class="token punctuation">.</span>contents<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  file<span class="token punctuation">.</span>contents <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Buffer</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  file<span class="token punctuation">.</span>path <span class="token operator">=</span> <span class="token function">replaceExt</span><span class="token punctuation">(</span>file<span class="token punctuation">.</span>path<span class="token punctuation">,</span> <span class="token string">'.html'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Next is our Markdown converter task. We use <a href="https://www.npmjs.com/package/gulp-tap">gulp-tap</a> plugin to run the external function inside the task. Otherwise, it looks like a regular task and it works like one too :).</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">markdown</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+      <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/md-content/*.md'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">tap</span><span class="token punctuation">(</span>markdownToHtml<span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'src/html-content/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="things-to-do">Things to do</h2>
+<h3 id="customizing-markdown-it">Customizing Markdown-It</h3>
