@@ -18,16 +18,16 @@
 <body>
 <article class="container">
   <h1 id="service-worker-tools-update">Service Worker tools update</h1>
-<p>I haven't looked at Service Workers in a while and wondered how much the SW libraries have changed since I last looked at them.</p>
+<p>I haven’t looked at Service Workers in a while and wondered how much the SW libraries have changed since I last looked at them.</p>
 <p>SW-precache and SW-toolbox made creating Service Workers with dynamic caching much easier but there were two separate libraries and SW-precache required a separate file with all the SW-toolbox libraries routes in it. This made it very error prone to edit and update.</p>
-<p><a href="https://workboxjs.org/">Workbox.js</a> is the evolution of Google's Service Worker Libraries. It consolidates all Service Worker build steps into one task (Gulp, Webpack and NPM Script versions available) and abstracts a lot of the writing and configuration behind the scenes so developers don't need to see the process, only the result.</p>
+<p><a href="https://workboxjs.org/">Workbox.js</a> is the evolution of Google’s Service Worker Libraries. It consolidates all Service Worker build steps into one task (Gulp, Webpack and NPM Script versions available) and abstracts a lot of the writing and configuration behind the scenes so developers don’t need to see the process, only the result.</p>
 <p>Workbox is a Node package so I always install it as a development dependency with the command below</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> workbox-build --save-dev
 </code></pre>
 <p>At the top of the <code>gulpfile.js</code> file place the following constant declaration to bring workbox-build into scope of the file.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> wbBuild <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'workbox-build'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>Copy the task below to your gulpfile. Note that this task uses ES6 arrow functions and promises so it'll only work on newer versions of Node (5.x and newer).</p>
+<p>Copy the task below to your gulpfile. Note that this task uses ES6 arrow functions and promises so it’ll only work on newer versions of Node (5.x and newer).</p>
 <pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'bundle-sw'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> wbBuild<span class="token punctuation">.</span><span class="token function">generateSW</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
    globDirectory<span class="token operator">:</span> <span class="token string">'./_site/'</span><span class="token punctuation">,</span> <span class="token comment">// 1</span>
@@ -51,13 +51,13 @@
 <li>Where to search for content</li>
 <li>Where to write the resulting Service Worker</li>
 <li>What files to add to the Service Worker (all HTML, CSS and Javascript files)</li>
-<li>What files to ignore. In this example we don't want to cache the service worker itself as caching would defeat the purpose</li>
+<li>What files to ignore. In this example we don’t want to cache the service worker itself as caching would defeat the purpose</li>
 </ol>
 <p>If it succeeds then we log a success message to console and if we fail we log the error to console as well.</p>
 <p>The last bit that I need to research is how to add routes to handle the cases that are not handled in the task as currently written. SW-toolbox provided multiple ways to configure caching strategies for multiple items in the same application.</p>
-<p>There is a portion of workbox, <code>workbox-routing</code> that handles the routing portion of the Service Worker but I haven't quite figured out how to integrate it to the gulp file using <code>workbox-build</code> to generate the manifest and the precaching of assets. I've asked the developers who created the tools and they've pointed to examples where the routes are configured manually... There has to be a way to do it programmatically.</p>
+<p>There is a portion of workbox, <code>workbox-routing</code> that handles the routing portion of the Service Worker but I haven’t quite figured out how to integrate it to the gulp file using <code>workbox-build</code> to generate the manifest and the precaching of assets. I’ve asked the developers who created the tools and they’ve pointed to examples where the routes are configured manually… There has to be a way to do it programmatically.</p>
 <p>Thanks to Jeff Posnick for pointing me to a <a href="https://mobile.twitter.com/jeffposnick/status/865248099068923904">solution</a> to integrate <code>workbox-routing</code> and <code>workbox-build</code> on the same Service Worker.</p>
-<p>The solution is a two-step process. We first write our Service Worker as shown below. We pass an empty array as the parameter to <code>workboxSW.precache</code> because we'll populate this from the <code>service-worker</code> task in Gulp.</p>
+<p>The solution is a two-step process. We first write our Service Worker as shown below. We pass an empty array as the parameter to <code>workboxSW.precache</code> because we’ll populate this from the <code>service-worker</code> task in Gulp.</p>
 <p>The routes we define in the service worker will not change or will not change to frequently so doing it this way makes sure we get the best of both worlds.</p>
 <p>The service worker belows mirrors the <code>toolbox-scripts</code> file that we created using the old <code>sw-toolbox</code> library.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Alternatively, use your own local copy of workbox-sw.prod.vX.Y.Z.js</span>
@@ -143,7 +143,7 @@ workboxSW<span class="token punctuation">.</span>router<span class="token punctu
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>In static or content heavy sites we may want to further constraint the values for step 3 as the default value may cache too many files and make the initial cache and subsequent retrievals take longer than we'd like.</p>
+<p>In static or content heavy sites we may want to further constraint the values for step 3 as the default value may cache too many files and make the initial cache and subsequent retrievals take longer than we’d like.</p>
 
 </article>
 <!--

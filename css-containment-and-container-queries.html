@@ -20,11 +20,11 @@
   <h1 id="css-containment-and-container-queries">CSS Containment and container queries</h1>
 <p>It looks like <a href="https://publishing-project.rivendellweb.net/css-containment/">CSS containment</a> will finally bring container queries into browsers without the need for a polifill.</p>
 <p>This post will discuss the current implementation in Chromium browsers.</p>
-<p>&lt;div class=&quot;message warning&quot;&gt;
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;The specification for container queries hasn't been finalized. It is possible but unlikely that the specification and the corresponding CSS will change.&lt;/p&gt;
-&lt;p&gt;Don't use &lt;code&gt;@container&lt;/code&gt; in production until the feature is finalized.&lt;/p&gt;
-&lt;/div&gt;</p>
+<div class="message warning">
+<p><strong>Note:</strong></p>
+<p>The specification for container queries hasn't been finalized. It is possible but unlikely that the specification and the corresponding CSS will change.</p>
+<p>Don't use <code>@container</code> in production until the feature is finalized.</p>
+</div>
 <h2 id="what-problem-do-container-queries-solve%3F">What problem do container queries solve?</h2>
 <p>Container queries give developers finer control over the layout of components. Rather than using <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries">media queries</a> that provide responsiveness based on the viewport state, they give responsiveness based on the parent container or the next ancestor that has containment applied to it.</p>
 <p>This means that we can have both large elements and layouts that are use media queries and smaller components that use container queries to provide finer-controlled layouts based on the status of elements on the page, not on the page overall.</p>
@@ -57,7 +57,7 @@
 </code></pre>
 <p>Then we can use the <code>@container</code> pseudo element to change the layout of our elements based on the width of the constrained parent.</p>
 <p>The syntax is similar to media queries and the <code>@media</code> pseudo element but with different results.</p>
-<p>The example below uses four container queries to change the way content will look based on the parent element's width.</p>
+<p>The example below uses four container queries to change the way content will look based on the parent element’s width.</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@container</span> <span class="token punctuation">(</span><span class="token property">max-width</span><span class="token punctuation">:</span> 850px<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
   <span class="token comment">/* 
   if the width of the parent is less than 850px
@@ -82,16 +82,16 @@
   */</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h2 id="alternatives-for-browsers-that-don't-support-%40container">Alternatives for browsers that don't support <code>@container</code></h2>
-<p>I'm still researching the way to get container queries to work in older browsers.</p>
-<p>To make sure we don't break things we use a feature query to wrap the <code>@container</code> style selectors to make sure that it will only run in browsers that support containment.</p>
+<h2 id="alternatives-for-browsers-that-don%E2%80%99t-support-%40container">Alternatives for browsers that don’t support <code>@container</code></h2>
+<p>I’m still researching the way to get container queries to work in older browsers.</p>
+<p>To make sure we don’t break things we use a feature query to wrap the <code>@container</code> style selectors to make sure that it will only run in browsers that support containment.</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">contain</span><span class="token punctuation">:</span> inline-size<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
   <span class="token atrule"><span class="token rule">@container</span> <span class="token punctuation">(</span><span class="token property">max-width</span><span class="token punctuation">:</span> 850px<span class="token punctuation">)</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
 
   <span class="token atrule"><span class="token rule">@container</span> <span class="token punctuation">(</span><span class="token property">max-width</span><span class="token punctuation">:</span> 650px<span class="token punctuation">)</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>Once we have the native container queries handled, we can use third party libraries like <a href="https://github.com/stowball/eqio">eqio</a> to provide equivalent functionality for browsers that don't support it natively.</p>
+<p>Once we have the native container queries handled, we can use third party libraries like <a href="https://github.com/stowball/eqio">eqio</a> to provide equivalent functionality for browsers that don’t support it natively.</p>
 <p>First we load the script. This example uses the <a href="https://unpkg.com/">unpkg</a> CDN.</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://unpkg.com/eqio/umd/eqio.min.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
 </code></pre>
@@ -138,8 +138,8 @@ els<span class="token punctuation">.</span><span class="token function">forEach<
 </code></pre>
 <p>The example component will:</p>
 <ul>
-<li>be customised when its width is 400 or smaller (&quot;&lt;&quot; is a synonym for <code>max-width</code>, not “less than”)</li>
-<li>be customised when its width is 700 or greater (&quot;&gt;&quot; is a synonym for <code>min-width</code>, not “greater than”).</li>
+<li>be customised when its width is 400 or smaller (“&lt;” is a synonym for <code>max-width</code>, not “less than”)</li>
+<li>be customised when its width is 700 or greater (“&gt;” is a synonym for <code>min-width</code>, not “greater than”).</li>
 <li>apply the following classes <code>media-object-eqio-&lt;400</code> and <code>media-object-eqio-&gt;700</code> as appropriate</li>
 </ul>
 <p>The final step is to create the CSS for each matching condition. The query is a combination of the <code>data-eqio-prefix</code> HTML attribute and the value of the query we want to match, <code>&lt;400</code> or <code>&gt;700</code>.</p>

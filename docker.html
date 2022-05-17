@@ -18,17 +18,17 @@
 <body>
 <article class="container">
   <h1 id="docker-for-front-end-development">Docker for front end development</h1>
-<p>I've dabbled in working with Docker ever since it first became available for the Mac as Boot2Docker but I never actually did anything with it. Not too long ago I started working with the idea of creating a Docker app to store all the tools I use when writng or creating a front end application.</p>
+<p>I’ve dabbled in working with Docker ever since it first became available for the Mac as Boot2Docker but I never actually did anything with it. Not too long ago I started working with the idea of creating a Docker app to store all the tools I use when writng or creating a front end application.</p>
 <p>In building this container I will describe the basics of building a Dockerfile and using it to interact with your local  filesystem. This will also go in a Github repo in case I need to duplicate the project at a later date.</p>
 <h2 id="quick-docker-overview">Quick Docker overview</h2>
-<p>The idea of a container is that, like a Virtual Machine, it allows for full encapsulation of an application and its dependencies. For example if we're building a Node.js application with a MongoDB backend you can configure the container to download and install Node and MongoDB, perform any needed configuration and be ready to begin development. Furthermore you should get the same results any time that you build an image from a Dockerfile.</p>
+<p>The idea of a container is that, like a Virtual Machine, it allows for full encapsulation of an application and its dependencies. For example if we’re building a Node.js application with a MongoDB backend you can configure the container to download and install Node and MongoDB, perform any needed configuration and be ready to begin development. Furthermore you should get the same results any time that you build an image from a Dockerfile.</p>
 <h2 id="installing-docker">Installing Docker</h2>
 <h3 id="linux">Linux</h3>
-<p>There is no graphical installer for Linux like the ones we'll discuss later for Mac and Windows, you have two options: you can use the installer script our you can download a binary.</p>
-<p>The install script is a shell script that will install Docker and associated dependencies.  The process below uses Curl to download the script for your inspection and then run the script. We could automate the download and run into a single command but it's always a good idea to check the script matches the original source before running it.</p>
-<p>&lt;div class=&quot;message warning&quot;&gt;
-&lt;p&gt;Make sure to verify the contents of the script you downloaded matches the contents of install.sh located at &lt;a href=&quot;https://github.com/Docker/Docker-install&quot;&gt;https://github.com/Docker/Docker-install&lt;/a&gt; before executing.&lt;/p&gt;
-&lt;/div&gt;</p>
+<p>There is no graphical installer for Linux like the ones we’ll discuss later for Mac and Windows, you have two options: you can use the installer script our you can download a binary.</p>
+<p>The install script is a shell script that will install Docker and associated dependencies.  The process below uses Curl to download the script for your inspection and then run the script. We could automate the download and run into a single command but it’s always a good idea to check the script matches the original source before running it.</p>
+<div class="message warning">
+  <p>Make sure to verify the contents of the script you downloaded matches the contents of install.sh located at <a href="https://github.com/Docker/Docker-install">https://github.com/Docker/Docker-install</a> before executing.</p>
+</div>
 <h4 id="curl">Curl</h4>
 <p>If using Curl, run the following commands to install Docker.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">curl</span> -fsSL get.Docker.com -o get-Docker.sh
@@ -92,14 +92,14 @@ Server:
 <li>Expose port 3000 from our container to the outside world</li>
 <li>Provide the user a bash shell to work from</li>
 </ol>
-<p>To make the process easier to work through I've broken the Dockerfile into smaller chunks that roughly correspond to the items in the list. This will make the entire process easier to understand and reason through.</p>
+<p>To make the process easier to work through I’ve broken the Dockerfile into smaller chunks that roughly correspond to the items in the list. This will make the entire process easier to understand and reason through.</p>
 <h3 id="install-the-image">Install the image</h3>
-<p>The first step in any Dockerfile is to specify the base image we want to work from. In this case I've chosen to use the latest Bitnami image for Node rather than using a bare operating system. I loose the ability to install multiple versions of Node with NVM but I'd rather have one working  version in the image than none at all so I'm ok with the compromise, for now.</p>
+<p>The first step in any Dockerfile is to specify the base image we want to work from. In this case I’ve chosen to use the latest Bitnami image for Node rather than using a bare operating system. I loose the ability to install multiple versions of Node with NVM but I’d rather have one working  version in the image than none at all so I’m ok with the compromise, for now.</p>
 <pre class="language-language-docker"><code class="language-language-docker">FROM bitnami/node:8.4.0-r1
 </code></pre>
 <h3 id="install-tools-and-utilities">Install tools and utilities</h3>
 <p>Next we use the <code>apt-get</code> package manager to install tool and utilities for our container. These utilities include: <code>build-essentials</code> to handle compiling and linking in case the node packages have no binary version for Linux, <code>curl</code> to download files, the <code>bash</code> shell, <code>git</code> VCS, <code>Ruby</code> and <code>Rubygems</code> to handle two special cases.</p>
-<p>There is a second block of libraries and applications that I'm installing to install other libraries and gems. <code>libffi6</code>, <code>libffi-dev</code> and <code>ruby-dev</code> are needed to install a Gem dependency.</p>
+<p>There is a second block of libraries and applications that I’m installing to install other libraries and gems. <code>libffi6</code>, <code>libffi-dev</code> and <code>ruby-dev</code> are needed to install a Gem dependency.</p>
 <pre class="language-language-docker"><code class="language-language-docker"># Fetch and install system tools
 RUN apt-get update &amp;&amp; apt-get -y -q --no-install-recommends install \
     build-essential \
@@ -115,37 +115,37 @@ RUN apt-get update &amp;&amp; apt-get -y -q --no-install-recommends install \
     rubygems
 </code></pre>
 <h3 id="force-the-container-to-use-bash">Force the container to use Bash</h3>
-<p>I prefeer to work with Bash and don't care about the standard shell that comes with Debian because it will not let me do completions, so I've added a layer to remove the default shell (<code>/bin/sh</code>) and create a symbolic link from Bash to make it the default font.</p>
+<p>I prefeer to work with Bash and don’t care about the standard shell that comes with Debian because it will not let me do completions, so I’ve added a layer to remove the default shell (<code>/bin/sh</code>) and create a symbolic link from Bash to make it the default font.</p>
 <p>Now calling either <code>bin/bash</code> or <code>bin/sh</code> will run Bash. Problem solved, I think.</p>
 <pre class="language-language-docker"><code class="language-language-docker">RUN rm /bin/sh &amp;&amp; ln -s /bin/bash /bin/sh
 </code></pre>
 <h3 id="install-sass-and-scss-lint">Install SASS and SCSS Lint</h3>
-<p>Now that we've installed Ruby and Rubygems we can install the Ruby packages (gems) that we need for some of our Gulp tasks later on.</p>
-<p>I know that there is a version of SASS that will work directly with Node and is written in C. I've used <code>node-sass</code> and the associated <code>libsass</code> but, despite what the authors say about functional parity between Ruby SASS and libsass some aspects of my tasks did not work so, rather than go through the hassle of debugging, I've chosen to stay with the Ruby version.</p>
+<p>Now that we’ve installed Ruby and Rubygems we can install the Ruby packages (gems) that we need for some of our Gulp tasks later on.</p>
+<p>I know that there is a version of SASS that will work directly with Node and is written in C. I’ve used <code>node-sass</code> and the associated <code>libsass</code> but, despite what the authors say about functional parity between Ruby SASS and libsass some aspects of my tasks did not work so, rather than go through the hassle of debugging, I’ve chosen to stay with the Ruby version.</p>
 <pre class="language-language-docker"><code class="language-language-docker">RUN gem install \
     sass \
     scss_lint
 </code></pre>
 <h3 id="make-a-directory-and-set-its-(unix)-permissions">Make a directory and set its (Unix) permissions</h3>
-<p>Before we can install things we need to create a directory where to place our files. We use standard Unix commands to create a directory (<code>mkdir</code>) and set its permissions (<code>chmod</code>). Because this will be local to our image I've felt it was OK to make it publicly accessible (everyone can read, write and execute any file in the directory).</p>
+<p>Before we can install things we need to create a directory where to place our files. We use standard Unix commands to create a directory (<code>mkdir</code>) and set its permissions (<code>chmod</code>). Because this will be local to our image I’ve felt it was OK to make it publicly accessible (everyone can read, write and execute any file in the directory).</p>
 <p>If you want to learn more about permissios or check for values that will make these permissions more restrictive, check <a href="https://www.tutorialspoint.com/unix/unix-file-permission.htm">Unix - File Permission / Access Modes</a></p>
 <pre class="language-language-docker"><code class="language-language-docker"># Create the development directory
 RUN mkdir /app/code/ &amp;&amp; chmod 777 /app/code/
 </code></pre>
 <h3 id="copy-defaults-to-work-area">Copy defaults to work area</h3>
-<p>I hate reinventing the wheel so rather than create a new gulpfile and install packages manually for every project, I've copied my default <code>gulpfile.js</code> and <code>package.json</code> files to the root of my Docker development directory and use a layer to copy them into the container.</p>
+<p>I hate reinventing the wheel so rather than create a new gulpfile and install packages manually for every project, I’ve copied my default <code>gulpfile.js</code> and <code>package.json</code> files to the root of my Docker development directory and use a layer to copy them into the container.</p>
 <pre class="language-language-docker"><code class="language-language-docker"># If this works it should copy the package.json and gulpfile.js
 # to the code directory
 COPY package.json gulpfile.js /app/code/
 </code></pre>
 <h3 id="node-related-tasks">Node related tasks</h3>
-<p>I'm usig four layers to complete all the Node associated tasks for this container. Since I changed the base image I no longer need to install NVM or Node (but I no longer have the capability to test code with different versions of Node) until I figure out how to install NVM at build time I'll consider this a fair trade.</p>
+<p>I’m usig four layers to complete all the Node associated tasks for this container. Since I changed the base image I no longer need to install NVM or Node (but I no longer have the capability to test code with different versions of Node) until I figure out how to install NVM at build time I’ll consider this a fair trade.</p>
 <p>The first two layers make sure that the tree benneath <code>/opt/bitnami/node/lib/</code> is publicly writeable to avoid possible errors.</p>
 <p>We install packages for Node in 3 stages. The first stage will install <code>node-gyp</code> and <code>node-pre-gyp</code> to install binary packages. I have at least two of those packages in the list I install from <code>package.json</code> so I better do it now.</p>
 <p>The next stage installs global packages. These will give me access to tools like Assemble, ESLint, Gulp and Netlify without having to create crazy npm script commands to make them work.</p>
 <p>The task contiues by installing a small set of packages globally so we get command line tools for the following programs to work with:</p>
 <ul>
-<li>NPM (later version than what's installed with Node)</li>
+<li>NPM (later version than what’s installed with Node)</li>
 <li>Assemble</li>
 <li>ESLint</li>
 <li>Gulp</li>
@@ -175,7 +175,7 @@ RUN npm install -g \
 RUN npm install
 </code></pre>
 <h3 id="expose-port-from-container-to-outside-world">Expose port from container to outside world</h3>
-<p>This layer uses <a href="https://docs.Docker.com/engine/reference/builder/#expose">EXPOSE</a> to tell the world what port (or ports) the container will listen on. When we initialize the container we'll use this port to connect the container to our local development environment. Because the development server I set up in Gulp uses port 3000 we'll use the same port.</p>
+<p>This layer uses <a href="https://docs.Docker.com/engine/reference/builder/#expose">EXPOSE</a> to tell the world what port (or ports) the container will listen on. When we initialize the container we’ll use this port to connect the container to our local development environment. Because the development server I set up in Gulp uses port 3000 we’ll use the same port.</p>
 <pre class="language-language-docker"><code class="language-language-docker"># Expose default gulp port
 EXPOSE 3000
 </code></pre>
@@ -193,11 +193,11 @@ CMD [&quot;/bin/bash&quot;]
 <p>The flags I used are as follows:</p>
 <ul>
 <li><strong>-t front-end-dev</strong> assigns a name to the image.</li>
-<li><strong>-f Dockerfile.Docker</strong> specified the location of the Docker file we'll use to build the image.</li>
+<li><strong>-f Dockerfile.Docker</strong> specified the location of the Docker file we’ll use to build the image.</li>
 </ul>
 <p>The period at the end (<code>.</code>) indicates the location where to build the image.</p>
-<p>By default Docker caches the layers used to create an image. During development, where there may be many changes, you may consider disabling caching using <strong>--no-cache=true</strong></p>
-<p>We'll also create a Github repository to store the files. Right now there are only 3 but the number may increase as the project becomes more and more complex.  Follow standard procedure:</p>
+<p>By default Docker caches the layers used to create an image. During development, where there may be many changes, you may consider disabling caching using <strong>–no-cache=true</strong></p>
+<p>We’ll also create a Github repository to store the files. Right now there are only 3 but the number may increase as the project becomes more and more complex.  Follow standard procedure:</p>
 <ol>
 <li>Create the repository on Github</li>
 <li>In your local directory initialize an empty Git repo (<code>git init</code>)</li>
@@ -222,7 +222,7 @@ CMD [&quot;/bin/bash&quot;]
 </code></pre>
 <p>The public URL for the image is <a href="https://hub.Docker.com/r/elrond25/Docker-front-end/">https://hub.Docker.com/r/elrond25/Docker-front-end/</a></p>
 <h3 id="further-ideas%3A-continous-builds">Further ideas: Continous builds</h3>
-<p>Rather than rebuild and upload the image every time I make changes I've chosen to use Docker Hub's ability to build the image on the Hub whenever an associated Git (Github or Bitbucket) changes.</p>
+<p>Rather than rebuild and upload the image every time I make changes I’ve chosen to use Docker Hub’s ability to build the image on the Hub whenever an associated Git (Github or Bitbucket) changes.</p>
 <p>Configuring automated builds is a two step process. First you must link yourt Github and Docker Hub accounts:</p>
 <ol>
 <li>Log into Docker Hub</li>
@@ -256,20 +256,20 @@ CMD [&quot;/bin/bash&quot;]
 <li>Click Create.</li>
 </ol>
 <h2 id="create-container-for-new-project">Create container for new project</h2>
-<p>We now have a working image we have pushed into the Docker Hub so other people can share it. Now all we have left is to actually build a container with the image. I'm doing this last because I want to leverage the Hub to download a smaller image than I would if it was used locally.</p>
+<p>We now have a working image we have pushed into the Docker Hub so other people can share it. Now all we have left is to actually build a container with the image. I’m doing this last because I want to leverage the Hub to download a smaller image than I would if it was used locally.</p>
 <pre class="language-bash"><code class="language-bash">Docker  run  -v <span class="token variable"><span class="token variable">`</span><span class="token builtin class-name">pwd</span><span class="token variable">`</span></span><span class="token builtin class-name">:</span><span class="token variable"><span class="token variable">`</span><span class="token builtin class-name">pwd</span><span class="token variable">`</span></span> -w <span class="token variable"><span class="token variable">`</span><span class="token builtin class-name">pwd</span><span class="token variable">`</span></span> -it --rm elrond25/front-end-dev:1.0
 </code></pre>
-<p>This time it's a single command, <code>Docker run</code> with the following parameters:</p>
+<p>This time it’s a single command, <code>Docker run</code> with the following parameters:</p>
 <ul>
 <li>The -v flag mounts the current working directory into the container</li>
 <li>The -w lets the command being executed inside the current working directory, by changing into the directory to the value returned by pwd</li>
-<li>--rm	automatically remove the container when it exits</li>
+<li>–rm	automatically remove the container when it exits</li>
 <li>-it instructs Docker to create an interactive bash shell in the container</li>
 </ul>
 <p>So this combination executes the command using the container, but inside the current working directory. It will also provide a shell inside the container to run commands from.</p>
 <h2 id="further-ideas%3A-integrating-mongodb-and-other-tools">Further ideas: Integrating MongoDB and other tools</h2>
-<p>So far we've only discussed building single use containers. One of the biggest attractions of Docker is that you can create applications using mulltiple containers using a separate tool called Docker Compose.</p>
-<p>In this example  we'll build a Wordpress application using two images: One for Wordpress 4.8.1 Running PHP 7.0 in Apache and one for MySQL 5.7. This wwill be similar to the example in the <a href="https://docs.Docker.com/samples/library/wordpress">Docker samples site</a> but tailored to run the latest versions of software.</p>
+<p>So far we’ve only discussed building single use containers. One of the biggest attractions of Docker is that you can create applications using mulltiple containers using a separate tool called Docker Compose.</p>
+<p>In this example  we’ll build a Wordpress application using two images: One for Wordpress 4.8.1 Running PHP 7.0 in Apache and one for MySQL 5.7. This wwill be similar to the example in the <a href="https://docs.Docker.com/samples/library/wordpress">Docker samples site</a> but tailored to run the latest versions of software.</p>
 <p>Create a <code>stack.yaml</code> file and copy the content below to it:</p>
 <pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">version</span><span class="token punctuation">:</span> <span class="token string">'3.1'</span>
 
@@ -291,9 +291,9 @@ CMD [&quot;/bin/bash&quot;]
 <pre class="language-bash"><code class="language-bash">Docker-compose -f stack.yaml up
 </code></pre>
 <p>This will automatically download the images (if needed) and configure them to give you a Wordpress installation ready for you to configure.</p>
-<p>&lt;div class=&quot;message warning&quot;&gt;
-&lt;p&gt;This image does not provide any additional PHP extensions or other libraries, even if they are required by popular plugins. There are an infinite number of possible plugins, and they potentially require any extension PHP supports. Including every PHP extension that exists would dramatically increase the image size.&lt;/p&gt;
-&lt;/div&gt;</p>
+<div class="message warning">
+<p>This image does not provide any additional PHP extensions or other libraries, even if they are required by popular plugins. There are an infinite number of possible plugins, and they potentially require any extension PHP supports. Including every PHP extension that exists would dramatically increase the image size.</p>
+</div>
 <p>If you need additional PHP extensions, you’ll need to create your own image FROM this one. <a href="https://github.com/Docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions">documentation of the php image</a> explains how to compile additional extensions. Additionally, the wordpress Dockerfile has an example of doing this. it looks like this:</p>
 <pre class="language-language-docker"><code class="language-language-docker"># install the PHP extensions we need
 RUN apt-get update &amp;&amp; apt-get install -y libpng12-dev libjpeg-dev \
@@ -305,8 +305,8 @@ RUN Docker-php-ext-install mysqli
 <h2 id="closing-thoughts">Closing thoughts</h2>
 <p>The two examples in this post are fairly simmple as far as using Docker is concerned. They give us an idea of what you can do and starting point for further experimentation.</p>
 <p>The next experiment is to create an image similar to <code>front-end-dev</code> but set up for Express and MongoDB development. Then we can compose that image with a MongoDB image from the Docker library and have a fully working development environment.</p>
-<p>This also gives us the opportunity to play and experiment with applications we wouldn't normally use. I'm wondering if <a href="http://cassandra.apache.org/">Apache Cassandra</a> would work better than <a href="https://www.mongodb.com/">MongoDB</a>. Now I can create stacks with both databases and test the code.</p>
-<p>The sky is the limit... with moderation :-)</p>
+<p>This also gives us the opportunity to play and experiment with applications we wouldn’t normally use. I’m wondering if <a href="http://cassandra.apache.org/">Apache Cassandra</a> would work better than <a href="https://www.mongodb.com/">MongoDB</a>. Now I can create stacks with both databases and test the code.</p>
+<p>The sky is the limit… with moderation :-)</p>
 <h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://docs.Docker.com/">Docker Documentation</a></li>

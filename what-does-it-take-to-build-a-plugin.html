@@ -28,8 +28,8 @@
 <li><a href="https://github.com/ptahdunbar/wp-skeleton-plugin">WP Skeleton Plugin</a>: Skeleton plugin that focuses on unit tests and use of composer for development</li>
 <li><a href="https://developer.wordpress.org/cli/commands/scaffold/plugin/">WP CLI Scaffold</a>: The Scaffold command of WP CLI creates a skeleton plugin with options such as CI configuration files</li>
 </ul>
-<p>Yet generators and boilerplates are not the only ways to create a plugin. Code Generators, by their very nature, are overwhelming. They give you every single tool you might need and then they let you de-clutter your code, assuming you know how the code is supposed to work and whether your plugin will need all the pieces they give you. They also lock you into the way the boilerplate authors think things should be done, even if one size doesn't fit all.</p>
-<p>This post will discuss some points that I've learned about building a plugin from a boilerplate and from scratch. This is not meant to be a tutorial on how to build a plugin but to cover some things developers need to keep in mind when working with WordPress plugins.</p>
+<p>Yet generators and boilerplates are not the only ways to create a plugin. Code Generators, by their very nature, are overwhelming. They give you every single tool you might need and then they let you de-clutter your code, assuming you know how the code is supposed to work and whether your plugin will need all the pieces they give you. They also lock you into the way the boilerplate authors think things should be done, even if one size doesn’t fit all.</p>
+<p>This post will discuss some points that I’ve learned about building a plugin from a boilerplate and from scratch. This is not meant to be a tutorial on how to build a plugin but to cover some things developers need to keep in mind when working with WordPress plugins.</p>
 <h2 id="organizing-the-code">Organizing the code</h2>
 <p>The first thing you need to decide about your plugin project is how you will organize the code.</p>
 <pre class="language-text"><code class="language-text">/plugin-name
@@ -73,7 +73,7 @@
 
 <span class="token function">register_activation_hook</span><span class="token punctuation">(</span> <span class="token constant">__FILE__</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_cpt_activate'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
-<p>Likewise, when we deactivate the plugin we want to remove the CPTs to make sure that we don't have any orphaned CPTS. We also want to flush the rewrite rules to make the CPTs are no longer available.</p>
+<p>Likewise, when we deactivate the plugin we want to remove the CPTs to make sure that we don’t have any orphaned CPTS. We also want to flush the rewrite rules to make the CPTs are no longer available.</p>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_cpt_deactivate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token function">unregister_post_type</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'book'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -133,13 +133,13 @@
 <span class="token function">register_uninstall_hook</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_uninstall'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>The second way is to create an <code>uninstall.php</code> file at the root of the plugin directory. This file will take precedence over the uninstall hook.</p>
-<p>In the <code>uninstall.php</code> file I'm less concerned about creating classes and functions. I'm ok with running procedural code.</p>
-<p>&lt;div class=&quot;message warning&quot;&gt;
-&lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;Always check for the constant &lt;code&gt;WP_UNINSTALL_PLUGIN&lt;/code&gt; in uninstall.php before doing anything. This protects against direct access.&lt;/p&gt;</p>
-<p>&lt;p&gt;The constant will be defined by WordPress during the uninstall.php invocation.&lt;/p&gt;</p>
-<p>&lt;p&gt;The constant is NOT defined when uninstall is performed by &lt;code&gt;register_uninstall_hook()&lt;/code&gt;.&lt;/p&gt;
-&lt;/div&gt;</p>
+<p>In the <code>uninstall.php</code> file I’m less concerned about creating classes and functions. I’m ok with running procedural code.</p>
+<div class="message warning">
+  <p><strong>Warning:</strong></p>
+  <p>Always check for the constant <code>WP_UNINSTALL_PLUGIN</code> in uninstall.php before doing anything. This protects against direct access.</p>
+  <p>The constant will be defined by WordPress during the uninstall.php invocation.</p>
+  <p>The constant is NOT defined when uninstall is performed by <code>register_uninstall_hook()</code>.</p>
+</div>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">defined</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'WP_UNINSTALL_PLUGIN'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">die</span><span class="token punctuation">;</span>
@@ -154,9 +154,9 @@
 <span class="token variable">$wpdb</span><span class="token operator">-></span><span class="token function">query</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"DROP TABLE IF EXISTS <span class="token interpolation"><span class="token punctuation">{</span><span class="token variable">$wpdb</span><span class="token operator">-></span><span class="token property">prefix</span><span class="token punctuation">}</span></span>mytable"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <h2 id="prefix-everything-and-code-defensively">Prefix Everything And Code Defensively</h2>
-<p>Because the code for your plugin will run in the WordPress global space there is a good chance that names will conflict with WordPress Core or other plugins if you're not careful.</p>
+<p>Because the code for your plugin will run in the WordPress global space there is a good chance that names will conflict with WordPress Core or other plugins if you’re not careful.</p>
 <p>I take two approaches to avoid conflicts: I prefix all functions, classes, and variables I use in my plugins with my domain name (rivendellweb), the name of the plugin, or a combination of the two.</p>
-<p>If I'm using an item from another plugin or a function I will always check if they exist. How to check if an item exists depends on what we're looking for:</p>
+<p>If I’m using an item from another plugin or a function I will always check if they exist. How to check if an item exists depends on what we’re looking for:</p>
 <ul>
 <li><strong>Variables</strong>
 <ul>
@@ -181,7 +181,7 @@
 </li>
 </ul>
 <h2 id="plugin-security">Plugin Security</h2>
-<p>Because we can't fully trust the content that we get from our users, we should always work in a secure way. WordPress provides a few tools to ensure the security of your plugin.</p>
+<p>Because we can’t fully trust the content that we get from our users, we should always work in a secure way. WordPress provides a few tools to ensure the security of your plugin.</p>
 <h3 id="check-for-user-capabilities">Check For User Capabilities</h3>
 <p>The most important step in creating an efficient security layer is having a user permission system in place. WordPress provides this in the form of <a href="https://developer.wordpress.org/plugins/security/checking-user-capabilities/">User Roles and Capabilities</a>.</p>
 <ul>
@@ -224,7 +224,7 @@
 </span></code></pre>
 <p>See <a href="https://wordpress.org/support/article/roles-and-capabilities/">Roles and Capabilities</a> for a full list of all the roles and capabilities and <a href="https://wordpress.org/support/article/roles-and-capabilities/#capability-vs-role-table">Capability vs. Role Table</a> for a list of what capabilities are assigned to each role by default. Plugins like <a href="https://wordpress.org/plugins/members/">Members</a> allow you to expand the default capabilities of a user or group of users by adding or removing capabilities. I discussed the plugin in <a href="https://publishing-project.rivendellweb.net/expanding-teams-and-roles-in-wordpress-using-the-members-plugin/">Expanding Teams and Roles in WordPress Using The Members Plugin</a>.</p>
 <h3 id="sanitizing-input">Sanitizing Input</h3>
-<p>Not that we don't trust users but it's always better to trust but verify that there wasn't an honest mistake (or deliberate action) on the part of the user, editor, or administrator.</p>
+<p>Not that we don’t trust users but it’s always better to trust but verify that there wasn’t an honest mistake (or deliberate action) on the part of the user, editor, or administrator.</p>
 <p>WordPress provides functions to sanitize user input. The functions are:</p>
 <ul>
 <li><a href="https://developer.wordpress.org/reference/functions/sanitize_email/">sanitize_email()</a></li>
@@ -247,11 +247,11 @@
 <li><a href="https://developer.wordpress.org/reference/functions/wp_kses/">wp_kses()</a></li>
 <li><a href="https://developer.wordpress.org/reference/functions/wp_kses_post/">wp_kses_post()</a></li>
 </ul>
-<p>The idea is that whenever we get user input, whether a regular user or an administrator, we should make sure it won't break the system.</p>
-<p>Let's assume that we have the following HTML code:</p>
+<p>The idea is that whenever we get user input, whether a regular user or an administrator, we should make sure it won’t break the system.</p>
+<p>Let’s assume that we have the following HTML code:</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 </code></pre>
-<p>Before updating the database with the content of the post we should sanitize the input to make sure it's safe.</p>
+<p>Before updating the database with the content of the post we should sanitize the input to make sure it’s safe.</p>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token variable">$title</span> <span class="token operator">=</span> <span class="token function">sanitize_text_field</span><span class="token punctuation">(</span> <span class="token variable">$_POST</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'title'</span><span class="token punctuation">]</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">update_post_meta</span><span class="token punctuation">(</span> <span class="token variable">$post</span><span class="token operator">-></span><span class="token constant">ID</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'title'</span><span class="token punctuation">,</span> <span class="token variable">$title</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -259,7 +259,7 @@
 <h3 id="nonces">Nonces</h3>
 <p><a href="https://developer.wordpress.org/plugins/security/nonces/">“Nonce”</a> is a portmanteau of “Number used ONCE”. It is a unique hexadecimal serial number used to verify the origin and intent of requests for security purposes. As the name suggests, each nonce can only be used once.</p>
 <p>Nonces are usual paired with capability checking. The capability check makes sure the user can perform the task and the nonce makes sure the user is who they say they are. Doing both in tandem means that data is only changing when the user expects it to be changing.</p>
-<p>I've taken the following example from <a href="https://developer.wordpress.org/plugins/security/nonces/">nonces</a>. It only shows how to use <a href="https://developer.wordpress.org/reference/functions/wp_create_nonce/">wp_create_nonce()</a> for the link to delete a post. Other functions in the example will verify the nonce using <a href="https://developer.wordpress.org/reference/functions/wp_verify_nonce/">wp_verify_nonce()</a> before performing the task.</p>
+<p>I’ve taken the following example from <a href="https://developer.wordpress.org/plugins/security/nonces/">nonces</a>. It only shows how to use <a href="https://developer.wordpress.org/reference/functions/wp_create_nonce/">wp_create_nonce()</a> for the link to delete a post. Other functions in the example will verify the nonce using <a href="https://developer.wordpress.org/reference/functions/wp_verify_nonce/">wp_verify_nonce()</a> before performing the task.</p>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token keyword">function</span> <span class="token function-definition function">wporg_generate_delete_link</span><span class="token punctuation">(</span> <span class="token variable">$content</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">is_single</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">in_the_loop</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">is_main_query</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -278,7 +278,7 @@
   <span class="token keyword">return</span> <span class="token constant">null</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </span></code></pre>
-<p>Then, in the handler function for the delete link, we verify that we have the nonce and that it's valid for the link we clicked.</p>
+<p>Then, in the handler function for the delete link, we verify that we have the nonce and that it’s valid for the link we clicked.</p>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token keyword">function</span> <span class="token function-definition function">wporg_delete_post</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token keyword">isset</span><span class="token punctuation">(</span> <span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'action'</span><span class="token punctuation">]</span> <span class="token punctuation">)</span>

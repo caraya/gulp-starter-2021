@@ -18,11 +18,11 @@
 <body>
 <article class="container">
   <h1 id="migrating-projects-to-gulp-4.0-and-es6">Migrating projects to Gulp 4.0 and ES6</h1>
-<p>&lt;div class=&quot;message info&quot;&gt;
-&lt;p&gt;This post updates my April, 20016 post: &lt;a href=&quot;https://publishing-project.rivendellweb.net/gulp-workflow-looking-at-gulp-4/&quot;&gt;Gulp Workflow: Looking at Gulp 4&lt;/a&gt; and provides additional insights to what has changed and how to update existing Gulp 3 files to Gulp 4.&lt;/p&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;p&gt;Even though Gulp 4 is still at Alpha 2, I will begin moving my projects to Gulp 4. I will use Babel first to make sure the projects work with older versions of Gulp and will move away from Babel to using &lt;code&gt;@std/esm&lt;/code&gt; as support for es6 becomes more widespread.&lt;/p&gt;
-&lt;/div&gt;</p>
+<div class="message info">
+  <p>This post updates my April, 20016 post: <a href="https://publishing-project.rivendellweb.net/gulp-workflow-looking-at-gulp-4/">Gulp Workflow: Looking at Gulp 4</a> and provides additional insights to what has changed and how to update existing Gulp 3 files to Gulp 4.</p>
+  <p></p>
+  <p>Even though Gulp 4 is still at Alpha 2, I will begin moving my projects to Gulp 4. I will use Babel first to make sure the projects work with older versions of Gulp and will move away from Babel to using <code>@std/esm</code> as support for es6 becomes more widespread.</p>
+</div>
 <p>Yes, Gulp 4.0 is real. Yes, it has been in development for a long time but it appears to be stable enough to work with it. The biggest issue is the incompatible changes between versions 3 and 4 and how the format for Gulp tasks and commands has changed and what changes we need to make to our build files as a result.</p>
 <p>I will take the time to also make the gulpfile and the build system ES6 compliant by trying two ways to . Running the build system through a Babel Transformer and using @std/esm as a way to work with modules using ES6 syntax.</p>
 <h2 id="the-tasks-to-complete">The tasks to complete</h2>
@@ -33,8 +33,8 @@
 </ul>
 <p>We can use this as the basis for further work and refinement.</p>
 <h2 id="running-gulp-with-es6%3A-babel-core">Running Gulp with ES6: Babel Core</h2>
-<p>Recent versions of Node have done a great job of implementing ES6+ features and it's been almost transparent to me to start using arrow functions and other areas of ES6 in my build scripts.</p>
-<p>The one area that is lacking is modules. It's a long story and it boils down to Node and its ecosystem supporting CommonJS modules and implementing ES2016 modules has proved hard without breaking the thousands, if not millions, of line of Javascript running in Node. The best descriptions of the issues I've found is James. M. Snell's <a href="https://hackernoon.com/node-js-tc-39-and-modules-a1118aecf95e">Node.js, TC-39, and Modules</a>.</p>
+<p>Recent versions of Node have done a great job of implementing ES6+ features and it’s been almost transparent to me to start using arrow functions and other areas of ES6 in my build scripts.</p>
+<p>The one area that is lacking is modules. It’s a long story and it boils down to Node and its ecosystem supporting CommonJS modules and implementing ES2016 modules has proved hard without breaking the thousands, if not millions, of line of Javascript running in Node. The best descriptions of the issues I’ve found is James. M. Snell’s <a href="https://hackernoon.com/node-js-tc-39-and-modules-a1118aecf95e">Node.js, TC-39, and Modules</a>.</p>
 <p>Until we have ES6 module support in Node we have to come up woth workarounds. The easiest one is to use Babel to transpile and parse the gulpfile. This has the advantage that will work in older versions of Node that lack ES6 support or lack full support for the specification.</p>
 <p>To make Gulp work with Babel we need to complete the following steps:</p>
 <ol>
@@ -84,14 +84,14 @@ gulp.task(&quot;processCSS&quot;, [sass], () =&gt; {
     );
 }));
 </code></pre>
-<p>In this little example we've used string literal templates, arrow functions and module imports. It will work regardless of the Node version we're working with but it requires an additional dependency and may take longer to work on large codebases.</p>
+<p>In this little example we’ve used string literal templates, arrow functions and module imports. It will work regardless of the Node version we’re working with but it requires an additional dependency and may take longer to work on large codebases.</p>
 <h2 id="%40std%2Fesm">@std/esm</h2>
-<p>While using Babel is not hard it's repetitive. Node 4 and later have increasing support for ES6 features</p>
+<p>While using Babel is not hard it’s repetitive. Node 4 and later have increasing support for ES6 features</p>
 <blockquote>
 <p>I’m excited to announce the release of @std/esm (standard/esm), an opt-in, spec-compliant, ECMAScript (ES) module loader that enables a smooth transition between Node and ES module formats with near built-in performance! This fast, small, zero dependency package is all you need to enable ES modules in Node 4+ today 🎉🎉🎉</p>
 <p><a href="https://medium.com/web-on-the-edge/es-modules-in-node-today-32cff914e4b">ES Modules in Node Today!</a></p>
 </blockquote>
-<p>I'm really excited about this package as it, temporarily, fixes the only ES6 feature missing from Node: Module Import without requiring Babel.</p>
+<p>I’m really excited about this package as it, temporarily, fixes the only ES6 feature missing from Node: Module Import without requiring Babel.</p>
 <p>To get the <code>@std/esm</code> working you need to:</p>
 <ol>
 <li>install <code>@std/esm</code> as a dependency on your project</li>
@@ -143,7 +143,7 @@ gulp.task(&quot;processCSS&quot;, [sass], () =&gt; {
 }));
 </code></pre>
 <h1 id="the-changes">The changes</h1>
-<p>OK, we've discussed how to run our gulpfiles as ES6, now let's dive into the four changes from Gulp 3 to 4</p>
+<p>OK, we’ve discussed how to run our gulpfiles as ES6, now let’s dive into the four changes from Gulp 3 to 4</p>
 <ol>
 <li>gulp.series and gulp.parallel</li>
 <li>change of the task method signature</li>
@@ -151,7 +151,7 @@ gulp.task(&quot;processCSS&quot;, [sass], () =&gt; {
 <li>change on how watchers work</li>
 </ol>
 <h2 id="change-%231%3A-gulp.series-and-gulp.parallel">Change #1: gulp.series and gulp.parallel</h2>
-<p>I've always had issues running Gulp tasks sequentially. <code>run-sequence</code> is a workaround that works most of the time but I don't think it's a good idea to run to plugins every time that we need to do this.</p>
+<p>I’ve always had issues running Gulp tasks sequentially. <code>run-sequence</code> is a workaround that works most of the time but I don’t think it’s a good idea to run to plugins every time that we need to do this.</p>
 <p>Gulp 4 has added two new methods to address this issue: <code>gulp.series</code> and <code>gulp.parallel</code>to address these needs. As they names impply, serial will run one or more tasks sequentially and parallel will run the tasks concurrently.</p>
 <p>This task, taken from an old project, defines a set of tasks to run in the order written and one after the other. This will ensure that the results from earlier tasks will be available later in the process.</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">gulp.task('default', () =&gt; {
@@ -161,7 +161,7 @@ gulp.task(&quot;processCSS&quot;, [sass], () =&gt; {
 <p>The same task written for Gulp 4 would look like this:</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">gulp.task('default', gulp.series('processCSS', 'build-template', 'imagemin', 'copyAssets'));
 </code></pre>
-<p>We can also mix and match. Taking the previous example let's say that we want to run build template and imagemin in parallel to make the task run faster. We can change the task like so:</p>
+<p>We can also mix and match. Taking the previous example let’s say that we want to run build template and imagemin in parallel to make the task run faster. We can change the task like so:</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">gulp.task('default', gulp.series('processCSS', gulp.parallel('build-template', 'imagemin'), 'copyAssets'));
 </code></pre>
 <h2 id="change-%232%3A-change-of-the-task-method-signature">Change #2: Change of the task method signature</h2>
@@ -172,13 +172,13 @@ gulp.task(&quot;processCSS&quot;, [sass], () =&gt; {
     ...
 });
 </code></pre>
-<p>And this is what it would look like in Gulp 4. Note the nested calls to series and parallels. What this means is we want Gulp to run the parallel script before we run the body of the function and inside parallel we run scripts and styles concurrently as we don't expect the results to affect one another.</p>
+<p>And this is what it would look like in Gulp 4. Note the nested calls to series and parallels. What this means is we want Gulp to run the parallel script before we run the body of the function and inside parallel we run scripts and styles concurrently as we don’t expect the results to affect one another.</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">gulp.task('default', gulp.series(gulp.parallel('scripts', 'styles'), function() {
     ...
 }));
 </code></pre>
 <h3 id="when-multiple-tasks-depend-on-a-single-task">When multiple tasks depend on a single task</h3>
-<p>I've worked in projects where multiple tasks depend on a common task as prerequisite. In this example both styles and scripts require clean to be run before them.</p>
+<p>I’ve worked in projects where multiple tasks depend on a common task as prerequisite. In this example both styles and scripts require clean to be run before them.</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">gulp.task('styles', ['clean'], () =&gt; {...});
 
 gulp.task('scripts', ['clean'], () =&gt; {...});
@@ -196,7 +196,7 @@ gulp.task('clean', () =&gt; {...});
 
 gulp.task('build', ['styles', 'scripts'], () =&gt; {...});
 </code></pre>
-<p>And this wouldn't work the way you want.</p>
+<p>And this wouldn’t work the way you want.</p>
 <p>Because Gulp 4 changed the task method signature to remove dependencies there is no way for gulp to know that both tasks have the same dependency. To fix that we fall back to gulp.series and gulp.parallel and define a custom task to run our dependencies.</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">// The tasks don't have any dependencies anymore
 gulp.task('styles', function() {...});
@@ -261,7 +261,7 @@ gulp.task('clean', function() {
 });
 </code></pre>
 <p><strong>Return a RxJS observable</strong></p>
-<p>Gulp 4 can return <a href="https://www.npmjs.com/package/rx">RxJS</a> observables if that's your cup of tea. I don't use them and find it odd that they are part of a build systemm but someone must have figured out a use for them.</p>
+<p>Gulp 4 can return <a href="https://www.npmjs.com/package/rx">RxJS</a> observables if that’s your cup of tea. I don’t use them and find it odd that they are part of a build systemm but someone must have figured out a use for them.</p>
 <pre class="language-language-javascript"><code class="language-language-javascript">
 gulp.task('sometask', function() {
     return Observable.return(42);
@@ -286,12 +286,12 @@ js_watcher.on('unlink', function(path) {
 </code></pre>
 <p>In the example, gulp.watch runs the function returned by gulp.parallel each time a file with the js extension in js/ is updated. It also logs when a file matching the glob is updated or deleted.</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>There's more that you can do with Gulp 4. I've concentrated on the things I need to change so my gulpfiles will continue to work. Upgrading is not required and Gulp has been in Alpha state for at least 2  years, but I think the advantages are worth the upgrade even in its current status.</p>
+<p>There’s more that you can do with Gulp 4. I’ve concentrated on the things I need to change so my gulpfiles will continue to work. Upgrading is not required and Gulp has been in Alpha state for at least 2  years, but I think the advantages are worth the upgrade even in its current status.</p>
 <p>The links in the following section provide a better overview of the API and the installation/upgrade process.</p>
 <h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://github.com/gulpjs/gulp/blob/4.0/docs/API.md">Gulp 4 API</a></li>
-<li><a href="https://demisx.github.io/gulp4/2015/01/15/install-gulp4.html">How to install Gulp 4 before it's officially released</a></li>
+<li><a href="https://demisx.github.io/gulp4/2015/01/15/install-gulp4.html">How to install Gulp 4 before it’s officially released</a></li>
 <li><a href="https://fettblog.eu/gulp-4-parallel-and-series/">Gulp 4: The new task execution system - gulp.parallel and gulp.series</a></li>
 <li><a href="https://www.joezimjs.com/javascript/complete-guide-upgrading-gulp-4/">The Complete-Ish Guide to Upgrading to Gulp 4</a></li>
 </ul>

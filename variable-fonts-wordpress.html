@@ -19,20 +19,20 @@
 <article class="container">
   <h1 id="using-variable-fonts-in-a-wordpress-theme">Using Variable Fonts in a WordPress theme</h1>
 <p>Variable Fonts give you a lot of flexibility in exchange of older browsers and operating systems. They reduce the number of font files required to render content and they give you options that are difficult or not possible with traditional web fonts.</p>
-<p>Quoting Jason Pamental's <a href="https://rwt.io/blog/2018/07/evolution-typography-variable-fonts-introduction">The evolution of typography with variable fonts: an introduction</a>:</p>
+<p>Quoting Jason Pamental’s <a href="https://rwt.io/blog/2018/07/evolution-typography-variable-fonts-introduction">The evolution of typography with variable fonts: an introduction</a>:</p>
 <blockquote>
 <p>As described by John Hudson, a variable font is a single font that acts as many: all the variations of width and weight, slant, and even italics can be contained in a single, highly efficient and compressible font file. What’s more: the format (which is technically part of the OpenType 1.8 specification) is completely extensible. The type designer has complete control over what axes are used, their ranges, and even the definition of new axes. There are currently 5 ’registered‘ axes (width, weight, slant, italics, and optical sizing), but the designer can vary any axis they choose. Some examples include the height of ascenders and descenders, text grade, even serif shape. The possibilities are nearly limitless.</p>
 </blockquote>
 <h2 id="why-use-them">Why use them</h2>
-<p>Variable fonts improve performance in a number of ways. They reduce the number of HTTP connections we have to make for Font assets, it make the fonts smaller overall (the one file you download may be larger but it's one as opposed to 4 for each traditional font you work with).</p>
+<p>Variable fonts improve performance in a number of ways. They reduce the number of HTTP connections we have to make for Font assets, it make the fonts smaller overall (the one file you download may be larger but it’s one as opposed to 4 for each traditional font you work with).</p>
 <p>They also allow for things that were very difficult or impossible to do before. We can animate the axes if we set them up properly giving us additional flexibility.</p>
-<p>We'll explore Variable fonts using <a href="https://recursive.design">Recursive</a> as the single font for a WordPress-based site. Along the way we'll talk about responsive typography, based on the Work of Jason Pamental, and how to work with older browsers.</p>
+<p>We’ll explore Variable fonts using <a href="https://recursive.design">Recursive</a> as the single font for a WordPress-based site. Along the way we’ll talk about responsive typography, based on the Work of Jason Pamental, and how to work with older browsers.</p>
 <h2 id="loading-variable-fonts">Loading variable fonts</h2>
-<p>WordPress strognly suggests that you enqueue third-party scripts and stylesheets for use with a WordPress theme. However when creating a theme from scratch we don't need to enqueue the main stylesheet and that's where we'll make all our variable fonts additions.</p>
-<p>We'll cover both methods below.</p>
+<p>WordPress strognly suggests that you enqueue third-party scripts and stylesheets for use with a WordPress theme. However when creating a theme from scratch we don’t need to enqueue the main stylesheet and that’s where we’ll make all our variable fonts additions.</p>
+<p>We’ll cover both methods below.</p>
 <h3 id="modifying-an-existing-theme">Modifying an existing theme</h3>
-<p>Assuming that we've created a stylesheet to load the font using <code>@font-face</code> syntax and all the style that override the default font size then all it takes is to enqueue the stylesheet.</p>
-<p>We've discussed how to enqueue local stylesheets so I won't go into details aboout how the code below works, I'll just show the end product.</p>
+<p>Assuming that we’ve created a stylesheet to load the font using <code>@font-face</code> syntax and all the style that override the default font size then all it takes is to enqueue the stylesheet.</p>
+<p>We’ve discussed how to enqueue local stylesheets so I won’t go into details aboout how the code below works, I’ll just show the end product.</p>
 <pre class="language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_enqueue_local_fonts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
 	<span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'local_styles'</span><span class="token punctuation">,</span>
 			<span class="token function">get_stylesheet_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/css/recursive-styles.css'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -40,14 +40,14 @@
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_enqueue_local_fonts'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h3 id="from-scratch">From Scratch</h3>
-<p>When building a theme from scratch the rules change slightly. We're not adding new resources to the theme but we're changing the existing CSS to match our design.</p>
-<p>There is no enqueueing necessary as we're working with the default styles for the theme. We'll look at how to do it in the next section.</p>
+<p>When building a theme from scratch the rules change slightly. We’re not adding new resources to the theme but we’re changing the existing CSS to match our design.</p>
+<p>There is no enqueueing necessary as we’re working with the default styles for the theme. We’ll look at how to do it in the next section.</p>
 <h2 id="example%3A-recursive-font-from-scratch">Example: Recursive Font from scratch</h2>
 <p>The following code will build a responsive-typography stylesheet using <a href="https://recursive.design">Recursive</a>.</p>
 <p>We first laod the font using <code>@font-face</code> rule with some changes to accommodate the variable fonts.</p>
 <p>We use two different formats to support different syntaxes for the format for the attribute.</p>
 <p>Aattributes like <code>font-weight</code>, <code>font-style</code> and <code>font-stretch</code> take two values indicating the lower and upper boundaries for the particular axis.</p>
-<p>Finally, we use <code>font-display: swap</code> to tell the browser to swap the font once it's loaded.</p>
+<p>Finally, we use <code>font-display: swap</code> to tell the browser to swap the font once it’s loaded.</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive VF"</span><span class="token punctuation">;</span>
   <span class="token property">src</span><span class="token punctuation">:</span>
@@ -57,7 +57,7 @@
 	<span class="token property">font-display</span><span class="token punctuation">:</span> swap<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>The next block defines variables with the default values for each of the axes that the font makes available. We'll make extensive use of these variables elsewhere in the document.</p>
+<p>The next block defines variables with the default values for each of the axes that the font makes available. We’ll make extensive use of these variables elsewhere in the document.</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
   <span class="token property">--recursive-mono</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
   <span class="token property">--recursive-casual</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
@@ -69,7 +69,7 @@
 <p>This default selector adds the default font family and default values using the variables defined in the previous block.</p>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings">font-variation-settings</a> allows you to add the custom axes with variables.</p>
 <p>The uppercase axes, <strong>MONO</strong> and <strong>CASL</strong>, are custom axes that will only work with Recursive.</p>
-<p>The lowercase axes, <strong>slnt</strong> and <strong>ital</strong> are predefined axes. The reason why we don't use the equivalent CSS property is that they both match the same property so we'd have to use either one but we can't use them together.</p>
+<p>The lowercase axes, <strong>slnt</strong> and <strong>ital</strong> are predefined axes. The reason why we don’t use the equivalent CSS property is that they both match the same property so we’d have to use either one but we can’t use them together.</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span>  <span class="token string">"Recursive VF"</span><span class="token punctuation">,</span>
                 Verdana<span class="token punctuation">,</span>
@@ -173,7 +173,7 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Yes, this is a lot of code but it will keep text readable and easy to change. Whenever we need to change something, we change the corresponding variables at the top.</p>
-<p>One of the Recursive font's custom axes is Casual. I use it to create distinctive headers in combination with both Slant and Italic axes.</p>
+<p>One of the Recursive font’s custom axes is Casual. I use it to create distinctive headers in combination with both Slant and Italic axes.</p>
 <p>The code looks something like this:</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">h1.casual</span> <span class="token punctuation">{</span>
   <span class="token property">--recursive-casual</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
@@ -181,7 +181,7 @@
   <span class="token property">--recursive-italic</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>We've done the same thing with styles. This is the  modified styles for <a href="https://prismjs.com">Prism.js</a> used on my project.</p>
+<p>We’ve done the same thing with styles. This is the  modified styles for <a href="https://prismjs.com">Prism.js</a> used on my project.</p>
 <p>We change the font to monospaced and add slashed 0 to fully distinguish them from lowercase and uppercase o.</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">code[class*="language-"],
 pre[class*="language-"]</span> <span class="token punctuation">{</span>
