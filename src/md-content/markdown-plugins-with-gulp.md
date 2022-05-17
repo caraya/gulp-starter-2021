@@ -47,9 +47,40 @@ const toc = require("markdown-it-table-of-contents");
 const list = require("markdown-it-task-lists");
 ```
 
-The next step is to initialize Markdown-It and then declare the plugins we want to use via the [use](https://markdown-it.github.io/markdown-it/#MarkdownIt.use) method.
+First, we configure Markdown-It parser optionsp.
 
-The `use()` method also allows is to pass options to the plugins at initalization time.
+I chose to use the [Commonmark](https://commonmark.org/) preset. Commonmark solves a lot of the problems that Markdown has experienced, pretty much from the beginning.
+
+I also chose to enable the following options by setting them to true:
+
+`html`
+: Enable HTML tags in source
+
+`xhtmlOut`
+: Uses `/` to close single tags (&lt;br />).
+:This is only for full CommonMark compatibility.
+
+`linkify`
+: Autoconvert URL-like text to links
+
+`typographer`
+: Enable some language-neutral replacement + quotes beautification
+: For the full list of replacements, see [https://github.com/markdown-it/markdown-it/blob/master/lib/rules_core/replacements.js](https://github.com/markdown-it/markdown-it/blob/master/lib/rules_core/replacements.js)
+
+```js
+// Markdown-It Options
+const options = {
+  preset: 'commonmark',
+  html: true,
+  xhtmlOut: true,
+  linkify: true,
+  typographer: true,
+};
+```
+
+Next step is to initialize Markdown-It and then declare the plugins we want to use via the [use](https://markdown-it.github.io/markdown-it/#MarkdownIt.use) method.
+
+The `use()` method also allows is to pass options to the plugins as the second parameter of the `use()` declaration.
 
 ```js
 const md = new markdownIt();
@@ -88,6 +119,8 @@ function markdown() {
 }
 ```
 
-## Things to do
+## Customizing Markdown-It
 
-### Customizing Markdown-It
+Right now we have all our functionality running, from definition lists to table of contents. But there are parts that can't be done with plugins and is not part of the Markdown-It API.
+
+We'll explore how to do this in a future post.

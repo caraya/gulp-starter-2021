@@ -62,6 +62,4 @@ In this example, the font-size will be 4vw + 1rem, as long as the calculated val
 }
 ```
 
-## Combining math fuctions with CSS variables
-
-<https://stackdiary.com/css-math-functions/>
+CSS math functions can be used everywhere you can use a CSS length value. This gives us additional flexibility when it comes to dynamically sizing elements.

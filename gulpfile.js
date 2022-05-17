@@ -54,10 +54,10 @@ const embed = require("markdown-it-block-embed");
 const fn = require("markdown-it-footnote");
 const figs = require("markdown-it-implicit-figures");
 const kbd = require("markdown-it-kbd");
-// const mermaid = require("markdown-it-mermaid");
 const prism = require("markdown-it-prism");
 const toc = require("markdown-it-table-of-contents");
 const list = require("markdown-it-task-lists");
+const mermaid = require("markdown-it-textual-uml");
 
 // explicitly require eslint
 const eslintPlugin = require('gulp-eslint');
@@ -65,11 +65,20 @@ const eslintPlugin = require('gulp-eslint');
 // ------------
 // HTML & Markdown
 // ------------
+// Markdown-It Options
+const options = {
+  preset: 'commonmark',
+  html: true,
+  xhtmlOut: true,
+  linkify: true,
+  typographer: true,
+};
+
 /**
  * @name md
- * @description Instantiates
+ * @description Instantiates Markdown-It and loads the listed plugins. The plugins must already be installed and available for this to work.
  */
-const md = new markdownIt();
+const md = new markdownIt(options);
 md.use(abbr);
 md.use(alerts);
 md.use(anc);
@@ -78,10 +87,10 @@ md.use(embed);
 md.use(fn);
 md.use(figs);
 md.use(kbd);
-// md.use(mermaid);
 md.use(prism);
 md.use(toc);
 md.use(list);
+md.use(mermaid);
 
 /**
  * @name markdownToHtml
