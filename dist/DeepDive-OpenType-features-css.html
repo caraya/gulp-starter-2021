@@ -20,34 +20,34 @@
   <p>In previous posts (this one <a href="https://publishing-project.rivendellweb.net/open-type-features/">from 2015</a>, this one <a href="https://publishing-project.rivendellweb.net/opentype-features-in-css/">from 2017</a>) I did brief writeups about OpenType features and what they were. In <a href="https://publishing-project.rivendellweb.net/open-type-features-in-css/">Open Type Features in CSS</a> from 2019, I wrote about OpenType features in the context of variations or what makes variable fonts and briefly touched on other features.</p>
 <p>In this post, I will dive deeper into other features available on OpenType fonts, how to implement them directly in CSS and how to implement them with CSS custom properties</p>
 <h2 id="getting-started">Getting started</h2>
-<p>The first thing we need to do to enable OpenType features is to figure out what features are available to the specific font we are using and what font provider we're using.</p>
+<p>The first thing we need to do to enable OpenType features is to figure out what features are available to the specific font we are using and what font provider we’re using.</p>
 <p>If you use Adobe Fonts (FKA Typekit) you can see the OpenType features available when you edit the fonts in a kit.</p>
-<p>&lt;figure&gt;
-&lt;img loading=&quot;lazy&quot; src=&quot;https://res.cloudinary.com/dfh6ihzvj/image/upload/v1589226365/publishing-project.rivendellweb.net/webkit-font-editing-dialogue.png&quot; alt=&quot;Fontkit OpenType edit font dialogue&quot;&gt;
-&lt;figcaption&gt;Fontkit OpenType feaature dialogue, part of the font section of the kit editing screen.&lt;/figcaption&gt;
-&lt;/figure&gt;</p>
+<figure>
+  <img loading="lazy" src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v1589226365/publishing-project.rivendellweb.net/webkit-font-editing-dialogue.png" alt="Fontkit OpenType edit font dialogue">
+  <figcaption>Fontkit OpenType feaature dialogue, part of the font section of the kit editing screen.</figcaption>
+</figure>
 <p>The next image shows the details of the font editing screen that presents the available OpenType features of a font.</p>
-<p>&lt;figure&gt;
-&lt;img loading=&quot;lazy&quot; src=&quot;https://res.cloudinary.com/dfh6ihzvj/image/upload/v1589184366/publishing-project.rivendellweb.net/fontkit-font-features.png&quot; alt=&quot;Fontkit OpenType feature dialogue detail&quot;&gt;
-&lt;figcaption&gt;Detail of the font editing dialogue showing OpenType Features&lt;/figcaption&gt;
-&lt;/figure&gt;</p>
-<p>Unfortunately, Google Fonts doesn't provide an interface to the OpenType features supported on each font. <a href="https://thisarmy.com/fonts/">thisarmy</a> created <a href="https://code.thisarmy.com/fontsinfo/">fontsinfo</a> as a way to address this issue.</p>
+<figure>
+  <img loading="lazy" src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v1589184366/publishing-project.rivendellweb.net/fontkit-font-features.png" alt="Fontkit OpenType feature dialogue detail">
+  <figcaption>Detail of the font editing dialogue showing OpenType Features</figcaption>
+</figure>
+<p>Unfortunately, Google Fonts doesn’t provide an interface to the OpenType features supported on each font. <a href="https://thisarmy.com/fonts/">thisarmy</a> created <a href="https://code.thisarmy.com/fontsinfo/">fontsinfo</a> as a way to address this issue.</p>
 <p>For all the fonts listed in Google Fonts <a href="https://github.com/google/fonts/">Github Repo</a> it will list and provide a visual demo of the OpenType features available to each font.</p>
-<p>&lt;figure&gt;
-&lt;img loading=&quot;lazy&quot; src=&quot;https://res.cloudinary.com/dfh6ihzvj/image/upload/v1589248944/publishing-project.rivendellweb.net/fontsinfo-screenshot.png&quot; alt=&quot;Fontsinfo web interfacce&quot;&gt;
-&lt;figcaption&gt;Fontsinfo web interfacce&lt;/figcaption&gt;
-&lt;/figure&gt;</p>
+<figure>
+  <img loading="lazy" src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v1589248944/publishing-project.rivendellweb.net/fontsinfo-screenshot.png" alt="Fontsinfo web interfacce">
+  <figcaption>Fontsinfo web interfacce</figcaption>
+</figure>
 <p>There is also <a href="https://google-webfonts-helper.herokuapp.com/fonts">Google WebFonts Helper</a> that provides a better, in my opinion, and easier to use a mirror of Google Fonts.</p>
 <p>The final way to do it is using tools like <a href="https://wakamaifondue.com/">Wakamaifondue</a> to get a list of the features available to that particular font.</p>
 <h2 id="using-opentype-features-directly">Using OpenType Features directly</h2>
 <p>We will use <a href="https://djr.com/notes/roslindale-text-font-of-the-month/">Roslindale Text</a> for the small caps examples and <a href="http://recursive.design/">Recursive</a> as for the stylistic set examples.</p>
 <p>The first way to use OpenType features is to add them directly to the CSS we want to use them on.</p>
 <p>The advantage of doing this is that, overall, there is less code to type. The disadvantage is that browser support is uneven so you have to work with multiple versions of each feature if you want to support older browsers.</p>
-<p>We'll take two Open Type features and analyze how they work individually and together.</p>
+<p>We’ll take two Open Type features and analyze how they work individually and together.</p>
 <p>The first feature is <a href="https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-smcp">Small Caps</a>. This feature converts lower-case characters</p>
 <p>The Codepen below shows the complete result of using two features: Small Caps and Caps to Small Caps.</p>
 <p>The idea is to make all the text into smaller version of the capital letters. This is different than using <code>text-transform: uppercase</code> as it will produce smaller text than regular uppercase characters.</p>
-<p>The first step is to load the font using <a href="https://www.w3.org/TR/css-fonts-4/#font-face-rule">@font-face</a>. Notice how we define the same font twice using different values for the format. I'm following <a href="https://rwt.io/typography-tips/variable-fonts-what-web-authors-need-know">Jason Pamental's advice</a> on the formats to make sure my variable font works everywhere by not relying on <code>woff2</code> to work for variable fonts.</p>
+<p>The first step is to load the font using <a href="https://www.w3.org/TR/css-fonts-4/#font-face-rule">@font-face</a>. Notice how we define the same font twice using different values for the format. I’m following <a href="https://rwt.io/typography-tips/variable-fonts-what-web-authors-need-know">Jason Pamental’s advice</a> on the formats to make sure my variable font works everywhere by not relying on <code>woff2</code> to work for variable fonts.</p>
 <p>The next step is to use the font. I put the font-family declaration in the root <code>html</code> element to make sure it cascades down throughout the document unless I override it.</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Roslindale Text"</span><span class="token punctuation">;</span>
@@ -91,14 +91,14 @@
 <p>The result of these three classes is show in the Codepen below.</p>
 <p>The first paragraph uses the <code>small-caps</code> class and keeps all elements at the same size.</p>
 <p>The second paragraph uses small caps (<code>smcp</code>) to only turn the lowercase letters into small caps. You can see the difference between lower and uppercase letters.</p>
-<p>&lt;iframe height=&quot;300&quot; style=&quot;width: 100%;&quot; scrolling=&quot;no&quot; title=&quot;OpenType Features Test&quot; src=&quot;https://codepen.io/caraya/embed/preview/NWGBJXa?height=300&amp;theme-id=2039&amp;default-tab=result&amp;editable=true&quot; frameborder=&quot;no&quot; allowtransparency=&quot;true&quot; allowfullscreen=&quot;true&quot;&gt;
-See the Pen &lt;a href='https://codepen.io/caraya/pen/NWGBJXa'&gt;OpenType Features Test&lt;/a&gt; by Carlos Araya
-(&lt;a href='https://codepen.io/caraya'&gt;@caraya&lt;/a&gt;) on &lt;a href='https://codepen.io'&gt;CodePen&lt;/a&gt;.
-&lt;/iframe&gt;</p>
+<iframe height="300" style="width: 100%;" scrolling="no" title="OpenType Features Test" src="https://codepen.io/caraya/embed/preview/NWGBJXa?height=300&theme-id=2039&default-tab=result&editable=true" frameborder="no" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href='https://codepen.io/caraya/pen/NWGBJXa'>OpenType Features Test</a> by Carlos Araya
+  (<a href='https://codepen.io/caraya'>@caraya</a>) on <a href='https://codepen.io'>CodePen</a>.
+</iframe>
 <p>Another interesting case to look at is the stylistic sets available to a font. <strong>Not all fonts have the same number of stylistic sets available and some stylistic sets will change the same letters in different ways so with these features you must be very careful when using them and deciding which one to use</strong>.</p>
-<p>This example also assumes that we don't want to use all stylistic alternates available to the font so we won't be able to use the <code>all alternates</code> OpenType feature.</p>
-<p>Also, because we're using multiple values of the same feature we can't call the same feature multiple times or it will override the values with the last one in document order, so we'll cheat and leverage <a href="https://helpx.adobe.com/fonts/using/use-open-type-features.html#multiple">Using multiple OpenType features</a> to accomplish our goals.</p>
-<p>Because I want to make sure that we cover as many supported browsers as possible, I've written the property three times, once for Firefox, once for WebKit browsers and an unprefixed version. The code looks like this:</p>
+<p>This example also assumes that we don’t want to use all stylistic alternates available to the font so we won’t be able to use the <code>all alternates</code> OpenType feature.</p>
+<p>Also, because we’re using multiple values of the same feature we can’t call the same feature multiple times or it will override the values with the last one in document order, so we’ll cheat and leverage <a href="https://helpx.adobe.com/fonts/using/use-open-type-features.html#multiple">Using multiple OpenType features</a> to accomplish our goals.</p>
+<p>Because I want to make sure that we cover as many supported browsers as possible, I’ve written the property three times, once for Firefox, once for WebKit browsers and an unprefixed version. The code looks like this:</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">.styled</span> <span class="token punctuation">{</span>
   <span class="token property">-moz-font-feature-settings</span><span class="token punctuation">:</span> <span class="token string">"ss01"</span><span class="token punctuation">,</span> <span class="token string">"ss02"</span><span class="token punctuation">,</span>
   <span class="token string">"ss03"</span><span class="token punctuation">,</span> <span class="token string">"ss04"</span><span class="token punctuation">,</span> <span class="token string">"ss05"</span><span class="token punctuation">,</span> <span class="token string">"ss06"</span><span class="token punctuation">,</span> <span class="token string">"ss07"</span><span class="token punctuation">;</span>

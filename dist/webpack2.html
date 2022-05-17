@@ -18,17 +18,17 @@
 <body>
 <article class="container">
   <h1 id="revisiting-webpack">Revisiting Webpack</h1>
-<p>I've done some prior work with Webpack before and, while I still have my reservations,  it's worth taking a look at it again from a different perspective. As I was working on my research on how to automate UI localization I came across a Webpack prooject and thought it'd be interesting to look at Webpack again and how to build an application around it.</p>
-<p>This is far from a perfect project. Currently the assets are 1.7MB and I haven't figured out if I need to do further Webpack processing or if it's about how the CLDR Javascript is written. I will update this post as appropriate.</p>
+<p>I’ve done some prior work with Webpack before and, while I still have my reservations,  it’s worth taking a look at it again from a different perspective. As I was working on my research on how to automate UI localization I came across a Webpack prooject and thought it’d be interesting to look at Webpack again and how to build an application around it.</p>
+<p>This is far from a perfect project. Currently the assets are 1.7MB and I haven’t figured out if I need to do further Webpack processing or if it’s about how the CLDR Javascript is written. I will update this post as appropriate.</p>
 <h2 id="the-process">The Process</h2>
 <p>I took the project from the <a href="https://github.com/globalizejs/globalize/tree/master/examples/app-npm-webpack">Globalize repository</a> and updated it from Webpack 1.9 to the current 3.8 to take advantage of additional features like performance budgets.</p>
-<p>I've created a <a href="https://github.com/caraya/webpack-demo">Github Repo</a> with the material needed to either reproduce the content of this article or use it as the starting point for your own projects.</p>
+<p>I’ve created a <a href="https://github.com/caraya/webpack-demo">Github Repo</a> with the material needed to either reproduce the content of this article or use it as the starting point for your own projects.</p>
 <p>To get started install the plugins specified in <code>package.json</code> running the following command</p>
-<p>&lt;pre class=&quot;command-line language-bash&quot; data-user=&quot;elrond25&quot; data-host=&quot;rivendell&quot;&gt;&lt;code&gt;npm install&lt;/code&gt;&lt;/pre&gt;</p>
-<p>Now that we have all the plugins installed, let's move to Webpack's configuration file, where the magic happens.</p>
+<pre class="command-line language-bash" data-user="elrond25" data-host="rivendell"><code>npm install</code></pre>
+<p>Now that we have all the plugins installed, let’s move to Webpack’s configuration file, where the magic happens.</p>
 <h2 id="webpack-configuration-file">Webpack configuration file</h2>
 <p>The core of a Webpack application is the configuration file, <code>webpack-config.js</code> by default. This is where we tell Webpack what we want to do, what plugins we want to use to do it and how do we want to use the plugins.</p>
-<p>As with any Node application we tell it what plugins we want to use by asociating them with a variable. The plugins listed below are only the ones we'll use with Webpack.</p>
+<p>As with any Node application we tell it what plugins we want to use by asociating them with a variable. The plugins listed below are only the ones we’ll use with Webpack.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> webpack <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span> <span class="token string">"webpack"</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> CommonsChunkPlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span> <span class="token string">"webpack/lib/optimize/CommonsChunkPlugin"</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> HtmlWebpackPlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span> <span class="token string">"html-webpack-plugin"</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -42,12 +42,12 @@
 <span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> workboxPlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'workbox-webpack-plugin'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>We ue the <code>noopt</code> package to define our production toggle. If it's present we'll consider it a production build and do things slightly different than we would during development.</p>
+<p>We ue the <code>noopt</code> package to define our production toggle. If it’s present we’ll consider it a production build and do things slightly different than we would during development.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token function">nopt</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   production<span class="token operator">:</span> Boolean
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>We specify the entry points for Webpack using a ternary operator: If this is a production build we specify two entry points (places where webpack should use to begin building out its internal dependency graph) and if it's a development build we only specify one.</p>
+<p>We specify the entry points for Webpack using a ternary operator: If this is a production build we specify two entry points (places where webpack should use to begin building out its internal dependency graph) and if it’s a development build we only specify one.</p>
 <p>This section also specifies the output, where Webpack will save the bundles it creates and how to name these files.</p>
 <pre class="language-javascript"><code class="language-javascript">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
   entry<span class="token operator">:</span> options<span class="token punctuation">.</span>production <span class="token operator">?</span>  <span class="token punctuation">{</span>
@@ -93,7 +93,7 @@
 </code></pre>
 <p>Module loaders allow Webpack to work with files other than Javascript and related files. In the example below we have two different types of loaders, one for CSS that will run the results through the css-loader and, as a fallback, through the style-loader.</p>
 <p>The second module will use the <code>file-loader</code> on PNG images (files that end with ,<code>.png</code>).</p>
-<p>I deliberately stay away from loaders unless it's absolutely necessary and would rather do the work with my existing Gulp workflow. If you're interested, there is  a list of available loaders in the <a href="https://webpack.js.org/loaders/">Webpack site</a> and in <a href="https://github.com/webpack-contrib/awesome-webpack#loaders">awesome-webpack</a></p>
+<p>I deliberately stay away from loaders unless it’s absolutely necessary and would rather do the work with my existing Gulp workflow. If you’re interested, there is  a list of available loaders in the <a href="https://webpack.js.org/loaders/">Webpack site</a> and in <a href="https://github.com/webpack-contrib/awesome-webpack#loaders">awesome-webpack</a></p>
 <pre class="language-javascript"><code class="language-javascript">  module<span class="token operator">:</span> <span class="token punctuation">{</span>
     loaders<span class="token operator">:</span> <span class="token punctuation">[</span>
       <span class="token punctuation">{</span>
@@ -110,7 +110,7 @@
     <span class="token punctuation">]</span>
   <span class="token punctuation">}</span><span class="token punctuation">,</span>
 </code></pre>
-<p>The main portion of the configuration file deals with plugin configuration. For each plugin we've installed we now need to configure it and tell Webpack what we want to do with it.</p>
+<p>The main portion of the configuration file deals with plugin configuration. For each plugin we’ve installed we now need to configure it and tell Webpack what we want to do with it.</p>
 <p>The <a href="https://www.npmjs.com/package/webpack-manifest-plugin">Manifest plugin</a> will generate a <code>manifest.json</code> file in the root output directory with a mapping of all source file names to their corresponding output file</p>
 <p>The <a href="https://www.npmjs.com/package/webpack-cleanup-plugin">Cleanup plugin</a> will delete the specified files and directories. We use it to make sure every time we run a build we do so into a clean directory</p>
 <pre class="language-javascript"><code class="language-javascript">  plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -151,7 +151,7 @@
       output<span class="token operator">:</span> <span class="token string">"i18n/[locale].[hash].js"</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
 </code></pre>
-<p>Even though this project doesn't use it I've included the <a href="https://webpack.js.org/plugins/commons-chunk-plugin/">Common Chunks plugin</a> that will create a separate chunk, with common modules shared between multiple entry points. By separating common modules from bundles, we can load the resulting chunk once initially, and store in cache for later use.</p>
+<p>Even though this project doesn’t use it I’ve included the <a href="https://webpack.js.org/plugins/commons-chunk-plugin/">Common Chunks plugin</a> that will create a separate chunk, with common modules shared between multiple entry points. By separating common modules from bundles, we can load the resulting chunk once initially, and store in cache for later use.</p>
 <pre class="language-javascript"><code class="language-javascript">    <span class="token keyword">new</span> <span class="token class-name">webpack<span class="token punctuation">.</span>optimize<span class="token punctuation">.</span>CommonsChunkPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
       name<span class="token operator">:</span> <span class="token string">'vendor'</span><span class="token punctuation">,</span>
       filename<span class="token operator">:</span> <span class="token string">'vendor.[hash].js'</span>
@@ -165,7 +165,7 @@
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
 </code></pre>
 <p>I want to squeeze as much content in each bundle without making the files too large. The <a href="https://webpack.js.org/plugins/zopfli-webpack-plugin/">Zopfli Plugin</a> uses the Zopfli compression algorithm to compress the bundles.</p>
-<p>It compresses better than gzip but it's slower so it may slow down build processes, specially for large bundles.</p>
+<p>It compresses better than gzip but it’s slower so it may slow down build processes, specially for large bundles.</p>
 <pre class="language-javascript"><code class="language-javascript">		<span class="token keyword">new</span> <span class="token class-name">ZopfliPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
 			asset<span class="token operator">:</span> <span class="token string">"[path].gz[query]"</span><span class="token punctuation">,</span>
 			algorithm<span class="token operator">:</span> <span class="token string">"zopfli"</span><span class="token punctuation">,</span>
@@ -176,7 +176,7 @@
 </code></pre>
 <p>The last step uses <code>workbox-webpack</code>plugin to create a precaching service worker for the application. It is important to run this plugin last to make sure that all the changes are caught by our service worker.</p>
 <p>As configured, this is a very coarse precaching service worker. It will take all css, HTML and Javascript files from the application. If you want to change the items you cache or add resouces you must edit the glob pattern under <code>globPatterns</code>.</p>
-<p>This will also use <a href="https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim"><code>clientsClaim</code></a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim"><code>skipWaiting</code></a> to take immediate control of the clients under scope and not waitn until the next time the page loads as is the common behavior. It's up to the developer t flag the user to reload the page.</p>
+<p>This will also use <a href="https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim"><code>clientsClaim</code></a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim"><code>skipWaiting</code></a> to take immediate control of the clients under scope and not waitn until the next time the page loads as is the common behavior. It’s up to the developer t flag the user to reload the page.</p>
 <pre class="language-javascript"><code class="language-javascript">    <span class="token keyword">new</span> <span class="token class-name">workboxPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
       globDirectory<span class="token operator">:</span> <span class="token string">"./dist"</span><span class="token punctuation">,</span>
       globPatterns<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'**/*.{html,css,js}'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
@@ -188,10 +188,10 @@
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <h2 id="integration-with-gulp">Integration with Gulp</h2>
-<p>Aas powerful as Webpack is I'm a Gulp boy and would like to continue using it for my development since I've built fairly elaborate workflows with it.</p>
+<p>Aas powerful as Webpack is I’m a Gulp boy and would like to continue using it for my development since I’ve built fairly elaborate workflows with it.</p>
 <p><a href="https://www.npmjs.com/package/gulp-webpack">gulp-webpack</a> provides for such integration. Using the same configuration that we discussed in the last section we can build a Gulp task that will run Webpack using our configuration file.</p>
-<p>Because we're using Gulp we can skip using loaders and let Gulp deal with the work of, for example, process SASS into CSS or transpiling Javascript using Babel's env preset. Bbecause we've moved the work to Gulp we can get rid of the loaders section of the Webpack configuration file and remove the <code>extractTextPlugin</code> configuration</p>
-<p>When we're ready we can bundle the assets we've worked on using Webpack, if you do this the bundling has to be the last task of the build.</p>
+<p>Because we’re using Gulp we can skip using loaders and let Gulp deal with the work of, for example, process SASS into CSS or transpiling Javascript using Babel’s env preset. Bbecause we’ve moved the work to Gulp we can get rid of the loaders section of the Webpack configuration file and remove the <code>extractTextPlugin</code> configuration</p>
+<p>When we’re ready we can bundle the assets we’ve worked on using Webpack, if you do this the bundling has to be the last task of the build.</p>
 <p>The task look like this:</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> webpack <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'webpack'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>

@@ -20,11 +20,11 @@
   <h1 id="backend-code%2C-even-more-choices">Backend code, even more choices</h1>
 <p>Just like with the frontend, the backend gives you multiple choices of languages and feature sets for working with Bazel. C/C++, Go and Rust are the three languages that I <a href="https://publishing-project.rivendellweb.net/webassembly-a-new-swiss-army-knife/">tested generating WASM code</a> with so it may be interesting to see how well they work with Bazel and how they abstract WASM generation.</p>
 <p>We can keep all the code for our project in a single monorepo and let Bazel sort out what tools to use to compile wich part.</p>
-<p>I use C and C++ as the baseline for testing Bazel with backend languages. It also works slightly different from other languages as it is built into Bazel and doesn't require the rules to be installed manually.</p>
-<p>As far as backend code goes, <a href="https://golang.org/">Go</a> is my favorite language. However, the Bazel toolchain's way of compiling Go code to WASM is not intuitive.</p>
-<p>I'm also exploring <a href="https://www.rust-lang.org/">Rust</a> toolchains for Bazel because it provides better <a href="https://webassembly.org/">WebAssembly</a> tooling than Go, but it's still a challenge to get it right every time.</p>
+<p>I use C and C++ as the baseline for testing Bazel with backend languages. It also works slightly different from other languages as it is built into Bazel and doesn’t require the rules to be installed manually.</p>
+<p>As far as backend code goes, <a href="https://golang.org/">Go</a> is my favorite language. However, the Bazel toolchain’s way of compiling Go code to WASM is not intuitive.</p>
+<p>I’m also exploring <a href="https://www.rust-lang.org/">Rust</a> toolchains for Bazel because it provides better <a href="https://webassembly.org/">WebAssembly</a> tooling than Go, but it’s still a challenge to get it right every time.</p>
 <h2 id="backend-code%3A-go">Backend code: Go</h2>
-<p>I've always been interested in Go as a backend language or something that will allow me to create WASM code to run on the web.</p>
+<p>I’ve always been interested in Go as a backend language or something that will allow me to create WASM code to run on the web.</p>
 <p>The first step, as usual, is to load the rules in the <code>WORKSPACE</code>.</p>
 <pre class="language-python"><code class="language-python">http_archive<span class="token punctuation">(</span>
   name <span class="token operator">=</span> <span class="token string">"io_bazel_rules_go"</span><span class="token punctuation">,</span>
@@ -97,17 +97,17 @@ go_binary<span class="token punctuation">(</span>
 <p>You can replace <code>linux_amd64</code> in the example above with any valid <code>GOOS / GOARCH</code> pair. To list all platforms, run this command:</p>
 <pre class="language-bash"><code class="language-bash">bazel query <span class="token string">'kind(platform, @io_bazel_rules_go//go/toolchain:all)'</span>
 </code></pre>
-<p>By default, cross-compilation will cause Go targets to be built in &quot;pure mode&quot;, which disables cgo; cgo files will not be compiled, and C/C++ dependencies will not be compiled or linked.</p>
+<p>By default, cross-compilation will cause Go targets to be built in “pure mode”, which disables cgo; cgo files will not be compiled, and C/C++ dependencies will not be compiled or linked.</p>
 <p>To compile a Go target into WASM, run the following command</p>
 <pre class="language-bash"><code class="language-bash">bazel build --platforms<span class="token operator">=</span>@io_bazel_rules_go//go/toolchain:js_wasm //go:hello_go
 </code></pre>
-<p>Note that this will change all future builds of that particular Go package to WASM. To change it back you'll have to build again with a toolchain matching the GOOS / GOARCH you want to build for.</p>
+<p>Note that this will change all future builds of that particular Go package to WASM. To change it back you’ll have to build again with a toolchain matching the GOOS / GOARCH you want to build for.</p>
 <pre class="language-bash"><code class="language-bash">bazel build <span class="token punctuation">\</span>
 --platforms<span class="token operator">=</span>@io_bazel_rules_go//go/toolchain:darwin_amd64 <span class="token punctuation">\</span>
 //go:hello_go
 </code></pre>
 <h2 id="rust">Rust</h2>
-<p>Bazel also provides a set of rules to work with Rust and it's ecosystem. The idea, as with Go and C/C++, is to be able to code backend software in the same repository as the frontend or be able to create WASM modules to address Javascript hot path bottlenecks in the frontend.</p>
+<p>Bazel also provides a set of rules to work with Rust and it’s ecosystem. The idea, as with Go and C/C++, is to be able to code backend software in the same repository as the frontend or be able to create WASM modules to address Javascript hot path bottlenecks in the frontend.</p>
 <p>To get started add the following block to the <code>WORKSPACE</code> file:</p>
 <pre class="language-python"><code class="language-python">http_archive<span class="token punctuation">(</span>
   name <span class="token operator">=</span> <span class="token string">"io_bazel_rules_rust"</span><span class="token punctuation">,</span>
@@ -123,7 +123,7 @@ load<span class="token punctuation">(</span><span class="token string">"@io_baze
 
 rust_repositories<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-<p>The file we're using to test the build is simple, it's a hello world example in Rust.</p>
+<p>The file we’re using to test the build is simple, it’s a hello world example in Rust.</p>
 <pre class="language-rust"><code class="language-rust"><span class="token comment">// This is the main function</span>
 <span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token comment">// Print text to the console</span>
@@ -139,7 +139,7 @@ rust_binary<span class="token punctuation">(</span>
     srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"src/main.rs"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 </code></pre>
-<p>However, there is a problem with the build. I generated the repository with Cargo using <code>cargo init</code>. But the documentation for <code>rust_rules</code> proposes a different system, one that doesn't use the language's built-in tools, at least not directly.</p>
+<p>However, there is a problem with the build. I generated the repository with Cargo using <code>cargo init</code>. But the documentation for <code>rust_rules</code> proposes a different system, one that doesn’t use the language’s built-in tools, at least not directly.</p>
 <p>This means that the project either works with the standard Rust tools or with Bazel, not with both.</p>
 <p>If you look at the <a href="https://github.com/bazelbuild/rules_rust/tree/master/examples/hello_world">example</a> on Github you will see that it has no <code>Cargo.toml</code> or <code>Cargo.lock</code> but it still build the binaries and libraries when using Bazel.</p>
 <p>The project also depends on a library crate also located as a top level child on the workspace. Moving them to a directory under the workspace (meaning they are not at the top level) will result in an error because Bazel cannot find the BUILDFILE for either crate.</p>
@@ -161,7 +161,7 @@ rust_binary<span class="token punctuation">(</span>
 </code></pre>
 <p><code>rust_wasm_bindgen</code> will automatically transition to the wasm platform and can be used when building WebAssembly code for the host target.</p>
 <h2 id="c%2B%2B">C++</h2>
-<p>If you will work with C++ code on Bazel it's slightly different than working with Go or Rust.</p>
+<p>If you will work with C++ code on Bazel it’s slightly different than working with Go or Rust.</p>
 <p>Loading rules for C++ is not necessary. The rules are built into Bazel so we can safely skip loading them in the WORKSPACE we want to work on so we can concentrate on the code and the <code>BUILD</code> files.</p>
 <p>The first example builds a binary from a single file without dependencies.</p>
 <p>This is the <code>BUILD</code> file we use to build the package:</p>
@@ -172,7 +172,7 @@ cc_binary<span class="token punctuation">(</span>
   srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"hello-world.cc"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 </code></pre>
-<p>Note that we load the <code>cc_binary</code> rule from the <code>rules_cc</code> rule set, even though we didn't load it into the workspace, it just works.</p>
+<p>Note that we load the <code>cc_binary</code> rule from the <code>rules_cc</code> rule set, even though we didn’t load it into the workspace, it just works.</p>
 <p>The second example build a library and integrates it with a binary.</p>
 <p>The buildfile defines two targets, a library and a binary.</p>
 <p>The <code>hello_greet</code> library target uses a C++ file and a header.</p>

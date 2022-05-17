@@ -2,12 +2,12 @@
 <p>For a while, SASS was all we needed. I was OK with it only being available as a Ruby Gem (the original implementation was written in Ruby), then I was happy when LibSASS came around (written in C) and might have even been OK with the Dart implementation becoming the reference implementation and the SASS team deprecating the Ruby and C implementations, eventually stopping work on them altogether.</p>
 <p>But one thing that SASS has never done is give you the possibility of testing new CSS features like Babel does for Javascript.</p>
 <p>I first head of <a href="https://postcss.org/">PostCSS</a> when Autoprefixer became a processor for PostCSS rather than a standalone tool and the tooling used PostCSS to run.</p>
-<p>I've always wanted to move my worflow to PostCSS and now think it's time to do it. Other than the program-like functions (<code>@if</code>/<code>@else</code>, <code>for</code> and others) there is little that we can't do with a different preprocessor and, eventually, with CSS alone.</p>
+<p>I’ve always wanted to move my worflow to PostCSS and now think it’s time to do it. Other than the program-like functions (<code>@if</code>/<code>@else</code>, <code>for</code> and others) there is little that we can’t do with a different preprocessor and, eventually, with CSS alone.</p>
 <p>So in this post I will evaluate what it would take to move to PostCSS based on a given set of requirements.</p>
 <h2 id="feature-set">Feature set</h2>
-<p>Here's the feature set I want to implement if possible</p>
+<p>Here’s the feature set I want to implement if possible</p>
 <ul>
-<li>A PostCSS equivalent to Babel's <code>preset-env</code></li>
+<li>A PostCSS equivalent to Babel’s <code>preset-env</code></li>
 <li>Color manipulation functions equivalent to SASS @lighten and @darken</li>
 <li>Nesting
 <ul>
@@ -33,11 +33,11 @@ Based on the feature lists that I want to implement the initial list of features
 <p><a href="https://github.com/postcss/autoprefixer">Autoprefixer</a>
 : Adds vendor prefixes to properties that require them based on a specified list of browsers and versions
 : The plugin uses browserslist to create and access the list, and caniuse to provide a list of browsers that support a given feature
-: Because <code>preset-env</code> also supports Autoprefixer, I don't know if I want to leave it as a separate package</p>
+: Because <code>preset-env</code> also supports Autoprefixer, I don’t know if I want to leave it as a separate package</p>
 <p><a href="https://github.com/postcss/postcss-nested">postcss-nested</a>
 : nested rules and at-rules. It provides a close aproximation to what SASS does with nested selectors and relationship notation</p>
 <p><a href="https://github.com/hudochenkov/postcss-sorting">postcss-sorting</a>
-: Sorts the rules inside selectors for you so you don't have to do it yourself manually</p>
+: Sorts the rules inside selectors for you so you don’t have to do it yourself manually</p>
 <p><a href="https://github.com/TrySound/postcss-easy-import">postcss-easy-import</a>
 : Inline the contents of imported files reducing the number of request and potentially improving performance</p>
 <h2 id="implementation%3A-gulp-task-v1">Implementation: Gulp task V1</h2>
@@ -55,8 +55,8 @@ Based on the feature lists that I want to implement the initial list of features
 <span class="token keyword">const</span> sorting <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-sorting'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The next step is to create the list of processors we will use and any necessary configuration.</p>
-<p>The importer plugin uses the <code>glob</code> attribute to indicate that we're allowing globs to be used in import statements.</p>
-<p>The next plugin is Autoprefixer. We define the browserslist attribute in package.json to specify the browsers we want to support. Even though my primary usage is in CSS, I'm following the guidance from <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a> so that Javascript tools that use Browserslist will work properly.</p>
+<p>The importer plugin uses the <code>glob</code> attribute to indicate that we’re allowing globs to be used in import statements.</p>
+<p>The next plugin is Autoprefixer. We define the browserslist attribute in package.json to specify the browsers we want to support. Even though my primary usage is in CSS, I’m following the guidance from <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a> so that Javascript tools that use Browserslist will work properly.</p>
 <p>The next plugin is the sorting plugin. Here we have to be specific about the grouping of different rules, how we want the properties sorted and what to do with properties that are unspecified.</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">const processors = [
   importer(</span><span class="token punctuation">{</span>

@@ -1,5 +1,5 @@
 <h1 id="xquery-for-fun-and-profit">XQuery for fun and profit</h1>
-<p>I've always liked the idea of being able to serve serialized content on-demand whenever a user requests it. It wasn't until I read about XQuery that I started thinking about it being possible.</p>
+<p>I’ve always liked the idea of being able to serve serialized content on-demand whenever a user requests it. It wasn’t until I read about XQuery that I started thinking about it being possible.</p>
 <p>In this post I will explore <a href="https://www.w3.org/XML/Query/">XQuery</a>, <a href="http://exist-db.org/exist/apps/homepage/index.html">eXistdb</a> as a specialized XML database and one possible way to serve serialized content created with <a href="http://docbook.org/">Docbook XML</a>, an XML vocabulary created for technical documentation, that has also been used to create books and other types of content.</p>
 <h2 id="introducing-xquery">Introducing XQuery</h2>
 <p>XQuery is a query language for structured and semi structured data. It uses a syntax similar to SQL with added tweak that we can use it with HTML tags to build our content.</p>
@@ -40,23 +40,23 @@
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span> <span class="token attr-name">language</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Floppy Sun Hat<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ul</span><span class="token punctuation">></span></span>
 </code></pre>
-<p>Rather than go through an entire XQuery Syntax Course, I'll cover one basic syntax construct, the <code>FLOWR</code> expression and any additional syntax as needed.</p>
+<p>Rather than go through an entire XQuery Syntax Course, I’ll cover one basic syntax construct, the <code>FLOWR</code> expression and any additional syntax as needed.</p>
 <pre class="language-xquery"><code class="language-xquery"><span class="token keyword">for</span> <span class="token variable">$prod</span> <span class="token keyword">in</span> <span class="token function">doc</span><span class="token punctuation">(</span><span class="token string">"catalog.xml"</span><span class="token punctuation">)</span><span class="token punctuation">/</span><span class="token punctuation">/</span>product
 <span class="token keyword">let</span> <span class="token variable">$prodDept</span> <span class="token operator">:=</span> <span class="token variable">$prod</span><span class="token punctuation">/</span><span class="token operator">@</span>dept
 <span class="token keyword">where</span> <span class="token variable">$prodDept</span> <span class="token operator">=</span> <span class="token string">"ACC"</span> <span class="token keyword-operator operator">or</span> <span class="token variable">$prodDept</span> <span class="token operator">=</span> <span class="token string">"WMN"</span>
 <span class="token keyword">return</span> <span class="token variable">$prod</span><span class="token punctuation">/</span>name
 </code></pre>
 <p>The basic structur of a <code>FLOWR</code> expression has the following elements:</p>
-<p>&lt;dl&gt;
-&lt;dt&gt;&lt;strong&gt;for&lt;/strong&gt;&lt;/dt&gt;
-&lt;dd&gt;This clause sets up an iteration through the product elements returned by the path expression. The variable &lt;code&gt;$prod&lt;/code&gt; is bound, in turn, to each product in the sequence. The rest of the FLWOR is evaluated once for each product, in this case, four times&lt;/dd&gt;
-&lt;dt&gt;&lt;strong&gt;let&lt;/strong&gt;&lt;/dt&gt;
-&lt;dd&gt;This clause binds the &lt;code&gt;$prodDept&lt;/code&gt; variable to the value of the dept attribute&lt;/dd&gt;
-&lt;dt&gt;&lt;strong&gt;where&lt;/strong&gt;&lt;/dt&gt;
-&lt;dd&gt;This clause selects elements whose dept attribute is equal to ACC or WMN.&lt;/dd&gt;
-&lt;dt&gt;&lt;strong&gt;return&lt;/strong&gt;&lt;/dt&gt;
-&lt;dd&gt;This clause returns the name child of each of the three product elements that pass the where clause.&lt;/dd&gt;
-&lt;/dl&gt;</p>
+<dl>
+<dt><strong>for</strong></dt>
+<dd>This clause sets up an iteration through the product elements returned by the path expression. The variable <code>$prod</code> is bound, in turn, to each product in the sequence. The rest of the FLWOR is evaluated once for each product, in this case, four times</dd>
+<dt><strong>let</strong></dt>
+<dd>This clause binds the <code>$prodDept</code> variable to the value of the dept attribute</dd>
+<dt><strong>where</strong></dt>
+<dd>This clause selects elements whose dept attribute is equal to ACC or WMN.</dd>
+<dt><strong>return</strong></dt>
+<dd>This clause returns the name child of each of the three product elements that pass the where clause.</dd>
+</dl>
 <p>The first clause in a <code>FLWOR</code> must be a <code>for</code>, <code>let</code>, or <code>window</code> clause. After that, any number of any of the clauses listed may appear, in any order. The final clause is the required <code>return</code> clause.</p>
 <h3 id="the-for-clause">The <code>for</code> clause</h3>
 <p>The <code>for</code> clause sets up an iteration that allows the rest of the FLWOR to be evaluated multiple times, once for each item in the sequence returned by the expression after the in keyword. This sequence, also known as the binding sequence, can evaluate to any sequence of zero, one, or more items. In our example, it was a sequence of product elements, but it could also be atomic values, attribute nodes, or indeed items of any kind, or a mixture of items. If the binding sequence is the empty sequence, the rest of the FLWOR is simply not evaluated (it iterates zero times).</p>
@@ -72,12 +72,12 @@
 <h3 id="the-return-clause">The <code>return</code> clause</h3>
 <p>The return clause consists of the return keyword followed by the single expression that is to be returned. It is evaluated once for each iteration, assuming the where clause evaluated to true. The result value of the entire FLWOR is a sequence of items returned by each evaluation of the return clause.</p>
 <h3 id="further-reading">Further Reading</h3>
-<p>For more thorough coverage of the subject I'll refer you to Priscilla Walmsley's <a href="http://www.datypic.com/books/xquery/">XQuery (2nd Edition)</a> from O'Reilly.</p>
+<p>For more thorough coverage of the subject I’ll refer you to Priscilla Walmsley’s <a href="http://www.datypic.com/books/xquery/">XQuery (2nd Edition)</a> from O’Reilly.</p>
 <h2 id="the-project">The project</h2>
 <p>The idea for this project is to test if we can create custom serialized content on demand using XQuery and <a href="http://exist-db.org/">eXists-DB</a> a nosql database that provides tools to create XML based web applications.</p>
 <p>The hypothesis for the project are:</p>
 <ul>
-<li>I've defined multiple use cases for the tool</li>
+<li>I’ve defined multiple use cases for the tool</li>
 <li>I can create a database of XML serialized stories one of the following:
 <ul>
 <li><a href="http://docbook.org/">Docbook</a></li>
@@ -90,7 +90,7 @@
 <li>I can convert those documents to HTML and PDF using XML technologies</li>
 </ul>
 <h3 id="use-cases">Use Cases</h3>
-<p>These are the use cases I've come up with.</p>
+<p>These are the use cases I’ve come up with.</p>
 <ul>
 <li>Course packets of supplementary material for college courses</li>
 <li>Serial magazines for short story content. Think Analog, Isaac Asimov or Ellery Queen Mystery magazines</li>
@@ -104,13 +104,13 @@
 <li>How easy are the transformation processes?</li>
 <li>Do we have an existing workflow to process content?</li>
 </ul>
-<p>Because we're starting from scratch I will work with a customized version of Docbook with an additional metadata set to provide the custom metadata we'll search by.</p>
+<p>Because we’re starting from scratch I will work with a customized version of Docbook with an additional metadata set to provide the custom metadata we’ll search by.</p>
 <h3 id="query-interfaces">Query interfaces</h3>
-<p>eXist provides full application development tools, including front-end and server. We'll leverage these tools to build the UI for the application.</p>
+<p>eXist provides full application development tools, including front-end and server. We’ll leverage these tools to build the UI for the application.</p>
 <h3 id="format-conversion">Format Conversion</h3>
 <p>One of the reasons why I chose Docbook is that it has a powerful set of XSLT stylesheets to convert XML documents to both HTML(using <a href="https://www.saxonica.com/welcome/welcome.xml">Saxon</a> or <a href="http://xmlsoft.org/XSLT/">XSLTProc</a>) and PDF (using <a href="https://xmlgraphics.apache.org/fop/">Apache FOP</a> or <a href="https://www.antennahouse.com/antenna1/">AntennaHouse</a>) without having to create new stylesheets. It should also be possible to create Paged Media stylesheets but I wonder if the effort is worth it when you already have FOP alternatives.</p>
 <h2 id="setting-up-exist">Setting up eXist</h2>
-<p>&lt;aside class=&quot;message info&quot;&gt;
-&lt;p&gt;The rest of the document assumes you've installed eXist for your platform.&lt;/p&gt;</p>
-<p>&lt;p&gt;I'm also assuming that you've prepared your editor to work with eXist. I'm using &lt;a href=&quot;https://www.oxygenxml.com/&quot;&gt;oXygen XML&lt;/a&gt;.&lt;/p&gt;
-&lt;/aside&gt;</p>
+<aside class="message info">
+  <p>The rest of the document assumes you've installed eXist for your platform.</p>
+  <p>I'm also assuming that you've prepared your editor to work with eXist. I'm using <a href="https://www.oxygenxml.com/">oXygen XML</a>.</p>
+</aside>

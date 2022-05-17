@@ -1,11 +1,11 @@
 <h1 id="specific-languages-and-toolchains">Specific languages and toolchains</h1>
-<p>In the <a href="https://publishing-project.rivendellweb.net/first-look-bazel-build-system/">last post</a> we looked at Bazel, what it is, installation on macOS using homebrew, and a Bazel-based project's basic configuration.</p>
+<p>In the <a href="https://publishing-project.rivendellweb.net/first-look-bazel-build-system/">last post</a> we looked at Bazel, what it is, installation on macOS using homebrew, and a Bazel-based project’s basic configuration.</p>
 <p>This post will look at using Bazel to run Typescript and Node.js builds using Bazel. Future posts will look at styling and backend toolchains</p>
 <h2 id="javascript%2C-typescript-and-node.js">Javascript, Typescript and Node.js</h2>
-<p>To work directly with Javascript we'll leverage two items</p>
+<p>To work directly with Javascript we’ll leverage two items</p>
 <ul>
 <li>Every Javascript file is also a legal Typescript file</li>
-<li>We're already looking at implementing a Node.js-based build system that will use Javascript/Typescript</li>
+<li>We’re already looking at implementing a Node.js-based build system that will use Javascript/Typescript</li>
 </ul>
 <p>Before Bazel will work we need to install the following Node packages.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D @bazel/protractor <span class="token punctuation">\</span>
@@ -20,7 +20,7 @@ rollup <span class="token punctuation">\</span>
 terser <span class="token punctuation">\</span>
 typescript
 </code></pre>
-<p>At its most basic, the following <code>WORKSPACE</code> file will load the Bazel rules for Node.js, tell Bazel where to find the project's package.json and use the default version of Node and NPM. <strong>It will not install the packages in package.json.</strong></p>
+<p>At its most basic, the following <code>WORKSPACE</code> file will load the Bazel rules for Node.js, tell Bazel where to find the project’s package.json and use the default version of Node and NPM. <strong>It will not install the packages in package.json.</strong></p>
 <pre class="language-python"><code class="language-python">load<span class="token punctuation">(</span><span class="token string">"@bazel_tools//tools/build_defs/repo:http.bzl"</span><span class="token punctuation">,</span> <span class="token string">"http_archive"</span><span class="token punctuation">)</span>
 
 http_archive<span class="token punctuation">(</span>
@@ -33,8 +33,8 @@ load<span class="token punctuation">(</span><span class="token string">"@build_b
 
 node_repositories<span class="token punctuation">(</span>package_json <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"//:package.json"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 </code></pre>
-<p>We can then start building our rules in <code>BUILD.bazel</code>. This example is taken from Bazel's rules for <a href="https://github.com/bazelbuild/rules_nodejs/tree/stable/examples/app">Node.js example app</a></p>
-<p>The first step is to load the resources that we'll use for this particular build file. There are two types of resources we load:</p>
+<p>We can then start building our rules in <code>BUILD.bazel</code>. This example is taken from Bazel’s rules for <a href="https://github.com/bazelbuild/rules_nodejs/tree/stable/examples/app">Node.js example app</a></p>
+<p>The first step is to load the resources that we’ll use for this particular build file. There are two types of resources we load:</p>
 <ul>
 <li>Included in a bazel_rules package like <code>@build_bazel_rules_nodejs</code></li>
 <li>Included from Node.js like <code>@npm//@bazel/protractor</code> or <code>@npm//http-server</code></li>

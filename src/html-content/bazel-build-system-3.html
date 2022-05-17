@@ -1,9 +1,9 @@
 <h1 id="styling%3B-a-matter-of-choice">Styling; A matter of choice</h1>
-<p>Blaze presents multiple choices for building your site or app's styles. I've taken three of these choices for a deeper look.</p>
-<p>The first one, working with Less and Stylus, shows how to work with NPM packages. We could use the same techniques to work with other packages outside the Bazel toolchains, we'll have to test to see if they work.</p>
-<p>The other two, PostCSS and SASS show how to work within the Bazel structure using Bazel toolchains and methodoloigy. I haven't decided which one to use for my projects; been thinking about moving away from SASS for a while but I'm not fully convinced that PostCSS is the right solution.</p>
-<p>When you're choosing what styling solution to use, think carefully.</p>
-<p>Take variables as an example; it's true that both SASS and CSS have variables but they behave differently and each has its advantages and disadvantages.</p>
+<p>Blaze presents multiple choices for building your site or app’s styles. I’ve taken three of these choices for a deeper look.</p>
+<p>The first one, working with Less and Stylus, shows how to work with NPM packages. We could use the same techniques to work with other packages outside the Bazel toolchains, we’ll have to test to see if they work.</p>
+<p>The other two, PostCSS and SASS show how to work within the Bazel structure using Bazel toolchains and methodoloigy. I haven’t decided which one to use for my projects; been thinking about moving away from SASS for a while but I’m not fully convinced that PostCSS is the right solution.</p>
+<p>When you’re choosing what styling solution to use, think carefully.</p>
+<p>Take variables as an example; it’s true that both SASS and CSS have variables but they behave differently and each has its advantages and disadvantages.</p>
 <ul>
 <li>SASS variables are static, if you change them you must recompile the stylesheets for the changes to take effect.</li>
 <li>PostCSS uses CSS variables. These variables are live, whenever you change them, all rules using them will be updated and the new result shown to the user.
@@ -80,8 +80,8 @@ http_archive<span class="token punctuation">(</span>
 <li>postcss_plugin</li>
 <li>autoprefixer</li>
 </ul>
-<p>For the first example we'll use <a href="https://github.com/postcss/autoprefixer">Autoprefixer</a> on a CSS file that, we assume, was generated earlier on the build process.</p>
-<p>As usual, we first load the package and set its visibility. For simplicity's sake I've set it to <code>tests:__subpackages__</code> so targets in the test package can see them.</p>
+<p>For the first example we’ll use <a href="https://github.com/postcss/autoprefixer">Autoprefixer</a> on a CSS file that, we assume, was generated earlier on the build process.</p>
+<p>As usual, we first load the package and set its visibility. For simplicity’s sake I’ve set it to <code>tests:__subpackages__</code> so targets in the test package can see them.</p>
 <pre class="language-python"><code class="language-python">load<span class="token punctuation">(</span><span class="token string">"@build_bazel_rules_postcss//:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"autoprefixer"</span><span class="token punctuation">)</span>
 
 package<span class="token punctuation">(</span>default_visibility <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"//tests:__subpackages__"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
@@ -137,8 +137,8 @@ postcss_binary<span class="token punctuation">(</span>
 <span class="token punctuation">)</span>
 </code></pre>
 <h2 id="styling%3A-sass%2Fscss">Styling: SASS/SCSS</h2>
-<p>Lately I've been ambivalent about <a href="https://sass-lang.com/">SASS</a> because of their switching the main distribution to <a href="https://dart.dev/">Dart</a> and deprecating both <a href="https://sass-lang.com/ruby-sass">Ruby SASS</a> and <a href="https://sass-lang.com/blog/libsass-is-deprecated">LibSASS</a>, while LibSASS will receive maintenance releases indefinitely, there will be no new features.</p>
-<p>Since the SASS lead developer works at Google, it's unsurprising that there is a Blaze set of Rules for SASS.</p>
+<p>Lately I’ve been ambivalent about <a href="https://sass-lang.com/">SASS</a> because of their switching the main distribution to <a href="https://dart.dev/">Dart</a> and deprecating both <a href="https://sass-lang.com/ruby-sass">Ruby SASS</a> and <a href="https://sass-lang.com/blog/libsass-is-deprecated">LibSASS</a>, while LibSASS will receive maintenance releases indefinitely, there will be no new features.</p>
+<p>Since the SASS lead developer works at Google, it’s unsurprising that there is a Blaze set of Rules for SASS.</p>
 <p>To load the rules, add the folowing to your WORKSPACE file.</p>
 <p>In addition to loading the rules we also load transitive dependencies for SASS and configure the repositories necessary for the SASS rules.</p>
 <pre class="language-python"><code class="language-python">http_archive<span class="token punctuation">(</span>
@@ -158,7 +158,7 @@ load<span class="token punctuation">(</span><span class="token string">"@io_baze
 sass_repositories<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <p>The rest of this section assumes the following directory structure. The WORKSPACE file is included above <code>my_project</code> at the root of the repository.</p>
-<p>Each directory in this project has its own BUILD file that we'll discuss later in the post.</p>
+<p>Each directory in this project has its own BUILD file that we’ll discuss later in the post.</p>
 <pre class="language-text"><code class="language-text">my_project/
   hello_world/
     BUILD
@@ -168,7 +168,7 @@ sass_repositories<span class="token punctuation">(</span><span class="token punc
     _fonts.scss
     _colors.scss
 </code></pre>
-<p><strong>The structure is important. If <code>hello_world</code> and <code>shared</code> are not in the root of the project, Bazel will not find the BUILD files and exit with an error. I'm researching how to change this so it'll work in subdirectories</strong></p>
+<p><strong>The structure is important. If <code>hello_world</code> and <code>shared</code> are not in the root of the project, Bazel will not find the BUILD files and exit with an error. I’m researching how to change this so it’ll work in subdirectories</strong></p>
 <p><code>hello_world/main.scss</code> is simple. It imports the partial files from the shared directory, <code>fonts</code> and <code>colors</code> and uses variable definitions from those files to construct the styles rules.</p>
 <pre class="language-scss"><code class="language-scss"><span class="token keyword">@import</span> <span class="token string">"shared/fonts"</span><span class="token punctuation">;</span>
 <span class="token keyword">@import</span> <span class="token string">"shared/colors"</span><span class="token punctuation">;</span>
@@ -214,7 +214,7 @@ load<span class="token punctuation">(</span><span class="token string">"@io_baze
 
 load<span class="token punctuation">(</span><span class="token string">"@io_bazel_rules_sass//:defs.bzl"</span><span class="token punctuation">,</span> <span class="token string">"sass_library"</span><span class="token punctuation">)</span>
 </code></pre>
-<p>Each partial file must be registered with it's own <code>sass_library</code> rule, each with its own attributes</p>
+<p>Each partial file must be registered with it’s own <code>sass_library</code> rule, each with its own attributes</p>
 <pre class="language-python"><code class="language-python">sass_library<span class="token punctuation">(</span>
   name <span class="token operator">=</span> <span class="token string">"colors"</span><span class="token punctuation">,</span>
   srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"_colors.scss"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>

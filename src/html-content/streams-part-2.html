@@ -1,14 +1,14 @@
 <h1 id="streams-part-2">Streams Part 2</h1>
 <h2 id="streams-and-service-workers">Streams and service workers</h2>
-<p>Where I see the biggest benefit of using streams is in fetching resources for a service worker. It'll make it faster to download a resource using streams and it'll give a consistent and fast user experience using cached resources from the service worker.</p>
+<p>Where I see the biggest benefit of using streams is in fetching resources for a service worker. It’ll make it faster to download a resource using streams and it’ll give a consistent and fast user experience using cached resources from the service worker.</p>
 <p>This is the outline of what I need to do:</p>
 <ol>
 <li>Create a function to stream the content</li>
 <li>If the URL is for an HTML file then:
 <ol>
-<li>See if it's already in the cache</li>
+<li>See if it’s already in the cache</li>
 <li>If not fetch it</li>
-<li>If it's not then stream it</li>
+<li>If it’s not then stream it</li>
 <li>Clone the stream and cache the clone</li>
 <li>Return the original stream to the page for display</li>
 </ol>
@@ -101,18 +101,18 @@
 </code></pre>
 <ul>
 <li><code>start</code> is called immediately. Use this to set up any underlying data sources (meaning, wherever you get your data from, which could be events, another stream, or just a variable like a string). If you return a promise from this and it rejects, it will signal an error through the stream</li>
-<li><code>pull</code> is called when your stream's buffer isn't full, and is called repeatedly until it's full. Again, If you return a promise from this and it rejects, it will signal an error through the stream. Pull will not be called again until the returned promise fulfills</li>
+<li><code>pull</code> is called when your stream’s buffer isn’t full, and is called repeatedly until it’s full. Again, If you return a promise from this and it rejects, it will signal an error through the stream. Pull will not be called again until the returned promise fulfills</li>
 <li><code>cancel</code> is called if the stream is cancelled. Use this to cancel any underlying data sources</li>
 <li><code>queuingStrategy</code> defines how much this stream should ideally buffer, defaulting to one item. Check <a href="https://streams.spec.whatwg.org/#blqs-class">the spec</a> for more information</li>
 </ul>
 <p>And the controller has the following methods:</p>
 <ul>
-<li><code>controller.enqueue(whatever)</code> - queue data in the stream's buffer.</li>
+<li><code>controller.enqueue(whatever)</code> - queue data in the stream’s buffer.</li>
 <li><code>controller.close()</code> - signal the end of the stream.</li>
 <li><code>controller.error(e)</code> - signal a terminal error.</li>
 <li><code>controller.desiredSize</code> - the amount of buffer remaining, which may be negative if the buffer is over-full. This number is calculated using the queuingStrategy.</li>
 </ul>
-<p>An example from Jake Archibald's blog uses a custom stream to generate random numbers. It touches on two methods of the <code>Readable Stream</code> interface (<code>start</code> and <code>cancel</code>) and two methods of <code>controller</code> (<code>enqueue</code> and <code>close</code>).</p>
+<p>An example from Jake Archibald’s blog uses a custom stream to generate random numbers. It touches on two methods of the <code>Readable Stream</code> interface (<code>start</code> and <code>cancel</code>) and two methods of <code>controller</code> (<code>enqueue</code> and <code>close</code>).</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> interval<span class="token punctuation">;</span>
 <span class="token keyword">let</span> stream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReadableStream</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   <span class="token function">start</span><span class="token punctuation">(</span><span class="token parameter">controller</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>

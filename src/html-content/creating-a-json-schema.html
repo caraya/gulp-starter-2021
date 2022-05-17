@@ -1,6 +1,6 @@
 <h1 id="creating-a-json-schema">Creating a JSON schema</h1>
 <p><a href="https://json-schema.org/">JSON Schemas</a> allows us to create a schema for the data. This would allow us to validate the data and ensure that it is complete and has the correct structure. This would also adress one of the drawbacks of noSQL and, potentially, XML databases: <em><strong>how to ensure that the data is complete</strong></em>, meaning that all records contain the same data.</p>
-<p>We'll build a schema for an interview-like content for a JSON document that we'll later convert to XML.</p>
+<p>We’ll build a schema for an interview-like content for a JSON document that we’ll later convert to XML.</p>
 <h2 id="the-content-for-the-interview-object">The content for the interview object</h2>
 <p>This is a complete JSON document that matches the schema. I cheated a little with the document as I created it alongside the schema.</p>
 <p>It is predicated on ideas about the content and how I want to manipulate it. These ideas will be discussed in detail when we talk about the schema.</p>
@@ -35,9 +35,9 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <h2 id="first-pass%3A-getting-the-basics-down">First Pass: Getting the basics down</h2>
-<p>With a working document ready to go, we'll look at the first version of the schema and discuss some of the decisions about them.</p>
+<p>With a working document ready to go, we’ll look at the first version of the schema and discuss some of the decisions about them.</p>
 <p>The first block defines metadata for the schema. This is nont visible to the user and not essential for the schema to work but it helps developers looking at the schema to better understand what it is and how it works.</p>
-<p>the <code>$schema</code> property defines the version of the JSON schema specification that the document conforms to. Different drafts/versions of the specification change how some elements are defined and how they are validated so it's important to keep this value up and, if necessary, update it when new versions introduce breaking changes.</p>
+<p>the <code>$schema</code> property defines the version of the JSON schema specification that the document conforms to. Different drafts/versions of the specification change how some elements are defined and how they are validated so it’s important to keep this value up and, if necessary, update it when new versions introduce breaking changes.</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
   <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"JSON schema for interviews"</span><span class="token punctuation">,</span>
   <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"JSON schema for interview project"</span><span class="token punctuation">,</span>
@@ -189,21 +189,21 @@
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>I've validated the schema below using the <a href="https://www.jsonschemavalidator.net/">JSON Schema Validator</a> using the document instance discussed in <em><strong>The content for the interview object</strong></em>.</p>
+<p>I’ve validated the schema below using the <a href="https://www.jsonschemavalidator.net/">JSON Schema Validator</a> using the document instance discussed in <em><strong>The content for the interview object</strong></em>.</p>
 <h2 id="refining-the-schema">Refining the schema</h2>
 <p>After creating the first version of the schema, I realized that there are some additional changes that would be nice to have.</p>
 <p>The first one is to make the schema more flexible. Right now it only allows audio interviews, there is no way to record in-person or video interviews.</p>
-<p>I'm also wondering if it's worth it to add a project property to the schema. This would allow us to associate the interview with a project and later on we can use the property to filter the list of interviews by the project they were conducted for.</p>
+<p>I’m also wondering if it’s worth it to add a project property to the schema. This would allow us to associate the interview with a project and later on we can use the property to filter the list of interviews by the project they were conducted for.</p>
 <h3 id="rename-the-audio-element">Rename the audio element</h3>
 <p>The <code>audio</code> property works wonderfully for recording data about audio files.</p>
-<p>However, it's not very flexible. It's not clear how to add a new records for in-person and video recorded interviews.</p>
+<p>However, it’s not very flexible. It’s not clear how to add a new records for in-person and video recorded interviews.</p>
 <p>I think a better idea would be to rename to <code>media</code> and specify more generic properties for the media object. An initial version of the media object may look like this:</p>
-<p>The object now has a <code>kind</code> property to indicate the type of media. I chose <code>kind</code> so we don't overload the meaning of <code>type</code>.</p>
+<p>The object now has a <code>kind</code> property to indicate the type of media. I chose <code>kind</code> so we don’t overload the meaning of <code>type</code>.</p>
 <p>The possible values for <code>kind</code> are:</p>
 <ul>
 <li><code>audio</code> (default) represents an audio recording</li>
 <li><code>video</code> represents a video recording</li>
-<li><code>n/a</code> represents the lack of a recording, possibly because it's an in-person interview, the recording was removed from the project or is not available for other reasons</li>
+<li><code>n/a</code> represents the lack of a recording, possibly because it’s an in-person interview, the recording was removed from the project or is not available for other reasons</li>
 </ul>
 <p>We added <code>kind</code> to the list of required field for media objects.</p>
 <pre class="language-json"><code class="language-json"><span class="token property">"media"</span><span class="token operator">:</span> <span class="token punctuation">{</span>

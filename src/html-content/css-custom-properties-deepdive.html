@@ -1,5 +1,5 @@
 <h1 id="differences-between-css-custom-properties-and-houdini-properties-and-values">Differences between CSS Custom Properties and Houdini Properties and values</h1>
-<p>CSS Custom Properties, also known as CSS Variables allow you to do awesome things. In this post we'll explore the different types of CSS Custom properties, what they are, how they work and which one to use in what circumstances.</p>
+<p>CSS Custom Properties, also known as CSS Variables allow you to do awesome things. In this post we’ll explore the different types of CSS Custom properties, what they are, how they work and which one to use in what circumstances.</p>
 <h2 id="the-current-version">The current version</h2>
 <p>The current version of CSS Custom Properties is a <a href="https://drafts.csswg.org/css-variables/">W3C Candidate Recommendation</a> that define a way to set custom properties for our CSS content that we might want to dynamiclly change or that we want to reuse throughout the stylesheet.</p>
 <h3 id="what-they-are-and-how-they-work">What they are and how they work</h3>
@@ -9,7 +9,7 @@
 <p>This module introduces a family of custom author-defined properties known collectively as custom properties, which allow an author to assign arbitrary values to a property with an author-chosen name, and the var() function, which allow an author to then use those values in other properties elsewhere in the document. This makes it easier to read large files, as seemingly-arbitrary values now have informative names, and makes editing such files much easier and less error-prone, as one only has to change the value once, in the custom property, and the change will propagate to all uses of that variable automatically.</p>
 <p><a href="https://drafts.csswg.org/css-variables/#intro">CSS Custom Properties for Cascading Variables Module Level 1 — Introduction</a></p>
 </blockquote>
-<p>This sounds like a mouthfull so let's unpack it.</p>
+<p>This sounds like a mouthfull so let’s unpack it.</p>
 <p>This API now allows developers to create custom properties to use in their stylesheets. It also introduces the <code>var</code> function to make use of these custom properties.</p>
 <p>The example below defines two custom properties in the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/:root">:root</a> element for the stylesheet and later uses the propertie as the value of the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/var">var</a> function.</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
@@ -22,7 +22,7 @@
   <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--main-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>This little example shows the basic syntax but imagine lager stylesheets where we use <code>--main-color</code> in multiple places.  Now let's assume that marketing is changing the company colors. We only have to change the value of <code>--main-color</code> once and the changes will automatically change everywhere they are used.</p>
+<p>This little example shows the basic syntax but imagine lager stylesheets where we use <code>--main-color</code> in multiple places.  Now let’s assume that marketing is changing the company colors. We only have to change the value of <code>--main-color</code> once and the changes will automatically change everywhere they are used.</p>
 <p>If we want to override a specific instance we can just redeclare the custom property where we want to use a different value for the same variable</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
   <span class="token property">--main-color</span><span class="token punctuation">:</span> #06c<span class="token punctuation">;</span>
@@ -48,16 +48,16 @@
 <h3 id="the-differences">The differences</h3>
 <p>As good as they are, custom properties, as defined in CSS have several significant drawbacks that Houdini addresses as explained in the sections below.</p>
 <h4 id="inheritance">Inheritance</h4>
-<p>All custom properties will inherit down the cascade. There are times when you don't want this inherited behavior.</p>
+<p>All custom properties will inherit down the cascade. There are times when you don’t want this inherited behavior.</p>
 <p>Houdinin custom properties let you choose whether the value inherits or not allowing for better encapsulation of styles.</p>
 <h4 id="values">Values</h4>
 <p>All custom properties defined in CSS are strings, regardless of what values we set them up. This makes them harder to work with in Javascript where we have to convert them to the actual value that we need.</p>
 <p>Houdini props allow you to define specific value types for your properties. These are the same values used in other places in CSS so they will work the same throughout your stylesheet.</p>
 <h4 id="animatable">Animatable</h4>
-<p>Because they are strings, they don't animate or produce unexpected results.</p>
-<p>Because Houdini properties use different values the browser can figure out how to animate those properties and if it's possible to animate them or not.</p>
+<p>Because they are strings, they don’t animate or produce unexpected results.</p>
+<p>Because Houdini properties use different values the browser can figure out how to animate those properties and if it’s possible to animate them or not.</p>
 <h4 id="validation">Validation</h4>
-<p>Because they are all considered to be strings, it's impossible to validate them with the proper value.</p>
+<p>Because they are all considered to be strings, it’s impossible to validate them with the proper value.</p>
 <p>Houdini properties, on the other hand, have defined values that make validation possible and easy to use.</p>
 <h3 id="how-they-work">How they work</h3>
 <p>The first step in using custom properties is to define them in JavaScript. We use <code>CSS.registerProperty</code> to register the property with the CSS parser. It is always a good idea to check if the browser supports CSS.registerProperty before using it, this allows for fallbacks if it not.</p>
@@ -73,16 +73,16 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <p>There are 4 values that we need to pass to <code>registerProperty</code></p>
-<p>&lt;dl&gt;
-&lt;dt&gt;Name&lt;/dd&gt;
-&lt;dd&gt;The name is what we’ll use to reference the property. The two dashes at the beginning should be familiar from CSS variables and are required. This is how we’ll distinguish our custom variables and properties from what the CSS WG does and will do in the future.
-&lt;dt&gt;Syntax&lt;/dt&gt;
-&lt;dd&gt;indicates the possible syntaxes for the property. The following values are available in level 1 of the spec and matching corresponding units in &lt;a href=&quot;https://www.w3.org/TR/css-values-3/&quot;&gt;CSS Values and Units Module Level 3&lt;/a&gt; (check that specification for a full list and the <a href="">CSS Properties and Values API Level 1</a>)
-&lt;dd&gt;You can create fairly complex syntax for your custom properties but until we become familiar with them, I advocate for the KISS (Keep It Simple Silly) principle.</p>
-<p>&lt;dt&gt;inherits&lt;/dt&gt;
-&lt;dd&gt;Inherits tells the CSS parser if this custom rule should propagate down the cascade. Setting it to false gives us more power to style specific elements without being afraid to mess up elements further down the chain.</p>
-<p>&lt;dt&gt;initialValue&lt;/dt&gt;
-&lt;dd&gt;Use this to provide a sensible default for the property. We’ll analyze why this is important later.</p>
+<dl>
+  <dt>Name</dd>
+  <dd>The name is what we’ll use to reference the property. The two dashes at the beginning should be familiar from CSS variables and are required. This is how we’ll distinguish our custom variables and properties from what the CSS WG does and will do in the future.
+  <dt>Syntax</dt>
+  <dd>indicates the possible syntaxes for the property. The following values are available in level 1 of the spec and matching corresponding units in <a href="https://www.w3.org/TR/css-values-3/">CSS Values and Units Module Level 3</a> (check that specification for a full list and the [CSS Properties and Values API Level 1]())
+  <dd>You can create fairly complex syntax for your custom properties but until we become familiar with them, I advocate for the KISS (Keep It Simple Silly) principle.
+  <dt>inherits</dt>
+  <dd>Inherits tells the CSS parser if this custom rule should propagate down the cascade. Setting it to false gives us more power to style specific elements without being afraid to mess up elements further down the chain.
+  <dt>initialValue</dt>
+  <dd>Use this to provide a sensible default for the property. We’ll analyze why this is important later.
 <p>That’s it… we now have a custom property.</p>
 <h3 id="using-custom-properties">Using custom properties</h3>
 <p>To demonstrate how to use Custom Properties we’ll reuse the --bg-color Javascript example and use it in several different elements.</p>
@@ -144,9 +144,9 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <h2 id="when-would-you-use-which%3F">When would you use which?</h2>
-<p>This is a tricky question. Most of the time you'll want to use the Houdini version that allows you tighter control over the individual properties.</p>
+<p>This is a tricky question. Most of the time you’ll want to use the Houdini version that allows you tighter control over the individual properties.</p>
 <p>But We have to consider that only recent versions of some modern browsers (partial support in Safari TP and Chrome and under development for Firefox) support the Javascript API.</p>
-<p>So, in the end, it depends on what you need. Most of the time your production code should use the CSS-only version of custom properties or use Houdini properties with a CSS-only fallback like the code below. This way, if the browser doesn't support Houdini we still have a custoom property that the CSS code can use.</p>
+<p>So, in the end, it depends on what you need. Most of the time your production code should use the CSS-only version of custom properties or use Houdini properties with a CSS-only fallback like the code below. This way, if the browser doesn’t support Houdini we still have a custoom property that the CSS code can use.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'registerProperty'</span> <span class="token keyword">in</span> <span class="token constant">CSS</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
     name<span class="token operator">:</span> <span class="token string">'--my-custom-prop'</span><span class="token punctuation">,</span>

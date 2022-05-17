@@ -1,32 +1,32 @@
 <h1 id="concepts-and-examples-of-responsive-images">Concepts and examples of responsive images</h1>
 <p>In working through automaating image comperession and responsive image generation I wanted to add more areas to the conversation about responsive images without cluttering the post about automation.</p>
 <h2 id="how-should-we-get-our-source-images%3F">How should we get our source images?</h2>
-<p>The first thing to consider is what should be the ideal format for our source images. The Gulp task with manipulate the size of the images so it pays to have the largest possible image available to process. It's always better to shrink an image than it is to enlarge it, besides you will compress the images later anyways.</p>
-<p>There are ways to use Machine Learning to <a href="https://publishing-project.rivendellweb.net/machine-learning-image-enhancement/">improve the quality of existing images</a> even if we don't have access to the originals.</p>
+<p>The first thing to consider is what should be the ideal format for our source images. The Gulp task with manipulate the size of the images so it pays to have the largest possible image available to process. It’s always better to shrink an image than it is to enlarge it, besides you will compress the images later anyways.</p>
+<p>There are ways to use Machine Learning to <a href="https://publishing-project.rivendellweb.net/machine-learning-image-enhancement/">improve the quality of existing images</a> even if we don’t have access to the originals.</p>
 <h2 id="device-pixels-versus-logical-pixels">Device Pixels versus Logical Pixels</h2>
 <p>We need to look at the difference between logical pixels and device pixels since this will affect the way we generate our responsive images and what types of images we want to use for our originals.</p>
-<p>Let's assume that we have an iPhone X with a resolution of 2436 x 1125 device pixels and Device Pixel Ratio (DPR) of 3.</p>
+<p>Let’s assume that we have an iPhone X with a resolution of 2436 x 1125 device pixels and Device Pixel Ratio (DPR) of 3.</p>
 <blockquote>
 <p>The DPR is defined by the device manufacturer. Simply put, it refers to the number of physical pixels contained in one logical pixel. For example, a device with a DPR of 2 means that one logical pixel contains 4 (2 x 2) physical pixels. Similarly, a DPR of 3 implies that a single logical pixel is equivalent to 9 physical pixels.
 from <a href="https://freshman.tech/responsive-images/">A Guide to Responsive Images on the Web</a></p>
 </blockquote>
-<p>If we divide the height and width by the DPR We get the logical size of the screen in this case: <code>812 x 375</code> and that's why the following CSS would work:</p>
+<p>If we divide the height and width by the DPR We get the logical size of the screen in this case: <code>812 x 375</code> and that’s why the following CSS would work:</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">.example</span> <span class="token punctuation">{</span>
   <span class="token property">width</span><span class="token punctuation">:</span> 400px<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>We're telling the CSS parser to use 400 logical pixels instead of 400 device pixels.</p>
+<p>We’re telling the CSS parser to use 400 logical pixels instead of 400 device pixels.</p>
 <h2 id="native-responsive-images">Native Responsive Images</h2>
-<p>There are two ways to create native responsive images: the <code>picture element</code> and the <code>srcset and sizes attributes</code>. We'll look at how each of these methods work and then we'll look at the use cases.</p>
+<p>There are two ways to create native responsive images: the <code>picture element</code> and the <code>srcset and sizes attributes</code>. We’ll look at how each of these methods work and then we’ll look at the use cases.</p>
 <h3 id="picture">Picture</h3>
 <p>Using <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture">picture</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source">source</a> elements in your page is similar to the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video">video</a> element. You use one or more source elements to indicate the different images that we want to use.</p>
 <p>We can leverage the picture element to work with WebP in browsers that can support those formats.</p>
 <p>The following code example gives us the following:</p>
 <ol>
-<li>If the width of the screen is 40em and the browser <strong>supports</strong> WebP use this source and the corresponding image based on device's DPR</li>
-<li>If the width of the screen is 40ems and the browser <strong>does not support WebP</strong> use this source and the corresponding image based on device's DPR</li>
-<li>If neither 1 and 2 are met uses this source and the corresponding image based on device's DPR</li>
-<li>if the brrowser doesn't understand the <code>source</code> attribute then use the <code>img</code> element. This must be the last children of a <code>picture</code> element</li>
+<li>If the width of the screen is 40em and the browser <strong>supports</strong> WebP use this source and the corresponding image based on device’s DPR</li>
+<li>If the width of the screen is 40ems and the browser <strong>does not support WebP</strong> use this source and the corresponding image based on device’s DPR</li>
+<li>If neither 1 and 2 are met uses this source and the corresponding image based on device’s DPR</li>
+<li>if the brrowser doesn’t understand the <code>source</code> attribute then use the <code>img</code> element. This must be the last children of a <code>picture</code> element</li>
 </ol>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>picture</span><span class="token punctuation">></span></span>
   <span class="token comment">&lt;!--1--></span>
@@ -43,7 +43,7 @@ from <a href="https://freshman.tech/responsive-images/">A Guide to Responsive Im
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>picture</span><span class="token punctuation">></span></span>
 </code></pre>
 <h3 id="srcset-and-sizes">srcset and sizes</h3>
-<p>srcset defines the set of images we want the browser to choose between, and the DPR for each image. The browser will select the best image to use based on the device's characteristics.</p>
+<p>srcset defines the set of images we want the browser to choose between, and the DPR for each image. The browser will select the best image to use based on the device’s characteristics.</p>
 <p>The 2x, 3x and 4x values indicate different DPR values. Where there is no value it is assumed to be 1x.</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span>
   <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span> <span class="token punctuation">'</span>two.png 2x,

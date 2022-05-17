@@ -5,11 +5,11 @@
 </blockquote>
 <p>CSS Houdini is a <a href="https://drafts.css-houdini.org/">set of APIs</a> under development by the <a href="https://www.w3.org/Style/CSS/">CSS Working Group</a> and the Technical Architecture Group to provide users with way to extend CSS to match their needs. The extensibility language is usually JavaScript but some of these are written in pure CSS.</p>
 <p>To translate the tech speak: Houdini will provide the hooks for developers to create their own content types and in a performant way without having to wait for the working group to create specs for and browsers to implement.</p>
-<p>Tab Atkins from the Chrome team presented about Houdini at CSS Day 2017. He does a much better job at explaining the APIs (expected since he's one of the editors).</p>
-<p>&lt;div class=&quot;video&quot;&gt;
-&lt;iframe src=&quot;https://player.vimeo.com/video/242890906?byline=0&amp;portrait=0&quot; width=&quot;560&quot; height=&quot;315&quot; frameborder=&quot;0&quot; webkitallowfullscreen mozallowfullscreen allowfullscreen&gt;&lt;/iframe&gt;
-&lt;/div&gt;</p>
-<p>Surma, from the Chrome team, created <a href="https://ishoudinireadyyet.com/">is Houdini ready yet?</a> as a way to track what Houdini is working on and the status of these different projects. I've grouped the table into three categories for the list below:</p>
+<p>Tab Atkins from the Chrome team presented about Houdini at CSS Day 2017. He does a much better job at explaining the APIs (expected since he’s one of the editors).</p>
+<div class="video">
+<iframe src="https://player.vimeo.com/video/242890906?byline=0&portrait=0" width="560" height="315" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+</div>
+<p>Surma, from the Chrome team, created <a href="https://ishoudinireadyyet.com/">is Houdini ready yet?</a> as a way to track what Houdini is working on and the status of these different projects. I’ve grouped the table into three categories for the list below:</p>
 <ul>
 <li>Supported in (some) browser(s)
 <ul>
@@ -32,7 +32,7 @@
 </li>
 </ul>
 <p>Houdini APIs rely on Worklets, a <a href="https://www.w3.org/TR/worklets-1/">separate specification</a>. This spec provides the underpinnings for the other Houdini specifications.</p>
-<p>Before we get started, it's important to know that <strong>this is not CSS in JS!</strong> It's a way to enhance CSS with Javascript to produce results that are impossible to produce with CSS alone, as it exists today.</p>
+<p>Before we get started, it’s important to know that <strong>this is not CSS in JS!</strong> It’s a way to enhance CSS with Javascript to produce results that are impossible to produce with CSS alone, as it exists today.</p>
 <h2 id="worklets">Worklets</h2>
 <p>The worklets are lightweight web workers that are better suited than the heavier workers for the kinds of work Houdini is intended for. You will see several different kinds of worklets that are specific for each API.</p>
 <h2 id="css-typed-object-model">CSS Typed Object Model</h2>
@@ -45,7 +45,7 @@ el<span class="token punctuation">.</span>style<span class="token punctuation">.
 document<span class="token punctuation">.</span>styleSheets<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>cssRules<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>style<span class="token punctuation">.</span>opacity <span class="token operator">=</span> <span class="token number">0.3</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The CSS Typed Object Model (Typed OM) adds types, methods, and an object model to CSS values. Instead of strings, values are exposed as JavaScript objects to facilitate performant (and sane) manipulation of CSS.</p>
-<p>Instead of using <code>element.style</code>, you'll be accessing styles through a new <code>.attributeStyleMap</code> property for elements and a <code>.styleMap</code> property for stylesheet rules. Both return a <code>StylePropertyMap</code> object.</p>
+<p>Instead of using <code>element.style</code>, you’ll be accessing styles through a new <code>.attributeStyleMap</code> property for elements and a <code>.styleMap</code> property for stylesheet rules. Both return a <code>StylePropertyMap</code> object.</p>
 <p>The functionality of the Stylesheet version of the</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Element styles.</span>
 <span class="token comment">// Set element style</span>
@@ -64,13 +64,13 @@ stylesheet<span class="token punctuation">.</span>cssRules<span class="token pun
 <p>So, why should we care?</p>
 <ul>
 <li>Numerical values are always returned as numbers, not strings, so you do less work and get consistent results</li>
-<li>Value clamping &amp; rounding. Typed OM rounds and/or clamps values so they're within the acceptable ranges for a property</li>
+<li>Value clamping &amp; rounding. Typed OM rounds and/or clamps values so they’re within the acceptable ranges for a property</li>
 <li>Better performance. The browser has to do less work serializing and deserializing string values</li>
 <li>We can use Javascript error handling for our CSS</li>
 <li>CSS property names in Typed OM are always strings, matching what you actually write in CSS</li>
 </ul>
 <h3 id="basic-usage%3A-feature-detection">Basic Usage: Feature Detection</h3>
-<p>I'm always one to code defensively. To make sure that the browser supports CSS Typed OM we can use something like the code below to make sure that the browser will work with the code we want to use. If it doesn't then we can fall back to using the current object model (<code>el.style.attribute</code>).</p>
+<p>I’m always one to code defensively. To make sure that the browser supports CSS Typed OM we can use something like the code below to make sure that the browser will work with the code we want to use. If it doesn’t then we can fall back to using the current object model (<code>el.style.attribute</code>).</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span><span class="token constant">CSS</span> <span class="token operator">&amp;&amp;</span> <span class="token constant">CSS</span><span class="token punctuation">.</span>number<span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token comment">// Work with CSS Typed OM.</span>
   el<span class="token punctuation">.</span>attributeStyleMap<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">'opacity'</span><span class="token punctuation">,</span> <span class="token number">0.3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -87,22 +87,22 @@ stylesheet<span class="token punctuation">.</span>cssRules<span class="token pun
 <ul>
 <li>CSS.em();</li>
 <li>CSS.ex();</li>
-<li>CSS.ch();</li>
+<li><a href="http://CSS.ch">CSS.ch</a>();</li>
 <li>CSS.ic();</li>
 <li>CSS.rem();</li>
 <li>CSS.lh();</li>
 <li>CSS.rlh();</li>
 <li>CSS.vw();</li>
 <li>CSS.vh();</li>
-<li>CSS.vi();</li>
+<li><a href="http://CSS.vi">CSS.vi</a>();</li>
 <li>CSS.vb();</li>
 <li>CSS.vmin();</li>
 <li>CSS.vmax();</li>
-<li>CSS.cm();</li>
-<li>CSS.mm();</li>
+<li><a href="http://CSS.cm">CSS.cm</a>();</li>
+<li><a href="http://CSS.mm">CSS.mm</a>();</li>
 <li>CSS.Q();</li>
-<li>CSS.in();</li>
-<li>CSS.pt();</li>
+<li><a href="http://CSS.in">CSS.in</a>();</li>
+<li><a href="http://CSS.pt">CSS.pt</a>();</li>
 <li>CSS.pc();</li>
 <li>CSS.px();</li>
 </ul>
@@ -118,7 +118,7 @@ stylesheet<span class="token punctuation">.</span>cssRules<span class="token pun
 <li>time
 <ul>
 <li>CSS.s();</li>
-<li>CSS.ms();</li>
+<li><a href="http://CSS.ms">CSS.ms</a>();</li>
 </ul>
 </li>
 <li>frequency
@@ -136,7 +136,7 @@ stylesheet<span class="token punctuation">.</span>cssRules<span class="token pun
 </li>
 <li>flex
 <ul>
-<li>CSS.fr();</li>
+<li><a href="http://CSS.fr">CSS.fr</a>();</li>
 </ul>
 </li>
 </ul>
@@ -214,7 +214,7 @@ el<span class="token punctuation">.</span>attributeStyleMap<span class="token pu
 <h3 id="computed-styles-versus-attribute-styles">Computed Styles versus Attribute Styles</h3>
 <p><code>attributeStyleMap</code> gives you the value you entered but this presents one interesting case for me. What happens when we give it a percentage or other relative values like em or rem?</p>
 <p>We can use different units defined outside the Typed OM like <code>window.getComputedStyle()</code> to get the resulting value of a property after all parent object values are calculated.</p>
-<p>The difference between <code>window.getComputedStyle()</code> (outside the Typed OM) and <code>element.computedStyleMap()</code> (part of the Typed OM) is that the <code>window.getComputedStyle()</code> method gets the value after all calculations have been done. If we need to get the value as we're working with it then we can use the <code>element.computedStyleMap()</code> method.</p>
+<p>The difference between <code>window.getComputedStyle()</code> (outside the Typed OM) and <code>element.computedStyleMap()</code> (part of the Typed OM) is that the <code>window.getComputedStyle()</code> method gets the value after all calculations have been done. If we need to get the value as we’re working with it then we can use the <code>element.computedStyleMap()</code> method.</p>
 <h3 id="css-transforms">CSS Transforms</h3>
 <p>CSS Transforms are created with a<a href="https://drafts.css-houdini.org/css-typed-om/#transformvalue-objects">CSSTransformValue</a> objects passing an array of transform values (e.g. CSSRotate, CSScale, CSSSkew, CSSSkewX, CSSSkewY). As an example, say you want to re-create this CSS:</p>
 <pre class="language-css"><code class="language-css"><span class="token property">transform</span><span class="token punctuation">:</span> <span class="token function">rotateZ</span><span class="token punctuation">(</span>45deg<span class="token punctuation">)</span> <span class="token function">scale</span><span class="token punctuation">(</span>0.5<span class="token punctuation">)</span> <span class="token function">translate3d</span><span class="token punctuation">(</span>10px<span class="token punctuation">,</span>10px<span class="token punctuation">,</span>10px<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -240,7 +240,7 @@ el<span class="token punctuation">.</span>attributeStyleMap<span class="token pu
 <span class="token keyword">const</span> padding <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CSSVariableReferenceValue</span><span class="token punctuation">(</span>
     <span class="token string">'--default-padding'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">CSSUnparsedValue</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'8px'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>If you want to get the value of a custom property, there's a bit of work to do:</p>
+<p>If you want to get the value of a custom property, there’s a bit of work to do:</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css">
   <span class="token selector">body</span> <span class="token punctuation">{</span>
     <span class="token property">--foo</span><span class="token punctuation">:</span> 10px<span class="token punctuation">;</span>
@@ -277,7 +277,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
 <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">px</span><span class="token punctuation">(</span><span class="token number">42.0</span><span class="token punctuation">)</span> <span class="token comment">// '42px'</span>
 </code></pre>
 <h3 id="error-handling">Error handling</h3>
-<p>Because we're working with Javascript to</p>
+<p>Because we’re working with Javascript to</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">try</span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> css <span class="token operator">=</span> CSSStyleValue<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">'transform'</span><span class="token punctuation">,</span> <span class="token string">'translate4d(bogus value)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token comment">// use css</span>

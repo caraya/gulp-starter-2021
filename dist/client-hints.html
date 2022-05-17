@@ -22,7 +22,7 @@
 <h2 id="what-are-client-hints%3F">What are client hints?</h2>
 <p>Client Hints are a content negotiation tool and can help with making responsive images easier to work with and give you other tools to help create a better user experience.</p>
 <p>They are a set of HTTP request headers allowing clients to indicate a list of device and browser preferences.</p>
-<p>Using client hints isn't automatic: servers must tell clients what hints they want clients to send using the Accept-CH (accept client hints) header:</p>
+<p>Using client hints isn’t automatic: servers must tell clients what hints they want clients to send using the Accept-CH (accept client hints) header:</p>
 <pre class="language-apache"><code class="language-apache">Accept-CH: Width, Viewport-Width, Downlink
 </code></pre>
 <p>or an equivalent HTML meta element with the http-equiv attribute.</p>
@@ -31,7 +31,7 @@
 <p>In subsequent requests, the client will send these headers with the appropriate values based on their characteristics and the server can use the values in these headers to craft customized responses for each client request based on the values the client sends.</p>
 <p>One of the potential drawbacks and the reason why neither Mozilla nor Apple has implemented client hints is the fear that they allow for easier fingerprinting of users and their devices</p>
 <h2 id="case-studies">Case Studies</h2>
-<p>There are many use cases for Client Hints. I'll illustrate what I consider the most interesting ones.</p>
+<p>There are many use cases for Client Hints. I’ll illustrate what I consider the most interesting ones.</p>
 <h3 id="a-new-way-to-do-user-agent-sniffing">A new way to do user agent sniffing</h3>
 <p>The user agent string has been around since the World Wide Web first became a thing. This was defined all the way back in 1996 (<a href="https://tools.ietf.org/html/rfc1945">RFC 1945</a> for HTTP/1.0), where you can find the <a href="https://tools.ietf.org/html/rfc1945#section-10.15">original definition for the User-Agent string</a>, which includes an example:</p>
 <pre class="language-apache"><code class="language-apache">User-Agent: CERN-LineMode/2.15 libwww/2.17b3
@@ -41,7 +41,7 @@
 <p>I ran the following command in multiple browsers to see if they produced any result that was less frightening:</p>
 <pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgent<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The first result is from Safari Technology Preview 119. It lies about the version of macOS it's running under but it provides all the necessary information to fingerprint a user:</p>
+<p>The first result is from Safari Technology Preview 119. It lies about the version of macOS it’s running under but it provides all the necessary information to fingerprint a user:</p>
 <pre class="language-apache"><code class="language-apache">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
 AppleWebKit/605.1.15 (KHTML, like Gecko)
 Version/14.1 Safari/605.1.15
@@ -57,7 +57,7 @@ AppleWebKit/537.36 (KHTML, like Gecko)
 Chrome/84.0.4076.0
 Mobile Safari/537.36
 </code></pre>
-<p>And finally Chrome stable (version 88) on the laptop where I'm writing this:</p>
+<p>And finally Chrome stable (version 88) on the laptop where I’m writing this:</p>
 <pre class="language-apache"><code class="language-apache">Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0)
 AppleWebKit/537.36 (KHTML, like Gecko)
 Chrome/88.0.4324.96
@@ -65,22 +65,22 @@ Safari/537.36
 </code></pre>
 <p>Do you see the privacy problem? You can use any of these strings to identify the operating system name and version, version of the browser without the person reading the string having to do anything about it.</p>
 <p>Once they have the basic information about your browser and your computer they can try to exploit vulnerabilities in the OS or the browser. The worst of those are zero-day exploits.</p>
-<p>I can hear the comments. You don't need browser detection when you can do feature detection in Javascript.</p>
-<p>The user agent string can also be used to lie to <a href="https://www.zdnet.com/article/vivaldi-to-change-user-agent-string-to-chrome-due-to-unfair-blocking/">all sites</a> or <a href="https://github.com/mozilla-extensions/webcompat-addon/blob/master/src/injections/js/bug1472075-bankofamerica.com-ua-change.js">only to specific ones</a>. There are also things like the OS the user is running that can't be feature detected.</p>
-<p>For most cases I would agree but if you follow the <a href="https://groups.google.com/a/chromium.org/g/blink-dev/c/-2JIRNMWJ7s/m/1VxGK4t5AgAJ">Intent to Deprecate and Freeze: The User-Agent string</a> discussion in blink-dev you'll see that there are still valid use cases for sniffing browser versions. Client hints provide a more granular way to do it by breaking down the string into components and forcing developers to request the components they need or want to use.</p>
+<p>I can hear the comments. You don’t need browser detection when you can do feature detection in Javascript.</p>
+<p>The user agent string can also be used to lie to <a href="https://www.zdnet.com/article/vivaldi-to-change-user-agent-string-to-chrome-due-to-unfair-blocking/">all sites</a> or <a href="https://github.com/mozilla-extensions/webcompat-addon/blob/master/src/injections/js/bug1472075-bankofamerica.com-ua-change.js">only to specific ones</a>. There are also things like the OS the user is running that can’t be feature detected.</p>
+<p>For most cases I would agree but if you follow the <a href="https://groups.google.com/a/chromium.org/g/blink-dev/c/-2JIRNMWJ7s/m/1VxGK4t5AgAJ">Intent to Deprecate and Freeze: The User-Agent string</a> discussion in blink-dev you’ll see that there are still valid use cases for sniffing browser versions. Client hints provide a more granular way to do it by breaking down the string into components and forcing developers to request the components they need or want to use.</p>
 <p>The following user agent client hints are available since Chrome 84 and were run against my current browser (Chrome 88 stable)</p>
 <table>
 <thead>
 <tr>
-<th>Server Response Accept-CH&lt;br/&gt; Client Request header</th>
-<th>Client Request&lt;br/&gt; Example value</th>
+<th>Server Response Accept-CH<br/> Client Request header</th>
+<th>Client Request<br/> Example value</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Sec-CH-UA</strong></td>
-<td>&quot;Chromium&quot;;v=&quot;88&quot; &lt;br/&gt;&quot;Google Chrome&quot;;v=&quot;88&quot;</td>
+<td>“Chromium”;v=“88” <br/>“Google Chrome”;v=“88”</td>
 <td>List of browser brands and their significant version</td>
 </tr>
 <tr>
@@ -90,27 +90,27 @@ Safari/537.36
 </tr>
 <tr>
 <td><strong>Sec-CH-UA-Full-Version</strong></td>
-<td>&quot;88.0.4324.150&quot;</td>
+<td>“88.0.4324.150”</td>
 <td>The complete browser version</td>
 </tr>
 <tr>
 <td><strong>Sec-CH-UA-Platform</strong></td>
-<td>&quot;macOS&quot;</td>
+<td>“macOS”</td>
 <td>The platform for the device, usually the operating system (OS)</td>
 </tr>
 <tr>
 <td><strong>Sec-CH-UA-Platform-Version</strong></td>
-<td>&quot;11_2_0&quot;</td>
+<td>“11_2_0”</td>
 <td>The version for the platform or OS</td>
 </tr>
 <tr>
 <td><strong>Sec-CH-UA-Arch</strong></td>
-<td>&quot;x86&quot;</td>
+<td>“x86”</td>
 <td>The underlying architecture for the device. While this may not be relevant to displaying the page, the site may want to offer a download which defaults to the right format</td>
 </tr>
 <tr>
 <td><strong>Sec-CH-UA-Model</strong></td>
-<td>&quot;&quot;</td>
+<td>“”</td>
 <td>The device model. This is mostly applicable to mobile devices where the type of device may be relevant</td>
 </tr>
 </tbody>
@@ -140,7 +140,7 @@ Sec-CH-UA-Full-Version: &quot;84.0.4143.2&quot;
  <span class="token comment">// Do something else</span>
 <span class="token punctuation">}</span>
 </span></code></pre>
-<p>Because these Client Hints are only available in Chrome, we still need a fallback method for detecting user agents. If at all possible, use feature detection but if you can't then you'll have to parse the <code>navigator.userAgentData</code>, or the <code>navigator.userAgent</code> object yourself to get the information you need.</p>
+<p>Because these Client Hints are only available in Chrome, we still need a fallback method for detecting user agents. If at all possible, use feature detection but if you can’t then you’ll have to parse the <code>navigator.userAgentData</code>, or the <code>navigator.userAgent</code> object yourself to get the information you need.</p>
 <p>The <code>navigator.userAgentData</code> object contains basic information about the user agent, the brand (name and version), and whether the device is mobile.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">'userAgentData'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span> <span class="token punctuation">{</span>
  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'userAgentData is not defined'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -158,7 +158,7 @@ brands<span class="token punctuation">.</span><span class="token function">forEa
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Is mobile: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>isMobile<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>This is not the complete version of the user agent; only the major version. There may be times when more information than what we can get from <code>navigator.userAgentData</code> so we parse the user agent string or get more detailed information about the browser by calling <code>navigator.userAgentData.getHighEntropyValues()</code> in Chrome 90 and later. The &quot;high entropy&quot; term is a reference to <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">information entropy</a> or the amount of information that these values reveal about the user's browser. It's up to the browser what values, if any, are returned.</p>
+<p>This is not the complete version of the user agent; only the major version. There may be times when more information than what we can get from <code>navigator.userAgentData</code> so we parse the user agent string or get more detailed information about the browser by calling <code>navigator.userAgentData.getHighEntropyValues()</code> in Chrome 90 and later. The “high entropy” term is a reference to <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">information entropy</a> or the amount of information that these values reveal about the user’s browser. It’s up to the browser what values, if any, are returned.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Log the full user-agent data</span>
 navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span><span class="token function">getHighEntropyValues</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
    <span class="token string">"architecture"</span><span class="token punctuation">,</span>
@@ -171,7 +171,7 @@ navigator<span class="token punctuation">.</span>userAgentData<span class="token
  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h3 id="performance-client-hints">Performance client hints</h3>
-<p>Another way we can use client hints is to do performance work. It would be nice if we could keep this within client hints to use a single interface for all the things we want to send to the server, wouldn't it?</p>
+<p>Another way we can use client hints is to do performance work. It would be nice if we could keep this within client hints to use a single interface for all the things we want to send to the server, wouldn’t it?</p>
 <p>The following table presents performance client hints and their Javascript equivalent method in the navigator.connection object.</p>
 <table>
 <thead>
@@ -185,7 +185,7 @@ navigator<span class="token punctuation">.</span>userAgentData<span class="token
 <tbody>
 <tr>
 <td>Effective Connection Type</td>
-<td>A basic outline of the user's connection type: 4g, 3g, 2g, slow-2g</td>
+<td>A basic outline of the user’s connection type: 4g, 3g, 2g, slow-2g</td>
 <td>ECT</td>
 <td><code>navigator.connection.effectiveType</code></td>
 </tr>
@@ -203,13 +203,13 @@ navigator<span class="token punctuation">.</span>userAgentData<span class="token
 </tr>
 <tr>
 <td>Downlink</td>
-<td>approximate speed of the user's connection in megabits per second. To revent fingerprinting the value of Downlink is rounded to the nearest multiple of 25 kilobits per second</td>
+<td>approximate speed of the user’s connection in megabits per second. To revent fingerprinting the value of Downlink is rounded to the nearest multiple of 25 kilobits per second</td>
 <td>Downlink</td>
 <td><code>navigator.connection.downlink</code></td>
 </tr>
 <tr>
 <td>Device Memory</td>
-<td>Rough estimation of the device's memory. To prevent fingerprinting the value of Device-Memory is intentionally coarse. Valid values are 0.25, 0.5, 1, 2, 4, and 8</td>
+<td>Rough estimation of the device’s memory. To prevent fingerprinting the value of Device-Memory is intentionally coarse. Valid values are 0.25, 0.5, 1, 2, 4, and 8</td>
 <td>Device-Memory</td>
 <td><code>navigator.deviceMemory</code></td>
 </tr>
@@ -246,7 +246,7 @@ navigator<span class="token punctuation">.</span>userAgentData<span class="token
 <span class="token delimiter important">?></span></span>
 </code></pre>
 <h3 id="improving-responsive-images">Improving responsive images</h3>
-<p>Responsive images are good, but there is too much of a good thing. I've written picture elements like this (adapted from: Automating Resource Selection with Client Hints):</p>
+<p>Responsive images are good, but there is too much of a good thing. I’ve written picture elements like this (adapted from: Automating Resource Selection with Client Hints):</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>picture</span><span class="token punctuation">></span></span>
  <span class="token comment">&lt;!-- serve AVIF --></span>
  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span>
@@ -312,7 +312,7 @@ navigator<span class="token punctuation">.</span>userAgentData<span class="token
 </code></pre>
 <p>As wordy as the code is, it shows what an optimal art direction, DPR and Size picture element looks like.</p>
 <p>We have three different pairs of picture elements for each image format that we want to support.</p>
-<p>It's awesome that we can do this but it's a lot of work and the code will continue to grow as new formats work with different browsers.</p>
+<p>It’s awesome that we can do this but it’s a lot of work and the code will continue to grow as new formats work with different browsers.</p>
 <p>We could optimize how we write picture elements using client hints and the Accept HTTP Header. The idea is the following:</p>
 <ul>
 <li>The accept header determines if a browser supports a given format or not</li>

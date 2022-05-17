@@ -1,5 +1,5 @@
 <h1 id="async-javascript">Async javascript</h1>
-<p>Writing this for MDN as a series of articles. Goal is to keep tone and audience throughout. That's why I'm writing it as a single document.</p>
+<p>Writing this for MDN as a series of articles. Goal is to keep tone and audience throughout. That’s why I’m writing it as a single document.</p>
 <h1 id="introduction%3A-what-and-why%3F">Introduction: What and Why?</h1>
 <h2 id="synchronous-code-(baseline)">Synchronous code (baseline)</h2>
 <p>When we write Javascript we normally do it synchronously, every instruction is executed one at a time in the order they appear in the script. The script will finish once the last instruction is executed.</p>
@@ -9,8 +9,8 @@ console<span class="token punctuation">.</span><span class="token function">log<
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We will always get the same result: 1 2 3.</p>
-<p>This works great for small pieces of code or scripts that don't produce output on the browser. But sooner rather than later you will want to work on larger scripts and you will find one of the first issues with Javascript: <strong>It blocks rendering</strong>.</p>
-<p>Let's take the following HTML document.</p>
+<p>This works great for small pieces of code or scripts that don’t produce output on the browser. But sooner rather than later you will want to work on larger scripts and you will find one of the first issues with Javascript: <strong>It blocks rendering</strong>.</p>
+<p>Let’s take the following HTML document.</p>
 <pre class="language-html"><code class="language-html"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>en<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
@@ -35,7 +35,7 @@ header<span class="token punctuation">.</span>innerHTML <span class="token opera
 content<span class="token punctuation">.</span><span class="token function">insertAdjacentElement</span><span class="token punctuation">(</span><span class="token string">'afterbegin'</span><span class="token punctuation">,</span> header<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The browser will load the page and when it finds the script it will load it and process it. Because the browser can not know ahead of time if the script will insert, remove or change content on the page it will pause rendering until the script is fully parsed and any changes to the page like inserting or removing nodes are done. The script can have any number of functions and interact with databases and other resources on your page and application.</p>
-<p>This will happen for every script that you addd to the page; they will each load completely before moving onto the next. Working with smaller scripts may be fine but imagine if you're loading jQuery from a Content Delivery Network and then loading our script. Our HTML will look like this:</p>
+<p>This will happen for every script that you addd to the page; they will each load completely before moving onto the next. Working with smaller scripts may be fine but imagine if you’re loading jQuery from a Content Delivery Network and then loading our script. Our HTML will look like this:</p>
 <pre class="language-html"><code class="language-html"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>en<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
@@ -54,7 +54,7 @@ content<span class="token punctuation">.</span><span class="token function">inse
 <p>Even with no content, this page will take longer to load as it now has to download jQuery before it can continue processing the page and its content, which may include other scripts.</p>
 <p>Things will get slower when the code we write does heavy processing like database access or image manipulation.</p>
 <p>The figure below gives you an example of what the execution order or stack looks like for a synchronous blocking language like Javascript.</p>
-<p>Before we jump in to asynchronous (async) code we'll look at two ways of writing synchronous code: Callbacks and try/catch blocks.</p>
+<p>Before we jump in to asynchronous (async) code we’ll look at two ways of writing synchronous code: Callbacks and try/catch blocks.</p>
 <h3 id="callbacks">Callbacks</h3>
 <p>Callbacks are functions that are passed as parameters to other functions.</p>
 <p>An example of a callback is the second parameter of an event listener. In the example below, clicking the button with id of <code>myButton</code> will trigger the function and produce the alert for the user.</p>
@@ -72,7 +72,7 @@ gods<span class="token punctuation">.</span><span class="token function">forEach
 <p>The two examples work because Javascript allows functions as parameters in other functions.</p>
 <p>When we pass a callback function as an argument to another function, we are only passing the function definition. We are not executing the function in the parameter. The containing function can execute the callback anytime.</p>
 <p>Note that the callback function is not executed immediately. It is “called back” (hence the name) somewhere inside the containing function’s body synchronously.</p>
-<h4 id="working-with-'this'">Working with 'this'</h4>
+<h4 id="working-with-%E2%80%98this%E2%80%99">Working with ‘this’</h4>
 <p>When the callback function uses the <code>this</code> object, we have to modify how we execute the callback function to preserve the this object context. Or else the this object will either point to the global window object (in the browser), if callback was passed to a global function. Or it will point to the object of the containing method.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> agentData <span class="token operator">=</span> <span class="token punctuation">{</span>
   id<span class="token operator">:</span> <span class="token number">007</span><span class="token punctuation">,</span>
@@ -97,7 +97,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
 console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The problem has to do with <code>this</code>.</p>
-<p>In most cases, the value of this is determined by how a function is called. It can't be set by assignment during execution, and it may be different each time the function is called.</p>
+<p>In most cases, the value of this is determined by how a function is called. It can’t be set by assignment during execution, and it may be different each time the function is called.</p>
 <p>When we call a function directly, like we call getUserInput, the context is the root object (window in the case of the browser)</p>
 <p>When a function is called as a method of an object, its this is set to the object the method is called on.</p>
 <p>So how do we solve this problem?</p>
@@ -149,7 +149,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>The signature for <code>getUserInput</code> doesn't change when we use <code>apply</code> instead of <code>call</code>. The results are identical.</p>
+<p>The signature for <code>getUserInput</code> doesn’t change when we use <code>apply</code> instead of <code>call</code>. The results are identical.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token function">getUserInput</span> <span class="token punctuation">(</span><span class="token string">'James'</span><span class="token punctuation">,</span> <span class="token string">'Bond'</span><span class="token punctuation">,</span> agentData<span class="token punctuation">.</span>setUserName<span class="token punctuation">,</span> agentData<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>agentData<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// James Bond</span>
@@ -163,7 +163,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
 <span class="token keyword">let</span> json <span class="token operator">=</span> <span class="token string">'{"id":"007", "firstName":"James", "lastName": "Bond"}'</span><span class="token punctuation">;</span>
 </code></pre>
 <p>In the try/catch block below, we want to make sure that the data parses and do something if ther is an error.</p>
-<p>In this example we just log a message and the error to console. In more complex examples the catch error may attempt connecting to the database again or ask the user to enter the data again if it wasn't complete or well formed.</p>
+<p>In this example we just log a message and the error to console. In more complex examples the catch error may attempt connecting to the database again or ask the user to enter the data again if it wasn’t complete or well formed.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">try</span> <span class="token punctuation">{</span>
   <span class="token comment">// convert the text representation to JS object</span>
   <span class="token keyword">let</span> user <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>json<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -197,7 +197,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
 </code></pre>
 <h2 id="brief-introduction-to-async-code">Brief Introduction to Async Code</h2>
 <p>Async (short for asynchronous) code will execute without blocking rendering and returning a value when the code in the async block finishes.</p>
-<p>Contrast the definition of async with the synchronous code we've been working so far where all statements are executed in the order they appear.</p>
+<p>Contrast the definition of async with the synchronous code we’ve been working so far where all statements are executed in the order they appear.</p>
 <p>The example below uses both sync (synchronous) and async (asynchronous) code to illustrate the difference. The console log statements outside of fetch will execute in the order they appear in the document.</p>
 <pre class="language-javascript"><code class="language-javascript">console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'Starting'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'https://s3-us-west-2.amazonaws.com/s.cdpn.io/32795/coffee2.png'</span><span class="token punctuation">)</span> <span class="token comment">// 1</span>
@@ -223,20 +223,20 @@ console<span class="token punctuation">.</span><span class="token function">log<
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'All done!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The fetch function and it's associated chain uses the Promise API (discussed in more detail in a later document) to get a resource from the network and perform one or more tasks. It won't make the script wait until it's done but will continue working in the background until it completes.</p>
+<p>The fetch function and it’s associated chain uses the Promise API (discussed in more detail in a later document) to get a resource from the network and perform one or more tasks. It won’t make the script wait until it’s done but will continue working in the background until it completes.</p>
 <p>The async nature of the Fetch API produces unexpected results. The sequence of messages logged to console:</p>
 <ol>
 <li>Starting</li>
 <li>All done!</li>
 <li>It worked :)</li>
 </ol>
-<p>The messages from both console.log calls outside fetch appear in their document order but the message signaling success doesn't appear until the chain started with fetch completes.</p>
+<p>The messages from both console.log calls outside fetch appear in their document order but the message signaling success doesn’t appear until the chain started with fetch completes.</p>
 <p>Javascript is at its most basic a synchronous, blocking, single-threaded language; Only one operation can be in progress at a time.</p>
-<p>Whether we want to run code synchronously or asynchronously will depend on what we're trying to do.</p>
+<p>Whether we want to run code synchronously or asynchronously will depend on what we’re trying to do.</p>
 <p>There are times when we want things to load and happen right away. The callback for a click event handler is a good example.</p>
-<p>If we're running an expensive operation like querying a database and using the results to populate templates then we want to push this off the main thread and complete the task asynchronously.</p>
+<p>If we’re running an expensive operation like querying a database and using the results to populate templates then we want to push this off the main thread and complete the task asynchronously.</p>
 <h1 id="different-ways-of-writing-async-javascript">Different ways of writing async javascript</h1>
-<p>Now that we've looked at synchronous and asynchronous code we'll look at different ways to write asynchronous code.</p>
+<p>Now that we’ve looked at synchronous and asynchronous code we’ll look at different ways to write asynchronous code.</p>
 <h1 id="settimeout-and-setinterval">SetTimeout and SetInterval</h1>
 <p>SetTimeout and SetInterval provide ways to schedule tasks to run at a future point in time.</p>
 <p><code>setTimeout</code> allows you to schedule a task after a given interval.</p>
@@ -249,7 +249,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
   <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Hello, Mr. Universe!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">)</span>
 </code></pre>
-<p>We're not required to write anonymous functions. The second version of the example uses <code>sayHi</code> as the name of the function. The rest of the code remains unchanged.</p>
+<p>We’re not required to write anonymous functions. The second version of the example uses <code>sayHi</code> as the name of the function. The rest of the code remains unchanged.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> myGreeting <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token function">sayHi</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Hello, Mr. Universe!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">)</span>
@@ -271,10 +271,10 @@ console<span class="token punctuation">.</span><span class="token function">log<
 
 <span class="token keyword">let</span> myGreeting <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span>sayHi<span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">,</span> <span class="token string">'Mr. Universe'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>All versions of the function will produce the same result... but they show different ways we can use setTimeout and the flexibility we have in writing the code.</p>
+<p>All versions of the function will produce the same result… but they show different ways we can use setTimeout and the flexibility we have in writing the code.</p>
 <h2 id="setinterval">setInterval</h2>
 <p>setTimeout works perfectly when we need to run the code once after a set period of time. But what happens when we need to run the code every x miliseconds?</p>
-<p>That's where setInterval comes in.  When we use this command, the code we attach to it will run every time the interval completes.</p>
+<p>That’s where setInterval comes in.  When we use this command, the code we attach to it will run every time the interval completes.</p>
 <p>The example below creates a new date object and logs it to console. We then attach it to setInterval and execute it once every second. This will create the effect of a running clock that updates once per second.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">countTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">let</span> date <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -285,7 +285,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
 <span class="token keyword">const</span> createClock <span class="token operator">=</span> <span class="token function">setInterval</span><span class="token punctuation">(</span>countTime<span class="token punctuation">,</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h2 id="cleartimeout">ClearTimeout</h2>
-<p>This is less of an issue with <code>setTimeout</code> as it is with <code>setInterval</code> (discussed in later sections) but there may still be situations where you want to abort the execution of code inside a <code>setTimeout</code> call. For example, let's say that we set the timeout of a very expensive task.</p>
+<p>This is less of an issue with <code>setTimeout</code> as it is with <code>setInterval</code> (discussed in later sections) but there may still be situations where you want to abort the execution of code inside a <code>setTimeout</code> call. For example, let’s say that we set the timeout of a very expensive task.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">runExpensiveTask</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Expensive Task has been completed!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
@@ -296,9 +296,9 @@ console<span class="token punctuation">.</span><span class="token function">log<
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> forgetIt <span class="token operator">=</span> <span class="token function">clearTimeout</span><span class="token punctuation">(</span>myTaskRunner<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h2 id="clearinterval">clearInterval</h2>
-<p>With repetitive tasks like our clock example, we definitely want a way to stop the activity... otherwise we may end up getting errors when the browser can't complete any further versions of the task.</p>
+<p>With repetitive tasks like our clock example, we definitely want a way to stop the activity… otherwise we may end up getting errors when the browser can’t complete any further versions of the task.</p>
 <p>The stopTime() function uses <code>clearInterval</code> to  clear the interval with the ID we created.</p>
-<p>The example creates a button and attaches the stopTime function to the button's click event so when we click the button the interval will stop.</p>
+<p>The example creates a button and attaches the stopTime function to the button’s click event so when we click the button the interval will stop.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">stopTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token function">clearInterval</span><span class="token punctuation">(</span>createClock<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
@@ -328,15 +328,15 @@ myButton<span class="token punctuation">.</span><span class="token function">add
 </code></pre>
 <p>The difference between the two versions of the code is a subtle one.</p>
 <p>Recursive setTimeout guarantees a delay between the executions; the code will run and then wait 100 milliseconds before it runs again. The 100 milliseconds will happen regardless of how long the code takes to run.</p>
-<p>&lt;figure&gt;
-&lt;img src=&quot;https://javascript.info/article/settimeout-setinterval/settimeout-interval@2x.png&quot;&gt;
-&lt;figcaption&gt;Using recursive setTimeout guarantees the interval will be the same between executions. Taken from &lt;a href=&quot;https://javascript.info/settimeout-setinterval/&quot;&gt;Scheduling: setTimeout and setInterval&lt;/a&gt;&lt;/figcaption&gt;
-&lt;/figure&gt;</p>
-<p>The example using setInterval does things differently. The interval we choose for setInterval includes the code we want to run in its execution. Let's say that the code takes 40 milliseconds to run, then the interval ends up being only 60 milliseconds.</p>
-<p>&lt;figure&gt;
-&lt;img src=&quot;https://javascript.info/article/settimeout-setinterval/setinterval-interval@2x.png&quot;&gt;
-&lt;figcaption&gt;The interval we set for setInterval includes our own code execution. Taken from &lt;a href=&quot;https://javascript.info/settimeout-setinterval/&quot;&gt;Scheduling: setTimeout and setInterval&lt;/a&gt;&lt;/figcaption&gt;
-&lt;/figure&gt;</p>
+<figure>
+  <img src="https://javascript.info/article/settimeout-setinterval/settimeout-interval@2x.png">
+  <figcaption>Using recursive setTimeout guarantees the interval will be the same between executions. Taken from <a href="https://javascript.info/settimeout-setinterval/">Scheduling: setTimeout and setInterval</a></figcaption>
+</figure>
+<p>The example using setInterval does things differently. The interval we choose for setInterval includes the code we want to run in its execution. Let’s say that the code takes 40 milliseconds to run, then the interval ends up being only 60 milliseconds.</p>
+<figure>
+  <img src="https://javascript.info/article/settimeout-setinterval/setinterval-interval@2x.png">
+  <figcaption>The interval we set for setInterval includes our own code execution. Taken from <a href="https://javascript.info/settimeout-setinterval/">Scheduling: setTimeout and setInterval</a></figcaption>
+</figure>
 <h3 id="immediate-timeout">Immediate Timeout</h3>
 <p>Using 0 as the value for setTimeout schedules the execution of func as soon as possible but only after the current code is complete.</p>
 <p>For instance, the code below outputs “Hello”, then  “World” as soon as the user clicks the OK button on the first alert dialogue:</p>
@@ -353,7 +353,7 @@ myButton<span class="token punctuation">.</span><span class="token function">add
 <h1 id="request-animation-frame">Request Animation Frame</h1>
 <p>Request Animation Frame is a specialized timing function that is primarily used with animation code of any kind (DOM elements, CSS, canvas, WebGL, or any other).The method tells the browser that you wish to perform an animation and requests that the browser call a function to update the animation before the next repaint. The method takes a callback as an argument to be invoked before the repaint</p>
 <h2 id="before-request-animation-frame">Before Request Animation Frame</h2>
-<p>When working directly with animations you've probably seen either of the two animation models show below</p>
+<p>When working directly with animations you’ve probably seen either of the two animation models show below</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token comment">// Drawing code goes here</span>
 <span class="token punctuation">}</span>
@@ -383,11 +383,11 @@ myButton<span class="token punctuation">.</span><span class="token function">add
 <span class="token punctuation">}</span>
 <span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The smoothness of your animation is directly dependent on your animation's frame rate and it is measured in frames per second (fps). The higher this number is, the smoother your animation will look to a point.</p>
+<p>The smoothness of your animation is directly dependent on your animation’s frame rate and it is measured in frames per second (fps). The higher this number is, the smoother your animation will look to a point.</p>
 <p>Since most screens have a refresh rate of 60Hz, the fastest frame rate you can aim for is 60fps (frames per second). However, more frames, means more processing, which can often cause stuttering and skipping. This is what is meant by the term dropping frames or jank.</p>
 <p>If we have a monitor that gives you 60Hz and you want to achieve 60 fps you have about 16.7 milliseconds to execute all your animation code. This is a reminder that we need to be mindful of the amount of code that we try to run for each animation loop.</p>
 <h2 id="polyfill">Polyfill</h2>
-<p>Paul Irish whote a <a href="https://www.paulirish.com/2011/requestanimationframe-for-smart-animating/">polyfill</a> for older browsers that don't support Request Animation Frame natively.</p>
+<p>Paul Irish whote a <a href="https://www.paulirish.com/2011/requestanimationframe-for-smart-animating/">polyfill</a> for older browsers that don’t support Request Animation Frame natively.</p>
 <h2 id="when-would-you-use-it%3F">When would you use it?</h2>
 <p>Request Animation Frame will work with all kinds of animations, CSS, WebGL, DOM manipulation.</p>
 <h1 id="promises">Promises</h1>
@@ -430,7 +430,7 @@ self<span class="token punctuation">.</span><span class="token function">addEven
     <span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>In this case it'll perform the following tasks:</p>
+<p>In this case it’ll perform the following tasks:</p>
 <ol>
 <li>Retrieve the image from Codepen</li>
 <li>Convert the response to an image <a href="https://developer.mozilla.org/en-US/docs/Web/API/Blob">blob</a></li>
@@ -440,8 +440,8 @@ self<span class="token punctuation">.</span><span class="token function">addEven
 <li>Attach the image to the document</li>
 </ol>
 <h1 id="async%2Fawait">Async/Await</h1>
-<p>New in ES2017 are <code>async</code> functions and the <code>await</code> keyword that will make writing async code easier to read, reason through and understand what caused any error that may get thrown. The hardest part, for me, of working with ES2016 and later is that I don't always see the reasoning behind the new code, the older version of the code still work just as fine.</p>
-<p>Async / Await are different. They look a lot like the callback code that we used to work with in the ES5 days but they produce the same asynchronous result as if we were writing promises. It is very similar to how we'd write asynchronous code when using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_generators">generators</a> either natively or with a library like <a href="https://github.com/tj/co">co</a></p>
+<p>New in ES2017 are <code>async</code> functions and the <code>await</code> keyword that will make writing async code easier to read, reason through and understand what caused any error that may get thrown. The hardest part, for me, of working with ES2016 and later is that I don’t always see the reasoning behind the new code, the older version of the code still work just as fine.</p>
+<p>Async / Await are different. They look a lot like the callback code that we used to work with in the ES5 days but they produce the same asynchronous result as if we were writing promises. It is very similar to how we’d write asynchronous code when using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_generators">generators</a> either natively or with a library like <a href="https://github.com/tj/co">co</a></p>
 <h2 id="async-code-running-sequentially">Async code running sequentially</h2>
 <p>Take the following code that represents sequential asynchronous calls</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">asyncFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -465,7 +465,7 @@ self<span class="token punctuation">.</span><span class="token function">addEven
 </code></pre>
 <p>As you can see the main difference is that <code>await</code> takes place of the then block. The code is cleaner and it makes more sense to me (not that the promise code is hard to read, just not as clean).</p>
 <h2 id="async-code-running-in-parallel">Async code running in parallel</h2>
-<p>The code works and it's cleaner but it's sequential. The <code>await</code> statements run sequentially and will wait for one promise to return before executing the next. There are times when we want to run all our promises in parallel either because we want the code to run fast or because we have enough promises that running them sequentially would slow the code execution too much.</p>
+<p>The code works and it’s cleaner but it’s sequential. The <code>await</code> statements run sequentially and will wait for one promise to return before executing the next. There are times when we want to run all our promises in parallel either because we want the code to run fast or because we have enough promises that running them sequentially would slow the code execution too much.</p>
 <p>To run promises in parallel we use <code>Promise.all</code>. Just like in promise based code we  build an array of promises that will fulfill if all promises succeed or fail if anyone of those promises fail.</p>
 <p>Here is the <code>async</code> / <code>await</code> code to log the result of two promises.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">asyncFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -488,7 +488,7 @@ self<span class="token punctuation">.</span><span class="token function">addEven
 <span class="token punctuation">}</span>
 </code></pre>
 <h2 id="error-handling">Error handling</h2>
-<p>The final part of the equation is how to handle errors. To me this was the most surprising part of the exercise, going back to using <code>try</code> / <code>catch</code> blocks to handle errors just like the old synchronouse code we used to write, except that it's running the code sequentially and waits for each task to complete before performing the next.</p>
+<p>The final part of the equation is how to handle errors. To me this was the most surprising part of the exercise, going back to using <code>try</code> / <code>catch</code> blocks to handle errors just like the old synchronouse code we used to write, except that it’s running the code sequentially and waits for each task to complete before performing the next.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">fetchJson</span><span class="token punctuation">(</span><span class="token parameter">url</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">try</span> <span class="token punctuation">{</span>
         <span class="token keyword">let</span> request <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -580,7 +580,7 @@ html<span class="token punctuation">.</span>classList<span class="token punctuat
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Async functions and the await keyword are fully supported in modern browsers but not in older versions. How to handle the difference between supported and non supported browsers? We can use feature detection to work the promise code and break early if the browser support promises.</p>
-<p>Detecting promise support is a matter of testing if 'Promise' is available in the window object, otherwise, we can run an API that is supported in the older browsers you're targetting. This is one way you can do it:</p>
+<p>Detecting promise support is a matter of testing if ‘Promise’ is available in the window object, otherwise, we can run an API that is supported in the older browsers you’re targetting. This is one way you can do it:</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">'Promise'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span>
   console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'promises are not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>

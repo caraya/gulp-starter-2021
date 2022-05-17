@@ -17,8 +17,8 @@
 
 <body>
 <article class="container">
-  <h1 id="don't-cross-the-streams">Don't cross the streams</h1>
-<p>Streams are a very interesting concept and a new set of tools for the web. The idea is that we can read and write, depending on the type of stream we're using, chunks of content... either write them to a location or read them from a location. This will improve performance because we can start showing things to the user before it has completed loading.</p>
+  <h1 id="don%E2%80%99t-cross-the-streams">Don’t cross the streams</h1>
+<p>Streams are a very interesting concept and a new set of tools for the web. The idea is that we can read and write, depending on the type of stream we’re using, chunks of content… either write them to a location or read them from a location. This will improve performance because we can start showing things to the user before it has completed loading.</p>
 <p>The example below how we can asynchronously download and display content to the user. The problem with this, if you can call it that, is that fetch will wait to download the entire file before settling the promise and only then will populate the content into the page.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> url <span class="token operator">=</span> <span class="token string">'https://jsonplaceholder.typicode.com/photos'</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> response <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -30,12 +30,12 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
 <li>Fetches the specified resource</li>
 <li>Creates a reader from the body of the response object</li>
 <li>Creates a readable stream</li>
-<li>In the reader's start menu we create a push function to do the work and read the first chunk of the stream</li>
+<li>In the reader’s start menu we create a push function to do the work and read the first chunk of the stream</li>
 <li>We create a TextDecoder that will convert the value of the chunk from Uint8 to text</li>
-<li>If we hit done it's because there are no more chunks to read so we close the controller and return</li>
+<li>If we hit done it’s because there are no more chunks to read so we close the controller and return</li>
 <li>Enqueue means we add the chunk we read to the stream and then we append the decoded string to the page</li>
 <li>We call the function again to continue processing the stream until there are no more chunks to read and done returns true</li>
-<li>We return a new response with the stream as the value and a new <code>Content-Type</code> header to make sure it's served as HTML</li>
+<li>We return a new response with the stream as the value and a new <code>Content-Type</code> header to make sure it’s served as HTML</li>
 </ol>
 <pre class="language-js"><code class="language-js"><span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">"https://jsonplaceholder.typicode.com/photos"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span> <span class="token comment">// 1</span>
 <span class="token keyword">const</span> reader <span class="token operator">=</span> response<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">getReader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
@@ -68,7 +68,7 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
 </code></pre>
 <p>This reader becomes more powerful the larger the document we feed it is.</p>
 <h2 id="creating-my-own-streams">Creating my own streams</h2>
-<p>The example above also illustrates some of the functions and methods of <code>ReadableStream</code> and <code>controller</code>. The syntax looks like this and we're not required to use any of the methods.</p>
+<p>The example above also illustrates some of the functions and methods of <code>ReadableStream</code> and <code>controller</code>. The syntax looks like this and we’re not required to use any of the methods.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> stream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReadableStream</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   <span class="token function">start</span><span class="token punctuation">(</span><span class="token parameter">controller</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
   <span class="token function">pull</span><span class="token punctuation">(</span><span class="token parameter">controller</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
@@ -77,25 +77,25 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
 </code></pre>
 <ul>
 <li><code>start</code> is called immediately. Use this to set up any underlying data sources (meaning, wherever you get your data from, which could be events, another stream, or just a variable like a string). If you return a promise from this and it rejects, it will signal an error through the stream</li>
-<li><code>pull</code> is called when your stream's buffer isn't full and is called repeatedly until it's full. Again, If you return a promise from this and it rejects, it will signal an error through the stream. Pull will not be called again until the returned promise fulfills</li>
+<li><code>pull</code> is called when your stream’s buffer isn’t full and is called repeatedly until it’s full. Again, If you return a promise from this and it rejects, it will signal an error through the stream. Pull will not be called again until the returned promise fulfills</li>
 <li><code>cancel</code> is called if the stream is canceled. Use this to cancel any underlying data sources</li>
 <li><code>queuingStrategy</code> defines how much this stream should ideally buffer, defaulting to one item. Check <a href="https://streams.spec.whatwg.org/#blqs-class">the spec</a> for more information</li>
 </ul>
 <p>And the controller has the following methods:</p>
 <ul>
-<li><code>controller.enqueue(whatever)</code> - queue data in the stream's buffer.</li>
+<li><code>controller.enqueue(whatever)</code> - queue data in the stream’s buffer.</li>
 <li><code>controller.close()</code> - signal the end of the stream.</li>
 <li><code>controller.error(e)</code> - signal a terminal error.</li>
 <li><code>controller.desiredSize</code> - the amount of buffer remaining, which may be negative if the buffer is over-full. This number is calculated using the queuingStrategy.</li>
 </ul>
 <h2 id="streams-and-service-workers">Streams and service workers</h2>
-<p>Where I see the biggest benefit of using streams is in fetching resources for a service worker. It'll make it faster to download a resource using streams and it'll give a consistent and fast user experience using cached resources from the service worker.</p>
+<p>Where I see the biggest benefit of using streams is in fetching resources for a service worker. It’ll make it faster to download a resource using streams and it’ll give a consistent and fast user experience using cached resources from the service worker.</p>
 <p>This is the outline of what I need to do:</p>
 <ol>
 <li>Create a function to stream the content</li>
 <li>If the URL is for an HTML file then
 <ol>
-<li>If it's not cache follow these steps:
+<li>If it’s not cache follow these steps:
 <ol>
 <li>Fetch the head of the page from the cache</li>
 <li>Fetch the body of the page from the network</li>
@@ -111,7 +111,7 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
 <li>Otherwise respond with a default network first strategy</li>
 </ol>
 <h3 id="workbox">Workbox</h3>
-<p>We'll first look at streaming content using Workbox.js and the <code>workbox.streams</code> plugin.</p>
+<p>We’ll first look at streaming content using Workbox.js and the <code>workbox.streams</code> plugin.</p>
 <p>We cache the <code>page-start</code> and <code>page-end</code> by adding them to our configuration file. This will precache the assets in addition to the other assets we precache for the sample site. The configuration modules looks like this:</p>
 <pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
   <span class="token string">'globDirectory'</span><span class="token operator">:</span> <span class="token string">'docs'</span><span class="token punctuation">,</span>
@@ -136,9 +136,9 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
 <span class="token keyword">const</span> <span class="token constant">FOOT</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>precaching<span class="token punctuation">.</span><span class="token function">getCacheKeyForURL</span><span class="token punctuation">(</span><span class="token string">'partials/page-end.html'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> <span class="token constant">ERROR</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>precaching<span class="token punctuation">.</span><span class="token function">getCacheKeyForURL</span><span class="token punctuation">(</span><span class="token string">'partials/404.html'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>We now create two strategies: one for the precached content and one for the content we'll pull from the network.</p>
-<p>We have to register the precache strategy so that Workbox will know where to pull the pieces from. It's not enough to precache them.</p>
-<p>The strategy for the content is what we're familiar with. A name for the cache and any plugins that we want to use.</p>
+<p>We now create two strategies: one for the precached content and one for the content we’ll pull from the network.</p>
+<p>We have to register the precache strategy so that Workbox will know where to pull the pieces from. It’s not enough to precache them.</p>
+<p>The strategy for the content is what we’re familiar with. A name for the cache and any plugins that we want to use.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> cacheStrategy <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span>CacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> workbox<span class="token punctuation">.</span>core<span class="token punctuation">.</span>cacheNames<span class="token punctuation">.</span>precache<span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -156,9 +156,9 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
 <p>First we make a request for the <code>HEAD</code> partial that will come from the cache.</p>
 <p>Next we make an async request for the body of the page from the network. If we succeed then we return the body of the request as text. If we fail then we make a request for the <code>ERROR</code> partial.</p>
 <p>Finally we make a request for the <code>FOOTER</code> template that will also be fetched from the precache.</p>
-<p>&lt;div class=&quot;message warning&quot;&gt;
-&lt;p&gt;The fact we're stitching our pages together doesn't mean we don't have to pprovide routes for other assets. The page works but it keeps reminding me that there are no routes defined for other assets we reference in the header and footer.&lt;/p&gt;
-&lt;/div&gt;</p>
+<div class="message warning">
+<p>The fact we're stitching our pages together doesn't mean we don't have to pprovide routes for other assets. The page works but it keeps reminding me that there are no routes defined for other assets we reference in the header and footer.</p>
+</div>
 <pre class="language-js"><code class="language-js">workbox<span class="token punctuation">.</span>routing<span class="token punctuation">.</span><span class="token function">registerRoute</span><span class="token punctuation">(</span>
     <span class="token keyword">new</span> <span class="token class-name">RegExp</span><span class="token punctuation">(</span><span class="token string">'\\.html$'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     workbox<span class="token punctuation">.</span>streams<span class="token punctuation">.</span><span class="token function">strategy</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
@@ -184,13 +184,13 @@ document<span class="token punctuation">.</span>body<span class="token punctuati
     <span class="token punctuation">]</span><span class="token punctuation">)</span>
 <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>I know what you're thinking... this is too much work for little returns. Consider that we're building smaller pages</p>
-<p>The video below from provides a deeper dive on caching strategies and how to use streams with Workbox. It's cued to start with Phil Walton's</p>
-<p>&lt;div class=&quot;video&quot;&gt;
-&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/25aCD5XL1Jk?start=933&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen&gt;&lt;/iframe&gt;
-&lt;/div&gt;</p>
-<h2 id="what's-next%3F">What's next?</h2>
-<p>I'm still working on an equivalent implementation to the Workbox example using vanilla JavaScript. It's taking longer than expected to wrap my head around the concept so I decided to take it out of this post and make its own later down the road.</p>
+<p>I know what you’re thinking… this is too much work for little returns. Consider that we’re building smaller pages</p>
+<p>The video below from provides a deeper dive on caching strategies and how to use streams with Workbox. It’s cued to start with Phil Walton’s</p>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/25aCD5XL1Jk?start=933" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<h2 id="what%E2%80%99s-next%3F">What’s next?</h2>
+<p>I’m still working on an equivalent implementation to the Workbox example using vanilla JavaScript. It’s taking longer than expected to wrap my head around the concept so I decided to take it out of this post and make its own later down the road.</p>
 <h2 id="conclusion">Conclusion</h2>
 <p>The idea is to improve performance by caching the beginning and the end of the page. We then fetch the body of the page and provide an offline fallback if the network is not available.</p>
 <p>This will provide a faster using experience by breaking the content into sections and only fetching the minimum necessary from the network, getting the rest from the cache.</p>

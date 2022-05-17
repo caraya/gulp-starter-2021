@@ -1,17 +1,17 @@
 <h1 id="the-danger-of-opaque-responsess">The danger of opaque responsess</h1>
 <p>While working with Workbox I discovered a hidden danger of opaque responses. This post will address these shortcomings and provide an imperfect solution for how to do it.</p>
-<p>Normally, opaque responses are not cacheable along with additional restrictions. See Jeff Posnick's <a href="https://stackoverflow.com/questions/39109789/what-limitations-apply-to-opaque-responses">Stack Overflow Answer</a> for details but it boils down to the following items:</p>
+<p>Normally, opaque responses are not cacheable along with additional restrictions. See Jeff Posnick’s <a href="https://stackoverflow.com/questions/39109789/what-limitations-apply-to-opaque-responses">Stack Overflow Answer</a> for details but it boils down to the following items:</p>
 <ul>
-<li>Because opaque responses are meant to be a black-box you won't get meaningful information from most of the properties of the <code>Response</code> class, or call the various methods that make up the Body interface, like <code>json()</code> or <code>text()</code></li>
+<li>Because opaque responses are meant to be a black-box you won’t get meaningful information from most of the properties of the <code>Response</code> class, or call the various methods that make up the Body interface, like <code>json()</code> or <code>text()</code></li>
 <li>Browsers pad the opaque resource size. In the case of Chrome the <em>minimum</em> size that any single cached opaque response contributes to the overall storage usage is approximately 7 megabytes</li>
 <li>The status property of an opaque response is always set to <code>0</code>, regardless of success or failure</li>
 <li>The <code>add()/addAll()</code> methods of the Cache API will reject if any response is outside the <code>2XX</code> range</li>
 </ul>
 <h2 id="are-opaque-requests-useful%3F">Are opaque requests useful?</h2>
-<p>Yes, there are places where opaque requests can be used without problem. Based on MDN's <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Cross-origin_network_access">Cross-origin network access</a> article:</p>
+<p>Yes, there are places where opaque requests can be used without problem. Based on MDN’s <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Cross-origin_network_access">Cross-origin network access</a> article:</p>
 <ul>
 <li><code>&lt;script src=&quot;…&quot;&gt;&lt;/script&gt;</code>. Error details for syntax errors are only available for same-origin scripts</li>
-<li><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;…&quot;&gt;</code> as long as it's served with the correct mime type</li>
+<li><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;…&quot;&gt;</code> as long as it’s served with the correct mime type</li>
 <li>Images displayed by <code>&lt;img&gt;</code></li>
 <li><code>&lt;video&gt;</code> and <code>&lt;audio&gt;</code></li>
 <li>Plugins embedded with <code>&lt;object&gt;</code>, <code>&lt;embed&gt;</code>, and <code>&lt;applet&gt;</code></li>
@@ -21,7 +21,7 @@
 <h2 id="caching-opaque-responses">Caching opaque responses</h2>
 <p>The example below creates a new <code>Request</code> for an opaque response.</p>
 <p>We then use the Fetch API to retrieve the requested object and we put it in the cache.</p>
-<p>The idea is that by putting the resource in the cache we're opting in to accepting whatever the resource is, even an error.</p>
+<p>The idea is that by putting the resource in the cache we’re opting in to accepting whatever the resource is, even an error.</p>
 <p>Because of the padding we need to be extra careful when we decided how many items we want to cache before our origin runs out of quota</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Request</span><span class="token punctuation">(</span><span class="token string">'https://third-party-no-cors.com/'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     mode<span class="token operator">:</span> <span class="token string">'no-cors'</span>
@@ -33,8 +33,8 @@
 <p>The handler below uses two plugins: <code>expiration</code> and <code>cacheableResponse</code>.</p>
 <p>The expiration plugin (<code>workbox.expiration.Plugin()</code>) dictates how long Workbox will keep the resources in the cache.</p>
 <p>The cacheableResponse plugin (<code>workbox.cacheableResponse.Plugin()</code>) changes the behavior of Workbox regarding opaque responses.</p>
-<p><code>statuses</code> indicates what HTTP status codes we want to accept for this handler. I've chosen to automatically accept <code>0</code> in addition to <code>200</code> as valid status codes for this request.</p>
-<p><code>purgeOnQuotaError: true</code> tells Workbox that it's ok to delete this cache when we hit the quota limit for this domain. We do this because we're accepting opaque responses and they are padded (at least 7 MB each in Chrome).</p>
+<p><code>statuses</code> indicates what HTTP status codes we want to accept for this handler. I’ve chosen to automatically accept <code>0</code> in addition to <code>200</code> as valid status codes for this request.</p>
+<p><code>purgeOnQuotaError: true</code> tells Workbox that it’s ok to delete this cache when we hit the quota limit for this domain. We do this because we’re accepting opaque responses and they are padded (at least 7 MB each in Chrome).</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> extFontHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">staleWhileRevalidate</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'external-fonts'</span><span class="token punctuation">,</span>
   plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -50,7 +50,7 @@
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>Each handler is associated with one or more routes. My project is working only with <a href="https://fonts.adobe.com/">Adobe Fonts</a> (Typekit) and <a href="https://fonts.google.com/">Google Fonts</a>. I split the domains into two, one for each provider I'm working with.</p>
+<p>Each handler is associated with one or more routes. My project is working only with <a href="https://fonts.adobe.com/">Adobe Fonts</a> (Typekit) and <a href="https://fonts.google.com/">Google Fonts</a>. I split the domains into two, one for each provider I’m working with.</p>
 <p>The first route uses a regular expression to match <code>use.typekit.net</code>.</p>
 <p>The second one is more commplicated. The regular expression matches either <code>fonts.google.com</code> or <code>fonts.gstatic.com</code>. There may be other domains and that will mean that we need additional routes for those dommains.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Third party fonts from typekit</span>
@@ -63,5 +63,5 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token keyword">return</span> extFontHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>We've accepted opaque responses and have configured the Service Worker to expire the requests after a given period of time and to delete the cache when we hit the quota limit.</p>
-<p>So this provides an imperfect solution to caching opaque requests. I don't know if this is better than hosting all resources locally or not. It is what I have now and it works as intended.</p>
+<p>We’ve accepted opaque responses and have configured the Service Worker to expire the requests after a given period of time and to delete the cache when we hit the quota limit.</p>
+<p>So this provides an imperfect solution to caching opaque requests. I don’t know if this is better than hosting all resources locally or not. It is what I have now and it works as intended.</p>

@@ -19,11 +19,11 @@
 <article class="container">
   <h1 id="building-a-performance-test-suite">Building a performance test suite</h1>
 <p>Ever so often you see questions in Quora about <a href="https://brave.com/">Brave</a>, a Chromium-based browser that claims to be faster than stock Chromium and other derivative browsers like Edge,  or Opera on Desktop.</p>
-<p>The last time I saw the performance testing results and methodology was when they first released version 1.0, documented in <a href="https://brave.com/brave-one-dot-zero-performance-methodology-and-results/">Brave 1.0 Performance: Methodology and Results</a> with the code used to do the analysis available on <a href="https://github.com/brave-experiments/browser-comparison-toolkit">Github</a> but I haven't seen more recent data.</p>
-<p>The tests were done in older versions of the browsers tested and the <a href="https://github.com/brave-experiments/browser-comparison-toolkit">Brave Browser Comparison Kit</a> hasn't been updated for newer versions (not that I would expect tthem to), so the best solution is to create my own tests using <a href="https://playwright.dev">Playwright</a> to see if the performance gap has been reduced or the 3x claim speed improvement over other browsers is still valid.</p>
-<p>From this original idea, the notion evolved into using Playwright to do cross-platform performance testing. What can we do everywhere, what's specific to browsers or performance libraries. Does Playwright work better than WebDriver (even though WebDriver is a W3C spec)? Does the tool used to test affect the results of the test?</p>
+<p>The last time I saw the performance testing results and methodology was when they first released version 1.0, documented in <a href="https://brave.com/brave-one-dot-zero-performance-methodology-and-results/">Brave 1.0 Performance: Methodology and Results</a> with the code used to do the analysis available on <a href="https://github.com/brave-experiments/browser-comparison-toolkit">Github</a> but I haven’t seen more recent data.</p>
+<p>The tests were done in older versions of the browsers tested and the <a href="https://github.com/brave-experiments/browser-comparison-toolkit">Brave Browser Comparison Kit</a> hasn’t been updated for newer versions (not that I would expect tthem to), so the best solution is to create my own tests using <a href="https://playwright.dev">Playwright</a> to see if the performance gap has been reduced or the 3x claim speed improvement over other browsers is still valid.</p>
+<p>From this original idea, the notion evolved into using Playwright to do cross-platform performance testing. What can we do everywhere, what’s specific to browsers or performance libraries. Does Playwright work better than WebDriver (even though WebDriver is a W3C spec)? Does the tool used to test affect the results of the test?</p>
 <h2 id="getting-started%3A-implementing-the-playwright-script">Getting started: Implementing the playwright script</h2>
-<p>I've broken the initial Playwright script into smaller sections that are easier to explain.</p>
+<p>I’ve broken the initial Playwright script into smaller sections that are easier to explain.</p>
 <h3 id="configuring-the-browser">Configuring the browser</h3>
 <p>One of the things Playwright does that allow us to configure which Chromium browser we want to run the tests with.</p>
 <p>The following configuration will run the test with an instance of Chrome Canary installed on my macOS laptop. It will run in headless mode.</p>
@@ -33,7 +33,7 @@
   executablePath<span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary</span><span class="token template-punctuation string">`</span></span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>We can configure other Chromium-based browsers. I chose to work Edge Canary and Brave Nightly. I believe other Chromium browsers would also work. I haven't tested them.</p>
+<p>We can configure other Chromium-based browsers. I chose to work Edge Canary and Brave Nightly. I believe other Chromium browsers would also work. I haven’t tested them.</p>
 <p>We can also use the default Playwright configurations to run Firefox and WebKit. We configure both browsers to run in headless mode</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// TESTING WITH FIREFOX</span>
 <span class="token keyword">const</span> firefox <span class="token operator">=</span> <span class="token keyword">await</span> playwright<span class="token punctuation">.</span>firefox<span class="token punctuation">.</span><span class="token function">launch</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
@@ -47,9 +47,9 @@
 </code></pre>
 <h3 id="basic-performance-configuration">Basic performance configuration</h3>
 <p>Below are some basic examples of how to test for performance items using the deprecated <code>window.performance.timing</code> object.</p>
-<p><code>performanceTimingJson</code> uses Playwright's <a href="https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageevaluatepagefunction-arg">evaluate</a> to get the values of the <code>window.performance.timing</code> object.</p>
+<p><code>performanceTimingJson</code> uses Playwright’s <a href="https://playwright.dev/docs/api/class-page/?pageevalselector-pagefunction-arg#pageevaluatepagefunction-arg">evaluate</a> to get the values of the <code>window.performance.timing</code> object.</p>
 <p>We then create another variable with the parsed result of <code>performanceTimingJson</code>.</p>
-<p>We then run some calculations to get values for some performance metrics  that I'm interested in.</p>
+<p>We then run some calculations to get values for some performance metrics  that I’m interested in.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">let</span> performanceTimingJson <span class="token operator">=</span> <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">evaluate</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>window<span class="token punctuation">.</span>performance<span class="token punctuation">.</span>timing<span class="token punctuation">)</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
@@ -74,7 +74,7 @@
 <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h3 id="adding-tracing-collection">Adding tracing collection</h3>
-<p>One thing I hadn't realized until I saw it in Playwright's documentation is that you can create a DevTools <a href="https://brainshark.zendesk.com/hc/en-us/articles/205043644-How-to-Perform-a-Browser-Trace-Chrome">trace</a> that we can then feed back into DevTools or the trace viewer available as a <a href="https://chromedevtools.github.io/timeline-viewer/?loadTimelineFromURL=https://gist.github.com/caraya/cb047161dd5d223370ef6496ccff7ad3">web application</a> or directly in the browser via <code>chrome://tracing/</code></p>
+<p>One thing I hadn’t realized until I saw it in Playwright’s documentation is that you can create a DevTools <a href="https://brainshark.zendesk.com/hc/en-us/articles/205043644-How-to-Perform-a-Browser-Trace-Chrome">trace</a> that we can then feed back into DevTools or the trace viewer available as a <a href="https://chromedevtools.github.io/timeline-viewer/?loadTimelineFromURL=https://gist.github.com/caraya/cb047161dd5d223370ef6496ccff7ad3">web application</a> or directly in the browser via <code>chrome://tracing/</code></p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> chrome <span class="token operator">=</span> <span class="token keyword">await</span> playwright<span class="token punctuation">.</span>chromium<span class="token punctuation">.</span><span class="token function">launch</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   headless<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
   executablePath<span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary</span><span class="token template-punctuation string">`</span></span>
@@ -135,7 +135,7 @@
 </code></pre>
 <h3 id="writing-the-results-to-a-file">Writing the results to a file</h3>
 <p>The final part of this basic performance setup is to write the unpublished results to a file. Since were mixing stringified JSON and plain text content the attempt at making it all readable is not as straighforward as I thought it would.</p>
-<p>A working firrst step uses Node's <a href="https://nodejs.org/api/fs.html#fs_file_system">fs</a> module to append an array and several lines of text to a file. If the file doesn't exist the module will create it for us. I make the file unique by appending a new data object to the name.</p>
+<p>A working firrst step uses Node’s <a href="https://nodejs.org/api/fs.html#fs_file_system">fs</a> module to append an array and several lines of text to a file. If the file doesn’t exist the module will create it for us. I make the file unique by appending a new data object to the name.</p>
 <pre class="language-js"><code class="language-js">dataToAppend <span class="token operator">=</span> <span class="token punctuation">(</span>data<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">'\n'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 fs<span class="token punctuation">.</span><span class="token function">appendFile</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">chrome-performance-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">.txt</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span> dataToAppend<span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -146,11 +146,11 @@ fs<span class="token punctuation">.</span><span class="token function">appendFil
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The problem with the code is that the first array object is stored as a single line, making it very difficult to read. Ideally we'd be able to pretty print it to make it easier for humans to read it.</p>
+<p>The problem with the code is that the first array object is stored as a single line, making it very difficult to read. Ideally we’d be able to pretty print it to make it easier for humans to read it.</p>
 <p>Fortunately, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify">JSON.stringify()</a> can do it for us.</p>
 <p>The third argument in the stringify method provides a String or Number used to insert white space into the output JSON string for readability purposes.</p>
 <p>…</p>
-<p>If this is a String, the string (or the first 10 characters of the string, if it's longer than that) is used as white space. If this parameter is not provided (or is null), no white space is used.</p>
+<p>If this is a String, the string (or the first 10 characters of the string, if it’s longer than that) is used as white space. If this parameter is not provided (or is null), no white space is used.</p>
 <p>so we can use a tab character escape sequence as the third parameter to the stringify method:</p>
 <pre class="language-js"><code class="language-js"><span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>pt<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token string">'\t'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
 </code></pre>
@@ -181,15 +181,15 @@ fs<span class="token punctuation">.</span><span class="token function">appendFil
 </code></pre>
 <p>To make the remaining lines legible, we can insert return characters <code>\n</code> before and after each line.</p>
 <h2 id="customization%3A-entering-the-url-from-the-command-line">Customization: Entering the URL from the command line</h2>
-<p>One final customization I'd like to do is to have the ability to enter the URL to test from the command line rather than hard-code it on the script. This will give us the ability to run it multiple times from a shell script.</p>
-<p>We capture the URL from the command line using Node's <a href="https://nodejs.org/docs/latest/api/process.html#process_process_argv">process.argv()</a> method.</p>
+<p>One final customization I’d like to do is to have the ability to enter the URL to test from the command line rather than hard-code it on the script. This will give us the ability to run it multiple times from a shell script.</p>
+<p>We capture the URL from the command line using Node’s <a href="https://nodejs.org/docs/latest/api/process.html#process_process_argv">process.argv()</a> method.</p>
 <p>We know that the name of the script is the second value (zero-index) because the values are:</p>
 <ul>
 <li>0: Node (the command to run)</li>
 <li>1: Name of the script that Node will run</li>
 <li>2 and later: additional parameters</li>
 </ul>
-<p>In the async anonymous IFFE we use to run the code we add the URL as a parameter with a default value; this default value prevents errors when we don't add a URL in the command line.</p>
+<p>In the async anonymous IFFE we use to run the code we add the URL as a parameter with a default value; this default value prevents errors when we don’t add a URL in the command line.</p>
 <p>The changes to the code are simple:</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> url <span class="token operator">=</span> process<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
 
@@ -201,14 +201,14 @@ fs<span class="token punctuation">.</span><span class="token function">appendFil
 </code></pre>
 <h2 id="using-shell-scripts-to-enchance-the-playwright-script">Using shell scripts to enchance the playwright script</h2>
 <p>I built a list of 85 URLs that are possible candidates for testing by combining the URLs in the Brave testing list with the <a href="https://www.alexa.com/topsites">Alexa Top 50 websites</a> taken from the larger top 500 sites report on 2/23/21.</p>
-<p>This will only work for Linux, Mac and Windows using WSL (Window Subsystem for Linux). I currently don't have an equivalent for Power Shell.</p>
+<p>This will only work for Linux, Mac and Windows using WSL (Window Subsystem for Linux). I currently don’t have an equivalent for Power Shell.</p>
 <p>The script does the following:</p>
 <ol>
 <li>Sets up the path to the Bash shell executable</li>
-<li>Seeds the random number generator that we'll use to select the random URL</li>
+<li>Seeds the random number generator that we’ll use to select the random URL</li>
 <li>Loads the data from fullsites.txt into the <code>urls</code> variable</li>
 <li>Creates a variable with a randomly selected URL from the urls variable</li>
-<li>Echos the URL we're testing</li>
+<li>Echos the URL we’re testing</li>
 <li>Runs the <code>performance-test</code> Node script with the random URL as the parameter</li>
 </ol>
 <pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/usr/local/bin/bash #1</span>
@@ -240,9 +240,9 @@ node performance-test.js URL_TO_TEST
 <ul>
 <li>There are more metrics we can incorporate to the scripts</li>
 <li>We can choose to put all the browser tests in one browser or put them in separate files and call  them from the main shell script</li>
-<li>Find a better way to randomize the URLs to choose. The built-in randomizing function in Bash is not as random as I'd like</li>
+<li>Find a better way to randomize the URLs to choose. The built-in randomizing function in Bash is not as random as I’d like</li>
 </ul>
-<p>If you have any specific idea for improvevment, please open an issue in the project's <a href="https://github.com/caraya/performance-testing">Github repo</a> or contact me on Twitter <a href="https://twitter.com/elrond25">@elrond25</a></p>
+<p>If you have any specific idea for improvevment, please open an issue in the project’s <a href="https://github.com/caraya/performance-testing">Github repo</a> or contact me on Twitter <a href="https://twitter.com/elrond25">@elrond25</a></p>
 
 </article>
 <!--

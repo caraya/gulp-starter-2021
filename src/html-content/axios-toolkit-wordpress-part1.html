@@ -1,16 +1,16 @@
 <h1 id="axios-toolkit-for-wordpress-rest-api">Axios toolkit for WordPress REST API</h1>
-<p>As I'm learning the deep workings of the <a href="https://developer.wordpress.org/rest-api/">WordPress REST API</a> I'm also learning how to use <a href="https://github.com/axios/axios">Axios</a> as a replacement for Fetch.</p>
-<p>While I discovered that this will not work with Nuxt and the WordPress REST API, it's still a good starting point if you want to work with vanilla JS and templating engines. I am still researching how to make it work in Nuxt.js.</p>
-<p>Another thing that's important to note. Other than <code>getJWT()</code> all other functions require authentication and I've chosen to use <a href="https://jwt.io/introduction">JSON Web Tokens (JWT)</a> to authenticate the requests. The WordPress side uses the <a href="https://github.com/Tmeister/wp-api-jwt-auth">JWT Authentication for the WP REST API</a> so I don't havee to code it myself.</p>
+<p>As I’m learning the deep workings of the <a href="https://developer.wordpress.org/rest-api/">WordPress REST API</a> I’m also learning how to use <a href="https://github.com/axios/axios">Axios</a> as a replacement for Fetch.</p>
+<p>While I discovered that this will not work with Nuxt and the WordPress REST API, it’s still a good starting point if you want to work with vanilla JS and templating engines. I am still researching how to make it work in Nuxt.js.</p>
+<p>Another thing that’s important to note. Other than <code>getJWT()</code> all other functions require authentication and I’ve chosen to use <a href="https://jwt.io/introduction">JSON Web Tokens (JWT)</a> to authenticate the requests. The WordPress side uses the <a href="https://github.com/Tmeister/wp-api-jwt-auth">JWT Authentication for the WP REST API</a> so I don’t havee to code it myself.</p>
 <p>We first import the <a href="https://axios-http.com/">Axios</a> library, create a constant holding our JWT token and set the default base URL for all Axios calls.</p>
-<p>We'll discuss how we generate it and why we're getting from session storage when we talk about the <code>getJWT()</code> function.</p>
+<p>We’ll discuss how we generate it and why we’re getting from session storage when we talk about the <code>getJWT()</code> function.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">import</span> axios <span class="token keyword">from</span> <span class="token string">"axios"</span><span class="token punctuation">;</span>
 
 <span class="token keyword">const</span> access_token <span class="token operator">=</span> sessionStorage<span class="token punctuation">.</span><span class="token function">getItem</span><span class="token punctuation">(</span><span class="token string">'jwt_token'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 axios<span class="token punctuation">.</span>defaults<span class="token punctuation">.</span>baseURL <span class="token operator">=</span> <span class="token string">'http://rivendellweb.local'</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Rather than use the default the password for the administrator account that is making the requests, I strongly suggest you use <a href="https://make.wordpress.org/core/2020/11/05/application-passwords-integration-guide/">application passwords</a> as an additional level of security without having to create accounts specific to a project.</p>
-<p>We first run a post request to the JWT-Auth plugin's <code>token</code> endpoint with the user's credentilas in the body of the request. One thing that tripped me is that because we're getting the token for the first time <em><strong>we don't need to pass the JWT token to this method</strong></em>.</p>
+<p>We first run a post request to the JWT-Auth plugin’s <code>token</code> endpoint with the user’s credentilas in the body of the request. One thing that tripped me is that because we’re getting the token for the first time <em><strong>we don’t need to pass the JWT token to this method</strong></em>.</p>
 <p>If the request is successful we get back a JWT token that we store in <a href="https://developer.mozilla.org/en-US/">session storage</a>. I chose session storage because it lasts only as long as the current session.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">getJWT</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">await</span> axios
@@ -31,7 +31,7 @@ axios<span class="token punctuation">.</span>defaults<span class="token punctuat
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p><code>getRoot()</code> returns the root of the site's API. I've added this function for completeness sake. Most of the time we'll skip this and look at <code>getIndex()</code> instead.</p>
+<p><code>getRoot()</code> returns the root of the site’s API. I’ve added this function for completeness sake. Most of the time we’ll skip this and look at <code>getIndex()</code> instead.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">getRoot</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">await</span> axios
     <span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'/wp-json/'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
@@ -47,7 +47,7 @@ axios<span class="token punctuation">.</span>defaults<span class="token punctuat
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p><code>getIndex()</code> queries the basse of the WordPress routes. This is where all the routes we'll discuss below originate from.</p>
+<p><code>getIndex()</code> queries the basse of the WordPress routes. This is where all the routes we’ll discuss below originate from.</p>
 <p>This is more specific than <code>getRoot</code> as it pertains only to WordPress routes and we can use it to explore what routes the specific instance of WordPress makes available.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">getIndex</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">await</span> axios
@@ -67,7 +67,7 @@ axios<span class="token punctuation">.</span>defaults<span class="token punctuat
 <p>We use <code>getPageCount()</code> to get the number of pages of posts available on the blog.</p>
 <p>So the idea is to capture the value of <code>X-WP-TotalPages</code> response header via  the HEAD HTTP method and use it to build the pagination.</p>
 <blockquote>
-<p>The HTTP HEAD method requests the headers that would be returned if the HEAD request's URL was instead requested with the HTTP GET method.</p>
+<p>The HTTP HEAD method requests the headers that would be returned if the HEAD request’s URL was instead requested with the HTTP GET method.</p>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD">HEAD</a> from MDN</p>
 </blockquote>
 <p>In this example we capture the headers we need and then use them to log a message to the console. In a production application we would use them to generate the individual links to all available pages.</p>
@@ -108,7 +108,7 @@ axios<span class="token punctuation">.</span>defaults<span class="token punctuat
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>If we know the name of the type of content we're looking for, we can get more information about by using <code>getTypeBySlug</code>. This query will return a single type matching the slug we pass as a parameter or the post type if no parameter is passed to the function.</p>
+<p>If we know the name of the type of content we’re looking for, we can get more information about by using <code>getTypeBySlug</code>. This query will return a single type matching the slug we pass as a parameter or the post type if no parameter is passed to the function.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">getTypeBySlug</span><span class="token punctuation">(</span>slugName <span class="token operator">=</span> <span class="token string">'post'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">let</span> singleType <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">/wp-json/wp/v2/types/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>slugName<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
 
@@ -147,7 +147,7 @@ axios<span class="token punctuation">.</span>defaults<span class="token punctuat
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>The next function will get a single post by it's ID or return a default post if there are no parameters in the function call.</p>
+<p>The next function will get a single post by it’s ID or return a default post if there are no parameters in the function call.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">getPostByID</span><span class="token punctuation">(</span><span class="token parameter">postID <span class="token operator">=</span> <span class="token number">790634</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">await</span> axios
     <span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'/wp-json/wp/v2/posts/'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>

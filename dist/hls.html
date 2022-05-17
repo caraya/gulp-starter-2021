@@ -18,13 +18,13 @@
 <body>
 <article class="container">
   <h1 id="creating-hls-vod-content">Creating HLS VOD Content</h1>
-<p>MPEG-DASH is one way to create adaptive bitstream playback; but it's not the only one. In this post we'll explore Apple's <a href="https://www.wikiwand.com/en/HTTP_Live_Streaming">HLS (HTML Live Streaming)</a> a direct competitor for MPEG-DASH and see how to build a package ready for Video On Demand.</p>
-<p>I will use FFMPEG to encode the video as required in the HLS specification. This is the same tool that I've used to create videos with other codecs.</p>
+<p>MPEG-DASH is one way to create adaptive bitstream playback; but it’s not the only one. In this post we’ll explore Apple’s <a href="https://www.wikiwand.com/en/HTTP_Live_Streaming">HLS (HTML Live Streaming)</a> a direct competitor for MPEG-DASH and see how to build a package ready for Video On Demand.</p>
+<p>I will use FFMPEG to encode the video as required in the HLS specification. This is the same tool that I’ve used to create videos with other codecs.</p>
 <h2 id="hls-creation%3A-single-rendition">HLS Creation: Single Rendition</h2>
-<p>&lt;div class=&quot;message info&quot;&gt;
-&lt;p&gt;At WWDC 2017, Apple anounced support for HEVC (H265), letting you work with both types of stream in the same play list.&lt;/p&gt;
-&lt;p&gt;The technologies to implement HEVC in HLS is significantly different than what we discuss here so I'll probably do a separate post on it rather than confuse matters. I'm also banking on the fact that H264 has better support in both Apple and non-Apple devices.&lt;/p&gt;
-&lt;/div&gt;</p>
+<div class="message info">
+  <p>At WWDC 2017, Apple anounced support for HEVC (H265), letting you work with both types of stream in the same play list.</p>
+  <p>The technologies to implement HEVC in HLS is significantly different than what we discuss here so I'll probably do a separate post on it rather than confuse matters. I'm also banking on the fact that H264 has better support in both Apple and non-Apple devices.</p>
+</div>
 <p>HLS works differently than DASH with different formats and parameters. We will use <a href="https://www.ffmpeg.org/">FFMPEG</a> command line tool to create the HLS video. It provides a lot of tools and supports the creation of the necessary files out of the box.</p>
 <p>HLS works with Transport Stream segments and has much tighter control over the characteristics of the streams (or renditions in HLS parlance).</p>
 <p>Encoding a single rendition of your video looks like this for a H264 product.</p>
@@ -54,11 +54,11 @@ serenity/360p.m3u8
 <li><code>-profile:v main</code> - set H264 profile to main - this means support in modern devices</li>
 <li><code>-crf 20</code> - Constant Rate Factor, high level factor for overall quality</li>
 <li><code>-g 48 -keyint_min 48</code> - create key frame (I-frame) every 48 frames (~2 seconds) - will later affect correct slicing of segments and alignment of renditions</li>
-<li><code>-sc_threshold 0</code> - don't create key frames on scene change - only according to -g</li>
+<li><code>-sc_threshold 0</code> - don’t create key frames on scene change - only according to -g</li>
 <li><code>-b:v 800k -maxrate 856k -bufsize 1200k</code> - limit video bitrate, these are rendition specific and depends on your content type</li>
 <li><code>-hls_time 4</code> - segment target duration in seconds - the actual length is constrained by key frames</li>
 <li><code>-hls_playlist_type vod</code> - adds the #EXT-X-PLAYLIST-TYPE:VOD tag and keeps all segments in the playlist</li>
-<li><code>-hls_segment_filename beach/360p_%03d.ts</code> - explicitly define segments files' names</li>
+<li><code>-hls_segment_filename beach/360p_%03d.ts</code> - explicitly define segments files’ names</li>
 <li><code>serenity/360p.m3u8</code> - path of the playlist file - also tells ffmpeg to output HLS (.m3u8)</li>
 </ul>
 <p>Running the code above will produce a set of files:</p>
@@ -145,7 +145,7 @@ serenity/360p.m3u8
 <span class="token comment">#EXT-X-ENDLIST</span>
 </code></pre>
 <h2 id="hls-creation%3A-multiple-renditions-and-master-playlist">HLS Creation: Multiple Renditions And Master Playlist</h2>
-<p>All the work we did in the previous section was for one rendition. You will definitely want more than one to acomoadte both your low-end, low-bandwidth users as well as those who are watching in the latest 4k iMac on fiber connections. We can create multiple renditions and let the player decide what's the best one to play at any given time of the playback.</p>
+<p>All the work we did in the previous section was for one rendition. You will definitely want more than one to acomoadte both your low-end, low-bandwidth users as well as those who are watching in the latest 4k iMac on fiber connections. We can create multiple renditions and let the player decide what’s the best one to play at any given time of the playback.</p>
 <p>This command will create 4 versions of the video along with a playlist for each:</p>
 <ul>
 <li>360p</li>
@@ -172,7 +172,7 @@ serenity/360p.m3u8
    -hls_playlist_type vod -b:v 5000k -maxrate 5350k <span class="token punctuation">\</span>
   -bufsize 7500k -b:a 192k -hls_segment_filename serenity/1080p_%03d.ts serenity/1080p.m3u8
 </code></pre>
-<p>This created the media but there's no way for the player to know what's available. To fix this we create a master playlist that tells the player what renditions are available for the video.</p>
+<p>This created the media but there’s no way for the player to know what’s available. To fix this we create a master playlist that tells the player what renditions are available for the video.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token comment">#EXTM3U</span>
 <span class="token comment">#EXT-X-VERSION:3</span>
 <span class="token comment">#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360</span>
@@ -184,11 +184,11 @@ serenity/360p.m3u8
 <span class="token comment">#EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080</span>
 1080p.m3u8
 </code></pre>
-<p>Note that this playlist doesn't include the stream transport segments. The master list only tells the player where to look for the corresponding renditions.</p>
+<p>Note that this playlist doesn’t include the stream transport segments. The master list only tells the player where to look for the corresponding renditions.</p>
 <p>Yes, this is cumbersome to do by hand and, when also working with DASH packages, it can be hard to manage.</p>
 <p>There are different tools to automate the generation of the HSL Renditions and play lists.</p>
-<p>Newer versions of Google's <a href="https://google.github.io/shaka-packager/">Shaka Packager</a> support creating HLS segments and playlists. They also support creating HLS and DASH content with a single command (although this appears to only with single MP4 files).</p>
-<p>Assuming that you've already downloaded/compiled the packager, the command to genererate DASH and HSL look llike this:</p>
+<p>Newer versions of Google’s <a href="https://google.github.io/shaka-packager/">Shaka Packager</a> support creating HLS segments and playlists. They also support creating HLS and DASH content with a single command (although this appears to only with single MP4 files).</p>
+<p>Assuming that you’ve already downloaded/compiled the packager, the command to genererate DASH and HSL look llike this:</p>
 <pre class="language-bash"><code class="language-bash">packager <span class="token punctuation">\</span>
   <span class="token assign-left variable">in</span><span class="token operator">=</span>h264_baseline_360p_600.mp4,stream<span class="token operator">=</span>audio,output<span class="token operator">=</span>audio.mp4,playlist_name<span class="token operator">=</span>audio.m3u8,hls_group_id<span class="token operator">=</span>audio,hls_name<span class="token operator">=</span>ENGLISH <span class="token punctuation">\</span>
   <span class="token assign-left variable">in</span><span class="token operator">=</span>h264_baseline_360p_600.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>h264_360p.mp4,playlist_name<span class="token operator">=</span>h264_360p.m3u8,iframe_playlist_name<span class="token operator">=</span>h264_360p_iframe.m3u8 <span class="token punctuation">\</span>
@@ -221,9 +221,9 @@ serenity/360p.m3u8
 ├── h264_main_720p_3000.mp4
 └── h264_master.m3u8
 </code></pre>
-<p>And these can be used to play either DASH or HLS video. We'll tackle playback next.</p>
+<p>And these can be used to play either DASH or HLS video. We’ll tackle playback next.</p>
 <h2 id="playback">Playback</h2>
-<p>I know how to use <a href="https://shaka-player-demo.appspot.com/">Shaka Player</a> to play DASH content. It should be possible to use the same player to play both DASH and HLS content although it shouldn't be necessary to play both, the player scripts should take care of cross platform issues.</p>
+<p>I know how to use <a href="https://shaka-player-demo.appspot.com/">Shaka Player</a> to play DASH content. It should be possible to use the same player to play both DASH and HLS content although it shouldn’t be necessary to play both, the player scripts should take care of cross platform issues.</p>
 <p>Another option is to use <a href="https://videojs.com/">Video.js</a> with the <a href="https://www.npmjs.com/package/videojs-contrib-hls">HSL</a> plugin and the <a href="https://www.npmjs.com/package/videojs-contrib-dash-s1">DASH</a> if you need to serve both formats on the same page.</p>
 <p>The basic functionality looks like this:</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>video</span>  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>example-video</span>
@@ -246,88 +246,88 @@ serenity/360p.m3u8
 player<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
 </code></pre>
-<p>I'm tracking <a href="https://github.com/videojs/videojs-contrib-hls/issues/1365">issue 1365</a> in the <a href="https://github.com/videojs/videojs-contrib-hls/">Video.js HSL Plugin Repository</a> to track the issue of content not playing in Chrome.</p>
-<p>I'm also researching if I can combine DASH and HLS in a single player for either Shaka Player or Video.js.</p>
+<p>I’m tracking <a href="https://github.com/videojs/videojs-contrib-hls/issues/1365">issue 1365</a> in the <a href="https://github.com/videojs/videojs-contrib-hls/">Video.js HSL Plugin Repository</a> to track the issue of content not playing in Chrome.</p>
+<p>I’m also researching if I can combine DASH and HLS in a single player for either Shaka Player or Video.js.</p>
 <h2 id="encoding-suggestions">Encoding Suggestions</h2>
 <p>Like DASH, HLS allows for multiple renditions of cotnebt at different resolutions. What these resolutions are will depend on your content and your target audience.</p>
 <p>Each row presents to bitrate values, one for low motion content like conference presentations and other activities where there is little motion. The other is for the opposite type of video like sports and other high motion activities. The adio bitrate remains constat for both low and high motion videos.</p>
-<p>The table is taken from Peer 5's <a href="https://docs.peer5.com/guides/production-ready-hls-vod/">Creating A Production Ready Multi Bitrate HLS VOD stream</a></p>
-<p>&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&quot;left&quot;&gt;Quality&lt;/th&gt;
-&lt;th align=&quot;center&quot;&gt;Resolution&lt;/th&gt;
-&lt;th align=&quot;right&quot;&gt;bitrate - low motion&lt;/th&gt;
-&lt;th align=&quot;right&quot;&gt;bitrate - high motion&lt;/th&gt;
-&lt;th align=&quot;right&quot;&gt;audio bitrate&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;240p&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;426x240&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;400k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;600k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;64k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;360p&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;640x360&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;700k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;900k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;96k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;480p&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;854x480&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;1250k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;1600k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;128k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;HD 720p&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;1280x720&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;2500k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;3200k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;128k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;HD 720p 60fps&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;1280x720&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;3500k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;4400k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;128k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;Full HD 1080p&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;1920x1080&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;4500k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;5300k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;192k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;Full HD 1080p 60fps&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;1920x1080&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;5800k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;7400k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;192k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;4k&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;3840x2160&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;14000k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;18200&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;192k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td align=&quot;left&quot;&gt;4k 60fps&lt;/td&gt;
-&lt;td align=&quot;center&quot;&gt;3840x2160&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;23000k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;29500k&lt;/td&gt;
-&lt;td align=&quot;right&quot;&gt;192k&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;</p>
+<p>The table is taken from Peer 5’s <a href="https://docs.peer5.com/guides/production-ready-hls-vod/">Creating A Production Ready Multi Bitrate HLS VOD stream</a></p>
+<table>
+  <thead>
+    <tr>
+      <th align="left">Quality</th>
+      <th align="center">Resolution</th>
+      <th align="right">bitrate - low motion</th>
+      <th align="right">bitrate - high motion</th>
+      <th align="right">audio bitrate</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">240p</td>
+      <td align="center">426x240</td>
+      <td align="right">400k</td>
+      <td align="right">600k</td>
+      <td align="right">64k</td>
+    </tr>
+    <tr>
+      <td align="left">360p</td>
+      <td align="center">640x360</td>
+      <td align="right">700k</td>
+      <td align="right">900k</td>
+      <td align="right">96k</td>
+    </tr>
+    <tr>
+      <td align="left">480p</td>
+      <td align="center">854x480</td>
+      <td align="right">1250k</td>
+      <td align="right">1600k</td>
+      <td align="right">128k</td>
+    </tr>
+    <tr>
+      <td align="left">HD 720p</td>
+      <td align="center">1280x720</td>
+      <td align="right">2500k</td>
+      <td align="right">3200k</td>
+      <td align="right">128k</td>
+    </tr>
+    <tr>
+      <td align="left">HD 720p 60fps</td>
+      <td align="center">1280x720</td>
+      <td align="right">3500k</td>
+      <td align="right">4400k</td>
+      <td align="right">128k</td>
+    </tr>
+    <tr>
+      <td align="left">Full HD 1080p</td>
+      <td align="center">1920x1080</td>
+      <td align="right">4500k</td>
+      <td align="right">5300k</td>
+      <td align="right">192k</td>
+    </tr>
+    <tr>
+      <td align="left">Full HD 1080p 60fps</td>
+      <td align="center">1920x1080</td>
+      <td align="right">5800k</td>
+      <td align="right">7400k</td>
+      <td align="right">192k</td>
+    </tr>
+    <tr>
+      <td align="left">4k</td>
+      <td align="center">3840x2160</td>
+      <td align="right">14000k</td>
+      <td align="right">18200</td>
+      <td align="right">192k</td>
+    </tr>
+    <tr>
+      <td align="left">4k 60fps</td>
+      <td align="center">3840x2160</td>
+      <td align="right">23000k</td>
+      <td align="right">29500k</td>
+      <td align="right">192k</td>
+    </tr>
+  </tbody>
+</table>
 <h2 id="references">References</h2>
 <ul>
 <li>Docs

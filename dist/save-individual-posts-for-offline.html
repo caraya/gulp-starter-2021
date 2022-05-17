@@ -23,7 +23,7 @@
 <h2 id="overview">Overview</h2>
 <p>The idea of this project is to change the service worker in my <a href="https://layout-experiments.firebaseapp.com/">layout experiments</a> site to do the following:</p>
 <ol>
-<li>Precache the resources as it's currently done
+<li>Precache the resources as it’s currently done
 <ul>
 <li>In this case, cache the index page and associated assets</li>
 </ul>
@@ -38,14 +38,14 @@
 <h2 id="vanilla-javascript">Vanilla Javascript</h2>
 <p>We can work with service workers in vanilla Javascript. There are many resources available that provide examples to follow. Some of them are:</p>
 <ul>
-<li>Jake Archibald's <a href="https://jakearchibald.com/2014/offline-cookbook/">Offline Cookbook</a></li>
-<li>Mozilla's <a href="https://serviceworke.rs/">Service Workers Cookbook</a></li>
-<li>Una Kravets <a href="https://una.im/save-offline/">Implementing &quot;Save For Offline&quot; with Service Workers</a></li>
+<li>Jake Archibald’s <a href="https://jakearchibald.com/2014/offline-cookbook/">Offline Cookbook</a></li>
+<li>Mozilla’s <a href="https://serviceworke.rs/">Service Workers Cookbook</a></li>
+<li>Una Kravets <a href="https://una.im/save-offline/">Implementing “Save For Offline” with Service Workers</a></li>
 <li><a href="https://css-tricks.com/serviceworker-for-offline/">Making a Simple Site Work Offline with ServiceWorker</a></li>
 <li><a href="https://chrisruppel.com/blog/service-worker-offline-content/">Offline Content with Service Worker</a></li>
 </ul>
-<p>Using Una's post as guidance we'll build the code to cache posts on demand.</p>
-<p>We'll do the work backwards and begin with the service worker. Because we're letting users decide what they want to save for offline view, we don't need as much work as we would in a regular service worker.</p>
+<p>Using Una’s post as guidance we’ll build the code to cache posts on demand.</p>
+<p>We’ll do the work backwards and begin with the service worker. Because we’re letting users decide what they want to save for offline view, we don’t need as much work as we would in a regular service worker.</p>
 <p>The <code>install</code> event will precache all our assets, listed in <code>assetsToCache</code> the first time we visit the page.</p>
 <p>Using <code>skipWaiting()</code> and <code>clients.claim()</code> makes sure that the service worker takes over the page and site as soon as possible, without waiting for the page to reload.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Service Worker (sw.js)</span>
@@ -80,7 +80,7 @@ self<span class="token punctuation">.</span><span class="token function">addEven
   <span class="token keyword">return</span> self<span class="token punctuation">.</span>clients<span class="token punctuation">.</span><span class="token function">claim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The fetch event also helps me start learning how to use async/await in a service worker instead of raw promises. The idea is that in the fetch event we'll only capture the root document (<code>index.html</code> or <code>index.php</code>). Everything else we've either precached or we will the the user decide if she want to cache it for offline view.</p>
+<p>The fetch event also helps me start learning how to use async/await in a service worker instead of raw promises. The idea is that in the fetch event we’ll only capture the root document (<code>index.html</code> or <code>index.php</code>). Everything else we’ve either precached or we will the the user decide if she want to cache it for offline view.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Get current path</span>
   <span class="token keyword">const</span> requestUrl <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
@@ -99,13 +99,13 @@ self<span class="token punctuation">.</span><span class="token function">addEven
   <span class="token punctuation">}</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// closes fetch event listener</span>
 </code></pre>
-<p>In most service worker registration scripts I see only the first part of the script below. We use a feature query to detect support for service workers, we register one if it's supported and log it to console or log the failure to console and bail.</p>
+<p>In most service worker registration scripts I see only the first part of the script below. We use a feature query to detect support for service workers, we register one if it’s supported and log it to console or log the failure to console and bail.</p>
 <p>But in this script we need to do more.</p>
 <p>We assume that the page has a button to initiate the caching process (unlike normal service workers where visiting the page will trigger caching). We create three variables to hold information we will use later:</p>
 <ol>
 <li>The location of the page we want to cache (<strong>window.location.pathname</strong>)</li>
-<li>The button that will triger the event (<strong>querySelector('.offline')</strong>)</li>
-<li>A list of all the images in the page (<strong>querySelectorAll('img')</strong>)</li>
+<li>The button that will triger the event (<strong>querySelector(‘.offline’)</strong>)</li>
+<li>A list of all the images in the page (<strong>querySelectorAll(‘img’)</strong>)</li>
 </ol>
 <p>If there is an offline button we register a click event handler for it and we build an array of all the elements that we want to chache.</p>
 <p>The last step is to put the resouces in the cache. We take advantage that the Cache API is accessible from regular pages <strong>and</strong> from service workers, so we can add content to a cache from both locations.</p>
@@ -145,7 +145,7 @@ self<span class="token punctuation">.</span><span class="token function">addEven
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Letting the user decide if she wants to cache the content can take away the performance advantage of a service worker.</p>
-<p>At worst she doesn't get speedier subsequent visits to the site because she chose not to cache any pages, and at best, she gets partial speeds ups of the content she chose to cache.</p>
+<p>At worst she doesn’t get speedier subsequent visits to the site because she chose not to cache any pages, and at best, she gets partial speeds ups of the content she chose to cache.</p>
 
 </article>
 <!--

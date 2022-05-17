@@ -1,10 +1,10 @@
 <h1 id="service-workers%3A-the-easy-and-the-hard-way">Service Workers: The easy and the hard way</h1>
 <p>Service Workers are awesome. They give you a performance boost and the capability of limited offline work without having to create apps for each platfomt that we want to use our app in.</p>
 <p>Service workers are the core of PWAs (Progressive Web Applications) where we take advantage of a set of web technologies to make apps that work closer to how native apps would.</p>
-<p>We'll concentrate on the service worker and in using Workbox.js and vanilla Javascript to create the service worker. I've chosen to go with Workbox first because the abbstraction makes it easier to create the type of abstractions I need.</p>
+<p>We’ll concentrate on the service worker and in using Workbox.js and vanilla Javascript to create the service worker. I’ve chosen to go with Workbox first because the abbstraction makes it easier to create the type of abstractions I need.</p>
 <p>Once I have a working service worker I will try to duplicate the functionality without libraries to compare how easy/hard it is.</p>
 <h2 id="registering-the-service-worker">Registering the service worker</h2>
-<p>We register the worker on page load to improve performance. This will work the same whether we're using a vanilla Javascript service worker or if we implement it using Workbox.</p>
+<p>We register the worker on page load to improve performance. This will work the same whether we’re using a vanilla Javascript service worker or if we implement it using Workbox.</p>
 <p>Place the following script tag in the main page of your site or application.</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
   <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'serviceWorker'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -19,7 +19,7 @@
 <p>Workbox is a libbrbary from Google that automates the creation of a service worker and hides a lot of the complexities inherent in the service worker creation.</p>
 <p>This particular service worker is optimized for performance. We want to cache all the resource and either serve them from the catch falling back to the network or serving cached content while, at the same time, fetching the asset from the network and placing it in the cache for future use.</p>
 <h3 id="defining-items-to-precache">Defining Items to Precache</h3>
-<p>We have an external configuration file to run Workbox precaching. We'll talk about the command at the end of the section.</p>
+<p>We have an external configuration file to run Workbox precaching. We’ll talk about the command at the end of the section.</p>
 <p>The config file (<code>workbox.config.js</code>) tells us the following things:</p>
 <ul>
 <li>The source file for the service worker (<code>swSrc</code>)</li>
@@ -42,7 +42,7 @@
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <h3 id="workbox-handlers">Workbox Handlers</h3>
-<p>I've chosen to decouple the routing and the strategies for each type of content that I want to cache.</p>
+<p>I’ve chosen to decouple the routing and the strategies for each type of content that I want to cache.</p>
 <p>The first type of content creates the <code>content-cache</code> cache where we will later store cached HTML content</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Cache strategies definitions</span>
 <span class="token comment">// HTML caching strategy</span>
@@ -53,17 +53,17 @@
 <p>The CSS handler will hold our stylesheets, both local and third party, to style the content.</p>
 <p>The CSS cache does a couple special things via Workbox plugins:</p>
 <ul>
-<li>It accepts opaque responses for third party resources that wouldn't normally be cached
+<li>It accepts opaque responses for third party resources that wouldn’t normally be cached
 <ul>
 <li>It uses the <a href="https://developers.google.com/web/tools/workbox/reference-docs/latest/workbox.cacheableResponse.Plugin">cacheableResponse</a> plugin</li>
-<li>The status code '0' represents opaque responses</li>
+<li>The status code ‘0’ represents opaque responses</li>
 </ul>
 </li>
 <li>It sets an expiration date to 14 days</li>
 <li>It sets the maximum number of items the cache will hold. When the cache is full new entries will push the oldest out of the cache (and delete them)</li>
 </ul>
-<p>We cache opaque responses at our own risk since we have no way of knowing if the request succeeded or not.  I considered the risk and accepted it because the networks where I'm pulling third party resources from are big and stable (Cloudflare and Google Fonts).</p>
-<p>In a future iteration I may want to move third party CSS resources to its own cache like I do with fonts, but I haven't been able to figure out how to.</p>
+<p>We cache opaque responses at our own risk since we have no way of knowing if the request succeeded or not.  I considered the risk and accepted it because the networks where I’m pulling third party resources from are big and stable (Cloudflare and Google Fonts).</p>
+<p>In a future iteration I may want to move third party CSS resources to its own cache like I do with fonts, but I haven’t been able to figure out how to.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// CSS caching strategy</span>
 <span class="token keyword">const</span> cssHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'css-cache'</span><span class="token punctuation">,</span>
@@ -81,17 +81,17 @@
 <p>The Javascript handler will hold our local and third party scripts.</p>
 <p>The cache does a couple special things via Workbox plugins:</p>
 <ul>
-<li>It accepts opaque responses for third party resources that wouldn't normally be cached
+<li>It accepts opaque responses for third party resources that wouldn’t normally be cached
 <ul>
 <li>It uses the <a href="https://developers.google.com/web/tools/workbox/reference-docs/latest/workbox.cacheableResponse.Plugin">cacheableResponse</a> plugin</li>
-<li>The status code '0' represents opaque responses</li>
+<li>The status code ‘0’ represents opaque responses</li>
 </ul>
 </li>
 <li>It sets an expiration date to 14 days</li>
 <li>It sets the maximum number of items the cache will hold. When the cache is full new entries will push the oldest out of the cache (and delete them)</li>
 </ul>
-<p>We cache opaque responses at our own risk since we have no way of knowing if the request succeeded or not.  I considered the risk and accepted it because the networks where I'm pulling third party resources from are big and stable (Cloudflare and Google Fonts)</p>
-<p>In a future iteration I may want to move third party JS resources to its own cache like I do with fonts, but I haven't been able to figure out how to.</p>
+<p>We cache opaque responses at our own risk since we have no way of knowing if the request succeeded or not.  I considered the risk and accepted it because the networks where I’m pulling third party resources from are big and stable (Cloudflare and Google Fonts)</p>
+<p>In a future iteration I may want to move third party JS resources to its own cache like I do with fonts, but I haven’t been able to figure out how to.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> jsHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">staleWhileRevalidate</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'scripts-cache'</span><span class="token punctuation">,</span>
   plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -105,7 +105,7 @@
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>As a performance improvement one of the best things I can think about doing is caching images so we only take the hit on the large download the first time that we download an image. Not saying we don't need to optimize them but want to make sure that images load as fast as possible and that means that we should load them from cache if possible.</p>
+<p>As a performance improvement one of the best things I can think about doing is caching images so we only take the hit on the large download the first time that we download an image. Not saying we don’t need to optimize them but want to make sure that images load as fast as possible and that means that we should load them from cache if possible.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> imageHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'image-cache'</span><span class="token punctuation">,</span>
   plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -116,8 +116,8 @@
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>Fonts will be the largest assets we cache with the service worker so we want to keep a few around and keep them for a while so we don't have to download them as often. This is particularly important because the primary font, Roboto variable font, is 1MB in size when compressed as a woff2 font.</p>
-<p>We're keeping 5 locally hosted fonts (ones that are not served through Google fonts) and keeping them for 30 days although I may want to cache them longer and keep more of them, particularly if I work with smaller font subsets.</p>
+<p>Fonts will be the largest assets we cache with the service worker so we want to keep a few around and keep them for a while so we don’t have to download them as often. This is particularly important because the primary font, Roboto variable font, is 1MB in size when compressed as a woff2 font.</p>
+<p>We’re keeping 5 locally hosted fonts (ones that are not served through Google fonts) and keeping them for 30 days although I may want to cache them longer and keep more of them, particularly if I work with smaller font subsets.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> fontHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'fonts-cache'</span><span class="token punctuation">,</span>
   plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -128,7 +128,7 @@
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>External resources present an interesting problem when working with service workers. All responses from third party resources up vote are 'opaque' responses and represent the result of a request made to a remote origin when CORS is not enabled.</p>
+<p>External resources present an interesting problem when working with service workers. All responses from third party resources up vote are ‘opaque’ responses and represent the result of a request made to a remote origin when CORS is not enabled.</p>
 <p>Caching opaque request makes it imposible for Workbox to detect and warn you if the request failed (there is no status code to tell it, and you, that it failed).</p>
 <p>Workbox will cache opaque resources when using uses <code>networkFirst</code> or <code>staleWhileRevalidate</code> as the strategy. Both of this strategies will query the network first (<code>networkFirst</code>) or will query the network regardless of success or failure (<code>staleWhileRevalidate</code>)</p>
 <p>To make sure that the resources are cached we use the <a href="https://developers.google.com/web/tools/workbox/reference-docs/latest/workbox.cacheableResponse.Plugin">cacheableResponse</a> plugin to tell Workbox that we want it to cache resources with a status code of <code>0</code>, regardless of the strategy we use.</p>
@@ -148,7 +148,7 @@
 <h3 id="defining-routes">Defining routes</h3>
 <p>The next step is to create routes that will use the strategies we just defined to cache the content and, where appropriate, provide fallback options.</p>
 <p>These routes use Workbox routing and its <code>registerRoute</code> method to associate a file or extension, a handler (defined above) and zero or more additional conditions for each route.</p>
-<p>I've broken he routes based on content and, where appropriate, on referring source.</p>
+<p>I’ve broken he routes based on content and, where appropriate, on referring source.</p>
 <p>The first type of resource that we cache outside of the precache. We make sure that there is a response and then do one of three things:</p>
 <ul>
 <li>If there is no response then provide an offline page</li>
@@ -173,7 +173,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </code></pre>
 <p>Next, we handle CSS requests and match them to the CSS extension. If there is no response or the response status is 404 we return nothing.</p>
 <p>If there is an error we return nothing.</p>
-<p>With CSS I don't want to store anything in the cache that is not CSS unlike what we did with HTML where we wanted different responses for each event.</p>
+<p>With CSS I don’t want to store anything in the cache that is not CSS unlike what we did with HTML where we wanted different responses for each event.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">//  CSS other than index.css</span>
 workbox<span class="token punctuation">.</span>routing<span class="token punctuation">.</span><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">.*\.css</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">args</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> cssHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span>
@@ -188,14 +188,14 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The route that handles Javascript uses the handler we defined earlier without any major adjustments. If the route is not OK it'll produce an error which is what we want. Javascript failuers will usually render the site or app unusable.</p>
+<p>The route that handles Javascript uses the handler we defined earlier without any major adjustments. If the route is not OK it’ll produce an error which is what we want. Javascript failuers will usually render the site or app unusable.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// JS other than index.js and any JSON file</span>
 workbox<span class="token punctuation">.</span>routing<span class="token punctuation">.</span><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">.*\.js</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">args</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> jsHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>When caching fonts we want to make sure that the browser caches all font formats that we may want to use (even though we only use woff2 fonts locally) to give ourselves the flexibility of using other formats without having to change the route later.</p>
-<p>This will only cache local fonts, not those loaded from Google Fonts; we'll handle third party fonts in a different route.</p>
+<p>This will only cache local fonts, not those loaded from Google Fonts; we’ll handle third party fonts in a different route.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Fonts</span>
 workbox<span class="token punctuation">.</span>routing<span class="token punctuation">.</span><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">.*\.(?:ttf|otf|woff|woff2)</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">args</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> fontHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -207,8 +207,8 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token keyword">return</span> extFontHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>When we look at images we need to make sure that we're caching all the kinds of images that we plan on using.</p>
-<p>The route we're creating includes all image formats except<a href="https://developers.google.com/speed/webp/">WebP</a> since it's not widely supported but we include both GIF and SVG.</p>
+<p>When we look at images we need to make sure that we’re caching all the kinds of images that we plan on using.</p>
+<p>The route we’re creating includes all image formats except<a href="https://developers.google.com/speed/webp/">WebP</a> since it’s not widely supported but we include both GIF and SVG.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Images.</span>
 workbox<span class="token punctuation">.</span>routing<span class="token punctuation">.</span><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">.*\.(?:png|jpg|jpeg|svg|gif)</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">args</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> imageHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -223,9 +223,9 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 <pre class="language-sh"><code class="language-sh">workbox injectManifest workbox-config.js
 </code></pre>
 <h3 id="additional-enhancements">Additional Enhancements</h3>
-<p>There are a few things that I'm working on beyond the service worker that we described in the previous sections.</p>
+<p>There are a few things that I’m working on beyond the service worker that we described in the previous sections.</p>
 <h4 id="local-videos">Local Videos</h4>
-<p>We are still using animated GIFs to create animations and demos. We may be able to <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/replace-animated-gifs-with-video/">create smaller animations using MP4 video instead of GIF</a> but until we do the GIF images stay in this cache. We'll use the video cache to store any other videos that we download locally, not from Youtube or Vimeo.</p>
+<p>We are still using animated GIFs to create animations and demos. We may be able to <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/replace-animated-gifs-with-video/">create smaller animations using MP4 video instead of GIF</a> but until we do the GIF images stay in this cache. We’ll use the video cache to store any other videos that we download locally, not from Youtube or Vimeo.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> videoHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'videos-cache'</span><span class="token punctuation">,</span>
   plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -235,7 +235,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>The route will match 4 types of video: WebM, MP4, OGG and AV1. These videos will download locally, not from Youtube or Vimeo. We'll handle that in a different route</p>
+<p>The route will match 4 types of video: WebM, MP4, OGG and AV1. These videos will download locally, not from Youtube or Vimeo. We’ll handle that in a different route</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// videos.</span>
 workbox<span class="token punctuation">.</span>routing<span class="token punctuation">.</span><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">.*\.(?:webm|mp4|ogg|mkv)</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">args</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> videoHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -243,7 +243,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </code></pre>
 <h4 id="third-party-videos">Third Party Videos</h4>
 <p>The previous route handles video loaded using the <code>video</code> tag hosted locally and using one of the formats that are common for HTML video.</p>
-<p>The problem is that this may be too quick to fill out the storage quota for the domain. I'm still torn between using this strategy that will load from cache and then fall back to the network and using a netowrk only strategy to save bandwidth and disk space.</p>
+<p>The problem is that this may be too quick to fill out the storage quota for the domain. I’m still torn between using this strategy that will load from cache and then fall back to the network and using a netowrk only strategy to save bandwidth and disk space.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> extVideoHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   cacheName<span class="token operator">:</span> <span class="token string">'external-video'</span><span class="token punctuation">,</span>
     plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -263,7 +263,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token keyword">return</span> <span class="token function">extVideoHandler</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<p>Because the regular expression is more complex than I'm used to I've chosen to document it to make sure that I remember what it's supposed to do.</p>
+<p>Because the regular expression is more complex than I’m used to I’ve chosen to document it to make sure that I remember what it’s supposed to do.</p>
 <ul>
 <li><code>^</code> asserts position at start of a line</li>
 <li>1st Capturing Group (https://)
@@ -274,7 +274,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </ul>
 </li>
 <li>2nd Capturing Group <code>(player\.vimeo.com|vimeo\.com|www\.youtube\.com)</code></li>
-<li>1st Alternative player.vimeo.com
+<li>1st Alternative <a href="http://player.vimeo.com">player.vimeo.com</a>
 <ul>
 <li><code>player</code> matches the characters player literally (case sensitive)</li>
 <li><code>\.</code> matches the character . literally (case sensitive)</li>
@@ -318,7 +318,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </ul>
 </li>
 </ul>
-<h2 id="%22vanilla%22-javascript%2C-no-libraries">&quot;Vanilla&quot; Javascript, no libraries</h2>
+<h2 id="%E2%80%9Cvanilla%E2%80%9D-javascript%2C-no-libraries">“Vanilla” Javascript, no libraries</h2>
 <p>The idea is to create the service worker using only native APIs and seeing how much of the Workbox functionality I can duplicate without having to use a library.</p>
 <h3 id="constants-and-common-items">Constants and common items</h3>
 <p>Individual constants for each of the caches. We store them separately so we can change the names to make cleanup easier without having to change the array we define later.</p>
@@ -331,7 +331,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 <span class="token keyword">const</span> <span class="token constant">FONTS</span> <span class="token operator">=</span> <span class="token string">'fonts-cache-v1'</span><span class="token punctuation">;</span>
 </code></pre>
 <p>expectedCaches is the array of cache names we expect to exists in the client.</p>
-<p>If they don't we're fine, we fetch from network; If they do, we're fine, we fetch from cache and if they exist with a different version then we delete the old one</p>
+<p>If they don’t we’re fine, we fetch from network; If they do, we’re fine, we fetch from cache and if they exist with a different version then we delete the old one</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> expectedCaches <span class="token operator">=</span> <span class="token punctuation">[</span>
   <span class="token constant">PRECACHE</span><span class="token punctuation">,</span>
   <span class="token constant">CONTENT</span><span class="token punctuation">,</span>
@@ -362,7 +362,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </code></pre>
 <h3 id="activate-event">Activate Event</h3>
 <p>Activate will perform cleanup on the caches.</p>
-<p>If there is a cache that doesn't exist in the Array that we pass to the event then it's deleted This is the reason why we went through such a convoluted way to define the caches. We can change the names individually and then they'll get deleted the next time the user visits the site.</p>
+<p>If there is a cache that doesn’t exist in the Array that we pass to the event then it’s deleted This is the reason why we went through such a convoluted way to define the caches. We can change the names individually and then they’ll get deleted the next time the user visits the site.</p>
 <pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'activate'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   clients<span class="token punctuation">.</span><span class="token function">claim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span>
@@ -381,14 +381,14 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h3 id="fetch-event">Fetch Event</h3>
-<p>The fetch event is where most of the work will happen. Unlike the work in Workbox service worker we don't break the routes into different blocks in the vanilla service worker.</p>
-<p>There are some aspects where the vanilla service worker still doesn't match the Workbox implementation.</p>
-<p>All the following sections are inside the fetch event listener. I've broken them down for ease of reading.</p>
+<p>The fetch event is where most of the work will happen. Unlike the work in Workbox service worker we don’t break the routes into different blocks in the vanilla service worker.</p>
+<p>There are some aspects where the vanilla service worker still doesn’t match the Workbox implementation.</p>
+<p>All the following sections are inside the fetch event listener. I’ve broken them down for ease of reading.</p>
 <p>This is an important item to remember for all fetch handlers that put resources in caches using the cache API:</p>
 <p><em><strong>Put a copy of the response in the cache, otherwise the code will throw an exception because response is a stream that can only be consumed once</strong></em></p>
 <p>When we define the event we do two things right away:</p>
-<p>We define a constant to hold the vaslues of the event's request object.</p>
-<p>If the request doesn't match the <code>GET</code> HTTP method we return without doing anything. The service worker will only work with GET requests.</p>
+<p>We define a constant to hold the vaslues of the event’s request object.</p>
+<p>If the request doesn’t match the <code>GET</code> HTTP method we return without doing anything. The service worker will only work with GET requests.</p>
 <pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'fetch'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> request <span class="token operator">=</span> event<span class="token punctuation">.</span>request<span class="token punctuation">;</span>
 
@@ -479,7 +479,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token punctuation">}</span>
 </code></pre>
 <p>In the cache for images we want to make sure that we add only images only (those that match <code>jpeg</code>, <code>jpg</code>, <code>png</code>, <code>gif</code> and <code>svg</code>) and not the assets that reference the images (HTML and CSS).</p>
-<p>If the image is not in the cache and we can't retrieve it from the network we provide a local fallback as a new response using an SVG image.</p>
+<p>If the image is not in the cache and we can’t retrieve it from the network we provide a local fallback as a new response using an SVG image.</p>
 <pre class="language-js"><code class="language-js">  <span class="token keyword">if</span> <span class="token punctuation">(</span>request<span class="token punctuation">.</span>url<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.(jpe?g|png|gif|svg)$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
     <span class="token punctuation">(</span><span class="token operator">!</span>request<span class="token punctuation">.</span>url<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token string">'/\.(html|css)$/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span>
@@ -515,8 +515,8 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
     <span class="token keyword">return</span><span class="token punctuation">;</span> <span class="token comment">// If we get to here, bail out</span>
   <span class="token punctuation">}</span>
 </code></pre>
-<p>The final handler for assets is for HTML content by using a stale while revalidate strategy, we return the resource in the cache, if it's not in the cache then we fetch it from the network, store a copy of the response in the cache and return the resource to the user.</p>
-<p>In this cache we could be more sophisticated and return different responses based on whether we're offline, the resource was not found or any other network failure. But for an MVP, this is enough.</p>
+<p>The final handler for assets is for HTML content by using a stale while revalidate strategy, we return the resource in the cache, if it’s not in the cache then we fetch it from the network, store a copy of the response in the cache and return the resource to the user.</p>
+<p>In this cache we could be more sophisticated and return different responses based on whether we’re offline, the resource was not found or any other network failure. But for an MVP, this is enough.</p>
 <pre class="language-js"><code class="language-js">  <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">.</span>headers<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'Accept'</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span><span class="token string">'text/html'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token comment">// Open the content cache</span>
