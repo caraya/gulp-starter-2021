@@ -142,3 +142,83 @@ It will produce the following HTML code:
 ```
 
 It still doesn't get rid of the paragraphs, still working on figuring out how to do the replacement but, as it is, it works well enough without requiring a plugin.
+
+## Wrapping images in figure elements using a third party plugin (take 1)
+
+I haven't been able to find a way to remove the paragraph container around the image. When I was about ready to give up I came across a pointer to the [markdown-it-custom-block](https://www.npmjs.com/package/markdown-it-custom-block) plugin that lets me do exactly what I want and then some.
+
+The original code using the plugin looks like this
+
+```js
+const cb = require('markdown-it-custom-block');
+
+md.use(cb, {
+  img(raw) {
+    const [index, alt, width, url] = raw.split('#');
+    return `<figure id="fig${index}">
+  <img width='${width}' src="${url}" alt="${alt}">
+  <figcaption>Fig ${index}: ${alt}</figcaption>
+</figure>`;
+  },
+});
+```
+
+The Markdown for the image is more complicated. It is a list of four attributes separated by `#` characters representing:
+
+* The index (position of the image on the page)
+* The alt text displayed when the image is not loaded and also used as the figure caption
+* The width of the image
+* The full path to the image file
+
+```markdown
+@[img](1#Sample alt content will also be used for captions#400px#./images/demo.webp)
+```
+
+This is more complicated than it needs to be, but it works.
+
+## Wrapping images in figure elements using a third party plugin (take 2)
+
+One of the first things I thought about was removing the index and letting CSS take care of the indexing for us. Hardcoding the index in Markdown is a bad idea. If we insert images then all the indexes change and we need to edit every single image to compensate.
+
+Using CSS generated content we can automate the indexing and generation of the `Figure <id>:` content in the captions:
+
+```css
+article {
+  counter-reset: figures;
+}
+
+figure {
+  counter-increment: figures;
+}
+
+figure figcaption:before {
+  content: "Fig. " counter(figures) ": ";
+}
+```
+
+And it does what I set out to do, eliminate the paragraphs around images and use figures instead.
+
+So now the final version of our image code is:
+
+```js
+const cb = require('markdown-it-custom-block');
+
+md.use(cb, {
+  img(raw) {
+    const [
+      alt,
+      width,
+      url] = raw.split('#');
+    return `<figure>
+  <img width='${width}' src="${url}" alt="${alt}">
+  <figcaption>${alt}</figcaption>
+</figure>`;
+  },
+});
+```
+
+And the required Markdown changes accordingly:
+
+```markdown
+@[img](Sample alt content will also be used for captions#400px#./images/demo.webp)
+```
