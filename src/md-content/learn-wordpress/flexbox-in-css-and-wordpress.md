@@ -14,14 +14,14 @@ Since this lesson is about a CSS technology, I'm also including external links.
 
 ## Description
 
-Row and Column blocks allow you to l
+TO fully understand how Row and Column blocks work in the full site editor, you need some basic understanding of how CSS Flexbox works. In this lesson we'll cover the basics of Flexbox and how it applies to the row and column blocks.
 
 ## Objectives
 
 After completing this lesson, participants will be able to:
 
-* Objective 1
-* Objective 2
+* Explain the basic concepts of flexbox
+* Create column and row layouts using CSS Flexbox
 
 It’s required that you include a bulleted list of objective(s) for each lesson plan. Objectives should be worded as actions that the participant can do once they’ve finished. See Bloom's Taxonomy of Action Verbs (PDF) as a reference. Avoid using words like "know," "understand," "be introduced to," etc. There should be one assement item for each objective (see below).
 
