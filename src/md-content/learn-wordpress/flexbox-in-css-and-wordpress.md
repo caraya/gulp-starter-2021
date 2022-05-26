@@ -2,7 +2,7 @@
 
 ## Topic Description
 
-A basic understanding of CSS Flexbox is needed as a prerequisite to understanding how content aligns. Show this first in plain HTML/CSS context, and share where in Site Editor one can find settings related to Flex.
+A basic understanding of CSS Flexbox is needed as a prerequisite to understanding how content aligns. Show this first in plain HTML/CSS context, and share where in Site Editor one can find settings related row and column blocks (that use Flexbox under the hood).
 
 ## Related Resources
 
@@ -124,11 +124,71 @@ The `disply: flex` rule tells the browser that we want to use Flex to display th
 
 delete the wrap portion of the `flex-flow` attribute and see how the browser behaves; then reload the HTML page in the browser.
 
+You can change the images for your own and see if it changes the layout in any way.
+
 **Creating column-based flexbox layouts with CSS.**
 
 Open the `gallery-start.html` file in your browser. Then open the `gallery-start.css` file from the CSS folder in your text editor.
 
+The first thing to do is to add the flex-related rules to the `.container` selector. Change the content of `.container` so it looks like this:
+
+```css
+.container {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0 auto;
+  
+  height: 600px;
+  width: 400px;
+
+  border: 5px solid rgb(40,30,93);
+  border-radius: .5em;
+}
+```
+
+`display: flex` tells the browser that we want to use Flexbox to layout the elements inside the container.
+
+`flex-direction` is the direction of the layout flow, in this case indicating `column` for a vertical layout.
+
+Because we're not wrapping the content we use this attribute instead of `flex-flow` like we did in the row exercise.
+
+There is a second item that we need to change. Change the `.content` selector so it looks like this:
+
+```css
+.content {
+  flex: 1 1 auto;
+  padding: 10px;
+}
+```
+
+`flex` is a shorthand for three related attributes:
+
+* `flex-grow`: This defines the ability for a flex item to grow if necessary. It accepts a unitless value that serves as a proportion. It dictates what amount of the available space inside the flex container the item should take up
+
+  If all items have flex-grow set to 1, the remaining space in the container will be distributed equally to all children
+  
+  If one of the children has a value of 2, that child would take up twice as much of the space either one of the others (or it will try, at least)
+* `flex-shrink`: This defines the ability for a flex item to shrink if necessary.
+* `flex-basis`: This defines the default size of an element before the remaining space is distributed.
+  
+  It can be a length (e.g. 20%, 5rem, etc.) or a keyword
+  
+  The auto keyword means “look at my width or height property” (which was temporarily done by the main-size keyword until deprecated)
+  
+  The content keyword means “size it based on the item’s content” – this keyword isn’t well supported yet, so it’s hard to test and harder to know what its brethren max-content, min-content, and fit-content do
+
+Play with different values in content's flex rule and see how the layout changes.
+
 **Creating row-based layouts in WordPress.**
+
+Row and stack layouts in the full site editor use flexbox under the hood so, now that we know how flexox works, we'll look at creating rows and stacks/columns in WordPress.
+
+Go to the full site editor (`Appearance -> Editor`).
+
+Then select toggle the navigation menu (WordPress logo on the top left corner of the browser window) and select `Template Parts`.
+
+
 
 ## Assessment
 
@@ -153,7 +213,100 @@ A few questions to ask participants to evaluate their retention of the material 
 
 ## Example Lesson
 
-An example of how the lesson plan can be implemented. Written in script form as one possible way an presenter might use this lesson plan at an event, with screenshots and instructions if necessary.
+# Flexbox in CSS and WordPress
+
+## Before we get started
+
+Because we're working with CSS, we need both an HTML and a CSS file to do our work on.
+
+To prepare download the files from the repository [[FIXME: Needs repo location]] to a directory on your computer.
+
+There are two versions of each file:
+
+* The starting version (ending with `-start`) is the one we'll work with in the following exericses
+  * It is mostly complete but it is missing the flexbox-based CSS code
+* The final version (ending with `-final`) is a complete version of the exercise
+  * You can use to compare with your work in case you get stuck
+
+**Creating row-based flexbox layouts with CSS.**
+
+In this exercise the participantss will create a row-based flexbox layout using CSS.
+
+Open `gallery-start.html` in your browser. Then open `gallery-start.css` from the CSS folder in your text editor.
+
+In `gallery-start.css`, look at the container class, presented by the `.row-layout` selector.
+
+Change the content of `.row-layout` so that it looks like this:
+
+```css
+.row-layout {
+  display: flex;
+  flex-flow: row wrap;
+  padding: .5vw;
+}
+```
+
+The `disply: flex` rule tells the browser that we want to use Flex to display the content inside this container.
+
+`flex-flow` can be broken in two things: the direction of the layout flow (`row` or `column`) and whether we want to wrap the content (`wrap` or blank).
+
+delete the wrap portion of the `flex-flow` attribute and see how the browser behaves; then reload the HTML page in the browser.
+
+You can change the images for your own and see if it changes the layout in any way.
+
+**Creating column-based flexbox layouts with CSS.**
+
+Open the `gallery-start.html` file in your browser. Then open the `gallery-start.css` file from the CSS folder in your text editor.
+
+The first thing to do is to add the flex-related rules to the `.container` selector. Change the content of `.container` so it looks like this:
+
+```css
+.container {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0 auto;
+  
+  height: 600px;
+  width: 400px;
+
+  border: 5px solid rgb(40,30,93);
+  border-radius: .5em;
+}
+```
+
+`display: flex` tells the browser that we want to use Flexbox to layout the elements inside the container.
+
+`flex-direction` is the direction of the layout flow, in this case indicating `column` for a vertical layout.
+
+Because we're not wrapping the content we use this attribute instead of `flex-flow` like we did in the row exercise.
+
+There is a second item that we need to change. Change the `.content` selector so it looks like this:
+
+```css
+.content {
+  flex: 1 1 auto;
+  padding: 10px;
+}
+```
+
+`flex` is a shorthand for three related attributes:
+
+* `flex-grow`: This defines the ability for a flex item to grow if necessary. It accepts a unitless value that serves as a proportion. It dictates what amount of the available space inside the flex container the item should take up
+
+  If all items have flex-grow set to 1, the remaining space in the container will be distributed equally to all children
+  
+  If one of the children has a value of 2, that child would take up twice as much of the space either one of the others (or it will try, at least)
+* `flex-shrink`: This defines the ability for a flex item to shrink if necessary.
+* `flex-basis`: This defines the default size of an element before the remaining space is distributed.
+  
+  It can be a length (e.g. 20%, 5rem, etc.) or a keyword
+  
+  The auto keyword means “look at my width or height property” (which was temporarily done by the main-size keyword until deprecated)
+  
+  The content keyword means “size it based on the item’s content” – this keyword isn’t well supported yet, so it’s hard to test and harder to know what its brethren max-content, min-content, and fit-content do
+
+Play with different values in content's flex rule and see how the layout changes.
 
 ## Lesson Wrap Up
 
