@@ -1,70 +1,154 @@
-# theme.json lesson plan
+# How to Configure Your Site with Theme.json
+
+In this presentation, we will talk about theme.json, what it is and how to use it to configure your block-based theme.
 
 ## Objectives
 
-Participants will be able to:
+After completing this lesson, participants will be able to:
 
 * Explain the purpose of theme.json (what the file does)
 * Distinguish between the different parts of theme.json and explain their purpose (what each part does)
 * Build a basic theme.json file for a block theme
 
-## Setting up the instructor machine
+## Prerequisite Skills
 
-Before you start the lesson, you will need the following:
+Participants will get the most from this lesson if they have familiarity with:
+
+* Completed the Basic WordPress Concepts lesson
+* Basic experience with a text-editor
+* Familiarity with the JSON format and basic experience writing JSON files
+
+## Readiness Questions
+
+* Have you built a theme?
+* Do you want to configure a theme?
+* Have you worked in a text editor?
+* Have you created JSON files?
+* Can you locate WordPress files?
+* Do you know how to navigate WordPress source files using a text editor?
+  
+## Slides
+
+* <a data-external="true" href="https://wptrainingteam.github.io/lesson-plans/repo-name/slides/">Slides</a>
+
+## Materials Needed
 
 * A local installation of WordPress
-  * [Local by Flywheel](https://localwp.com/)
-  * [MAMP](https://www.mamp.info/en/mac/) + WordPress
+  * Local by Flywheel **(WordPress specific and ready to run)**
+  * MAMP / WAMP + A WordPress installation
 * A block-enabled theme. Some examples:
-  * [TwentyTwentyTwo](https://wordpress.org/themes/twentytwentytwo/) **Recommended and bundled with WordPress**
+  * [Twenty TwentyTwo](https://wordpress.org/themes/twentytwentytwo/) **(recommended and bundled with WordPress)**
   * [Archeo](https://wordpress.org/themes/archeo/)
   * [Armando](https://wordpress.org/themes/armando/)
-* The latest version of the Gutenberg Plugin
-  * `theme.json` runs fine without the plugin but some features may not work
-  * The content will note if a features requires Gutenberg and the version the feature was first introduced
-* Data to populate the theme. Possible options:
-  * Existing data
-  * A copy of the [WordPress Theme Unit Test](https://codex.wordpress.org/Theme_Unit_Test) data
-  * A copy of the [Gutenberg test data](https://github.com/Automattic/theme-tools/tree/master/gutenberg-test-data)
-  * Review [How to add demo content in WordPress](https://learn.wordpress.org/lesson-plan/how-to-add-demo-content-in-wordpress/) for more information
+* The latest version of the [Gutenberg Plugin](https://wordpress.org/plugins/gutenberg/)
+* Data to populate the theme. Possible alternatives
+  * Your existing data
+  * A copy of the [WordPress Theme Unit Test data](https://codex.wordpress.org/Theme_Unit_Test)
+  * A copy of the [Gutenberg Theme Data](https://github.com/Automattic/theme-tools/tree/master/gutenberg-test-data)
+  * Look at [How to add demo content in WordPress](https://learn.wordpress.org/lesson-plan/how-to-add-demo-content-in-wordpress/) for more information on how to add demo content to your WordPress site
 * A code editor. Possible options:
   * [VS Code](https://code.visualstudio.com/)
   * [Atom](https://atom.io/)
   * [Webstorm](https://www.jetbrains.com/webstorm/)
   * [Sublime Text](https://www.sublimetext.com/)
   * [Brackets](https://brackets.io/)
+  
+## Notes for the Presenter/Reviewers
 
-## Instructor Notes
+* `theme.json` will still work if Gutenberg is not installed but some features may not work with just WordPress core
+* If there are participants who don't have the necessary setup then, downloading [Local by Flywheel](https://localwp.com/) should help; it comes with WordPress ready to go and WordPress comes bundled with the Twenty TwentyTwo theme so they can follow up
+* theme.json is large enough that it may need more than one session to cover in its entirety
+* This lesson plan deals only with `theme.json` as it works with block themes
+  * There will be auxiliary content related to equivalency between features we used to add with `add_theme_support()` and their `theme.json` equivalents. You can skip that section if your audience is not familiar with add_theme_support
+* The 10000 feet will work through the main sections and briefly describe what they are before going into details
 
-* Theme.json is large enough that it may need more than one session to cover in its entirety
-* This lesson plan deals only with `theme.json` as it works with block themes but there is a note on how theme.json handles some older declarations using `add_theme_support()`
+## Lesson Outline</h2>
 
-## Content Outline
-
-* Participants Introduction
-  * Where are you in your Gutenberg journey?
-* Introduction
+* Participant Introductions
+  * Where are you in your Gutenberg Journey?
+  * Have you built or configured a theme?
+* Introduction (discussion)
   * What is theme.json?
   * What does it do?
-  * About JSON and JSON requirements
-* theme.json structure
-  * version
-  * settings
-    * Presets
-    * Custom
+  * Why is it important?
+* theme.json structure (combination of show and tell and discussion)
+  * The 10000 feet overview
+    * Demo
+* More detailed overview
+  * $schema
+  * Version
+  * Settings
+  * Presets
+  * Custom
   * Styles
     * Top-level
     * Block-level
     * Elements
   * Typography
-    * fontFaces (new in Gutenberg 12.8)
-  * customTemplates
-  * templateParts
-  * patterns
+    * fontFace (new in Gutenberg 12.8)
+  * Custom Templates
+  * Template Parts
+  * Patterns
 * Putting it all together
   * Building a basic theme.json configuration file
+  
+## Exercises
 
-----
+**Build Your own.**
+
+Using the example available in the repository FIXME: Add linkn to repository
+
+Experiment with each area of the configuration until your theme works the way you want it to.
+
+* Build a theme.json skeleton
+* Modify the core sections
+  * Settings
+    * Preset
+    * Custom
+  * Styles
+  * Typography
+* Optionally, modify the Gutenberg-only sections
+  * Custom Templates
+  * Custom Parts
+  * Patterns
+  
+## Assessment
+
+`theme.json` acts as a theme's configuration file
+
+1. Yes
+2. Yes, but only for block themes
+3. No
+
+**Answer:**  1. Correct answer
+
+Settings in `theme.json` control what content creators see in the UI
+
+1. No
+2. Yes
+
+**Answer:** 2. Correct answer
+
+When adding colors to `theme.json` you can add colors in the following formats
+
+1. RGB
+2. Named Colors
+3. RGB, Named Colors, Hexadecimal
+4. Hexadecimal
+
+**Answer**: 3. Correct Answer
+
+The `$schema` element allows supporting editors to validate your work
+
+1. True
+2. False
+
+**Answer**: 1. Correct answer
+
+## Additional Resources
+
+* [Theme.json schema](https://make.wordpress.org/themes/2021/11/30/theme-json-schema/) by [Alex Lende](https://make.wordpress.org/themes/2021/11/30/theme-json-schema/)
+* [https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/theme.json](theme.json schema) (updated when new items are added to the schema)
 
 ## Full Sample Lesson Plan
 
@@ -76,7 +160,7 @@ It takes over `functions.php` for most of a theme's configuration settings and p
 
 While theme.json will work on any WordPress theme, for these lessons we'll concentrate on block-based themes.
 
-See [Using theme.json in a classic theme](https://mkaz.blog/wordpress/using-theme-json-in-a-classic-theme/) for more information about theme.json as applied to classic themes. {{FLAG FOR TEAM REVIEW -- EXTERNAL LINK}}
+See [Using theme.json in a classic theme](https://mkaz.blog/wordpress/using-theme-json-in-a-classic-theme/) for more information about theme.json as applied to classic themes.
 
 ### About JSON and JSON requirements
 
@@ -89,7 +173,7 @@ All strings in JSON must be enclosed in double quotes. anything else will be fla
   The second example is a valid part of the `theme.json` schema but will fail validation because of the single quotes around the version string.
 
 | Valid  | Invalid|
-| :----: | :----: |
+| :---:  | :---:  |
 | "version": 2 | 'version': 2 |
 
 Boolean values (true or false) and numbers must not be quoted.
@@ -187,7 +271,7 @@ If you set any value to false, the attribute will not be shown to the user worki
 
 ```json
 "settings": {
-  "appearanceTools": true,
+    "appearanceTools": true,
   "border": {
     "color": true,
     "radius": true,
@@ -208,7 +292,7 @@ I would suggest you remove the default values and only leave the `color` array i
 When choosing colors you should always consider accessibility, particularly color blindness and contrast between your text and background colors.
 
 ```json
-"settings": {
+"settings": 
   "color": {
     "background": true,
     "custom": true,
@@ -231,11 +315,15 @@ The `duotone` array uses a common pattern that we'll see moving forward:
   * Can be capitalized as needed
   * Can have spaces in it
   * This will be shows to the user in the UI
-  * Translators will take this value when translating the content of your theme
+* Translators will take this value when translating the content of your theme
 * One more more values for the item
-  * In the case of `duotone` it is an array of two colors, representing the color for highlights and shadows
+* In the case of `duotone` it is an array of two colors, representing the color for highlights and shadows
+
+----
 
 **Because duotone filters are high specialized, It is strongly recommended that you test the duotone colors that you add to your theme since the use of colors may have accessibility implications.**
+
+----
 
 `gradients` use a similar schema:
 
@@ -248,12 +336,12 @@ If you don't plan to add duotone pairs and gradients, you can remove your theme 
 
 ```json
 "settings": {
-  "colors": {
-    "duotone": [{
-      "slug": "black-and-white",
+    "colors": {
+      "duotone": [{
+        "slug": "black-and-white",
       "name": "Black and White",
       "colors": [
-        "#000",
+          "#000",
         "#FFF"
       ]
     }],
@@ -278,8 +366,8 @@ You can present the colors in any color format supported by CSS. The example blo
 
 ```json
 "settings": {
-  "colors": {
-    "palette": [
+    "colors": {
+      "palette": [
       {
         "slug": "strong-magenta",
         "color": "#a156b4",
@@ -304,10 +392,11 @@ You can present the colors in any color format supported by CSS. The example blo
 
 **IMPORTANT:**
 
-* **Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.**
-* **This is also important from a cultural sensitivity standpoint. Not everyone using your site may understand your use of color.**
+**Do not use color as the only way to convey information. For example: If you want to convey success, use text or another way to indicate success in addition to the color green.**
 
-**For more information see: [Creating Culturally Customized Content for Website Translation](https://www.globalizationpartners.com/2011/08/10/creating-culturally-customized-content-for-website-translation/).** {{FLAG THIS FOR TEAM REVIEW -- EXTERNAL LINK}}
+**This is also important from a cultural sensitivity standpoint. Not everyone using your site may understand your use of color.**
+
+**For more information see: [Creating Culturally Customized Content for Website Translation](https://www.globalizationpartners.com/2011/08/10/creating-culturally-customized-content-for-website-translation/).**
 
 ----
 
@@ -336,7 +425,7 @@ We also define what units the spacing items will be expressed in. If you don't s
     "padding": true,
     "margin": true,
     "units": [
-      "%",
+        "%",
       "px",
       "em",
       "rem",
@@ -371,7 +460,7 @@ The attribute that defines the font stack is `fontFamily`. Note that defining th
 ```json
     "fontFamilies": [
       {
-        "fontFamily": "-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Oxygen-Sans,Ubuntu,Cantarell,\"Helvetica Neue\",sans-serif",
+        "fontFamily": "-apple-system,BlinkMacSystemFont,\\"Segoe UI\\",Roboto,Oxygen-Sans,Ubuntu,Cantarell,\\"Helvetica Neue\\",sans-serif",
         "slug": "system-fonts",
         "name": "System Fonts"
       },
@@ -400,9 +489,9 @@ The attributes inside a `fontFace` object are:
   * The higher the number the bolder the font will be
   * The numeric values available depend on the font you use
 * [fontStyle](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style): Indicates if the fone is italic or not. It takes one of the following values:
-  * `normal`: normal font style
-  * `italic`: italic font style
-  * `oblique`: oblique font style
+* `normal`: normal font style
+* `italic`: italic font style
+* `oblique`: oblique font style
 * [fontStretch](https://developer.mozilla.org/en-US/docs/Web/CSS/font-stretch): Let's you choose if the font is condensed or expanded. It takes a percentrage value between 50 and 200% or one of the following keywords:
   * `normal`: normal font stretch
   * `ultra-condensed`: ultra condensed font stretch
@@ -428,7 +517,7 @@ The attributes inside a `fontFace` object are:
             "fontStretch": "normal",
             "fontDisplay": "swap",
             "src": [
-              "file:./assets/fonts/recursive-latin-subset.woff2"
+                "file:./assets/fonts/recursive-latin-subset.woff2"
             ]
           }
         ]
@@ -471,6 +560,7 @@ You can define as many sizes as you want or need and multiple entries can have t
 ```
 
 The custom area of the theme.json file is where you can define your own custom CSS properties to use in your content.
+
 Any values declared within the custom field will be transformed to CSS Custom Properties following this naming schema:
 
 ```css
@@ -481,8 +571,8 @@ Using the following custom section of a `theme.json` file
 
 ```json
   "custom": {
-    "baseFont": 16,
-    "lineHeight": {
+      "baseFont": 16,
+      "lineHeight": {
       "small": 1.2,
       "medium": 1.4,
       "large": 1.8
@@ -551,8 +641,8 @@ When you see the name of the variable value, it's made of several parts:
 
 ```json
 "styles": {
-  "color": {
-    "text": "var(--wp--preset--color--primary)"
+    "color": {
+      "text": "var(--wp--preset--color--primary)"
   }
 }
 ```
@@ -563,15 +653,13 @@ WordPress will add the top level style to the body element so the cascade and in
 
 ```css
 body {
-  color: var( --wp--preset--color--primary );
+    color: var( --wp--preset--color--primary );
 }
 ```
 
 For more information about the CSS Cascade and how it works see [Cascade and inheritance](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_and_inheritance)
 
 #### Block level styles
-
-{{ NOTE TO SELF: RESEARCH IF THIS WORKS FOR CUSTOM BLOCKS TOO OR ONLY CORE BLOCKS. HAVEN'T FOUND INFORMATION ABOUT THIS WORKING WITH CUSTOM BLOCKS YET }}
 
 The next set of style rules applies to blocks.
 
@@ -586,10 +674,10 @@ For blocks built into Gutenberg, the fully qualified name is `core` + `name`, li
 
 ```json
 "styles": {
-  "blocks": {
-    "core/paragraph": {
-      "color": {
-        "text": "var(--wp--preset--color--secondary)"
+    "blocks": {
+      "core/paragraph": {
+        "color": {
+          "text": "var(--wp--preset--color--secondary)"
       }
     },
     "core/group": {
@@ -605,11 +693,11 @@ The previous JSON will producce the following CSS:
 
 ```css
 p { 
-  color: var( --wp--preset--color--secondary );
+    color: var( --wp--preset--color--secondary );
 }
 
 .wp-block-group {
-  color: var( --wp--preset--color--tertiary );
+    color: var( --wp--preset--color--tertiary );
 }
 ```
 
@@ -618,8 +706,6 @@ The CSS classes WordPress generates for each block are prefixed with `wp-block-`
 The `core/paragraph` block opts out from the default behaviour and uses p as a selector.
 
 #### Element styles
-
-{{ NOTE TO SELF: RESEARCH IF THE CLOSED SET MENTIONED IN DOCS AND LISTED BELOW IS CORRECT OR IF WE CAN USE OTHER ELEMENTS }}
 
 In addition to top-level and block-level styles, there's a set of preconfigured elements that can used in both places. The set of available elements and what they map to in CSS:
 
@@ -637,9 +723,9 @@ When a style is defined at the root of the styles element it will be applied to 
 
 ```json
 "styles": {
-  "elements": {
-    "typography": {
-      "fontSize": "var(--wp--preset--font-size--normal)"
+    "elements": {
+      "typography": {
+        "fontSize": "var(--wp--preset--font-size--normal)"
     },
     "h1": {
       "typography": {
@@ -666,15 +752,17 @@ the three levels of headings, `h1`, `h2`, and `h3` will be aplied to correspondi
 
 ```css
 body {
-    font-size: var( --wp--preset--font-size--normal );
+  font-size: var( --wp--preset--font-size--normal );
 }
 
 h1 {
-    font-size: var( --wp--preset--font-size--huge );
+  font-size: var( --wp--preset--font-size--huge );
 }
+
 h2 {
-    font-size: var( --wp--preset--font-size--big );
+  font-size: var( --wp--preset--font-size--big );
 }
+
 h3 {
   font-size: var( --wp--preset--font-size--medium );
 }
@@ -694,16 +782,16 @@ This means that the values we're changing will only be available inside the `gro
         "h2": {
           "typography": {
             "fontSize": "var(--wp--preset--font-size--small)"
-          }
-        },
+        }
+      },
         "h3": {
           "typography": {
             "fontSize": "var(--wp--preset--font-size--smaller)"
           }
         }
+      }
     }
   }
-}
 ```
 
 The resulting CSS will reflect this restriction by attaching the style to `h2` elements inside the `group` block, represented by the `.wp-block-group` class and not anywhere else.
@@ -737,26 +825,20 @@ The information you provide about your templates includes:
 In the example, we define a template called `my-custom-template` and assign it to posts, pages and my-cpt custom post types.
 
 ```json
-  "customTemplates": [
-    {
-      "name": "my-custom-template",
-      "title": "The template title",
-      "postTypes": [
-        "page",
-        "post",
-        "my-cpt"
-      ]
-    }
-  ]
+"customTemplates": [
+  {
+    "name": "my-custom-template",
+    "title": "The template title",
+    "postTypes": [
+      "page",
+      "post",
+      "my-cpt"
+    ]
+  }
+]
 ```
 
 ### templateParts
-
-{{
-  I'M TRYING TO WORK THROUGH THIS ONE.
-
-  I'M NOT SURE IF I'M CORRECT IN HOW I'VE DOCUMENTED IT HERE.
-}}
 
 **This feature is only available if you have the Gutenberg plugin installed.**
 
@@ -771,34 +853,34 @@ Each template part declaration has three components:
 * **area** the area where the part is used. If not included the template will be set to uncategorized by default and will not trigger any template part variations.
 
 ```json
-  "templateParts": [
-    {
-      "name": "comments",
-      "title": "Comments"
-    },
-    {
-      "name": "footer",
-      "title": "Footer",
-      "area": "Footer"
-    },
-    {
-      "name": "header",
-      "title": "Header",
-      "area": "Header"
-    },
-    {
-      "name": "main",
-      "title": "Main"
-    },
-    {
-      "name": "sidebar-left",
-      "title": "Sidebar Left"
-    },
-    {
-      "name": "sidebar-right",
-      "title": "Sidebar Right"
-    }
-  ]
+"templateParts": [
+  {
+    "name": "comments",
+    "title": "Comments"
+  },
+  {
+    "name": "footer",
+    "title": "Footer",
+    "area": "Footer"
+  },
+  {
+    "name": "header",
+    "title": "Header",
+    "area": "Header"
+  },
+  {
+    "name": "main",
+    "title": "Main"
+  },
+  {
+    "name": "sidebar-left",
+    "title": "Sidebar Left"
+  },
+  {
+    "name": "sidebar-right",
+    "title": "Sidebar Right"
+  }
+]
 ```
 
 ### patterns
