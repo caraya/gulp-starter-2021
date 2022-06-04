@@ -189,15 +189,29 @@ Row and stack layouts in the full site editor use flexbox under the hood so, now
 
 Go to the full site editor (`Appearance -> Editor`).
 
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-01.png)
+
 Then select toggle the navigation menu (WordPress logo on the top left corner of the browser window) and select `Template Parts`.
+
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-02.png)
+
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-03.png)
 
 Create a new part template and call it `two-column` (yes, I know it's a row block but you'll see why the name fits).
 
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-04.png)
+
 You will then be taken to the editor for the part template.
+
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-05.png)
 
 Click on the `Add Block` button on the lower right corner of the editor and search for `row`.
 
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-06.png)
+
 Another way to add a block is to type `/row` in the input box and then press the `Enter` key.
+
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-06a.png)
 
 Both methods provide the same result. You will be taken to the editor block.
 
@@ -205,15 +219,27 @@ How we add content to the first box in the row is different than how we add cont
 
 To add content to the first box, click on the `Add Block` button inside the block.
 
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-07.png)
+
 Search for `Latest Posts` and click on it. This will display the five most recent posts in your blog.
+
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-08.png)
 
 To add content to the second and subsequent boxes, use the `Add Block` button in the lower right corner of the row block.
 
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-09.png)
+
 Search for `Latest comments` and press enter to insert the block
 
-Now that we have the blocks ready, we'll take a step back and look at the formating of the row. We will not look at the formating of content in the child blocks.
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-10.png)
 
-![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-01.png)
+This is where we are at before we format the content.
+
+![Full site editor location](https://learn.wordpress.org/files/2022/05/wp-flexbox-wordpress-11.png)
+
+**Formatting the row.**
+
+Now that we have the blocks ready, we'll take a step back and look at the formating of the row. **We will not look at the formating of content in the child blocks**.
 
 ## Assessment
 

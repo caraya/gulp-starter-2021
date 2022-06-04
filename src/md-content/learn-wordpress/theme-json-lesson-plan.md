@@ -92,26 +92,120 @@ Participants will get the most from this lesson if they have familiarity with:
 * Putting it all together
   * Building a basic theme.json configuration file
   
-## Exercises
+## Exercises: Build your own theme.json
 
-**Build Your own.**
+In this series of exercises we will build a `theme.json` file that you will be able to drop onto an existing theme or use it to experiment with different values.
 
-Using the example available in the repository FIXME: Add linkn to repository
+For illustration purposes, each exercise has its own completed sample file that you can compare your work on, but for a production `theme.json` file, all the sections are grouped in one file and that's how we'll work on it.
 
-Experiment with each area of the configuration until your theme works the way you want it to.
+Fromm the repository , open `theme.json` in the `starter-template` folder in the repository. FIXME: add link to the repository.
 
-* Build a theme.json skeleton
-* Modify the core sections
-  * Settings
-    * Preset
-    * Custom
-  * Styles
-  * Typography
-* Optionally, modify the Gutenberg-only sections
-  * Custom Templates
-  * Custom Parts
-  * Patterns
-  
+### Exercise 1: Basic settings
+
+The first portion we'll work with is border settings. These settings will display border settings for all the block types that support borders (not all blocks support all properties that we'll cover in these exercises).
+
+Boolean values represent items that will be enabled or disabled in the post or full site editor.
+
+```json
+  "border": {
+    "color": true,
+    "radius": true,
+    "style": true,
+    "width": true
+  },
+```
+
+### Exercise 2: Color and duotone settings
+
+The next section deals with colors in the theme. The first set of attributes will enable or disable color settings for the the theme.
+
+The main item to highlight are duotone and gradient settings. There are two sets of attributes that can be enabled independently from each other: custom and default duotones and gradients.
+
+In this block we'll define a single default duotone color going from black to white.
+
+Copy the following code after the code from the previous exercise:
+
+```json
+    "color": {
+      "background": true,
+      "custom": true,
+      "customDuotone": true,
+      "customGradient": true,
+      "defaultGradients": true,
+      "defaultPalette": true,
+      "link": false,
+      "text": true,
+      "duotone": [
+        {
+          "colors": [
+            "#000",
+            "#FFF"
+          ],
+          "slug": "black-and-white",
+          "name": "Black and White"
+        }
+      ]
+    },
+    "gradients": [
+      {
+        "name": "Red to blue",
+        "slug": "red-blue",
+        "gradient": "linear-gradient(90deg, rgb(255,0,0) 0%, rgb(0,0,255) 50%"
+      }
+    ],
+```
+
+For additional exercises, add new duotones and gradients. Experiemnt with the values of the linear gradient attribute.
+
+### Exercise 3: Custom palette colors
+
+Adding colors come next. The `palette` is an array of colors that will be used in the theme.
+
+```css
+      "palette": [
+        {
+          "slug": "link-red",
+          "color": "#cd2653",
+          "name": "Link red"
+        }
+      ],
+```
+
+These colors are in addition to what you'll see as default for your WordPress theme.
+
+### Exercise 4: Layout width
+
+When setting the layout dimensions you specify the width of the content area and the dimensions of the wide layout.
+
+```json
+    "layout": {
+      "contentSize": "800px",
+      "wideSize": "1000px"
+    },
+```
+
+### Exercise 5: Spacing
+
+The spacing section has two areas, defining what elements are allowed in the theme and then defining what units of measurements we want to use.
+
+These are all valid CSS measurement units. If you've done work with CSS in the past, these should look familiar to you.
+
+```json
+    "spacing": {
+      "blockGap": true,
+      "padding": true,
+      "margin": true,
+      "units": [
+        "%",
+        "px",
+        "em",
+        "rem",
+        "vh",
+        "vw"
+      ]
+    },
+```
+
 ## Assessment
 
 `theme.json` acts as a theme's configuration file
@@ -200,9 +294,9 @@ An empty `theme.json` file looks like this:
   "version": 2,
   "settings": {},
   "styles": {},
-  "customTemplates": {},
-  "templateParts": {},
-  "patterns": {}
+  "customTemplates": [],
+  "templateParts": [],
+  "patterns": []
 }
 ```
 
