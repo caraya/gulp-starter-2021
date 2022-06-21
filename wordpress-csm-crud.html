@@ -17,44 +17,44 @@
 
 <body>
 <article class="container">
-  <h1 id="wordpress-cms-crud">WordPress CMS CRUD</h1>
+  <h1 id="wordpress-cms-crud" tabindex="-1">WordPress CMS CRUD</h1>
 <p>The whole idea of the WordPress REST API is to allow developers to use whateveer tools they choose to create front-ends for WordPress systems.  We’re no longer limited to PHP and the Gutenberg editor and the possibilities are endless.</p>
 <p>This post will cover authentication using JWT, listing pages of posts, viewing individual posts and the basic CRUD operations: create, update and delete. We covered setting up JWT authentication in WordPress in <a href="https://publishing-project.rivendellweb.net/adding-jwt-to-wordpress/">Adding JWT to WordPress</a></p>
 <p>We will write this using ES Modules, so we’ll have to build a quick WebPack build system to convert it into something that works in browsers.</p>
-<h2 id="the-build-system">The build system</h2>
+<h2 id="the-build-system" tabindex="-1">The build system</h2>
 <p>Because we will be working with modules we need to write a quick WebPack build scrypt that will use Babel to convert this into something that browsers will read without having to inline scripts with <code>type=module</code>.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"path"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> TerserPlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'terser-webpack-plugin'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 module<span class="token punctuation">.</span><span class="token function-variable function">exports</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">env<span class="token punctuation">,</span> arg</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   config <span class="token operator">=</span> <span class="token punctuation">{</span>
-    entry<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"./src/index.js"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
-    output<span class="token operator">:</span> <span class="token punctuation">{</span>
-      filename<span class="token operator">:</span> <span class="token string">"bundle.min.js"</span><span class="token punctuation">,</span>
-      path<span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">"dist"</span><span class="token punctuation">)</span>
+    <span class="token literal-property property">entry</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"./src/index.js"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">output</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">filename</span><span class="token operator">:</span> <span class="token string">"bundle.min.js"</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">path</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">"dist"</span><span class="token punctuation">)</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    devServer<span class="token operator">:</span> <span class="token punctuation">{</span>
-      port<span class="token operator">:</span> <span class="token number">3000</span><span class="token punctuation">,</span>
-      https<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      contentBase<span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">"dist"</span><span class="token punctuation">)</span>
+    <span class="token literal-property property">devServer</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">port</span><span class="token operator">:</span> <span class="token number">3000</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">https</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">contentBase</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">"dist"</span><span class="token punctuation">)</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    module<span class="token operator">:</span> <span class="token punctuation">{</span>
-      rules<span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token literal-property property">module</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">[</span>
         <span class="token punctuation">{</span>
-          test<span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.js$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
-          exclude<span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">(node_modules)</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
-          use<span class="token operator">:</span> <span class="token punctuation">{</span>
-            loader<span class="token operator">:</span> <span class="token string">"babel-loader"</span><span class="token punctuation">,</span>
-            options<span class="token operator">:</span> <span class="token punctuation">{</span>
-              presets<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"@babel/preset-modules"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">test</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.js$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+          <span class="token literal-property property">exclude</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">(node_modules)</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+          <span class="token literal-property property">use</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+            <span class="token literal-property property">loader</span><span class="token operator">:</span> <span class="token string">"babel-loader"</span><span class="token punctuation">,</span>
+            <span class="token literal-property property">options</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+              <span class="token literal-property property">presets</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"@babel/preset-modules"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
             <span class="token punctuation">}</span>
           <span class="token punctuation">}</span>
         <span class="token punctuation">}</span>
       <span class="token punctuation">]</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    optimization<span class="token operator">:</span> <span class="token punctuation">{</span>
-      minimize<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      minimizer<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token keyword">new</span> <span class="token class-name">TerserPlugin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">optimization</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">minimize</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">minimizer</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token keyword">new</span> <span class="token class-name">TerserPlugin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span>arg<span class="token punctuation">.</span>mode <span class="token operator">===</span> <span class="token string">"development"</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -81,14 +81,14 @@ js-cookie
 <p><a href="https://www.npmjs.com/package/axios">axios</a> is the package that we’ll use to handle fetching data from the server.</p>
 <p><a href="https://www.npmjs.com/package/form-urlencoded">form-urlencoded</a> will serialize the data we send to the server</p>
 <p><a href="https://github.com/js-cookie/js-cookie#readme">js-cookie</a> provides a programmatic way to set and read cookies. We’ll store the JSON Web Token in a cookie that we’ll read in different parts of the code.</p>
-<h2 id="create-initial-state">Create Initial State</h2>
+<h2 id="create-initial-state" tabindex="-1">Create Initial State</h2>
 <p>We will create a sate constant where we’ll set initial values for our authentication, and data storage for the values we get from the API.</p>
 <p>We also create a function to add elements to the state. This is a very simplified version of what a state management library would do and, if we use React or Vue it would be unnecessary.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Set state object with values that are changed programatically</span>
 <span class="token keyword">const</span> state <span class="token operator">=</span> <span class="token punctuation">{</span>
-  loggedIn<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  restUrl<span class="token operator">:</span> <span class="token string">"http://localhost:8888/wordpress/wp-json/"</span><span class="token punctuation">,</span>
-  token<span class="token operator">:</span> <span class="token string">"wp-token"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">loggedIn</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">restUrl</span><span class="token operator">:</span> <span class="token string">"http://localhost:8888/wordpress/wp-json/"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">token</span><span class="token operator">:</span> <span class="token string">"wp-token"</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
 <span class="token keyword">const</span> <span class="token function-variable function">setState</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">toSet<span class="token punctuation">,</span> newValue</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
@@ -97,7 +97,7 @@ js-cookie
 
 <span class="token keyword">export</span> <span class="token punctuation">{</span> state<span class="token punctuation">,</span> setState <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="authenticate">Authenticate</h2>
+<h2 id="authenticate" tabindex="-1">Authenticate</h2>
 <p>To authenticate we first import all the packages that we’ll use: Axios, js-cookie and form-urlencoded. We also import our state script.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Import libraries</span>
 <span class="token keyword">import</span> axios <span class="token keyword">from</span> <span class="token string">"axios"</span><span class="token punctuation">;</span>
@@ -138,24 +138,24 @@ js-cookie
   <span class="token function">getEl</span><span class="token punctuation">(</span>loginForm<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"submit"</span><span class="token punctuation">,</span> <span class="token parameter">event</span> <span class="token operator">=></span>
     event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">const</span> creds <span class="token operator">=</span> <span class="token punctuation">{</span>
-      username<span class="token operator">:</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>username<span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">,</span>
-      password<span class="token operator">:</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>password<span class="token punctuation">)</span><span class="token punctuation">.</span>value
+      <span class="token literal-property property">username</span><span class="token operator">:</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>username<span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">,</span>
+      <span class="token literal-property property">password</span><span class="token operator">:</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>password<span class="token punctuation">)</span><span class="token punctuation">.</span>value
     <span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token comment">// 1</span>
 
     <span class="token comment">// Make request to authenticate</span>
     <span class="token function">axios</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      method<span class="token operator">:</span> <span class="token string">"post"</span><span class="token punctuation">,</span>
-      url<span class="token operator">:</span> state<span class="token punctuation">.</span>restUrl <span class="token operator">+</span> <span class="token string">"jwt-auth/v1/token"</span><span class="token punctuation">,</span>
-      data<span class="token operator">:</span> <span class="token function">formurlencoded</span><span class="token punctuation">(</span>creds<span class="token punctuation">)</span><span class="token punctuation">,</span>
-      headers<span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"Content-Type"</span><span class="token operator">:</span> <span class="token string">"application/x-www-form-urlencoded"</span>
+      <span class="token literal-property property">method</span><span class="token operator">:</span> <span class="token string">"post"</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">url</span><span class="token operator">:</span> state<span class="token punctuation">.</span>restUrl <span class="token operator">+</span> <span class="token string">"jwt-auth/v1/token"</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">data</span><span class="token operator">:</span> <span class="token function">formurlencoded</span><span class="token punctuation">(</span>creds<span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">headers</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token string-property property">"Content-Type"</span><span class="token operator">:</span> <span class="token string">"application/x-www-form-urlencoded"</span>
       <span class="token punctuation">}</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token comment">// 2</span>
       <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">response</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
         <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token number">200</span> <span class="token operator">===</span> response<span class="token punctuation">.</span>status<span class="token punctuation">)</span> <span class="token punctuation">{</span>
           Cookies<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>state<span class="token punctuation">.</span>token<span class="token punctuation">,</span> response<span class="token punctuation">.</span>data<span class="token punctuation">.</span>token<span class="token punctuation">,</span> <span class="token punctuation">{</span>
-            expires<span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-            secure<span class="token operator">:</span> <span class="token boolean">true</span>
+            <span class="token literal-property property">expires</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+            <span class="token literal-property property">secure</span><span class="token operator">:</span> <span class="token boolean">true</span>
           <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
           <span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
         <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
@@ -189,7 +189,7 @@ js-cookie
   <span class="token comment">// Setup event listeners for logout form</span>
   <span class="token function">getEl</span><span class="token punctuation">(</span>logoutForm<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"click"</span><span class="token punctuation">,</span> <span class="token parameter">event</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
     event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    Cookies<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>state<span class="token punctuation">.</span>token<span class="token punctuation">,</span> <span class="token punctuation">{</span> secure<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Cookies<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>state<span class="token punctuation">.</span>token<span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">secure</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
     <span class="token function">logout</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -207,10 +207,10 @@ js-cookie
   <span class="token comment">// Show unauthenticated posts listing</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h2 id="read-content">Read Content</h2>
+<h2 id="read-content" tabindex="-1">Read Content</h2>
 <p>To display the content of our WordPress blog we need to do two things: display a list of all posts, like what you’d see in a default WordPress home page and display individual posts.</p>
 <p>We’ll tackle these tasks separately.</p>
-<h3 id="post-listing">Post Listing</h3>
+<h3 id="post-listing" tabindex="-1">Post Listing</h3>
 <p>To get a listing of the first posts on the database, 10 by default, we run code similar to the init function below.</p>
 <p>We use Axios to make a GET request to the <code>posts</code> API endpoint. We save the posts data to our state object and call the render function.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">init</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -221,11 +221,11 @@ js-cookie
   <span class="token comment">// Make API request with Axios</span>
   axios
     <span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>state<span class="token punctuation">.</span>restUrl <span class="token operator">+</span> <span class="token string">"wp/v2/posts"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-      params<span class="token operator">:</span> <span class="token punctuation">{</span>
-        per_page<span class="token operator">:</span> <span class="token number">10</span>
+      <span class="token literal-property property">params</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token literal-property property">per_page</span><span class="token operator">:</span> <span class="token number">10</span>
       <span class="token punctuation">}</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
-    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> data<span class="token operator">:</span> posts <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> <span class="token literal-property property">data</span><span class="token operator">:</span> posts <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
       <span class="token function">setState</span><span class="token punctuation">(</span><span class="token string">"posts"</span><span class="token punctuation">,</span> posts<span class="token punctuation">)</span><span class="token punctuation">;</span>
       <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -267,7 +267,7 @@ js-cookie
       <span class="token function">Post</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
 </code></pre>
-<h3 id="single-post">Single Post</h3>
+<h3 id="single-post" tabindex="-1">Single Post</h3>
 <p>The single post render function does as the title says, it renders the content of a single post on screen and, if the user is logged in, displays links to edit and delete the current post.</p>
 <p>The functions does the following:</p>
 <ol>
@@ -352,10 +352,10 @@ js-cookie
 </code></pre>
 <p>With the code so far we have the basic authenticaation structure and a way listing of posts and individual posts.</p>
 <p>We’ll explore more details in the next post.</p>
-<h1 id="wordpress-cms-crud-(part-3)%3A-some-additional-thoughts-and-ideas">WordPress CMS CRUD (Part 3): Some additional thoughts and ideas</h1>
+<h1 id="wordpress-cms-crud-(part-3)%3A-some-additional-thoughts-and-ideas" tabindex="-1">WordPress CMS CRUD (Part 3): Some additional thoughts and ideas</h1>
 <p>In the last posts we created a CRUD system for authenticated WordPress requests but it’s not complete. It currently only deals with the post content, it doesn’t provide an easy way to paginate content, and it doesn’t provide for how to access other parts of a WordPress site or app.</p>
 <p>This post will discuss solutions to these problems.</p>
-<h2 id="embedding-content-related-to-the-post">Embedding content related to the post</h2>
+<h2 id="embedding-content-related-to-the-post" tabindex="-1">Embedding content related to the post</h2>
 <p>When we load the data from the <code>posts</code> REST endpoint we get references to the post assets like featured image, author, and comments.</p>
 <p>This is good when we’re exploring the API but it becomes troublesome when we are building the content out for displaying it to the user. We would have to make additional requests for these assets and we’re not guaranteed that they exist so these additional requests and delays may be for nothing.</p>
 <p>Instead we can leverage the API and use the <code>_embed</code> query parameter to include the additional post resources when we fetch the posts. This makes the response larger but it guarantees that we will have all the data available to build post listings and individual posts.</p>
@@ -367,29 +367,29 @@ js-cookie
   <span class="token punctuation">}</span>
 
   <span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>state<span class="token punctuation">.</span>restUrl <span class="token operator">+</span> <span class="token string">"wp/v2/posts/"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    params<span class="token operator">:</span> <span class="token punctuation">{</span>
-      _embed<span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">params</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">_embed</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
       <span class="token comment">// Set number of posts to get</span>
-      per_page<span class="token operator">:</span> <span class="token number">10</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">per_page</span><span class="token operator">:</span> <span class="token number">10</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <p>This code will embed all associates assets to each individual post on the response, making it easier to create posts the match what we get with a WordPress theme.</p>
-<h2 id="paginating-content-for-navigation">Paginating content for navigation</h2>
+<h2 id="paginating-content-for-navigation" tabindex="-1">Paginating content for navigation</h2>
 <p>By default, the WordPress REST API will return ten items per request.  We can change that using the <code>per_page</code> parameter to change the number of items that the API returns up to one hundred.</p>
-<h3 id="creating-the-pages">Creating the pages</h3>
+<h3 id="creating-the-pages" tabindex="-1">Creating the pages</h3>
 <p>But in and of itself this is not enough. Using <code>per_page</code> will always returns the same data. We need to tell WordPress what page of content we want.</p>
 <p>The way to do it is to combine <code>per_page</code>, that will give us the number of items that we want the API to return, and <code>page</code> that provides the offset where to start the count of items to return.</p>
 <p>For example the following request will return the second page of 5 items from the site’s REST API.</p>
 <pre class="language-html"><code class="language-html">/wp-json/wp/v2/posts/?per_page=5&amp;page=2
 </code></pre>
 <p>Both parameters are optional.</p>
-<h3 id="leveraging-x-wp-totalpages">Leveraging X-WP-TotalPages</h3>
+<h3 id="leveraging-x-wp-totalpages" tabindex="-1">Leveraging X-WP-TotalPages</h3>
 <p>So we know how to create pages of content but how do we make sure that we don’t go over the last page?</p>
 <p>WordPress’s REST API provides two custom headers: <code>X-WP-Total</code> that gives you the total number of the type’s items (post, pages,etc) in the collection and <code>X-WP-TotalPages</code> that gives the total number of pages available given the number of items per page we specify.</p>
 <p>Using <code>X-WP-TotalPages</code> we can build page navigation links and we can build links to each individual page.</p>
-<h2 id="accessing-other-elements-of-a-wordpress-site">Accessing other elements of a WordPress site</h2>
+<h2 id="accessing-other-elements-of-a-wordpress-site" tabindex="-1">Accessing other elements of a WordPress site</h2>
 <p>So far we’ve only worked with posts and their embedded content but there are many other items that make up a WordPress application.</p>
 <p>The following table, taken from <a href="https://developer.wordpress.org/rest-api/reference/">REST API Handbook Reference</a> shows you the default routes available throught he API.</p>
 <table>
@@ -462,7 +462,7 @@ js-cookie
   <summary>Default endpoints available on the WordPress REST API</summary>
 </table>
 <p>This table does not include API routes added by plugins or generated outside the core API. Your overall API route table will certainly look different.</p>
-<h1 id="creating-custom-post-types-and-adding-them-to-the-rest-api">Creating custom post types and adding them to the REST API</h1>
+<h1 id="creating-custom-post-types-and-adding-them-to-the-rest-api" tabindex="-1">Creating custom post types and adding them to the REST API</h1>
 <p>One of the things I’ve always liked about WordPress is its flexibility. We can extend WordPress and create pretty much any type of content that we need for specific projects.</p>
 <p>We can choose whether to build it inside a theme or a plugin. For the most part I would recommend building it in a plugin so that we will retain the capability even if we switch themes.</p>
 <p>Like all plugins we first declare a preamble that looks like this. This is the block that makes it a plugin that we can load and use.</p>
@@ -524,8 +524,8 @@ js-cookie
   <span class="token string single-quoted-string">'rivendellweb_custom_book_genre_taxonomy'</span><span class="token punctuation">,</span> <span class="token number">0</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>With this functionality plugin installed we’ve created a new custom post type, added an interface to it on the admin UI and made sure we can access it through the REST API.</p>
-<h1 id="creating-templates-for-custom-post-types">Creating Templates for Custom Post Types</h1>
-<h1 id="adding-attributes-to-a-rest-api-endpoint">Adding attributes to a REST API endpoint</h1>
+<h1 id="creating-templates-for-custom-post-types" tabindex="-1">Creating Templates for Custom Post Types</h1>
+<h1 id="adding-attributes-to-a-rest-api-endpoint" tabindex="-1">Adding attributes to a REST API endpoint</h1>
 <p>When working with APIs we should never, under any circumstance, remove elements from the endpoint. Even if you’re the owner there is no real way to know who’s consumming your data and how they are doing it so removing elements of the API can cause unexpected and unpleasant problems down the road.</p>
 <p>However, there is no problem on adding attributes to your custom endpoints. This post will discuss how to do it using built-in WordPress functions and coding practices.</p>
 <p>Before we jump into adding attributes we need to ask ourselves if we really need a new attribute or if we can use combination of  existing attributes to accomplish our tasks.</p>

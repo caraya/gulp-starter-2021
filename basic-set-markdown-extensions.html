@@ -17,12 +17,12 @@
 
 <body>
 <article class="container">
-  <h1 id="writing-markdown-extensions-(1)%3A-customizing-renderer-behavior">Writing Markdown extensions (1): Customizing renderer behavior</h1>
+  <h1 id="writing-markdown-extensions-(1)%3A-customizing-renderer-behavior" tabindex="-1">Writing Markdown extensions (1): Customizing renderer behavior</h1>
 <p>Markdown gives you two options to work with specialized content: You can write it as HTML directly or you can use plugins for your Markdown tools that will produce the same result from some specific combination of text symbols.</p>
 <p>Until now I’ve always used HTML for things like figures and video embeds from YouTube or Codepen. It’s easier, I’ve created snippets in VSCode to handle them and my muscle memory already knows the shortcuts and how to write the code by hand.</p>
 <p>For security reasons this may not always be a good idea, specially if you accept third-party contributions. There’s nothing stoping a malicious author from inserting scripts into the HTML that would run when a reader views the page.</p>
 <p>I’ve chosen to experiment with Markdown-it as a standalone editor and see how easy it is to write plugins for them (or not, see <a href="https://publishing-project.rivendellweb.net/markdown-to-html-standalone-converter-tool/">Markdown to HTML standalone converter tool</a> for my reservations about the project leadership).</p>
-<h2 id="modifying-existing-renderer-rules">Modifying existing renderer rules</h2>
+<h2 id="modifying-existing-renderer-rules" tabindex="-1">Modifying existing renderer rules</h2>
 <p>The easiest way to create Markdown-it plugins is to customize the way that the Markdown renderer works. The following example will add <code>loading=&quot;lazy&quot;</code> to all images so they will lazy load in Chromium-based browsers.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> imageDefaultRender <span class="token operator">=</span>
   md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span>image <span class="token operator">||</span>
@@ -133,20 +133,20 @@ md<span class="token punctuation">.</span>renderer<span class="token punctuation
   <span class="token keyword">return</span> <span class="token function">defaultRender</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="further-improvements">Further improvements</h2>
+<h2 id="further-improvements" tabindex="-1">Further improvements</h2>
 <p>Right now our code is very rigid. It adds the attributes we tell it to and requires further work to add the customizations. Based on my limited knowledge of how the parser internals work I don’t know if it’s possible to further customize the rules customizations with customizations that fall outside the Markdown parser or if this would fall under creating new Markdown elements</p>
-<h1 id="writing-markdown-extensions-(2)%3A-thoughts-and-ideas-(so-far)">Writing Markdown extensions (2): Thoughts and ideas (so far)</h1>
+<h1 id="writing-markdown-extensions-(2)%3A-thoughts-and-ideas-(so-far)" tabindex="-1">Writing Markdown extensions (2): Thoughts and ideas (so far)</h1>
 <p>Before jumping into writing our own Markdown elements and all the complexity that goes with them, let’s stop and see where are are.</p>
 <p>Markdown rule customization gives you a lot of flexibility regarding customizing built-in rules and elements. It’s an all or nothing proposition, either all elements have the attributes you’re customizing or you code around to make sure only some do (like the link example where we only add attribute to external links).</p>
 <p>Most of the time, these customizations will be enough, but not always. There may be times when we want an element that is not available on standard Markdown or we don’t want to modify the default element to suit our needs because we still need it in its default form.</p>
 <p>In that case we’d have to write our own custom Markdown element. This is much harder than the code we’ve written so far because it digs deeper into Markdown-it internals and because the documentation on how to do it is scarce and almost non-existent, leaving beginners to try and figure out things from the source code.</p>
 <p>Looking at existing plugins or the Markdown-It engine doesn’t help as much as I thought it would. Markdown-it itself is well documented but it assumes you know everything that’s going on and that’s not always the case.</p>
 <p>As I get more comfortable with the code I’ll write another post covering the details of the process.</p>
-<h2 id="when-to-write-your-own-and-when-to-trust-third-parties">When to write your own and when to trust third parties</h2>
+<h2 id="when-to-write-your-own-and-when-to-trust-third-parties" tabindex="-1">When to write your own and when to trust third parties</h2>
 <p>It is likely that if you need to do something other people will want to do it too, so it begs the question: When do you write your own code and when do you use someone else’s?</p>
 <p>A related problem with Markdown-it plugins is that many of the plugins available on NPM are copies of existing packages, some scoped to specific users (instead of <code>package</code> it becomes <code>@user/package</code>) and some just forked from the original for no reason that’s apparent to me. This makes it harder to figure out which package use on your projects, making it even more tempting to write your own.</p>
 <p>We’ll cover specifics of how to write a custom plugin in a later post but as mentioned earlier, it’s not an easy task because there is little to no documentation on how to do it. You’re expected to understand the code well enough to make it happen.</p>
-<h1 id="writing-markdown-extensions-(3)%3A-writing-our-own-markdown-elements">Writing Markdown extensions (3): Writing our own Markdown elements</h1>
+<h1 id="writing-markdown-extensions-(3)%3A-writing-our-own-markdown-elements" tabindex="-1">Writing Markdown extensions (3): Writing our own Markdown elements</h1>
 <p>The other way to create custom Markdown and the corresponding HTML is to create completely custom Markdown elements.</p>
 <p>This is more complicated since we now have to parse the input, not just match an existing renderer but with the complexity comes a much more powerful toolset.</p>
 <p>In pseudocode, as far as I understand it, the process goes something like this:</p>

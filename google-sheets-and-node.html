@@ -17,13 +17,13 @@
 
 <body>
 <article class="container">
-  <h1 id="sheets-and-node">Sheets and Node</h1>
+  <h1 id="sheets-and-node" tabindex="-1">Sheets and Node</h1>
 <p>The Web is great but it’s not the best, or the only, solution for some problems. In this post we’ll discuss how to integrate <a href="https://www.google.com/sheets/about/">Google Sheets</a> as the data source and a Node.js as the front end, either through a CLI or via an Express-based server.</p>
 <p>This project does not use <a href="https://developers.google.com/apps-script/">Apps Script</a>. We’re not building add ons for Sheets so the technology would not be appropriate.</p>
-<h2 id="project-definition">Project Definition</h2>
+<h2 id="project-definition" tabindex="-1">Project Definition</h2>
 <p>We want to creaate a central repository for information about projects we’re working on and we don’t want to change the spreadsheet that we use just for the sake of a web app.</p>
 <p>Management wants a public web interface while keeping the spreadsheet secure with only team access to write and edit.</p>
-<h2 id="before-we-start">Before we start</h2>
+<h2 id="before-we-start" tabindex="-1">Before we start</h2>
 <p>Follow the Steps 1 and 2 in the <a href="https://developers.google.com/sheets/api/quickstart/nodejs">Node.js Quickstart</a> to add the Sheets API to the project and download the necessary credentials file that we’ll use in the code below.</p>
 <p>Keep the <code>token.json</code> file in the root directory of the project. WIthout it the project will not work, even in a read-only situation.</p>
 <div class="message danger">
@@ -34,8 +34,8 @@
 <pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i googleapis@39
 </code></pre>
 <p>Yes, we’ve pinned a specific version to make sure that we don’t get bit by unexpected changes to the API unless you want to make the change.</p>
-<h2 id="the-code">The Code</h2>
-<h3 id="cli">Cli</h3>
+<h2 id="the-code" tabindex="-1">The Code</h2>
+<h3 id="cli" tabindex="-1">Cli</h3>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> readline <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'readline'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> <span class="token punctuation">{</span>google<span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'googleapis'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -66,13 +66,13 @@ fs<span class="token punctuation">.</span><span class="token function">readFile<
 
 <span class="token keyword">function</span> <span class="token function">getNewToken</span><span class="token punctuation">(</span><span class="token parameter">oAuth2Client<span class="token punctuation">,</span> callback</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> authUrl <span class="token operator">=</span> oAuth2Client<span class="token punctuation">.</span><span class="token function">generateAuthUrl</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    access_type<span class="token operator">:</span> <span class="token string">'offline'</span><span class="token punctuation">,</span>
-    scope<span class="token operator">:</span> <span class="token constant">SCOPES</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">access_type</span><span class="token operator">:</span> <span class="token string">'offline'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">scope</span><span class="token operator">:</span> <span class="token constant">SCOPES</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Authorize this app by visiting this url:'</span><span class="token punctuation">,</span> authUrl<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token keyword">const</span> rl <span class="token operator">=</span> readline<span class="token punctuation">.</span><span class="token function">createInterface</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    input<span class="token operator">:</span> process<span class="token punctuation">.</span>stdin<span class="token punctuation">,</span>
-    output<span class="token operator">:</span> process<span class="token punctuation">.</span>stdout<span class="token punctuation">,</span>
+    <span class="token literal-property property">input</span><span class="token operator">:</span> process<span class="token punctuation">.</span>stdin<span class="token punctuation">,</span>
+    <span class="token literal-property property">output</span><span class="token operator">:</span> process<span class="token punctuation">.</span>stdout<span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   rl<span class="token punctuation">.</span><span class="token function">question</span><span class="token punctuation">(</span><span class="token string">'Enter the code from that page here: '</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">code</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
     rl<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -90,12 +90,12 @@ fs<span class="token punctuation">.</span><span class="token function">readFile<
 <span class="token punctuation">}</span>
 </code></pre>
 <pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">listProjects</span><span class="token punctuation">(</span><span class="token parameter">auth</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-  <span class="token keyword">const</span> sheets <span class="token operator">=</span> google<span class="token punctuation">.</span><span class="token function">sheets</span><span class="token punctuation">(</span><span class="token punctuation">{</span>version<span class="token operator">:</span> <span class="token string">'v4'</span><span class="token punctuation">,</span> auth<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> sheets <span class="token operator">=</span> google<span class="token punctuation">.</span><span class="token function">sheets</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">version</span><span class="token operator">:</span> <span class="token string">'v4'</span><span class="token punctuation">,</span> auth<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token comment">// Replace the spreadsheetId value and range</span>
   <span class="token comment">// with those from your own spreadhseet</span>
   sheets<span class="token punctuation">.</span>spreadsheets<span class="token punctuation">.</span>values<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    spreadsheetId<span class="token operator">:</span> <span class="token string">'1JFRg7uFQCCvcGcRBeLTDliogVI-eb7YGWOq5XfE-tdE'</span><span class="token punctuation">,</span>
-    range<span class="token operator">:</span> <span class="token string">'Class Data!A2:E'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">spreadsheetId</span><span class="token operator">:</span> <span class="token string">'1JFRg7uFQCCvcGcRBeLTDliogVI-eb7YGWOq5XfE-tdE'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">range</span><span class="token operator">:</span> <span class="token string">'Class Data!A2:E'</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">err<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
     <span class="token keyword">if</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token keyword">return</span> console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'The API returned an error: '</span> <span class="token operator">+</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">const</span> rows <span class="token operator">=</span> res<span class="token punctuation">.</span>data<span class="token punctuation">.</span>values<span class="token punctuation">;</span>
@@ -110,7 +110,7 @@ fs<span class="token punctuation">.</span><span class="token function">readFile<
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h3 id="express-based-service">Express-based service</h3>
+<h3 id="express-based-service" tabindex="-1">Express-based service</h3>
 <ul>
 <li><a href="https://github.com/theoephraim/node-google-spreadsheet">https://github.com/theoephraim/node-google-spreadsheet</a></li>
 <li><a href="https://codelabs.developers.google.com/codelabs/sheets-api">https://codelabs.developers.google.com/codelabs/sheets-api</a></li>

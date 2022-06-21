@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="learning-to-query-and-read-crux-data">Learning to query and read CrUX data</h1>
+  <h1 id="learning-to-query-and-read-crux-data" tabindex="-1">Learning to query and read CrUX data</h1>
 <p>I’ve decided to take another look at <a href="https://cloud.google.com/bigquery/">BigQuery</a> in the context of the <a href="https://developers.google.com/web/tools/chrome-user-experience-report/">Chrome User Experience Report or CrUX</a>.</p>
 <p>The idea is that Google, through the Chrome team and tools they make available to developers, has collected real user metrics (RUM) for billions of sites around the world and has grouped them according to country.</p>
 <div class="message danger">
@@ -30,7 +30,7 @@
 <pre class="language-sql"><code class="language-sql"><span class="token keyword">SELECT</span>
   <span class="token function">COUNT</span><span class="token punctuation">(</span><span class="token keyword">DISTINCT</span> origin<span class="token punctuation">)</span>
 <span class="token keyword">FROM</span>
-  <span class="token punctuation">`</span>chrome<span class="token operator">-</span>ux<span class="token operator">-</span>report<span class="token punctuation">.</span>country_cl<span class="token punctuation">.</span><span class="token number">201912</span><span class="token punctuation">`</span>
+  <span class="token identifier"><span class="token punctuation">`</span>chrome-ux-report.country_cl.201912<span class="token punctuation">`</span></span>
 </code></pre>
 <p>let’s unpack the query referecing Rick Viscomi’s <a href="https://web.dev/chrome-ux-report-bigquery/">Using the Chrome UX Report on BigQuery</a></p>
 <p><code>SELECT COUNT(DISTINCT origin)</code> means querying for the number of unique origins in the table. Roughly speaking, two URLs are part of the same origin if they have the same scheme, host, and port.</p>
@@ -44,7 +44,7 @@
 <pre class="language-sql"><code class="language-sql"><span class="token keyword">SELECT</span>
   <span class="token keyword">DISTINCT</span> origin
 <span class="token keyword">FROM</span>
-  <span class="token punctuation">`</span>chrome<span class="token operator">-</span>ux<span class="token operator">-</span>report<span class="token punctuation">.</span>country_cl<span class="token punctuation">.</span><span class="token number">201912</span><span class="token punctuation">`</span>
+  <span class="token identifier"><span class="token punctuation">`</span>chrome-ux-report.country_cl.201912<span class="token punctuation">`</span></span>
 </code></pre>
 <p>You can see a detailed preview of the data in <a href="https://bigquery.cloud.google.com/table/chrome-ux-report:country_cl.201912?tab=preview">BigQuery</a>. Note that BigQuery is moving to the Google Cloud Console and that the URL may change as a result.</p>
 <p>Of particular importance are the performance metrics available as part of the report:</p>
@@ -62,7 +62,7 @@
 <pre class="language-sql"><code class="language-sql"><span class="token keyword">SELECT</span>
   <span class="token function">SUM</span><span class="token punctuation">(</span>fcp<span class="token punctuation">.</span>density<span class="token punctuation">)</span> <span class="token keyword">AS</span> fcp_density
 <span class="token keyword">FROM</span>
-  <span class="token punctuation">`</span>chrome<span class="token operator">-</span>ux<span class="token operator">-</span>report<span class="token punctuation">.</span>country_cl<span class="token punctuation">.</span><span class="token number">201912</span><span class="token punctuation">`</span><span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>chrome-ux-report.country_cl.201912<span class="token punctuation">`</span></span><span class="token punctuation">,</span>
   UNNEST<span class="token punctuation">(</span>first_contentful_paint<span class="token punctuation">.</span>histogram<span class="token punctuation">.</span>bin<span class="token punctuation">)</span> <span class="token keyword">AS</span> fcp
 <span class="token keyword">WHERE</span>
   origin <span class="token operator">=</span> <span class="token string">'https://www.vidasecurity.cl/'</span> <span class="token operator">AND</span>
@@ -74,7 +74,7 @@
   origin<span class="token punctuation">,</span>
   fcp
 <span class="token keyword">FROM</span>
-  <span class="token punctuation">`</span>chrome<span class="token operator">-</span>ux<span class="token operator">-</span>report<span class="token punctuation">.</span>country_cl<span class="token punctuation">.</span><span class="token number">201912</span><span class="token punctuation">`</span><span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>chrome-ux-report.country_cl.201912<span class="token punctuation">`</span></span><span class="token punctuation">,</span>
   UNNEST<span class="token punctuation">(</span>first_contentful_paint<span class="token punctuation">.</span>histogram<span class="token punctuation">.</span>bin<span class="token punctuation">)</span> <span class="token keyword">AS</span> fcp
 <span class="token keyword">WHERE</span>
   form_factor<span class="token punctuation">.</span>name <span class="token operator">=</span> <span class="token string">'phone'</span> <span class="token operator">AND</span>
@@ -87,7 +87,7 @@
   _TABLE_SUFFIX <span class="token keyword">AS</span> yyyymm<span class="token punctuation">,</span>
   <span class="token function">AVG</span><span class="token punctuation">(</span>fcp<span class="token punctuation">.</span>density<span class="token punctuation">)</span> <span class="token keyword">AS</span> fast_fcp
 <span class="token keyword">FROM</span>
-  <span class="token punctuation">`</span>chrome<span class="token operator">-</span>ux<span class="token operator">-</span>report<span class="token punctuation">.</span>country_cl<span class="token punctuation">.</span><span class="token operator">*</span><span class="token punctuation">`</span><span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>chrome-ux-report.country_cl.*<span class="token punctuation">`</span></span><span class="token punctuation">,</span>
   UNNEST<span class="token punctuation">(</span>first_contentful_paint<span class="token punctuation">.</span>histogram<span class="token punctuation">.</span>bin<span class="token punctuation">)</span> <span class="token keyword">AS</span> fcp
 <span class="token keyword">WHERE</span>
   form_factor<span class="token punctuation">.</span>name <span class="token operator">=</span> <span class="token string">'desktop'</span> <span class="token operator">AND</span>
