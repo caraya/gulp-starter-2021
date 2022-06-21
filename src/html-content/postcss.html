@@ -11,7 +11,7 @@
 <p><strong>PostCSS is Not a Clean Up / Optimization Tool</strong></p>
 <p>The success of the Autoprefixer plugin has lead to the common perception of PostCSS as something you run on your completed CSS to clean it up and optimize it for speed and cross browser compatibility.</p>
 <p>Yes, there are many fantastic plugins that offer great clean up and optimization processes, but these are just a few of the available plugins.</p>
-<h2 id="why-i-picked-postcss-and-what-we%E2%80%99ll-do-with-it">Why I picked PostCSS and what we’ll do with it</h2>
+<h2 id="why-i-picked-postcss-and-what-we%E2%80%99ll-do-with-it" tabindex="-1">Why I picked PostCSS and what we’ll do with it</h2>
 <p>I initially decided not to use PostCSS until I discovered that Autoprefixer and CSSNano, some of my favorite tools, are actually PostCSS plugins. That made me research PostCSS itself and see what it’s all about. What I found out is a basic tool and a rich <a href="https://www.postcss.parts">plugin ecosystem</a> that can do a lot of the things you may want to do with your CSS from adding vendor prefixes based on what you expect your users to have to analyzing your code for compliance with a given methodology like BEM.</p>
 <p>I also like how PostCSS advocates for the single responsibility principle as outlined by Martin:</p>
 <blockquote>
@@ -20,7 +20,7 @@
 </blockquote>
 <p>Basically each PostCSS plugin should handle only one task and do it well. We should not create classes that do more than one thing and we shouldn’t duplicate functionality that is already available through another PostCSS plugin.</p>
 <p>In this post we’ll explore how to build a PostCSS workflow using Gulp, how to build a plugin and how would you add plugins to the PostCSS workflow we created.</p>
-<h2 id="running-postcss">Running PostCSS</h2>
+<h2 id="running-postcss" tabindex="-1">Running PostCSS</h2>
 <p>I work primarily in a Gulp environment so I built this task to work with PostCSS plugins and Autoprefixer in particular. Assuming you haven’t done before, install Gulp globally</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -g gulp
 </code></pre>
@@ -36,7 +36,7 @@
 <pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">"processCSS"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token comment">// What processors/plugins to use with PostCSS</span>
   <span class="token keyword">const</span> <span class="token constant">PROCESSORS</span> <span class="token operator">=</span> <span class="token punctuation">[</span>
-    <span class="token function">autoprefixer</span><span class="token punctuation">(</span><span class="token punctuation">{</span>browsers<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'last 3 versions'</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token function">autoprefixer</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">browsers</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'last 3 versions'</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
   <span class="token punctuation">]</span><span class="token punctuation">;</span>
   <span class="token keyword">return</span> gulp
     <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">"src/css/**/*.css"</span><span class="token punctuation">)</span>
@@ -45,14 +45,14 @@
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span>sourcemaps<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token string">"."</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">"src/css"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      pretty<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      title<span class="token operator">:</span>
+      <span class="token literal-property property">pretty</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">title</span><span class="token operator">:</span>
         <span class="token string">"processCSS"</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>If we run this task last in our CSS handling process we can change the destination from <code>src/css</code> to <code>dest/css</code> but the process where this task was first used there was an additional compression process beyond what SASS gave me; I wasn’t using CSSNano so I had to keep the files in the source directory to do further processing.  We’ll revisit this when we discuss other plugins we can use.</p>
-<h2 id="adding-a-second-plugin">Adding a second plugin</h2>
+<h2 id="adding-a-second-plugin" tabindex="-1">Adding a second plugin</h2>
 <p>Even through the CSS for this task is compressed using SASS compressed format.  I want more compression so we’ll use <a href="http://cssnano.co/">CSS Nano</a> to do further compression.</p>
 <p>To use it we first need to install the plugin</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D cssnano
@@ -64,7 +64,7 @@
 <pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">"processCSS"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token comment">// What processors/plugins to use with PostCSS</span>
   <span class="token keyword">const</span> <span class="token constant">PROCESSORS</span> <span class="token operator">=</span> <span class="token punctuation">[</span>
-    <span class="token function">autoprefixer</span><span class="token punctuation">(</span><span class="token punctuation">{</span>browsers<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'last 3 versions'</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">autoprefixer</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">browsers</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'last 3 versions'</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     <span class="token function">ccssnano</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
   <span class="token punctuation">]</span><span class="token punctuation">;</span>
   <span class="token keyword">return</span> gulp
@@ -74,19 +74,19 @@
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span>sourcemaps<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token string">"."</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">"src/css"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      pretty<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      title<span class="token operator">:</span>
+      <span class="token literal-property property">pretty</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">title</span><span class="token operator">:</span>
         <span class="token string">"processCSS"</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We can add further processors following the same formula: install and require the plugin, add the plugin (and any configuration) to the <code>PROCESSORS</code> array and test to make sure that it does what you want it to.</p>
-<h2 id="building-a-plugin">Building a plugin</h2>
+<h2 id="building-a-plugin" tabindex="-1">Building a plugin</h2>
 <div class="info message">
   <p>The code for this section originally appeared in Tuts+ <a href="https://webdesign.tutsplus.com/tutorials/postcss-deep-dive-create-your-own-plugin--cms-24605">PostCSS Deep Dive: Create Your Own Plugin</a></p>
 </div>
 <p>What I find the most intriguing about PostCSS is the API and how easy it makes it for developers to create plugins to address specific needs.</p>
-<h3 id="what-the-css-code-will-look-like">What the CSS code will look like</h3>
+<h3 id="what-the-css-code-will-look-like" tabindex="-1">What the CSS code will look like</h3>
 <p>Let’s assume, for example, that we have a set of fonts that Marketing has decided we should use in our content. Rather than type the full string of all the fonts in the stack you can do something like this instead:</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">html</span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token function">stack</span><span class="token punctuation">(</span><span class="token string">"Arial"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -101,7 +101,7 @@
   <span class="token property">style</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h3 id="configuring-the-project">Configuring the project</h3>
+<h3 id="configuring-the-project" tabindex="-1">Configuring the project</h3>
 <p>To initialize the plugin project we have to create a folder and initialize the package with NPM and accept the defaults automatically. We do this with the following commands:</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">mkdir</span> local-stacks <span class="token comment"># Creates the directory</span>
 <span class="token builtin class-name">cd</span> local-stacks <span class="token comment"># Changes to the directory we just created</span>
@@ -111,7 +111,7 @@
 <pre class="language-bash"><code class="language-bash"><span class="token function">touch</span> index.js
 </code></pre>
 <p>Or create the file in your text editor. I normally use Visual Studio Code.</p>
-<h3 id="writing-the-code">Writing the code</h3>
+<h3 id="writing-the-code" tabindex="-1">Writing the code</h3>
 <p>To get the plugin going we need to install and require two plugins: The PostCSS core engine (<code>postcss</code>) and <a href="http://underscorejs.org/">Underscore</a> (<code>underscore</code>) that we will use to merge local and plugin configurations.  I am not using ES6 module import syntax (although it would make the code simpler) because I want to use the module with older versions of Node.</p>
 <p>We then define an array of the font stacks that we want to use. The name we want to use for the stack is the key and the stack itself is the value for the key.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> postcss <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -119,9 +119,9 @@
 
 <span class="token comment">// Font stacks from http://www.cssfontstack.com/</span>
 <span class="token keyword">const</span> fontstacks_config <span class="token operator">=</span> <span class="token punctuation">{</span>
-  <span class="token string">'Arial'</span><span class="token operator">:</span> <span class="token string">'Arial, '</span>Helvetica Neue<span class="token string">', Helvetica, sans-serif'</span><span class="token punctuation">,</span>
-  <span class="token string">'Times New Roman'</span><span class="token operator">:</span> <span class="token string">'TimesNewRoman, '</span>Times New Roman<span class="token string">', Times, Baskerville, Georgia, serif'</span><span class="token punctuation">,</span>
-  <span class="token string">'Lucida Grande'</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token string">'Lucida Sans Unicode'</span><span class="token punctuation">,</span> <span class="token string">'Lucida Sans'</span><span class="token punctuation">,</span> Geneva<span class="token punctuation">,</span> Verdana<span class="token punctuation">,</span> sans<span class="token operator">-</span>serif<span class="token punctuation">;</span>
+  <span class="token string-property property">'Arial'</span><span class="token operator">:</span> <span class="token string">'Arial, '</span>Helvetica Neue<span class="token string">', Helvetica, sans-serif'</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'Times New Roman'</span><span class="token operator">:</span> <span class="token string">'TimesNewRoman, '</span>Times New Roman<span class="token string">', Times, Baskerville, Georgia, serif'</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'Lucida Grande'</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token string">'Lucida Sans Unicode'</span><span class="token punctuation">,</span> <span class="token string">'Lucida Sans'</span><span class="token punctuation">,</span> Geneva<span class="token punctuation">,</span> Verdana<span class="token punctuation">,</span> sans<span class="token operator">-</span>serif<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <p>toTitleCase will convert the string passed to it so that the first letter of each word is capitalized. The regular expression that we use to capture the string to title case is a little complicated (it was for me when I first saw it) so I’ve unpacked it below:</p>
@@ -186,14 +186,14 @@
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="next-steps-and-closing">Next Steps and Closing</h2>
+<h2 id="next-steps-and-closing" tabindex="-1">Next Steps and Closing</h2>
 <p>This is a very simple plugin as far as plugins go. You can look a Autoprefixer and CSS Nano for more complex examples and ideas of what you can do with PostCSS. If you’re interested in exploring the API, it is fully documented at <a href="http://api.postcss.org/">http://api.postcss.org/</a>.</p>
 <div class="message info">
   <p>An important reminder, <strong>you don't have to reinvent the wheel</strong>. There is a large plugin ecosystem available at <a href="http://www.postcss.parts/">www.postcss.parts</a>. We can use these plugins to get the results we want.</p>
   <p>This makes writing your own plugin a fun but not always necessary exercise.</p>
 </div>
 <p>Once you’ve scoped your CSS project you can decide how much of PostCSS you need and how your needs can be translated into existing plugins and custom code.</p>
-<h2 id="links%2C-resources-and-ideas">Links, Resources and Ideas</h2>
+<h2 id="links%2C-resources-and-ideas" tabindex="-1">Links, Resources and Ideas</h2>
 <ul>
 <li>Tuts+ <a href="https://webdesign.tutsplus.com/series/postcss-deep-dive--cms-889">Post CSS Deep Dive</a>
 <ul>
