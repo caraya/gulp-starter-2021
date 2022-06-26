@@ -1,11 +1,26 @@
 <h1 id="web%2Fxquery-project%3A-interview-database" tabindex="-1">Web/xQuery project: Interview database</h1>
-<p>I’m starting to work with interviews. I would like to be able to get the audio transcribed to text and then store the text and the metadata about the interview in an no-sql/non-relational database that I can then query using either xQuery/NoSQL or SQL databases.</p>
+<p>I’m starting to work with interviews. I would like to be able to get the audio transcribed to text and then store the text and the metadata about the interview in an no-sql/non-relational database that I can then query using either xQuery, NoSQL or SQL databases.</p>
 <p>The idea:</p>
-<div class="message info">
-  <p>Create a tool to automatically transcribe interviews and other audio files into an XML database. Then use xQuery to build the metadata for the interviews.</p>
-</div>
-<p>These are preliminary notes and ideas, where possible I will try to incorporate code to validate them but it won’t be perfect or possible to do everywhere.</p>
+<blockquote>
+<p>Create a tool to automatically transcribe interviews and other audio files into an XML database. Then use xQuery to build the metadata for the interviews.</p>
+</blockquote>
+<p>These are preliminary notes and ideas, where possible I will try to incorporate code to validate them but it won’t be perfect or possible to do everywhere. Future posts will update progress on the different parts of the project.</p>
 <h2 id="tooling-and-processes" tabindex="-1">Tooling and processes</h2>
+<p>There are two or three technologies that would make the project as envisioned possible:</p>
+<ul>
+<li>A noSQL or <a href="https://en.wikipedia.org/wiki/XQuery">xQuery</a> database</li>
+<li>A storage bucket for the audio files
+<ul>
+<li>This depend on what database and speech to text technologies I choose</li>
+</ul>
+</li>
+<li>A speech to text engine/technology</li>
+<li>A server to run the content from
+<ul>
+<li>This is also dependent on the xQuery or noSQL database we choose</li>
+</ul>
+</li>
+</ul>
 <h3 id="speech-to-text-options" tabindex="-1">Speech to text options</h3>
 <table>
 <thead>
@@ -13,6 +28,7 @@
 <th>Product</th>
 <th>Vendor</th>
 <th>Pricing URL</th>
+<th>Free Tier</th>
 <th>Notes</th>
 </tr>
 </thead>
@@ -22,11 +38,13 @@
 <td>Google</td>
 <td><a href="https://cloud.google.com/speech-to-text/pricing">Pricing</a></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="https://www.microsoft.com/cognitive-services/en-us/speech-api">Microsoft speech-to-text</a></td>
 <td>Microsoft</td>
 <td><a href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-api/">Pricing</a></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -34,16 +52,18 @@
 <td>Amazon</td>
 <td><a href="https://aws.amazon.com/transcribe/pricing/">Pricing</a></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/mozilla/DeepSpeech">Deep Speech</a></td>
 <td>Mozilla</td>
 <td>Open Source</td>
+<td>N/A</td>
 <td>Released under the <a href="https://www.mozilla.org/en-US/MPL/2.0/">Mozilla Public License 2.0</a><br/> <br/>Also see <a href="https://opensource.com/article/22/1/voice-text-mozilla-deepspeech">Use Mozilla DeepSpeech to enable speech to text in your application</a><br/> <br/>Python only, doesn’t appear to have a javascript or Node version or wrapper</td>
 </tr>
 </tbody>
 </table>
-<p>I realize t hat it wouldn’t be long before the APIs start incurring cost, but as an experiment either one of the APIs would work.</p>
+<p>I realize that it won’t be long before the APIs start incurring cost, but as an experiment any of the APIs would work.</p>
 <h3 id="identifying-database-options" tabindex="-1">Identifying database options</h3>
 <p>The other area worth researching is whether xQuery is the right solution for this type of project. Other XML/noSQL databases are also a possibility.</p>
 <table>
@@ -82,7 +102,7 @@
 </tr>
 </tbody>
 </table>
-<p>Even if xQuery is the right solution, then what is the best server to work with and how do we store the data? How expensive is it to host such a development solution in the cloud (either on premise or in the cloud)?</p>
+<p>Even if xQuery is the right solution, then what is the best server to work with and how do we store the data? How expensive is it to host such a development solution in the cloud (either on premise or in the vendor’s cloud)?</p>
 <h3 id="creating-a-json-schema-for-the-data" tabindex="-1">Creating a JSON schema for the data</h3>
 <p><a href="https://json-schema.org/">JSON Schemas</a> allows us to create a schema for JSON-based data. This ensures two things:</p>
 <ul>
@@ -91,24 +111,30 @@
 </ul>
 <p>I’ve validated the schema below using the <a href="https://www.jsonschemavalidator.net/">JSON Schema Validator</a></p>
 <h2 id="the-schema" tabindex="-1">The Schema</h2>
+<p>I’ve broken the schema into sections to make it easier to annotate and comment the different sections.</p>
+<p>We first provide metadata about the schema. We give it a name,indicate what version of the JSON Schema specification we are using and specify the type for our root element.</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
   <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"JSON schema for interviews"</span><span class="token punctuation">,</span>
   <span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token string">"https://json-schema.org/draft/2020-12/schema"</span><span class="token punctuation">,</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"object"</span><span class="token punctuation">,</span>
 </code></pre>
-<pre class="language-json"><code class="language-json">  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"object"</span><span class="token punctuation">,</span>
-  <span class="token property">"properties"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+<p>We then start listing the schema properties. Most of the properties will have a type (what kind of value we want the property to have) and a human-readable description.</p>
+<p>There are exceptions that will be documented where they appear.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"properties"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
     <span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"string"</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token property">"id"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
-      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Unique identifier for the block"</span>
+      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Unique identifier for the record"</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token property">"title"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
       <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Title of the interview"</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 </code></pre>
+<p>The type object deserves special mention as it deviates from our standard properties. It is meant to have one of a fixed set of values rather than a string we type in.</p>
+<p>We set both a <code>default</code> value and an <code>enum</code> with the list of possible values.</p>
 <pre class="language-json"><code class="language-json">    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
       <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Type of interview"</span><span class="token punctuation">,</span>
@@ -124,6 +150,8 @@
       <span class="token punctuation">]</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 </code></pre>
+<p><code>date</code> is a string formated as a date using the <code>yyyy-mm-dd</code> format. A valid example: <code>2018-11-13</code></p>
+<p><code>location</code> is just a regular string.</p>
 <pre class="language-json"><code class="language-json">    <span class="token property">"date"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
       <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Date of the interview"</span><span class="token punctuation">,</span>
@@ -134,6 +162,8 @@
       <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Location of the interview"</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 </code></pre>
+<p><code>interviewers</code> and <code>interviewees</code> allow between one and five people to be listed.</p>
+<p>The definition of a person is located under <code>$defs</code>. We define it outside the schema so we can use it in multiple locations.</p>
 <pre class="language-json"><code class="language-json">    <span class="token property">"interviewers"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"array"</span><span class="token punctuation">,</span>
       <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Interviewer(s) of the interview"</span><span class="token punctuation">,</span>
@@ -153,6 +183,8 @@
       <span class="token punctuation">}</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 </code></pre>
+<p>Audio is a nested object that has all the components that represent an audio file on the database.
+It also lists which children, if any, are required.</p>
 <pre class="language-json"><code class="language-json">    <span class="token property">"audio"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"object"</span><span class="token punctuation">,</span>
       <span class="token property">"properties"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
@@ -176,6 +208,8 @@
       <span class="token punctuation">]</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 </code></pre>
+<p>Likewise, the transcript is a collection of informatin about the transcription for the interview.</p>
+<p>In this case, both the URL and the content are required.</p>
 <pre class="language-json"><code class="language-json">    <span class="token property">"transcript"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"object"</span><span class="token punctuation">,</span>
       <span class="token property">"properties"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
@@ -193,7 +227,10 @@
         <span class="token string">"content"</span>
       <span class="token punctuation">]</span>
     <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The definitions in <code>@defs</code> can be used by reference elsewhere in the document.</p>
+<p>For this schema the only value in <code>@defs</code> is <code>person</code>, which we use in <code>interviewers</code> and <code>interviewees</code>.</p>
+<pre class="language-json"><code class="language-json">  <span class="token punctuation">}</span><span class="token punctuation">,</span>
   <span class="token property">"$defs"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
     <span class="token property">"person"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
       <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"object"</span><span class="token punctuation">,</span>
@@ -214,3 +251,4 @@
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre>
+<p>Now we have a schema to validate our data against it. It will also help in writing against the schema using an editor like VSCode or any of the IntelliJ IDEs.</p>
