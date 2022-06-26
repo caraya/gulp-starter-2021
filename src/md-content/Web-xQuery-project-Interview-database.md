@@ -1,27 +1,34 @@
 # Web/xQuery project: Interview database
 
-I'm starting to work with interviews. I would like to be able to get the audio transcribed to text and then store the text and the metadata about the interview in an no-sql/non-relational database that I can then query using either xQuery/NoSQL or SQL databases.
+I'm starting to work with interviews. I would like to be able to get the audio transcribed to text and then store the text and the metadata about the interview in an no-sql/non-relational database that I can then query using either xQuery, NoSQL or SQL databases.
 
 The idea:
 
-<div class="message info">
-  <p>Create a tool to automatically transcribe interviews and other audio files into an XML database. Then use xQuery to build the metadata for the interviews.</p>
-</div>
+> Create a tool to automatically transcribe interviews and other audio files into an XML database. Then use xQuery to build the metadata for the interviews.
 
-These are preliminary notes and ideas, where possible I will try to incorporate code to validate them but it won't be perfect or possible to do everywhere.
+These are preliminary notes and ideas, where possible I will try to incorporate code to validate them but it won't be perfect or possible to do everywhere. Future posts will update progress on the different parts of the project.
 
 ## Tooling and processes
 
+There are two or three technologies that would make the project as envisioned possible:
+
+* A noSQL or [xQuery](https://en.wikipedia.org/wiki/XQuery) database
+* A storage bucket for the audio files
+  * This depend on what database and speech to text technologies I choose
+* A speech to text engine/technology
+* A server to run the content from
+  * This is also dependent on the xQuery or noSQL database we choose
+
 ### Speech to text options
 
-| Product | Vendor | Pricing URL | Notes |
-| --- | --- | --- | --- |
-[Google speech-to-text](https://cloud.google.com/speech-to-text/) | Google | [Pricing](https://cloud.google.com/speech-to-text/pricing) | |
-| [Microsoft speech-to-text](https://www.microsoft.com/cognitive-services/en-us/speech-api) | Microsoft | [Pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-api/) | |
-| [Amazon Transcribe](https://aws.amazon.com/transcribe/) | Amazon | [Pricing](https://aws.amazon.com/transcribe/pricing/) | |
-| [Deep Speech](https://github.com/mozilla/DeepSpeech) | Mozilla | Open Source | Released under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)<br/> <br/>Also see [Use Mozilla DeepSpeech to enable speech to text in your application](https://opensource.com/article/22/1/voice-text-mozilla-deepspeech)<br/> <br/>Python only, doesn't appear to have a javascript or Node version or wrapper|
+| Product | Vendor | Pricing URL | Free Tier | Notes |
+| --- | --- | --- | --- | --- |
+[Google speech-to-text](https://cloud.google.com/speech-to-text/) | Google | [Pricing](https://cloud.google.com/speech-to-text/pricing) | | |
+| [Microsoft speech-to-text](https://www.microsoft.com/cognitive-services/en-us/speech-api) | Microsoft | [Pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-api/) | | |
+| [Amazon Transcribe](https://aws.amazon.com/transcribe/) | Amazon | [Pricing](https://aws.amazon.com/transcribe/pricing/) | | |
+| [Deep Speech](https://github.com/mozilla/DeepSpeech) | Mozilla | Open Source | N/A |Released under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)<br/> <br/>Also see [Use Mozilla DeepSpeech to enable speech to text in your application](https://opensource.com/article/22/1/voice-text-mozilla-deepspeech)<br/> <br/>Python only, doesn't appear to have a javascript or Node version or wrapper|
 
-I realize t hat it wouldn't be long before the APIs start incurring cost, but as an experiment either one of the APIs would work.
+I realize that it won't be long before the APIs start incurring cost, but as an experiment any of the APIs would work.
 
 ### Identifying database options
 
@@ -34,7 +41,7 @@ The other area worth researching is whether xQuery is the right solution for thi
 [MongoDB](https://www.mongodb.com/) | NoSQL | Varies | |
 | [PostrgreSQL](https://www.postgresql.org/) | SQL | Open Source| |
 
-Even if xQuery is the right solution, then what is the best server to work with and how do we store the data? How expensive is it to host such a development solution in the cloud (either on premise or in the cloud)?
+Even if xQuery is the right solution, then what is the best server to work with and how do we store the data? How expensive is it to host such a development solution in the cloud (either on premise or in the vendor's cloud)?
 
 ### Creating a JSON schema for the data
 
@@ -47,27 +54,39 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
 
 ## The Schema
 
+I've broken the schema into sections to make it easier to annotate and comment the different sections.
+
+We first provide metadata about the schema. We give it a name,indicate what version of the JSON Schema specification we are using and specify the type for our root element.
+
 ```json
 {
   "title": "JSON schema for interviews",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
 ```
 
+We then start listing the schema properties. Most of the properties will have a type (what kind of value we want the property to have) and a human-readable description.
+
+There are exceptions that will be documented where they appear.
+
 ```json
-  "type": "object",
   "properties": {
     "$schema": {
       "type": "string"
     },
     "id": {
       "type": "string",
-      "description": "Unique identifier for the block"
+      "description": "Unique identifier for the record"
     },
     "title": {
       "type": "string",
       "description": "Title of the interview"
     },
 ```
+
+The type object deserves special mention as it deviates from our standard properties. It is meant to have one of a fixed set of values rather than a string we type in.
+
+We set both a `default` value and an `enum` with the list of possible values.
 
 ```json
     "type": {
@@ -86,6 +105,10 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
     },
 ```
 
+`date` is a string formated as a date using the `yyyy-mm-dd` format. A valid example: `2018-11-13`
+
+`location` is just a regular string.
+
 ```json
     "date": {
       "type": "string",
@@ -97,6 +120,10 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
       "description": "Location of the interview"
     },
 ```
+
+`interviewers` and `interviewees` allow between one and five people to be listed.
+
+The definition of a person is located under `$defs`. We define it outside the schema so we can use it in multiple locations.
 
 ```json
     "interviewers": {
@@ -118,6 +145,9 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
       }
     },
 ```
+
+Audio is a nested object that has all the components that represent an audio file on the database.
+It also lists which children, if any, are required.
 
 ```json
     "audio": {
@@ -144,6 +174,10 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
     },
 ```
 
+Likewise, the transcript is a collection of informatin about the transcription for the interview.
+
+In this case, both the URL and the content are required.
+
 ```json
     "transcript": {
       "type": "object",
@@ -162,6 +196,13 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
         "content"
       ]
     }
+```
+
+The definitions in `@defs` can be used by reference elsewhere in the document.
+
+For this schema the only value in `@defs` is `person`, which we use in `interviewers` and `interviewees`.
+
+```json
   },
   "$defs": {
     "person": {
@@ -183,3 +224,5 @@ I've validated the schema below using the [JSON Schema Validator](https://www.js
   }
 }
 ```
+
+Now we have a schema to validate our data against it. It will also help in writing against the schema using an editor like VSCode or any of the IntelliJ IDEs.
