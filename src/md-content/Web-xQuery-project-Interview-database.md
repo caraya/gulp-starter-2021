@@ -23,10 +23,10 @@ There are two or three technologies that would make the project as envisioned po
 
 | Product | Vendor | Pricing URL | Free Tier | Notes |
 | --- | --- | --- | --- | --- |
-[Google speech-to-text](https://cloud.google.com/speech-to-text/) | Google | [Pricing](https://cloud.google.com/speech-to-text/pricing) | | |
-| [Microsoft speech-to-text](https://www.microsoft.com/cognitive-services/en-us/speech-api) | Microsoft | [Pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-api/) | | |
-| [Amazon Transcribe](https://aws.amazon.com/transcribe/) | Amazon | [Pricing](https://aws.amazon.com/transcribe/pricing/) | | |
-| [Deep Speech](https://github.com/mozilla/DeepSpeech) | Mozilla | Open Source | N/A |Released under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)<br/> <br/>Also see [Use Mozilla DeepSpeech to enable speech to text in your application](https://opensource.com/article/22/1/voice-text-mozilla-deepspeech)<br/> <br/>Python only, doesn't appear to have a javascript or Node version or wrapper|
+|[Google speech-to-text](https://cloud.google.com/speech-to-text/) | Google | [Pricing](https://cloud.google.com/speech-to-text/pricing) | &nbsp; | &nbsp; |
+| [Microsoft speech-to-text](https://www.microsoft.com/cognitive-services/en-us/speech-api) | Microsoft | [Pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-api/) | &nbsp; | &nbsp; |
+| [Amazon Transcribe](https://aws.amazon.com/transcribe/) | Amazon | [Pricing](https://aws.amazon.com/transcribe/pricing/) | &nbsp; | &nbsp; |
+| [Deep Speech](https://github.com/mozilla/DeepSpeech) | Mozilla | Open Source | N/A |Released under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)<br> <br>Also see [Use Mozilla DeepSpeech to enable speech to text in your application](https://opensource.com/article/22/1/voice-text-mozilla-deepspeech)<br> <br>Python only, doesn't appear to have a javascript or Node version or wrapper |
 
 I realize that it won't be long before the APIs start incurring cost, but as an experiment any of the APIs would work.
 
@@ -35,11 +35,11 @@ I realize that it won't be long before the APIs start incurring cost, but as an 
 The other area worth researching is whether xQuery is the right solution for this type of project. Other XML/noSQL databases are also a possibility.
 
 | Vendor | Type | License | Notes |
-| ------ | ---- | ------- | --- |
-[eXist](http://exist-db.org/) | NoSQL | Open Source| |
-[MarkLogic](https://www.marklogic.com/) | NoSQL | Commercial| |
-[MongoDB](https://www.mongodb.com/) | NoSQL | Varies | |
-| [PostrgreSQL](https://www.postgresql.org/) | SQL | Open Source| |
+| --- | --- | --- | --- |
+[eXist](http://exist-db.org/) | NoSQL | Open Source|&nbsp;|
+[MarkLogic](https://www.marklogic.com/) | NoSQL | Commercial|&nbsp;|
+[MongoDB](https://www.mongodb.com/) | NoSQL | Varies |&nbsp;|
+| [PostrgreSQL](https://www.postgresql.org/) | SQL | Open Source|&nbsp;|
 
 Even if xQuery is the right solution, then what is the best server to work with and how do we store the data? How expensive is it to host such a development solution in the cloud (either on premise or in the vendor's cloud)?
 

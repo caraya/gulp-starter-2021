@@ -98,7 +98,7 @@ In this series of exercises we will build a `theme.json` file that you will be a
 
 For illustration purposes, each exercise has its own completed sample file that you can compare your work on, but for a production `theme.json` file, all the sections are grouped in one file and that's how we'll work on it.
 
-Fromm the repository , open `theme.json` in the `starter-template` folder in the repository. FIXME: add link to the repository.
+See the example `theme.json` file at the end of the lesson plan for a full reference.
 
 ### Exercise 1: Basic settings
 
@@ -220,6 +220,7 @@ Settings in `theme.json` control what content creators see in the UI
 
 1. No
 2. Yes
+3. Yes, but creators will not the the same values in all block settings
 
 **Answer:** 2. Correct answer
 
@@ -241,8 +242,8 @@ The `$schema` element allows supporting editors to validate your work
 
 ## Additional Resources
 
-* [Theme.json schema](https://make.wordpress.org/themes/2021/11/30/theme-json-schema/) by [Alex Lende](https://make.wordpress.org/themes/2021/11/30/theme-json-schema/)
-* [https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/theme.json](theme.json schema) (updated when new items are added to the schema)
+* [Theme.json schema](https://make.wordpress.org/themes/2021/11/30/theme-json-schema/)
+* [theme.json schema) (updated when new items are added to the schema)](https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/theme.json)
 
 ## Full Sample Lesson Plan
 
@@ -270,7 +271,7 @@ All strings in JSON must be enclosed in double quotes. anything else will be fla
 | :---:  | :---:  |
 | "version": 2 | 'version': 2 |
 
-Boolean values (true or false) and numbers must not be quoted.
+Boolean values (true or false) and numbers **must not** be quoted.
 
 Even a single misplaced comma or colon can cause a JSON file to not work. You should be careful to validate the file you're creating with tools like [JSONLint](https://jsonlint.com/) or CodeBeautify's [JSON Validator](https://codebeautify.org/jsonvalidator).
 
@@ -938,7 +939,7 @@ In the example, we define a template called `my-custom-template` and assign it t
 
 In this section, you can add metadata about the template parts stored in your theme's `parts` folder.
 
-*Behind the scenes, WordPress will use this information to generate template specific variations of the template parts for each supported area (header and footer).*
+***Behind the scenes, WordPress will use this information to generate template specific variations of the template parts for each supported area (header and footer).***
 
 Each template part declaration has three components:
 
