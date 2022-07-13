@@ -1,16 +1,49 @@
 <h1 id="using-color.js-as-a-bridge-between-color-spaces" tabindex="-1">Using color.js as a bridge between color spaces</h1>
 <p><a href="https://colorjs.io">Color.js</a> has been oficially released (<a href="https://lea.verou.me/2022/06/releasing-colorjs/">post by Lea Verou</a>, <a href="https://svgees.us/blog/colorjs-release.html">post by Chris Lilley</a>).</p>
 <p>Now I feel safe using it to play with some of the new color spaces available in the <a href="https://www.w3.org/TR/css-color-4/">CSS Color Module Level 4</a> specification, particularly the color conversion functions in the library.</p>
+<p>This example uses Rebeccapurple expressed as a six-sigit hexadecimal color.</p>
+<p>We provide an SRGB version of the color to make sure that it will have a value in case none of the other formats are supported.</p>
+<p>We check if the browser supports the <code>lch</code> color space. If it’s successful then we convert the color to <code>lch</code> and then turn it into a string.</p>
+<p>Next, we do the same with the <code>display-p3</code> color space, if it does, then it conversts the color to the <code>display-p3</code> color space and then uses the <code>toString()</code> method to convert it to a string.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">import</span> Color <span class="token keyword">from</span> <span class="token string">"colorjs.io"</span><span class="token punctuation">;</span>
 
 <span class="token keyword">let</span> rp <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Color</span><span class="token punctuation">(</span><span class="token string">"#663399"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">let</span> cssColor <span class="token operator">=</span> rp<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">supports</span><span class="token punctuation">(</span><span class="token string">"p3"</span><span class="token punctuation">,</span> cssColor<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-  cssColor <span class="token operator">=</span> rp<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span><span class="token string">"p3"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">supports</span><span class="token punctuation">(</span><span class="token string">"lch"</span><span class="token punctuation">,</span> cssColor<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-  cssColor <span class="token operator">=</span> rp<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span><span class="token string">"lch"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
 
-cssColor<span class="token punctuation">;</span>
+<span class="token comment">// Initialize cssColor</span>
+<span class="token keyword">let</span> cssColor<span class="token punctuation">;</span>
+
+<span class="token comment">// Default if no other format is supported</span>
+cssColor <span class="token operator">=</span> rp<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span><span class="token string">"srgb"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">supports</span><span class="token punctuation">(</span><span class="token string">"p3"</span><span class="token punctuation">,</span> cssColor<span class="token punctuation">)</span><span class="token punctuation">)</span>
+  cssColor <span class="token operator">=</span> rp<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span><span class="token string">"p3"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">supports</span><span class="token punctuation">(</span><span class="token string">"lch"</span><span class="token punctuation">,</span> cssColor<span class="token punctuation">)</span><span class="token punctuation">)</span>
+  cssColor <span class="token operator">=</span> rp<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span><span class="token string">"lch"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+cssColor<span class="token punctuation">;</span> 
+<span class="token comment">// It will pick lch since it's the last supported format</span>
+</code></pre>
+<p>In the same script, we register a new custom property using the Houdini custom property syntax specified in <a href="https://drafts.css-houdini.org/css-properties-values-api/">CSS Properties and Values API Level 1</a> using the final value of the cssColor constant as the initial value of the property.</p>
+<pre class="language-js"><code class="language-js">window<span class="token punctuation">.</span><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--color-rebeccapurple'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cssColor<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Because we have used the Houdini-style custom property syntax we can leave the value out of the declaration and just use the variable name since there is a default value configured.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.item</span> <span class="token punctuation">{</span>
+  <span class="token property">background-color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-rebeccapurple<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Yes, this limits us to Chromium browsers in production but the flexibility is worth the cost in this case. We could provide a fallback that configures a regular custom property.</p>
+<p>Until Safari and Firefox support Houdini Custom Properties in production, we may have to code defensively and feature detect support for Houdini Custom Properties with something like this:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>window<span class="token punctuation">.</span><span class="token constant">CSS</span><span class="token punctuation">.</span>registerProperty<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Houdini porperties not supported'</span><span class="token punctuation">)</span>
+  <span class="token comment">// register regular custom property</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'we support Houdini custom properies, move on'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// register Houdini custom property</span>
+<span class="token punctuation">}</span>
 </code></pre>
