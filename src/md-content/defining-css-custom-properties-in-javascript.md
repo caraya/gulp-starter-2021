@@ -82,12 +82,7 @@ I've also changed the tests to test against a color of the appropriate color spa
   }
 ```
 
-I decided to use [CSS Properties and Values API 1](https://drafts.css-houdini.org/css-properties-values-api/) from the Houdini family of specifications as the primary way to add the properties sice it offers more flexibility.
-
-If the Houdini-style properties don't work then we fall back to regular properties defined in [CSS Custom Properties for Cascading Variables Module Level 1](https://www.w3.org/TR/css-variables-1/).
-
-
-
+I decided to use custom properties, as defined in [CSS Custom Properties for Cascading Variables Module Level 1](https://www.w3.org/TR/css-variables-1/).
 
 We create two Javascript variables
 
@@ -103,7 +98,6 @@ With the two variables in place, we create a variable in the root element with t
   let registeredColor = root.style.setProperty(colorName, cssColor);
   
   return registeredColor
-
 }
 ```
 
@@ -118,4 +112,4 @@ processColor('magenta', '#ff00ff')
 
 The calls to processColor will return undefined but the variables will be available to use in the CSS code.
 
-I used the conde in [this gist](https://gist.github.com/caraya/d4e81bc332bbf25659e424e52fb67d96) as a proof of concept.
+I used the code in [this gist](https://gist.github.com/caraya/d4e81bc332bbf25659e424e52fb67d96) as a proof of concept.
