@@ -5,6 +5,7 @@ Prologue
 Apollo was surprised to see that Sheba had chosen to retreat to the Celestial Dome during her off-duty period from teaching new trainees. Ordinarily, he’d found that she preferred to go here only when she was in need of some introspection over something she’d rather not talk about with anyone, not even her husband. Why she would have that feeling now, was what concerned him, especially given her pregnant condition. The idea of her ascending ladders all the way up to this spot was hardly something an expectant mother should be doing at this point.
 
 “Sheba?” he called up as he closed the hatch.
+
 His wife didn’t look down but acknowledged his presence, “I’m here, Apollo. Just give me a few more minutes.”
 
 “Something wrong?” he made his way up. She was wearing that simple brown dress she’d worn the first night he’d taken her up here, along with Starbuck and Cassiopeia. Even though she was several sectars along in her pregnancy at this point it’s loose-fitting quality still allowed her to wear it.
@@ -24,6 +25,7 @@ Sheba avoided looking at him and smiled in a way that didn’t reassure him.
 “Come on,” Apollo said gently, “You can tell me.”
 
 Finally, reluctantly, his wife let out a sigh.
+
 “It’s... nothing more than the same old, same-old wondering about... my father. Where he is now, and... what he’s doing. You know how it is, Apollo. It comes and goes, my attitude about it.”
 
 “But why now?” her husband asked, “Something new to make you think about it?”
