@@ -132,7 +132,7 @@ I'm old school and still use the ADDIE model when working with instructional con
 
 But it's important that we don't lose sight of our objective. It is not about the technology itself but how we can best use the technology to enhance the learning experience.
 
-Links and resources
+## Links and resources
 
 * Cmi5
   * [cmi5: Technical 101](https://xapi.com/cmi5-technical-101/)

@@ -44,7 +44,7 @@ async function fetchData() {
 };
 ```
 
-The issue with this code is that data is only visible inside the `try` block in the asycn function. If I try to access the data outside 
+The issue with this code is that data is only visible inside the `try` block in the asycn function. If I try to access the data outside
 
 ## Links and Resources
 

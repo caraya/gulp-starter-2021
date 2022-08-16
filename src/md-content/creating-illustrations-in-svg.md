@@ -1,2 +1,1 @@
 # Creating illustrations in SVG
-
