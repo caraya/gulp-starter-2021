@@ -1,0 +1,264 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="revisiting-gutenber-blocks-part-3%3A-other-thoughts-about-gutenberg" tabindex="-1">Revisiting Gutenber blocks part 3: other thoughts about Gutenberg</h1>
+<p>This post about Gutenberg is a mix of different thoughts, ideas and code snippets I’ve worked on while researching how to build blocks for a project I’m working on.</p>
+<h2 id="making-custom-post-types-work-in-gutenberg" tabindex="-1">Making Custom Post Types work in Gutenberg</h2>
+<p>I’ve created several custom post types that worked in the classic editor. When I brought them to my Gutenberg playground they would not work or they would not work as I expected them to.</p>
+<p>It took me a while to realize that you must be really picky on how you configure the Custom Post Type (CPT) to work as Gutenberg is far less forgiving than the classic editor when using <a href="https://developer.wordpress.org/reference/functions/register_post_type/">register_post_type()</a></p>
+<p>I want my CPT to do three things</p>
+<ol>
+<li>Work with the REST API</li>
+<li>Work with the classic editor</li>
+<li>Work with Gutenberg</li>
+</ol>
+<p>To address point one, we need to include <code>show_in_rest</code> in the post registration</p>
+<p>To address points two and three we need to include the full support declaration for what part of the editor we want to support.</p>
+<p>I normally add the following items to the <code>supports</code> array:</p>
+<ul>
+<li><code>title</code></li>
+<li><code>editor</code></li>
+<li><code>excerpt</code></li>
+<li><code>author</code></li>
+<li><code>thumbnail</code></li>
+<li><code>comments</code></li>
+<li><code>revisions</code></li>
+<li><code>custom-fields</code></li>
+<li><code>permalinks</code></li>
+<li><code>featured_image</code></li>
+</ul>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_custom_book_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">register_post_type</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'book'</span><span class="token punctuation">,</span>
+  <span class="token comment">// WordPress CPT Options Start</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'labels'</span> <span class="token operator">=></span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+          <span class="token string single-quoted-string">'name'</span> <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Books'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'singular_name'</span> <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Book'</span> <span class="token punctuation">)</span>
+      <span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'has_archive'</span> <span class="token operator">=></span> <span class="token constant boolean">true</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'public'</span> <span class="token operator">=></span> <span class="token constant boolean">true</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'rewrite'</span> <span class="token operator">=></span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'slug'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'book'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'show_in_rest'</span> <span class="token operator">=></span> <span class="token constant boolean">true</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'supports'</span> <span class="token operator">=></span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'title'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'editor'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'excerpt'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'author'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'thumbnail'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'comments'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'revisions'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'custom-fields'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'permalinks'</span><span class="token punctuation">,</span>
+          <span class="token string single-quoted-string">'featured_image'</span>
+      <span class="token punctuation">)</span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_custom_book_type'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<h2 id="further-tweaks-to-block-styles" tabindex="-1">Further tweaks to block styles</h2>
+<p>There are a few things that I would still want to customize for the blocks and the theme using them.</p>
+<p>To have these features work in all available blocks, they need their PHP components to be in the theme’s <code>functions.php</code> as part of your theme support setup, and the CSS needs to be in the theme’s root CSS file.</p>
+<h3 id="custom-color-palettes" tabindex="-1">Custom color palettes</h3>
+<p>If you’re working with a predefined color palette, either from your design brief or from an existing theme, it would be nice if we can apply that same palette</p>
+<pre class="language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_setup</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Editor Color Palette</span>
+  <span class="token function">add_theme_support</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'editor-color-palette'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'name'</span>  <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Blue'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'slug'</span>  <span class="token operator">=></span> <span class="token string single-quoted-string">'blue'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'color'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'#59BACC'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'name'</span>  <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Green'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'slug'</span>  <span class="token operator">=></span> <span class="token string single-quoted-string">'green'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'color'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'#58AD69'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'name'</span>  <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Orange'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'slug'</span>  <span class="token operator">=></span> <span class="token string single-quoted-string">'orange'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'color'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'#FFBC49'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'name'</span>  <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Red'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'slug'</span>  <span class="token operator">=></span> <span class="token string single-quoted-string">'red'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'color'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'#E2574C'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'after_setup_theme'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_setup'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We then need to create the matching styles in CSS. We use <code>.has-{color-name}-color</code> classes to add the colors to the CSS.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.has-blue-color</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #59BACC<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.has-green-color</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #58AD69<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.has-orange-color</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #FFBC49<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.has-red-color:</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #E2574C<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="fonts-and-typography" tabindex="-1">Fonts and typography</h3>
+<p>I prefer working with as few fonts as possible to reduce the number of roundtrips that we need in order to get the phones.</p>
+<h4 id="font-families-and-variable-fonts" tabindex="-1">Font Families and Variable fonts</h4>
+<p>In an ideal world, everyone would have a modern enough computer so using <a href="https://variablefonts.io/">variable fonts</a> would be a design decision rather than a compromise between newer technologies and a wide base of support.</p>
+<p>In the variable fonts world there are two stacks that I really love:</p>
+<ul>
+<li><a href="https://djr.com/roslindale/">Roslindale</a> Stack
+<ul>
+<li>Roslindale Text Variable (regular to ultra bold)</li>
+<li>Roslindale Text Variable (regular to italc)</li>
+<li>Roslindale Display for the headers</li>
+<li>Source Sans for monospaced text and code blocks</li>
+</ul>
+</li>
+<li><a href="https://www.recursive.design/">Recursive</a> Stack. A single variable font for all needs
+<ul>
+<li>regular to black</li>
+<li>regular to italics</li>
+<li>regular to slant</li>
+<li>monospaced text and code blocks</li>
+</ul>
+</li>
+</ul>
+<p>To add the font we need to register the fonts in the CSS using <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face">@font-face</a> <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face">at-rule</a>.</p>
+<p>If you bundle the font-related declarations with your theme’s CSS you don’t need to do anything else, you only need to enqueue scripts and styles once.</p>
+<p>If you use other scrripts to load font-related resources, for example the URL for a font from <a href="https://fonts.google.com/">Google Fonts</a> you’ll have to enqueue the script using <a href="https://developer.wordpress.org/reference/functions/wp_enqueue_scripts()/">enqueue_script()</a> and <a href="https://developer.wordpress.org/reference/functions/wp_enqueue_style/">enqueue_style()</a></p>
+<p>We can use the same callback function to enqueue both scripts and stylesheets from internal and external sources, The example below illustrtes this by enqueuing the theme’s primary stylesheet, a stylesheet for the <a href="https://fonts.google.com/specimen/Raleway?preview.text_type=custom">Raleway font</a> from Google Fonts and an example script.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_load_assets</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'style-name'</span><span class="token punctuation">,</span> <span class="token function">get_stylesheet_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'google-fonts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,400;0,700;1,100;1,400;1,700&amp;display=swap'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'script-name'</span><span class="token punctuation">,</span> <span class="token function">get_template_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/js/example.js'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'1.0.0'</span><span class="token punctuation">,</span> <span class="token constant boolean">true</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_load_assets'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<h4 id="font-sizes" tabindex="-1">Font sizes</h4>
+<p>You can choose to stay with Gutenberg default font sizes or you can configure your own font sizes for your project.</p>
+<p>To create the custom font sizes we need to define them in PHP using <code>add_theme_support()</code> as shown below:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">add_theme_support</span><span class="token punctuation">(</span>
+<span class="token string single-quoted-string">'editor-font-sizes'</span><span class="token punctuation">,</span>
+<span class="token keyword">array</span><span class="token punctuation">(</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'name'</span> <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Small'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb-blocks'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'size'</span> <span class="token operator">=></span> <span class="token number">10</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'slug'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'small'</span>
+  <span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'name'</span> <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Medium'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb-blocks'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'size'</span> <span class="token operator">=></span> <span class="token number">16</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'slug'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'medium'</span>
+  <span class="token punctuation">)</span>
+  <span class="token comment">// truncated to save space</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>And then we write the matching CSS Styles</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.has-small-font-size</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 10px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.has-medium-font-size</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 16px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="templates" tabindex="-1">Templates</h2>
+<p><a href="https://developer.wordpress.org/block-editor/developers/block-api/block-templates/">Block templates</a> are similar to patterns in that they allow developers to create customized blocks rather than patterns. Not saying patterns are not important, they are and they have their place in the development ecosystem but they may not always be the best solution.</p>
+<h3 id="defining-and-using-a-template-inside-a-block" tabindex="-1">Defining and using a template inside a block</h3>
+<p>We can define templates in either PHP or Javascript. For consistency, I define all my blocks in Javascript.</p>
+<p>The block definition is broken in three parts:</p>
+<ol>
+<li>Imports</li>
+<li>Template definition</li>
+<li>Block registration</li>
+</ol>
+<p>The first step is import the functions that the script will use. Make sure that you install the packages first.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> __ <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/i18n'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> registerBlockType <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/blocks'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> InnerBlocks <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/block-editor'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The <code>BLOCKS_TEMPLATE</code> constant holds the structure of blocks that we want the user to work with. Where there’s a placeholder that’s what the user will see when they add the block.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> <span class="token constant">BLOCKS_TEMPLATE</span> <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">[</span><span class="token string">'core/heading'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">'level'</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+      <span class="token string-property property">'placeholder'</span><span class="token operator">:</span> <span class="token string">'Role'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/paragraph'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/heading'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">'level'</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> 
+      <span class="token string-property property">'placeholder'</span><span class="token operator">:</span><span class="token string">'Responsibilities'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/paragraph'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/heading'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">'level'</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> 
+      <span class="token string-property property">'placeholder'</span><span class="token operator">:</span><span class="token string">'Qualifications'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/list'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/heading'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">'level'</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+      <span class="token string-property property">'placeholder'</span><span class="token operator">:</span> <span class="token string">'Highlights'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">'core/paragraph'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The final part of the block is the registration. Here we leverage JSX for the edit and save methods</p>
+<pre class="language-js"><code class="language-js"><span class="token function">registerBlockType</span><span class="token punctuation">(</span> <span class="token string">'rivendellweb-blocks/example-07'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">title</span><span class="token operator">:</span> <span class="token function">__</span><span class="token punctuation">(</span><span class="token string">'Example 07'</span><span class="token punctuation">,</span> <span class="token string">'rivendellweb-blocks'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">category</span><span class="token operator">:</span> <span class="token string">'rivendellweb-blocks'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">icon</span><span class="token operator">:</span> <span class="token string">'translation'</span><span class="token punctuation">,</span>
+  <span class="token function-variable function">edit</span><span class="token operator">:</span> <span class="token punctuation">(</span> <span class="token parameter"><span class="token punctuation">{</span> className <span class="token punctuation">}</span></span> <span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>
+      <span class="token operator">&lt;</span>div className<span class="token operator">=</span><span class="token punctuation">{</span> className <span class="token punctuation">}</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>InnerBlocks
+        template<span class="token operator">=</span><span class="token punctuation">{</span> <span class="token constant">BLOCKS_TEMPLATE</span> <span class="token punctuation">}</span> <span class="token operator">/</span><span class="token operator">></span>
+      <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+  <span class="token function-variable function">save</span><span class="token operator">:</span> <span class="token punctuation">(</span> <span class="token parameter"><span class="token punctuation">{</span> className <span class="token punctuation">}</span></span> <span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>
+      <span class="token operator">&lt;</span>div className<span class="token operator">=</span><span class="token punctuation">{</span> className <span class="token punctuation">}</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>InnerBlocks<span class="token punctuation">.</span>Content <span class="token operator">/</span><span class="token operator">></span>
+      <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="adding-async%2Fdefer-to-wordpress-site" tabindex="-1">Adding async/defer to WordPress site</h1>
+<p>WordPress doesn’t add <code>async</code> or <code>defer</code> attributes to scripts by default and there is no easy way to do it without customization. This post will discuss how to add the attributes and why it’s important.</p>
+<p>This gets complicated by the fact that not all scripts need to have <a href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-defer">defer</a> or <a href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-async">async</a> either because they were moved to the footer, because it already have the necessary one, or because of special requirements. So there is no one size fits all solution.</p>
+<p>WordPress <a href="https://developer.wordpress.org/reference/hooks/script_loader_tag/">script_loader_tag</a> hook allows us to tweak individual script tags to add attributes or other items before they are printed to the page.</p>
+<p>In this example we add the defer attribute using the <code>script_loader_tag</code>.</p>
+<p>Inside <code>rivendellweb_js_defer_attr</code> we do the following:</p>
+<ol>
+<li>Stores the script we want to add the attribute to in a variable <code>$scripts to include</code></li>
+<li>For each script in <code>$scripts to include</code></li>
+<li>Test if the script to include matches the script we’re currently processing
+<ul>
+<li>If it does, then replace it with a versioon containing the defer attribute</li>
+</ul>
+</li>
+<li>If it doesn’t the if statement will end and we’ll return the script without changes.</li>
+</ol>
+<pre class="language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_js_defer_attr</span><span class="token punctuation">(</span><span class="token variable">$tag</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+
+    <span class="token comment">// List scripts to work with</span>
+    <span class="token variable">$scripts_to_include</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'hoverintent-js.min.js'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'lazy-images.min.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 1</span>
+
+    <span class="token keyword">foreach</span><span class="token punctuation">(</span><span class="token variable">$scripts_to_include</span> <span class="token keyword">as</span> <span class="token variable">$include_script</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 2</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token constant boolean">true</span> <span class="token operator">==</span> <span class="token function">strpos</span><span class="token punctuation">(</span><span class="token variable">$tag</span><span class="token punctuation">,</span> <span class="token variable">$include_script</span> <span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// 3</span>
+        <span class="token comment">// Add defer attribute</span>
+        <span class="token keyword">return</span> <span class="token function">str_replace</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">' src'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">' defer src'</span><span class="token punctuation">,</span> <span class="token variable">$tag</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment"># Return original tag for all scripts not included</span>
+    <span class="token keyword">return</span> <span class="token variable">$tag</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'script_loader_tag'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_js_defer_attr'</span><span class="token punctuation">,</span> <span class="token number">10</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The <a href="https://developer.wordpress.org/reference/functions/add_filter/">add_filter</a> function takes two parameters: The filter hook that we want to operate on and a function detaling what we want to do, in this case <code>rivendellweb_js_defer_attr</code>.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

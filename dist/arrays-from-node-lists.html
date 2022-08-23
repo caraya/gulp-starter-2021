@@ -1,0 +1,72 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="creating-arrays-from-node-lists" tabindex="-1">Creating arrays from node lists</h1>
+<p>Using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll">querySelectorAll</a> to get one or more items and then process them as an array of items is not as straight forward as I initially thought it would be, at least in the browsers I use for testing</p>
+<p>Part of the problem is that <code>querySelectorAll</code> returns a <a href="https://developer.mozilla.org/en-US/docs/Web/API/NodeList">node list</a> and some of them will not work with node lists and will require the conversion to an array before we do anything.</p>
+<p>We’ll look at three ways to work with node lists as arrays. The last one works with node lists directly. The examples will each take all the paragraphs on a page and then print the content of each paragraph to the console. They will also indicate what version of the ECMAScript specification the feature was first introduced in.</p>
+<h2 id="convert-to-array-with-spread-syntax" tabindex="-1">Convert to array with spread syntax</h2>
+<p>The first way I found to convert a node list to an array is to use <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">spread syntax</a> to include the <code>rawData</code> iterable in the array.</p>
+<p>I always do this as a two-step process to make sure I do it right. The code for this version of the example looks like this.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> rawData <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">"p"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> myParagraphs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">...</span>rawData<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+array<span class="token punctuation">.</span>forEach
+myParagraphs<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">paragraph</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>paragraph<span class="token punctuation">.</span>innerText<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Spread syntax is available since ES2015/ES6. It should be safe to use.</p>
+<h2 id="convert-to-array-with-array.from" tabindex="-1">Convert to array with array.from</h2>
+<p>Another way to create an array from our <code>rawData</code> node list is to use <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from">array.from</a> to generate the array.</p>
+<p>The code for this example is almost identical to the spread syntax example; the only difference is how we generate the <code>myParagraphs</code> array.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> rawData <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">"p"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> myParagraphs <span class="token operator">=</span> array<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>rawData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">//array.forEach</span>
+myParagraphs<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">paragraph</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>paragraph<span class="token punctuation">.</span>innerText<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p><code>array.from</code> is also available since ES2015/ES6.</p>
+<h2 id="nodelist.foreach" tabindex="-1">nodeList.forEach</h2>
+<p>The biggest surprise when I was researching this post is that the <code>nodeList</code> interface also has a <a href="https://developer.mozilla.org/en-US/docs/Web/API/NodeList/forEach">forEach</a> method.</p>
+<p>This means that, in the end, we don’t need to convert the node list to an array if all we want to do is run <code>forEach</code> on it.</p>
+<p>This example uses <code>nodeList.forEach</code> to run the same example. The code is less complex since we don’t have to convert the node list to an array.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> rawData <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">"p"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Nodelist.forEach</span>
+rawData<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">paragraph</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>paragraph<span class="token punctuation">.</span>innerText<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This method was introduced in ES2016/ES7 so it should be safe to use.</p>
+<p>As usual with code, test it on your target browsers to make sure they work.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

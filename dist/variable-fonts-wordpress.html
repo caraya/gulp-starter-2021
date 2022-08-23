@@ -1,0 +1,218 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="using-variable-fonts-in-a-wordpress-theme" tabindex="-1">Using Variable Fonts in a WordPress theme</h1>
+<p>Variable Fonts give you a lot of flexibility in exchange of older browsers and operating systems. They reduce the number of font files required to render content and they give you options that are difficult or not possible with traditional web fonts.</p>
+<p>Quoting Jason Pamental’s <a href="https://rwt.io/blog/2018/07/evolution-typography-variable-fonts-introduction">The evolution of typography with variable fonts: an introduction</a>:</p>
+<blockquote>
+<p>As described by John Hudson, a variable font is a single font that acts as many: all the variations of width and weight, slant, and even italics can be contained in a single, highly efficient and compressible font file. What’s more: the format (which is technically part of the OpenType 1.8 specification) is completely extensible. The type designer has complete control over what axes are used, their ranges, and even the definition of new axes. There are currently 5 ’registered‘ axes (width, weight, slant, italics, and optical sizing), but the designer can vary any axis they choose. Some examples include the height of ascenders and descenders, text grade, even serif shape. The possibilities are nearly limitless.</p>
+</blockquote>
+<h2 id="why-use-them" tabindex="-1">Why use them</h2>
+<p>Variable fonts improve performance in a number of ways. They reduce the number of HTTP connections we have to make for Font assets, it make the fonts smaller overall (the one file you download may be larger but it’s one as opposed to 4 for each traditional font you work with).</p>
+<p>They also allow for things that were very difficult or impossible to do before. We can animate the axes if we set them up properly giving us additional flexibility.</p>
+<p>We’ll explore Variable fonts using <a href="https://recursive.design">Recursive</a> as the single font for a WordPress-based site. Along the way we’ll talk about responsive typography, based on the Work of Jason Pamental, and how to work with older browsers.</p>
+<h2 id="loading-variable-fonts" tabindex="-1">Loading variable fonts</h2>
+<p>WordPress strognly suggests that you enqueue third-party scripts and stylesheets for use with a WordPress theme. However when creating a theme from scratch we don’t need to enqueue the main stylesheet and that’s where we’ll make all our variable fonts additions.</p>
+<p>We’ll cover both methods below.</p>
+<h3 id="modifying-an-existing-theme" tabindex="-1">Modifying an existing theme</h3>
+<p>Assuming that we’ve created a stylesheet to load the font using <code>@font-face</code> syntax and all the style that override the default font size then all it takes is to enqueue the stylesheet.</p>
+<p>We’ve discussed how to enqueue local stylesheets so I won’t go into details aboout how the code below works, I’ll just show the end product.</p>
+<pre class="language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_enqueue_local_fonts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'local_styles'</span><span class="token punctuation">,</span>
+			<span class="token function">get_stylesheet_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/css/recursive-styles.css'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_enqueue_local_fonts'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="from-scratch" tabindex="-1">From Scratch</h3>
+<p>When building a theme from scratch the rules change slightly. We’re not adding new resources to the theme but we’re changing the existing CSS to match our design.</p>
+<p>There is no enqueueing necessary as we’re working with the default styles for the theme. We’ll look at how to do it in the next section.</p>
+<h2 id="example%3A-recursive-font-from-scratch" tabindex="-1">Example: Recursive Font from scratch</h2>
+<p>The following code will build a responsive-typography stylesheet using <a href="https://recursive.design">Recursive</a>.</p>
+<p>We first laod the font using <code>@font-face</code> rule with some changes to accommodate the variable fonts.</p>
+<p>We use two different formats to support different syntaxes for the format for the attribute.</p>
+<p>Aattributes like <code>font-weight</code>, <code>font-style</code> and <code>font-stretch</code> take two values indicating the lower and upper boundaries for the particular axis.</p>
+<p>Finally, we use <code>font-display: swap</code> to tell the browser to swap the font once it’s loaded.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive VF"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span>
+    <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'./fonts/recursive.woff2'</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">'woff2 supports variations'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'./fonts/recursive.woff2'</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">'woff2-variations'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token property">font-weight</span><span class="token punctuation">:</span> 300 1000<span class="token punctuation">;</span>
+	<span class="token property">font-display</span><span class="token punctuation">:</span> swap<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The next block defines variables with the default values for each of the axes that the font makes available. We’ll make extensive use of these variables elsewhere in the document.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--recursive-mono</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--recursive-casual</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--recursive-weight</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span>
+  <span class="token property">--recursive-slant</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--recursive-italic</span><span class="token punctuation">:</span> 0.5<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This default selector adds the default font family and default values using the variables defined in the previous block.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings">font-variation-settings</a> allows you to add the custom axes with variables.</p>
+<p>The uppercase axes, <strong>MONO</strong> and <strong>CASL</strong>, are custom axes that will only work with Recursive.</p>
+<p>The lowercase axes, <strong>slnt</strong> and <strong>ital</strong> are predefined axes. The reason why we don’t use the equivalent CSS property is that they both match the same property so we’d have to use either one but we can’t use them together.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span>  <span class="token string">"Recursive VF"</span><span class="token punctuation">,</span>
+                Verdana<span class="token punctuation">,</span>
+                sans-serif<span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-weight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span>
+    <span class="token string">"MONO"</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-mono<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string">"CASL"</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-casual<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string">"slnt"</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-slant<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string">"ital"</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-italic<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The rest of the code in this post is taken and adapted from <a href="https://codepen.io/jpamental/pen/MPaxaP">FF Meta Variable Font Demo</a>, a pen from Jason Pamental.</p>
+<p>We first add another <code>:root</code> block with <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties">CSS Custom Properties / Variables</a> too define the values that we want to work with.</p>
+<p>This is a simplified version that considers only <code>p</code> and <code>h1</code> elements. The full version has additional entries for <code>h2</code> through <code>h4</code>.</p>
+<p>This code only deals with font size, line height and their relationship when screen size changes using media queries. It also takes advantage of Fontface Observer to add styles for when the font fails to load.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* Breakpoint variables */</span>
+  <span class="token property">--bp-small</span><span class="token punctuation">:</span> 24.15<span class="token punctuation">;</span>
+  <span class="token property">--bp-medium</span><span class="token punctuation">:</span> 43.75<span class="token punctuation">;</span>
+  <span class="token property">--bp-large</span><span class="token punctuation">:</span> 60.25<span class="token punctuation">;</span>
+  <span class="token property">--bp-xlarge</span><span class="token punctuation">:</span> 75<span class="token punctuation">;</span>
+  <span class="token comment">/* Paragraph variables */</span>
+  <span class="token property">--p-line-height-min</span><span class="token punctuation">:</span> 1.25<span class="token punctuation">;</span>
+  <span class="token property">--p-line-height-max</span><span class="token punctuation">:</span> 1.4<span class="token punctuation">;</span>
+  <span class="token property">--p-font-size-min</span><span class="token punctuation">:</span> 1.0<span class="token punctuation">;</span>
+  <span class="token property">--p-font-size-max</span><span class="token punctuation">:</span> 1.25<span class="token punctuation">;</span>
+  <span class="token comment">/* H1 variables */</span>
+  <span class="token property">--h1-line-height-min</span><span class="token punctuation">:</span> 1.1<span class="token punctuation">;</span>
+  <span class="token property">--h1-line-height-max</span><span class="token punctuation">:</span> 1.1<span class="token punctuation">;</span>
+  <span class="token property">--h1-font-size-min</span><span class="token punctuation">:</span> 2.5<span class="token punctuation">;</span>
+  <span class="token property">--h1-font-size-max</span><span class="token punctuation">:</span> 4<span class="token punctuation">;</span>
+  <span class="token property">--h1-vf-wght-multiplier-s</span><span class="token punctuation">:</span> 0.75<span class="token punctuation">;</span>
+  <span class="token property">--h1-vf-wght-multiplier-m</span><span class="token punctuation">:</span> 0.75<span class="token punctuation">;</span>
+  <span class="token property">--h1-vf-wght-multiplier-l</span><span class="token punctuation">:</span> 0.75<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The default rule for paragraphs sets the size to 16px, the font size to 400 and the line height to 1.</p>
+<p>All the media queries play with what values to use and how to combine them together.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">p, li</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-font-size-min<span class="token punctuation">)</span> * 1rem <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-weight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">line-height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-line-height-min<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@media</span> screen <span class="token keyword">and</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 24.15em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">p, li</span> <span class="token punctuation">{</span>
+    <span class="token property">line-height</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-line-height-min<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span> + <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-line-height-max<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--p-line-height-min<span class="token punctuation">)</span> <span class="token punctuation">)</span> * <span class="token punctuation">(</span><span class="token punctuation">(</span>100vw - <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-small<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">)</span> / <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-large<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--bp-small<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 60.25em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">p, li</span> <span class="token punctuation">{</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-font-size-min<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span> + <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-font-size-max<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--p-font-size-min<span class="token punctuation">)</span> <span class="token punctuation">)</span> * <span class="token punctuation">(</span><span class="token punctuation">(</span>100vw - <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-large<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">)</span> / <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-xlarge<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--bp-large<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">line-height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-line-height-max<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 75em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">p, li</span> <span class="token punctuation">{</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--p-font-size-max<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We do something similar with <code>h1</code> with the corresponding <code>h1</code> variables and one additional change.</p>
+<p>We leverage the <code>.fonts-failed</code> class generated by FontFace Observer and style elements when our variable font is not available.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h1</span> <span class="token punctuation">{</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-weight<span class="token punctuation">)</span> * <span class="token function">var</span><span class="token punctuation">(</span>--h1-vf-wght-multiplier-s<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-font-size-min<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">font-style</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token property">line-height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-line-height-min<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token selector">.fonts-failed h1</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span>  Georgia<span class="token punctuation">,</span>
+                <span class="token string">"New Times Roman"</span><span class="token punctuation">,</span>
+                serif<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 2em 0<span class="token punctuation">;</span>
+  <span class="token property">letter-spacing</span><span class="token punctuation">:</span> -.5px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@media</span> screen <span class="token keyword">and</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 24.15em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">h1</span> <span class="token punctuation">{</span>
+    <span class="token property">line-height</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-line-height-min<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span> +
+      <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-line-height-max<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--h1-line-height-min<span class="token punctuation">)</span> <span class="token punctuation">)</span> * <span class="token punctuation">(</span><span class="token punctuation">(</span>100vw - <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-small<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">)</span> / <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-xlarge<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--bp-small<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-font-size-min<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span> + <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-font-size-max<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--h1-font-size-min<span class="token punctuation">)</span> <span class="token punctuation">)</span> * <span class="token punctuation">(</span><span class="token punctuation">(</span>100vw - <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-small<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">)</span> / <span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--bp-xlarge<span class="token punctuation">)</span> - <span class="token function">var</span><span class="token punctuation">(</span>--bp-small<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@media</span> screen <span class="token keyword">and</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 43.75em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">h1</span> <span class="token punctuation">{</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-weight<span class="token punctuation">)</span> * <span class="token function">var</span><span class="token punctuation">(</span>--h1-vf-wght-multiplier-m<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token selector">.fonts-failed h1</span> <span class="token punctuation">{</span>
+    <span class="token property">letter-spacing</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">min-width</span><span class="token punctuation">:</span> 75em<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">h1</span> <span class="token punctuation">{</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-font-size-max<span class="token punctuation">)</span> * 1em <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-weight<span class="token punctuation">)</span> * <span class="token function">var</span><span class="token punctuation">(</span>--h1-vf-wght-multiplier-l<span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">line-height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--h1-line-height-max<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token selector">.fonts-failed h1</span> <span class="token punctuation">{</span>
+    <span class="token property">letter-spacing</span><span class="token punctuation">:</span> -1px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Yes, this is a lot of code but it will keep text readable and easy to change. Whenever we need to change something, we change the corresponding variables at the top.</p>
+<p>One of the Recursive font’s custom axes is Casual. I use it to create distinctive headers in combination with both Slant and Italic axes.</p>
+<p>The code looks something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h1.casual</span> <span class="token punctuation">{</span>
+  <span class="token property">--recursive-casual</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+  <span class="token property">--recursive-slant</span><span class="token punctuation">:</span> -15<span class="token punctuation">;</span>
+  <span class="token property">--recursive-italic</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We’ve done the same thing with styles. This is the  modified styles for <a href="https://prismjs.com">Prism.js</a> used on my project.</p>
+<p>We change the font to monospaced and add slashed 0 to fully distinguish them from lowercase and uppercase o.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">code[class*="language-"],
+pre[class*="language-"]</span> <span class="token punctuation">{</span>
+	<span class="token property">--recursive-mono</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+	<span class="token property">--recursive-zero</span><span class="token punctuation">:</span> <span class="token string">"zero"</span> on<span class="token punctuation">;</span>
+	<span class="token property">color</span><span class="token punctuation">:</span> #657b83<span class="token punctuation">;</span>
+	<span class="token property">font-family</span><span class="token punctuation">:</span>  <span class="token string">"Recursive VF"</span><span class="token punctuation">,</span>
+                Consolas<span class="token punctuation">,</span> Monaco<span class="token punctuation">,</span>
+                <span class="token string">'Andale Mono'</span><span class="token punctuation">,</span>
+                <span class="token string">'Ubuntu Mono'</span><span class="token punctuation">,</span>
+                monospace<span class="token punctuation">;</span>
+	<span class="token property">font-size</span><span class="token punctuation">:</span> 1.1em<span class="token punctuation">;</span>
+	<span class="token property">text-align</span><span class="token punctuation">:</span> left<span class="token punctuation">;</span>
+	<span class="token property">white-space</span><span class="token punctuation">:</span> pre<span class="token punctuation">;</span>
+	<span class="token property">word-spacing</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+	<span class="token property">word-break</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+	<span class="token property">word-wrap</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+	<span class="token property">line-height</span><span class="token punctuation">:</span> 1.5<span class="token punctuation">;</span>
+	<span class="token property">tab-size</span><span class="token punctuation">:</span> 4<span class="token punctuation">;</span>
+	<span class="token property">hyphens</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

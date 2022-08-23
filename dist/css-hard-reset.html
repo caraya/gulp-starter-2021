@@ -1,0 +1,105 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="hard-reset%3A-using-the-css-initial-value" tabindex="-1">Hard Reset: Using the CSS Initial Value</h1>
+<p>There are times when the CSS cascade becomes a pain in the ass. When we want to revert the value of a property to its default (before we added any other value for the property in the current element or any ancestor up the chain) we have to remember the property but also what the default value is.</p>
+<p>CSS provides several mechanisms to handle inheritance. We’ll discuss several ways to work with the cascade to make it do what we need.</p>
+<h2 id="initial" tabindex="-1">initial</h2>
+<p>The newest (to me) way to reset is the initial value.</p>
+<p>The <code>initial</code> CSS keyword sets and element to its initial value. It is allowed on every CSS property and causes the element for which it is specified to use the initial value of the property.</p>
+<div class="message warning">
+<p>On inherited properties, the initial value may be surprising and you should consider using the inherit, unset, or revert keywords instead.</p>
+<p>Test the hell out of this keyword.</p>
+</div>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">color</span><span class="token punctuation">:</span>red</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span> 
+    this text is red 
+       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">color</span><span class="token punctuation">:</span>initial</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span> 
+          this text is in the initial color (e.g. black)
+       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">></span></span>                                          
+    this is red again
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span> 
+</code></pre>
+<p>One thing to be aware is that the initial value may not be the same across browsers. This is specially important when working with fonts as the <a href="https://www.granneman.com/webdev/coding/css/fonts-and-formatting/web-browser-font-defaults/">default font</a> is not necessarily the same in all browsers.</p>
+<h2 id="inherit" tabindex="-1">inherit</h2>
+<p>The <code>inherit</code> CSS value uses the value of the parent element’s property (defining the parent as the parent element in the document tree, even if it’s not the containing block). It is allowed on every CSS property.</p>
+<p>In the following CSS fragment the h2 elements that are children of #sidebar will inherit the color of its parent. The stylesheet defines another container (<code>div#current</code>) with a different color.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* make second-level headers green */</span>
+ <span class="token selector">h2</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> green<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+ <span class="token comment">/* leave those in the sidebar alone so they use the parent's color */</span>
+ <span class="token selector">#sidebar h2</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> inherit<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+<span class="token selector">div#current</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> blue<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+</code></pre>
+<p>In the following HTML fragment the sidebar’s h2 element will be blue, the color of the parent.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>current<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>sidebar</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#sidebar<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Sidebar Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>sidebar</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>For inherited properties, this reinforces the default behavior, and is only needed to override another rule.  For non-inherited properties, the results may be unexpected and you may find that using <code>initial</code>, or <code>unset</code> on the <code>all</code> property works better.</p>
+<h2 id="unset" tabindex="-1">unset</h2>
+<p>The unset CSS keyword is the combination of the initial and inherit keywords. This keyword resets the property to its inherited value if it inherits from its parent or to its initial value if not. In other words, it behaves like the inherit keyword in the first case and like the initial keyword in the second case.</p>
+<p>Color is an inherited property so the following CSS:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.foo</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> blue<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token selector">.bar</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> green<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">p</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token selector">.bar p</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> unset<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Produces the following colors in the HTML file below.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>This text is red<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>foo<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>This text is also red<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bar<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>This text is green (default inherited value)<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="revert" tabindex="-1">revert</h2>
+<div class="message warning">
+<p>This property is only supported in Safari.</p>
+</div> a
+<p>The revert keyword resets the cascade as if no stylesheets of the specified type were present. For example, if the revert keyword is used in an author stylesheet (the one we write as designers) then it’ll assume that no stylesheets are present and will take the value from the default user agent style sheet or any user stylesheet present.</p>
+<p>The order of how the cascade works is show below in order of importance from left to right:</p>
+<pre class="language-text"><code class="language-text">  user agent > user > author
+</code></pre>
+<p>There’s no perfect way to handle cascade idiosyncrasies reliably across browsers. The <a href="https://drafts.csswg.org/css-cascade/">CSS Cascading and Inheritance Level 4</a> is an editor’s draft and, my guess, is that there will be significant work in the spec before it’s finalized.</p>
+<p>For now these are the tools we have so let’s make the best use of them.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

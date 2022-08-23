@@ -1,0 +1,173 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="advanced-plugin-topics-(part-1)%3A-meta-boxes-and-cron" tabindex="-1">Advanced Plugin Topics (part 1): Meta Boxes and Cron</h1>
+<p>The next few items (Meta Boxes, and Cron) and  are nice to have, require a lot more work and are not necessary for the majority of plugin projects. I include them here because I’m interested in what they do and can think of a few projects that would benefit from one or more of them.</p>
+<h2 id="custom-meta-boxes" tabindex="-1">Custom Meta Boxes</h2>
+<p><a href="https://developer.wordpress.org/plugins/metadata/custom-meta-boxes/">Custom Meta Boxes</a> allow you to create custom sections of the editor screen where users can enter custom data and you can then sanitize it and save it to the database.</p>
+<p>Because they allow custom data we need to follow all the security rules: sanitize the input and check roles and capabilities before we do anything with the data we’re working with.</p>
+<p>Since this has admin-facing data we should also take care of internatinalization for the UI labels and strings.</p>
+<h3 id="adding-the-box" tabindex="-1">Adding the box</h3>
+<p>The first step is to add a meta box to the editor screen.</p>
+<p><a href="https://developer.wordpress.org/reference/functions/add_meta_box/">add_meta_box()</a> create an empty box.</p>
+<p>The <a href="https://developer.wordpress.org/reference/hooks/add_meta_boxes/">add_meta_boxes()</a> takes three parameters:</p>
+<ul>
+<li>the name of the action to take, <code>add_meta_boxes</code></li>
+<li>A callback function with the specific code we want to run</li>
+<li>The post type we want to run this meta box for</li>
+</ul>
+<div class="message info">
+  <p><strong>Potential Gotcha</strong></p>
+  <p></p>
+  <p>The function is <code>add_meta_box()</code> (singular). The hook to register the metaboxes is <code>add_meta_boxes()</code> (plural). Keep this in mind when writing code that adds meta boxes to the editor.</p>
+</div>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_custom_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">add_meta_box</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'rivendellweb_meta'</span><span class="token punctuation">,</span> 
+    <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Meta Box Title'</span><span class="token punctuation">,</span> 
+    <span class="token string single-quoted-string">'rivendellweb-textdomain'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span> 
+    <span class="token string single-quoted-string">'rivendellweb_meta_callback'</span><span class="token punctuation">,</span> 
+    <span class="token string single-quoted-string">'post'</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'add_meta_boxes'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_custom_meta'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>You can also use <code>add_meta_boxes_{post_type}</code> for best practice, so your hook will only run when editing a specific post type. This will only receive 1 parameter – $post.</p>
+<p>The modified code below will only run when editing post.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_custom_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">add_meta_box</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'rivendellweb_meta'</span><span class="token punctuation">,</span> 
+    <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Meta Box Title'</span><span class="token punctuation">,</span> 
+    <span class="token string single-quoted-string">'rivendellweb-textdomain'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span> 
+    <span class="token string single-quoted-string">'rivendellweb_meta_callback'</span><span class="token punctuation">,</span> 
+    <span class="token string single-quoted-string">'post'</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'add_meta_boxes_post'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_custom_meta'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>This customized version is particularly useful when working with Custom Post Types.</p>
+<h3 id="creating-the-box-contents" tabindex="-1">Creating The Box Contents</h3>
+<p>This is, to me, the most tedious part of the meta box process. Once we’ve defined the container box we must write the content that will go inside.</p>
+<p>It is at this point that we also need to incorporate all the security measures we want our code to use, particularly nonces, capabilities and internationalization.</p>
+<p>In the code below we do two things:</p>
+<ul>
+<li>We provide the form for the user to enter data</li>
+<li>If there is a value for the field we display it for the user to change. There is no need to manually retrieve the data</li>
+</ul>
+<div class="message info">
+  <p><strong>Note:</strong></p>
+  <p><strong>there are no submit buttons in meta boxes</strong>. The value of the meta boxes are transfered via POST when the user clicks on the Publish or Update buttons.</p>
+</div>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_meta_callback</span><span class="token punctuation">(</span> <span class="token variable">$post</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">wp_nonce_field</span><span class="token punctuation">(</span> <span class="token function">basename</span><span class="token punctuation">(</span> <span class="token constant">__FILE__</span> <span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_nonce'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token variable">$rivendellweb_stored_meta</span> <span class="token operator">=</span> <span class="token function">get_post_meta</span><span class="token punctuation">(</span> <span class="token variable">$post</span><span class="token operator">-></span><span class="token constant">ID</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-text<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>rivendellweb-row-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">_e</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Example Text Input'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb-textdomain'</span> <span class="token punctuation">)</span><span class="token delimiter important">?></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-text<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-text<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token keyword">isset</span> <span class="token punctuation">(</span> <span class="token variable">$rivendellweb_stored_meta</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'meta-text'</span><span class="token punctuation">]</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token keyword">echo</span> <span class="token variable">$rivendellweb_stored_meta</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'meta-text'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span><span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>rivendellweb-row-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">_e</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Example Checkbox Input'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb-textdomain'</span> <span class="token punctuation">)</span><span class="token delimiter important">?></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>rivendellweb-row-content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-checkbox<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>checkbox<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-checkbox<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-checkbox<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>yes<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token keyword">isset</span> <span class="token punctuation">(</span> <span class="token variable">$rivendellweb_stored_meta</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'meta-checkbox'</span><span class="token punctuation">]</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token function">checked</span><span class="token punctuation">(</span> <span class="token variable">$rivendellweb_stored_meta</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'meta-checkbox'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'yes'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span></span> <span class="token punctuation">/></span></span>
+        <span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">_e</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Checkbox label'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb-textdomain'</span> <span class="token punctuation">)</span><span class="token delimiter important">?></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-checkbox-two<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>checkbox<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-checkbox-two<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>meta-checkbox-two<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>yes<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token keyword">isset</span> <span class="token punctuation">(</span> <span class="token variable">$rivendellweb_stored_meta</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'meta-checkbox-two'</span><span class="token punctuation">]</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token function">checked</span><span class="token punctuation">(</span> <span class="token variable">$rivendellweb_stored_meta</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'meta-checkbox-two'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'yes'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span></span> <span class="token punctuation">/></span></span>
+        <span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">_e</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Another checkbox'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb-textdomain'</span> <span class="token punctuation">)</span><span class="token delimiter important">?></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token punctuation">}</span>
+</span></code></pre>
+<h3 id="save-the-data" tabindex="-1">Save the data</h3>
+<p>There may be times when you want to save the data entered by the user outside the update or publish events or you have chosen to save the data outside of WordPress.</p>
+<p>This example checks if the value we’re trying to save already exists in the <code>post_meta</code> table in the database.</p>
+<p>If the post exists, <a href="https://developer.wordpress.org/reference/functions/update_post_meta/">update_post_meta()</a> will update the value. If it doesn’t exist, then it will create it. We need to do this for every meta box field that we create.</p>
+<p>The key will be to figure out how to batch update operations together to keep performance within acceptable levels.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_save_postdata</span><span class="token punctuation">(</span> <span class="token variable">$post_id</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">array_key_exists</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'rivendellweb_field'</span><span class="token punctuation">,</span> <span class="token variable">$_POST</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token function">update_post_meta</span><span class="token punctuation">(</span>
+        <span class="token variable">$post_id</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'_rivendellweb_meta_key'</span><span class="token punctuation">,</span>
+        <span class="token variable">$_POST</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'rivendellweb_field'</span><span class="token punctuation">]</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'save_post'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_save_postdata'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>With these three stages we can save custom data to the WordPress database. There are many things that we can do with Metaboxes, they will require careful planning and layout to make sure they make sense to your users and remain accessible.</p>
+<p>You can also use OOP techniques and classes to create your meta boxes. The plugin handbook has an <a href="https://developer.wordpress.org/reference/functions/update_post_meta/">OOP Example</a>.</p>
+<p>On the down side, there is Gutenberg.</p>
+<p>Gutenberg support metaboxes as a transitional step towards the new editor. We will discuss the Gutenberg replacement for metaboxes (yes, it exists) in a future post.</p>
+<h2 id="cron-in-wordpress" tabindex="-1">Cron in WordPress</h2>
+<p><a href="https://developer.wordpress.org/plugins/cron/">WP-Cron</a> is how WordPress handles scheduling time-based tasks in WordPress. Several WordPress core features, such as checking for updates and publishing scheduled post, utilize WP-Cron.</p>
+<p>WP-Cron works by checking, on every page load, a list of scheduled tasks to see what needs to be run. Any tasks due to run will be called during that page load.</p>
+<div class="message info">
+  <p><strong>Note:</strong></p>
+  <p>WP-Cron only triggered on page load. It does not run constantly as the system cron does</p>
+</div>
+<p>Scheduling errors could occur if you schedule a task for 2:00PM and no page loads occur until 5:00PM.</p>
+<p>Why would you want a Cron-like tool in WordPress?</p>
+<p>Having a task scheduler like Unix/Linux/macOS is always nice to have so we can run tasks on a set schedule; but it’s also a pain because we don’t always have access to the server’s task scheduler.</p>
+<p>The WordPress API is a simpler method for setting scheduled tasks than going outside of WordPress to the system scheduler.</p>
+<p>WP-Cron queues all scheduled tasks  and will run at the next page load. You can’t be 100% sure <em>when</em> your task will run, you can be 100% sure that it will run <em>eventually</em>.</p>
+<p>Now for how it works</p>
+<p>WP-Cron is given two arguments: the time for the first task, and an interval (in seconds) after which the task should be repeated.</p>
+<p>To simplify scheduling tasks, WordPress provides some default intervals and an easy method for adding custom intervals.</p>
+<p>The default intervals provided by WordPress are:</p>
+<ul>
+<li>hourly</li>
+<li>twicedaily</li>
+<li>daily</li>
+<li>weekly</li>
+</ul>
+<p>You can also create your own custom intervals using the <a href="https://developer.wordpress.org/reference/hooks/cron_schedules/">cron_scedules()</a> with a callbackk function that defines the interval you want to use.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">example_add_cron_interval</span><span class="token punctuation">(</span> <span class="token variable">$schedules</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    <span class="token variable">$schedules</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'five_seconds'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'interval'</span> <span class="token operator">=></span> <span class="token number">5</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'display'</span>  <span class="token operator">=></span> <span class="token function">esc_html__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Every Five Seconds'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token variable">$schedules</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'cron_schedules'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'example_add_cron_interval'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>Because WP-Cron only works on page load, it is possible that events will not run on time. You can use your system’s task scheduler to run WP-Cron. The process is OS dependent and is documented in <a href="https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/">Hooking WP-Cron Into the System Task Scheduler</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="import-maps-and-why-they-matter" tabindex="-1">Import maps and why they matter</h1>
+<p>Import Maps are a way to map the names of modules to the actual files that contain them.</p>
+<p>Using a script of type <code>importmap</code> we can specify the location of script we want to use. For example we can use this script to set up the mapping for the Lodash library.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>importmap<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token punctuation">{</span>
+  <span class="token string-property property">"imports"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string-property property">"lodash"</span><span class="token operator">:</span> <span class="token string">"/node_modules/lodash-es/lodash.js"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We can then use the mapping in our scripts. We no longer need to provide the full path to the library in our import statements</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> lodash <span class="token keyword">from</span> <span class="token string">'lodash'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Another reason why import maps are important is because they allow more flexibility in the way that we import modules.</p>
+<p>Libraries like Lodash have many modules that you can import individually or you can import the full library if you sho choose.</p>
+<p>This import map will allow us to import the full library and to import modules inside the library.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>importmap<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token punctuation">{</span>
+    <span class="token string-property property">"imports"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">"lodash"</span><span class="token operator">:</span> <span class="token string">"/node_modules/lodash/lodash.js"</span><span class="token punctuation">,</span>
+      <span class="token string-property property">"lodash/"</span><span class="token operator">:</span> <span class="token string">"/node_modules/lodash/"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>By specifying a separate module specifier name as lodash/ and mirroring the same thing in the address /node_modules/lodash/, you are allowing for specific modules in the package to be imported with ease which will look something like this:</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// You can directly import lodash</span>
+<span class="token keyword">import</span> _lodash <span class="token keyword">from</span> <span class="token string">"lodash"</span><span class="token punctuation">;</span>
+
+<span class="token comment">// or import a specific moodule</span>
+<span class="token keyword">import</span> _shuffle <span class="token keyword">from</span> <span class="token string">"lodash/shuffle.js"</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="polyfilling-import-maps" tabindex="-1">Polyfilling import maps</h2>
+<p>The <a href="https://www.npmjs.com/package/es-module-shims">es-module-shims</a> package can polyfill import maps (and other module-related specifications) for older browsers.</p>
+<p>It requires some changes to our code. First, we need to load es-module-shims using a script tag with the <code>async</code> attribute so it won’t block rendering.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">async</span> 
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://ga.jspm.io/npm:es-module-shims@1.5.8/dist/es-module-shims.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The value for the type attribute for the import map changes to <code>importmap-shim</code> so it can use the shim script we loaded.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>importmap-shim<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token punctuation">{</span>
+  <span class="token string-property property">"imports"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string-property property">"lodash"</span><span class="token operator">:</span> <span class="token string">"/node_modules/lodash-es/lodash.js"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Likewise, the type attribute for module scripts changes to <code>module-shim</code> so it can use the import map we defined.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module-shim<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token keyword">import</span> <span class="token punctuation">{</span> partition <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"lodash"</span><span class="token punctuation">;</span>
+  <span class="token comment">// ...</span>
+  <span class="token function">partition</span><span class="token punctuation">(</span>users<span class="token punctuation">,</span> <span class="token string">'active'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The order of the scripts does matter. In any other order, the scripts will not work and you will get an error.</p>
+<h2 id="esm-module-availablity" tabindex="-1">ESM Module availablity</h2>
+<p>The second issue is that not all packages in NPM are available as ESModules.</p>
+<p>Tools like Snowpack can help deal with this. In its simplest use Snowpack <em><strong>“re-installs your dependencies as single JS files to a new web_modules/ directory”</strong></em> to be used with import commands.</p>
+<p>As of April of 2022, Snowpack is no longer maintained and the developers don’t recommend using it for new projects. The reasoning behind the change is documented in <a href="https://dev.to/fredkschott/5-more-things-i-learned-building-snowpack-to-20-000-stars-5dc9">6 More Things I Learned Building Snowpack to 20,000 Stars (Part 2)</a></p>
+<p>Until we can find a better alternative, we’ll continue to work with Snowpack.</p>
+<h2 id="running-snowpack" tabindex="-1">Running Snowpack</h2>
+<p>You can either run Snopwack manually in your directory:</p>
+<pre class="language-bash"><code class="language-bash">npx snowpack dev
+</code></pre>
+<p>or run it as an NPM script:</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"scripts"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token property">"prepare"</span><span class="token operator">:</span> <span class="token string">"snowpack dev"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Snowpack will generate a <code>web_modules</code> directories that you’ve specified as dependencies in your package.json and an import map file that you can use to import the modules.</p>
+<p>If you need to use packages that are not defined as dependencies in your project’s package.json you can define them as part of your package.json definition</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"snowpack"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token property">"dependencies"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"file1"</span><span class="token punctuation">,</span>
+    <span class="token string">"file2"</span><span class="token punctuation">,</span>
+    <span class="token string">"core-js"</span><span class="token punctuation">,</span>
+    <span class="token string">"module1"</span><span class="token punctuation">,</span>
+    <span class="token string">"module2"</span><span class="token punctuation">,</span>
+    <span class="token string">"moodule3"</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>It is still not an ideal solution, but it works and provides an interim solution until all modules are available as ESModules.</p>
+<h2 id="if-not-snowpack-then-what%3F" tabindex="-1">If not Snowpack then what?</h2>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

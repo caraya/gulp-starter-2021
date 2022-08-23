@@ -1,0 +1,212 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="publishing-a-website-with-gcp" tabindex="-1">publishing a website with GCP</h1>
+<p>I’ve always wanted to publish static sites to something other than Media Temple. Don’t get me wrong… I love MT, for the most part, but there are instances when their one-size-fits-all approach is too cumbersome for what I want to do and I would love to have a faster way to create sites and contents.</p>
+<p>There are many ways to create static sites and to serve sites created with a framework in an(y number of languages… some of the ones that come to mind are <a href="https://zeit.co/now">Now</a>, <a href="https://pages.github.com/">Github Pages</a> and <a href="https://www.heroku.com/">Heroku</a> are the ones that come to mind the most.</p>
+<p>But there are ways to upload your content to AWS and Google Cloud and publish it directly from there. I will cover the Google Cloud way to do it and will discuss some of the shortcomings and how to work around them, and if it’s worth working around them.</p>
+<h2 id="configuration-and-cname-record" tabindex="-1">Configuration and CNAME record</h2>
+<p>Before we start working with Google Cloud we need to set up a Canonical Name (CNAME) Record to alias the bucket in Google Cloud to a subdomain of my host. In this case we’ll use <code>http://labs2.rivendellweb.net</code>.</p>
+<p>According to <a href="https://www.wikiwand.com/en/CNAME_record">Wikipedia</a>:</p>
+<blockquote>
+<p>A Canonical Name record (abbreviated as CNAME record) is a type of resource record in the Domain Name System (DNS) used to specify that a domain name is an alias for another domain, which is the ‘canonical’ domain.</p>
+<p>…
+One can, for example, point <a href="http://ftp.example.com">ftp.example.com</a> and <a href="http://www.example.com">www.example.com</a> to the DNS entry for <a href="http://example.com">example.com</a>, which in turn has an A record which points to the IP address. Then, if the IP address ever changes, one only has to record the change in one place within the network: in the DNS A record for <a href="http://example.com">example.com</a>.</p>
+<p>CNAME records must always point to another domain name, never directly to an IP address.</p>
+</blockquote>
+<p>So in our primary DNS host configuration we create the following record:</p>
+<p><code>labs2.rivendellweb.net CNAME c.storage.googleapis.com.</code></p>
+<p>This will point the URL <code>http://labs2.rivendellweb.net</code> to the host for our bucket.</p>
+<p>We don’t have to host the DNS in Google any more than we have to host in Github to use Github Pages. I’ve kept my DNS in Media Temple and this record allows me to host the content in Google Cloud. In a later article we’ll discuss how to move a static site to Github Pages and how to use the CNAME record there.</p>
+<p>With the CNAME record ready we can move to the actual mechanics of creating the bucket and setting it up.</p>
+<h2 id="create-the-bucket" tabindex="-1">Create the bucket</h2>
+<div class="message info">
+  <p>These steps assume that you've already created a Google account and have associated it with Google Cloud. If you haven't you need to do that first.</p>
+</div>
+<ol>
+<li>Select or create a Cloud Platform project.</li>
+<li>Enable billing for your project.</li>
+<li>Have a domain that you own or manage. If you don’t have an existing domain, there are many services through which can you can register a new domain, such as Google Domains.</li>
+</ol>
+<ul>
+<li>This tutorial uses the domain <code>labs2.rivendellweb.net</code></li>
+</ul>
+<ol start="4">
+<li>Verify that you own or manage the domain you will be using. I’ve completed this step when working on setting up analytics for a blog in the domain.</li>
+</ol>
+<ul>
+<li>If you own the domain you are associating to a bucket, you might have already performed this step in the past</li>
+<li>If you purchased your domain through Google Domains, verification is automatic.</li>
+</ul>
+<figure>
+  <img src="https://cloud.google.com/storage/images/dev-console-53.png" alt="">
+  <figcaption>Settings for a bucket that will hold the site's content</figcaption>
+</figure>
+<h2 id="upload-content-to-the-bucket" tabindex="-1">Upload content to the bucket</h2>
+<ul>
+<li>If you haven’t already select your project in the Google Cloud Console</li>
+<li>Open the Cloud Storage browser in the Google Cloud Platform Console.</li>
+<li>In the list of buckets, click on the bucket you created.</li>
+<li>Click Upload files.</li>
+<li>In the file dialog, browse to the desired file and select it.</li>
+<li>After the upload completes, you should see the file name, size, type, and last modified date in the bucket.</li>
+</ul>
+<p>The result would look something like this:</p>
+<figure>
+  <img src="https://cloud.google.com/storage/images/bucket-website-example.png" alt="">
+  <figcaption>What the result of uploading files looks like</figcaption>
+</figure>
+<h3 id="alternative-methods-if-you%E2%80%99re-uploading-large-numbers-of-files" tabindex="-1">Alternative methods if you’re uploading large numbers of files</h3>
+<p>Rather than use the Google Cloud Console we can use command line tools and additional steps to build processes. For this example I’ll illustrate using Google Cloud’s <code>rsync</code> command and a Gulp task built around the <a href="https://github.com/albertorestifo/gulp-gcloud-publish">gulp-gcloud-publish</a> plugin.</p>
+<p>gsutil rsync uses the Rsync utility to copy data from the source to the target by adding new files, updating files with updated content and, if so configured, deleting files that are no longer present in the source directory. At its most basic it works by removing files that are no longer needed (with the <code>-d</code> flag) and travels through children directories. The command looks like this:</p>
+<pre class="language-bash"><code class="language-bash">gsutil <span class="token function">rsync</span> -d -r src_url gs://my_bucket/data
+</code></pre>
+<p>To copy only new/changed files without deleting extra files from gs://mybucket/data leave off the -d option:</p>
+<pre class="language-bash"><code class="language-bash">gsutil <span class="token function">rsync</span> -r data gs://mybucket/data
+</code></pre>
+<p>If you have a large number of objects to copy you might want to use the gsutil -m option, to perform parallel (multi-threaded/multi-processing) synchronization:</p>
+<pre class="language-bash"><code class="language-bash">gsutil -m <span class="token function">rsync</span> -d -r data gs://mybucket/data
+</code></pre>
+<p>The -m option typically will provide a large performance boost if either the source or destination (or both) is a cloud URL. If both source and destination are file URLs the -m option will typically thrash the disk and slow synchronization down.</p>
+<p>For more details about the utility check the <a href="https://cloud.google.com/storage/docs/gsutil/commands/rsync">gsutil rsync docs</a>.</p>
+<p><a href="https://github.com/albertorestifo/gulp-gcloud-publish">gulp-gcloud-publish</a> assumes you’re using Gulp to process and package assets already. If not you’ll have to either run rsync (discussed above) with a task to run shell commands.</p>
+<p>If you’re already using Gulp, you can install the plugins like normal. I’m adding them as dev dependencies.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D gulp-gcloud-publish gulp-gzip
+</code></pre>
+<p>Then we can use the task below to push our content to the bucket we’ve configured before. The following informaton needs to be modified:</p>
+<ul>
+<li><code>bucket-name</code> need to be changed to the name of the bucket you created</li>
+<li><code>path/to/keyFile.json</code> needs to point to the key file you generated for your site</li>
+<li><code>projectId</code> must be equal to the name of the project you created</li>
+<li><code>base</code> is the root of the site you want to publish</li>
+</ul>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> gcPub <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-gcloud-publish'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> gzip <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-gzip'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// optional</span>
+
+gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'publish'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'public/css/example.css'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">gzip</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// optional</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">gcPub</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">bucket</span><span class="token operator">:</span> <span class="token string">'bucket-name'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">keyFilename</span><span class="token operator">:</span> <span class="token string">'path/to/keyFile.json'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">projectId</span><span class="token operator">:</span> <span class="token string">'my-project-id'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">base</span><span class="token operator">:</span> <span class="token string">'/css'</span><span class="token punctuation">,</span>
+      <span class="token keyword">public</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token function-variable function">transformDestination</span><span class="token operator">:</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">path</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> path<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">metadata</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token literal-property property">cacheControl</span><span class="token operator">:</span> <span class="token string">'max-age=315360000, no-transform, public'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => File will be uploaded to /bucket-name/css/example.css</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This method will require the generation of a service account key. Instructions for generatingg your key can be found in the documentation about <a href="https://cloud.google.com/iam/docs/creating-managing-service-account-keys">creating and managing account keys</a></p>
+<p>These two ways give you the flexibility you need to publish your static content. We’re not covering GCP functions and other technologies available to create static and serverless sites and apps.</p>
+<h2 id="make-the-files-publically-visible" tabindex="-1">Make the files publically visible</h2>
+<p>If everything has worked up to this point we now have a bucket ready to point to our subdomain. Now all we need to do is make our files publically accessible.</p>
+<ol>
+<li>Open the Cloud Storage browser in the Google Cloud Platform Console.</li>
+<li>In the list of buckets, click on the bucket that contains the objects you uploaded.</li>
+<li>For each object you want to share publicly, click the checkbox in the Share publicly column.</li>
+</ol>
+<div class="message info">
+  <p>Note that you must do this for all files individually. Cloud Storage will not let you select a folder and automatically make the files inside public.</p>
+</div>
+<h2 id="ssl-certificate-and-https-hosting" tabindex="-1">SSL Certificate and HTTPS hosting</h2>
+<p>The one thing that Google Gloud doesn’t do, out of the box, is provide SSL support for secure hosting. If you’re working with PWAs this is a show stopper, right there. Service Workers will not work without SSL/HTTPS and the default setup for static hosting doesn’t provide it, at least not easily.</p>
+<ol>
+<li>Verify that you are the owner of your domain through the Webmaster Central page:</li>
+</ol>
+<ul>
+<li>In the Google Cloud Platform Console, go to App Engine &gt; Settings &gt; Custom Domains</li>
+<li>Click Add a custom domain to display the Add a new custom domain form:</li>
+<li>In the Select the domain you want to use section, enter the name of the domain that you want to use, for example <a href="http://example.com">example.com</a>, and then click Verify to open a new tab to the Webmaster Central page
+<ul>
+<li>Use Webmaster Central to verify ownership of your domain.</li>
+<li><strong>Important</strong>: Verifying domain ownership by using a CNAME record is the preferred option for App Engine. If you choose to use a TXT record, you must avoid configuring your domain’s DNS with a CNAME record because the CNAME record overrides the TXT record and causes your domain to appear unverified</li>
+</ul>
+</li>
+<li>If the verification methods for your domain do not offer the CNAME record option, you can select Other as your domain provider and then choose Add a CNAME record:
+<ul>
+<li>Click Alternate methods and then Domain name provider.</li>
+<li>In the menu, select Other</li>
+<li>In the Having trouble section, click Add a CNAME record and then following the instructions to verify ownership of your domain</li>
+<li><strong>Remember: It might take a minute before your CNAME is set at your domain registrar</strong>
+Return to the Add new custom domain form in the Cloud Platform Console.
+Ensure that your domain has been verified:</li>
+</ul>
+</li>
+</ul>
+<p>CONSOLEGCLOUDAPI
+If your domain is not already listed, click Refresh domains.
+Important: The domain verification is automatically re-confirmed about every 30 days. So if you remove the verification string from your DNS settings, you will lose the ability to change the configuration within the Cloud Platform Console. However, if this happens, the serving setup for the domain does not change and the app continues to serve over the custom domain.
+If you need to delegate the ownership of your domain to other users or service accounts, you can add permission through the Webmaster Central page:</p>
+<p>Opening the following address in your web browser:</p>
+<p><a href="https://www.google.com/webmasters/verification/home">https://www.google.com/webmasters/verification/home</a>
+Under Properties, click the domain for which you want to add a user or service account.
+Scroll down to the Verified owners list, click Add an owner, and then enter a Google Account email address or service account ID.</p>
+<p>To view a list of your service accounts, open the Service Accounts page in the Cloud Platform Console:</p>
+<p>GO TO SERVICE ACCOUNTS PAGE
+After you verify ownership of your domain, you can map that domain to your App Engine app:</p>
+<p>CONSOLEGCLOUDAPI
+Continue to the next step of the Add new custom domain form to select the domain that you want to map to your App Engine app:</p>
+<p>Specify the domain and subdomains that you want to map. The naked domain and www subdomain are pre-populated in the form.
+A naked domain, such as <a href="http://example.com">example.com</a>, maps to <a href="http://example.com">http://example.com</a>.
+A subdomain, such as www, maps to <a href="http://www.example.com">http://www.example.com</a>.
+Click Submit mappings to create the desired mapping.
+In the final step of the Add new custom domain form, note the resource records that are listed, including their type and canonical name (CNAME), because you need to add these details to the DNS configuration of your domain.
+In the example below, CNAME is one of the types listed, and <a href="http://ghs.googlehosted.com">ghs.googlehosted.com</a> is its canonical name.</p>
+<p>Add a custom domain
+Add the resource records that you receive to the DNS configuration of your domain registrar:</p>
+<p>Log in to your account at your domain registrar and then open the DNS configuration page.
+Locate the host records section of your domain’s configuration page and then add each of the resource records that you received when you mapped your domain to your App Engine app.</p>
+<p>Typically, you list the host name along with the canonical name as the address. For example, if you registered a Google Domain, then one of the records that you add to your DNS configuration is the www host name along with the <a href="http://ghs.googlehosted.com">ghs.googlehosted.com</a> address. Alternatively, to specify a naked domain, you would instead use @ with the <a href="http://ghs.googlehosted.com">ghs.googlehosted.com</a> address.</p>
+<p>For more information about mapping your domain, see the following Using subdomains and Wildcard mappings sections.
+Save your changes in the DNS configuration page of your domain’s account. It can take a while for these changes to take effect.
+Test for success by browsing to your app via its new domain URL, for example <a href="http://www.example.com">www.example.com</a>.</p>
+<p>Using subdomains</p>
+<p>If you set up a wildcard subdomain mapping for your custom domain, then your application serves requests for any subdomain that matches.</p>
+<p>If the user browses a domain that matches an application version name or service name, the application serves that version.
+If the user browses a domain that matches a service name, the application serves that service.
+Wildcard mappings</p>
+<p>Note that wildcard mappings will work with your services in App Engine.</p>
+<p>You can use wildcards to map subdomains at any level, starting at third-level subdomains. For example, if your domain is <a href="http://example.com">example.com</a> and you enter text in the web address field:</p>
+<p>Entering * maps all subdomains of <a href="http://example.com">example.com</a> to your app.
+Entering *.private maps all subdomains of <a href="http://private.example.com">private.example.com</a> to your app.
+Entering *.nichol.sharks.nhl maps all subdomains of <a href="http://nichol.sharks.nhl.example.com">nichol.sharks.nhl.example.com</a> to your app.
+Entering *.excogitate.system maps all subdomains of <a href="http://excogitate.system.example.com">excogitate.system.example.com</a> to your app.
+If you use G Suite with other subdomains on your domain, such as sites and mail, those mappings have higher priority and are matched first, before any wildcard mapping takes place. In addition, if you have other App Engine apps mapped to other subdomains, those mappings also have higher priority than any wildcard mapping.</p>
+<p>Note that some DNS providers might not work with wildcard subdomain mapping. In particular, a DNS provider must permit wildcards in CNAME host entries.</p>
+<p>The above wildcard routing rules also apply to URLs that contain components for services, versions, and instances, following the service routing rules for the App Engine.</p>
+<h2 id="other-alternatives-inside-the-google-family" tabindex="-1">Other alternatives inside the Google family</h2>
+<p><a href="https://firebase.google.com/docs/hosting/">Firebase hosting</a> provides a similar service to that of Google Cloud</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

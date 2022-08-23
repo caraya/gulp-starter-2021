@@ -1,0 +1,256 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h2 id="codec-comparison%3A-2-pass-encoding" tabindex="-1">Codec Comparison: 2-pass encoding</h2>
+<p>We’ve set up 1-pass encoding for all our target codecs and we have the resulting videos to compare. Does a 2-pass enconding changes file size and video quality?</p>
+<h2 id="hardware-specs" tabindex="-1">Hardware Specs</h2>
+<ul>
+<li>Model Name: MacBook Pro</li>
+<li>OS Version: MacOS 10.13 (High Sierra)</li>
+<li>Processor Name: Intel Core i7</li>
+<li>Processor Speed: 3.1 GHz</li>
+<li>Number of Processors: 1</li>
+<li>Total Number of Cores: 4</li>
+<li>L2 Cache (per Core): 256 KB</li>
+<li>L3 Cache: 8 MB</li>
+<li>Memory: 16 GB</li>
+</ul>
+<h2 id="codecs-to-test" tabindex="-1">Codecs to test</h2>
+<p>The idea is to test the following codecs, both old and new, to get a better idea of they answer the questions</p>
+<ul>
+<li>x264
+<ul>
+<li>Run through ffmpeg</li>
+</ul>
+</li>
+<li>x265
+<ul>
+<li>Run through ffmpeg</li>
+</ul>
+</li>
+<li>vp9
+<ul>
+<li>Run through ffmpeg</li>
+</ul>
+</li>
+<li>aom for av1 support
+<ul>
+<li>Compiled and installed from source</li>
+</ul>
+</li>
+</ul>
+<p>AVC/H264 is the current generation codec and what most people use to create video on the web.</p>
+<p>HEVC/H265 is the successor to H264 and produces smaller files of equivallent quality.</p>
+<p>VP9 is the successor to VP8 and its primary use is in Youtube and some specific settings for HTML5 video (<a href="https://www.wikiwand.com/en/High-dynamic-range_video">HDR video</a>).</p>
+<p>AV1 is a open source, royalty-free video codec developed by the <a href="http://aomedia.org">Alliance for Open Media</a>, a large consortium of software and hardware companies. The most attractive characteristi are:</p>
+<ul>
+<li>It’s royalty free</li>
+<li>It claims at least 20% better quality than HEVC at the cost of slower encode speeds</li>
+</ul>
+<p>Once we’ve decided on the codecs we can start setting objectives to measure. Most of these are subjective and some need time before they can be fully tested since AV1 still doesn’t play in VLC and the versions that will play embedded in Firefox are, as of this writing, tied to specific commit hashes for the reference encode/decoder implementation (explained in this <a href="https://hacks.mozilla.org/2017/11/dash-playback-of-av1-video/">Mozilla Hacks Article</a>).</p>
+<p>The basic questions that I seek to answer with this experiment:</p>
+<ol>
+<li>Is there’s any pereceptible difference between codecs?
+<ul>
+<li>Do they look different? Is there a subjective difference?</li>
+<li>Does a 2-pass encoding improve video quality?</li>
+</ul>
+</li>
+<li>How the storage requirements change between formats
+<ul>
+<li>Does 2-pass encoding further reduce file size?</li>
+</ul>
+</li>
+<li>Does 2-pass encoding improve encoding speed?</li>
+</ol>
+<p>To answer these questions I’ll prepare a second round of videos using 2-pass encodings. In the 2-pass process each codec will run twice with slightly different settings to create the two pass video.</p>
+<h2 id="the-econding-scripts" tabindex="-1">The econding scripts</h2>
+<p>The 2-pass encondings will, as much as possible, use default encoding strategies. The first pass will generate a log that the second pass will use, so don’t delete the log files.</p>
+<p>I’ve also created a dummy <code>null</code> file to replace <code>/dev/null</code>. For some reason Bash on MacOS wants to overwrite <code>/dev/null</code> and I don’t think that’s healthy for a Unix-based operating systems.</p>
+<h3 id="h264" tabindex="-1">H264</h3>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Encode x264</span>
+<span class="token comment"># Pass 1</span>
+ffmpeg -i <span class="token variable">$f</span> <span class="token punctuation">\</span>
+-preset slow -crf <span class="token number">22</span> <span class="token punctuation">\</span>
+-c:v libx264 -b:v 512k <span class="token punctuation">\</span>
+-pass <span class="token number">1</span> <span class="token punctuation">\</span>
+-c:a aac -b:a <span class="token number">9600</span> <span class="token punctuation">\</span>
+-f mp4 null
+
+<span class="token comment"># Pass 2</span>
+ffmpeg -i <span class="token variable">$f</span> <span class="token punctuation">\</span>
+-c:v libx264 -b:v 512k <span class="token punctuation">\</span>
+-preset slow -crf <span class="token number">22</span> <span class="token punctuation">\</span>
+-pass <span class="token number">2</span> <span class="token punctuation">\</span>
+-c:a aac -b:a <span class="token number">9600</span> <span class="token punctuation">\</span>
+<span class="token variable">$f_2pass_h264</span>.mp4
+</code></pre>
+<h3 id="x265" tabindex="-1">x265</h3>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># h265 Pass 1</span>
+ffmpeg -y -i <span class="token variable">$f</span> <span class="token punctuation">\</span>
+-c:v libx265 -b:v 512k <span class="token punctuation">\</span>
+-x265-params <span class="token assign-left variable">pass</span><span class="token operator">=</span><span class="token number">1</span> <span class="token punctuation">\</span>
+-c:a aac -b:a <span class="token number">9600</span> <span class="token punctuation">\</span>
+-f mp4 null
+
+<span class="token comment"># h265 Pass 2</span>
+ffmpeg -i <span class="token variable">$f</span> <span class="token punctuation">\</span>
+-c:v libx265 -b:v 512k <span class="token punctuation">\</span>
+-x265-params <span class="token assign-left variable">pass</span><span class="token operator">=</span><span class="token number">2</span> <span class="token punctuation">\</span>
+-c:a aac -b:a 9600x <span class="token punctuation">\</span>
+<span class="token variable">$f</span>-2pass-x265.mp4
+</code></pre>
+<h3 id="vp9" tabindex="-1">VP9</h3>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Pass 1</span>
+ffmpeg -i <span class="token variable">$f</span> <span class="token punctuation">\</span>
+-c:v libvpx-vp9 -b:v 512K <span class="token punctuation">\</span>
+-pass <span class="token number">1</span> -c:a libopus <span class="token punctuation">\</span>
+-f webm null
+
+<span class="token comment"># Pass 2</span>
+ffmpeg -i <span class="token variable">$f</span> <span class="token punctuation">\</span>
+-c:v libvpx-vp9 -b:v 512K <span class="token punctuation">\</span>
+-pass <span class="token number">2</span> -c:a libopus <span class="token punctuation">\</span>
+<span class="token variable">$f_2pass_vp9</span>.webm
+</code></pre>
+<h3 id="av1" tabindex="-1">AV1</h3>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># AV1 Pass 1</span>
+  aomenc <span class="token punctuation">\</span>
+    <span class="token variable">$f</span> <span class="token punctuation">\</span>
+    -o <span class="token variable">$f</span>-av1-2pass.webm <span class="token punctuation">\</span>
+    --width<span class="token operator">=</span><span class="token number">640</span> <span class="token punctuation">\</span>
+    --height<span class="token operator">=</span><span class="token number">360</span> <span class="token punctuation">\</span>
+    -p <span class="token number">2</span> <span class="token punctuation">\</span>
+    --pass<span class="token operator">=</span><span class="token number">1</span> <span class="token punctuation">\</span>
+    --fpf<span class="token operator">=</span><span class="token variable">$f</span>.fpf <span class="token punctuation">\</span>
+    --cpu-used<span class="token operator">=</span><span class="token number">2</span> <span class="token punctuation">\</span>
+    --target-bitrate<span class="token operator">=</span>512K <span class="token punctuation">\</span>
+    --auto-alt-ref<span class="token operator">=</span><span class="token number">1</span> <span class="token punctuation">\</span>
+    -v <span class="token punctuation">\</span>
+    --minsection-pct<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --maxsection-pct<span class="token operator">=</span><span class="token number">800</span> <span class="token punctuation">\</span>
+    --lag-in-frames<span class="token operator">=</span><span class="token number">25</span> <span class="token punctuation">\</span>
+    --kf-min-dist<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --kf-max-dist<span class="token operator">=</span><span class="token number">99999</span> <span class="token punctuation">\</span>
+    --static-thresh<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --min-q<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --max-q<span class="token operator">=</span><span class="token number">63</span> <span class="token punctuation">\</span>
+    --drop-frame<span class="token operator">=</span><span class="token number">0</span>
+<span class="token comment"># AV1 Pass 2</span>
+  aomenc <span class="token punctuation">\</span>
+    <span class="token variable">$f</span> <span class="token punctuation">\</span>
+    <span class="token variable">$f</span>-av1-2pass.webm  <span class="token punctuation">\</span>
+    --width<span class="token operator">=</span><span class="token number">640</span> <span class="token punctuation">\</span>
+    --height<span class="token operator">=</span><span class="token number">360</span> <span class="token punctuation">\</span>
+    -p <span class="token number">2</span> <span class="token punctuation">\</span>
+    --pass<span class="token operator">=</span><span class="token number">2</span> <span class="token punctuation">\</span>
+    --fpf<span class="token operator">=</span><span class="token variable">$f</span>.fpf <span class="token punctuation">\</span>
+    --cpu-used<span class="token operator">=</span><span class="token number">2</span> <span class="token punctuation">\</span>
+    --target-bitrate<span class="token operator">=</span>512K <span class="token punctuation">\</span>
+    --auto-alt-ref<span class="token operator">=</span><span class="token number">1</span> <span class="token punctuation">\</span>
+    -v <span class="token punctuation">\</span>
+    --minsection-pct<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --maxsection-pct<span class="token operator">=</span><span class="token number">800</span> <span class="token punctuation">\</span>
+    --lag-in-frames<span class="token operator">=</span><span class="token number">25</span> <span class="token punctuation">\</span>
+    --kf-min-dist<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --kf-max-dist<span class="token operator">=</span><span class="token number">99999</span> <span class="token punctuation">\</span>
+    --static-thresh<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --min-q<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --max-q<span class="token operator">=</span><span class="token number">63</span> <span class="token punctuation">\</span>
+    --drop-frame<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --bias-pct<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --minsection-pct<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">\</span>
+    --maxsection-pct<span class="token operator">=</span><span class="token number">800</span> <span class="token punctuation">\</span>
+    --psnr <span class="token punctuation">\</span>
+    --arnr-maxframes<span class="token operator">=</span><span class="token number">7</span> <span class="token punctuation">\</span>
+    --arnr-strength<span class="token operator">=</span><span class="token number">3</span>
+</code></pre>
+<h2 id="analysis-and-review" tabindex="-1">Analysis and Review</h2>
+<table>
+  <caption><strong>1 and 2 pass encoding comparison</strong></caption>
+  <thead>
+    <tr>
+      <th scope="col">Format</th>
+      <th scope="col">1 pass encode</th>
+      <th scope="col">2 pass encode</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Footloose original file</td>
+      <td colspan=2>28.5 MB</td>
+    </tr>
+    <tr>
+      <td>Footloose x264 in MP4 container</td>
+      <td>27.7 MB</td>
+      <td>23.1 MB</td>
+    </tr>
+    <tr>
+      <td>Footloose x265 in MP4 container</td>
+      <td>13 MB</td>
+      <td>23.2 MB</td>
+    </tr>
+    <tr>
+      <td>Footloose VP9 in WebM container</td>
+      <td>24.1 MB</td>
+      <td>22 MB</td>
+    </tr>
+    <tr>
+      <td>Tears of Steel Original File</td>
+      <td colspan=2>738.9 MB</td>
+    </tr>
+    <tr>
+      <td>Tears of Steel x264 in MP4 container</td>
+      <td>343.6 MB</td>
+      <td>56.1 MB</td>
+    </tr>
+    <tr>
+      <td>Tears of Steel x265 in MP4 container</td>
+      <td>110 MB</td>
+      <td>56.5 MB</td>
+    </tr>
+    <tr>
+      <td>Tears of Steel VP9 in WebM container</td>
+      <td>58.9 MB</td>
+      <td>55.6 MB</td>
+    </tr>
+  </tbody>
+</table>
+<p>The differences between 1 and 2 pass encodings is puzling in some aspects. I looks like 2 pass encoding works better for larger files but not necessarily for smaller files.</p>
+<p>Footloose presented an interesting encoding exercise. The two pass encoding didn’t reduce the file size as muhch as I expected and, in the case of x265, it increaesed the file size and not reduce it.</p>
+<p>Tears of Steal provided a more consistent result in the 2 pass encoding even for VP9, that presented a very small 1 pass encoding to begin with. However all of the 2 pass encodings offer massive side reductions without a perceptible, to me, loss of quality.</p>
+<p>The larger file also shows significantly larger file size savings; from 739 down to 55.6 MB for VP9, 56.1 for x264 and 56.5 for x265.</p>
+<p>Even though results for other files may vary.</p>
+<p>For Footloose, I’d recommend using <strong>x265 with a 1-pass encode</strong>.</p>
+<p>Larger files (dimensions and file size), however, benefit from a 2 pass encoding. In all formats the savings of <strong>a 2 pass encoding</strong> are significant enough to be worth the extra time it takes.</p>
+<p>The examples I’ve used may or may not match the results. As with many things working on video I’d suggest you test all the formats and see what works best for your needs.</p>
+<p>I have not included DASH video in these comparisons. A next step would be to take the x264 file and process it through the Shaka Packager as documented in <a href="https://publishing-project.rivendellweb.net/revisiting-video-encoding-dash/">Revisiting video encoding: DASH</a>.</p>
+<p>Or maybe the video will be small enough to play locally or through Youutube or Vimeo. Your milleage may vary :)</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

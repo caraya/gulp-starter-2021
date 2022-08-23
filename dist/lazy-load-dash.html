@@ -1,0 +1,175 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="lazy-loading-mpeg-dash" tabindex="-1">Lazy Loading MPEG-DASH</h1>
+<p>After images the biggest payloads in my pages are Youtube embedded videos and since I already lazy load images I’ve decided to explore how to best lazy load embedded Youtube iframes; I embed Vimeo videos far less often so I’m not going to lazy load them.</p>
+<p>I have the following requirements for any lazy loading solution:</p>
+<ul>
+<li>The video must be responsive</li>
+<li>Any external script, stylesheets and assets must be less than 5kb in size</li>
+</ul>
+<h2 id="the-original" tabindex="-1">The original</h2>
+<p>This is what I normally do when working with video on the web and in my Wordpress blogs. I take the <code>iframe</code> element directly from Youtube and wrap it around a div with a class of <code>video</code> to style it accordingly</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>video</span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>path/to/manifest.mpd<span class="token punctuation">"</span></span>
+  <span class="token attr-name">poster</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>path/to/poster/image.png<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>video</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS is simple and styles both the <code>iframe</code> and paragraphs inside the div.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">div.video</span> <span class="token punctuation">{</span>
+  <span class="token property">clear</span><span class="token punctuation">:</span> both<span class="token punctuation">;</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 1em auto<span class="token punctuation">;</span>
+  <span class="token property">max-width</span><span class="token punctuation">:</span> inherit<span class="token punctuation">;</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> center
+<span class="token punctuation">}</span>
+
+<span class="token selector">div.video p</span> <span class="token punctuation">{</span>
+  <span class="token property">font-style</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 700<span class="token punctuation">;</span>
+  <span class="token property">margin-top</span><span class="token punctuation">:</span> -.125em
+<span class="token punctuation">}</span>
+
+<span class="token selector">video</span> <span class="token punctuation">{</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 1.5em 0
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The issue we try to resolve with lazy loading is that each embedded video loads many additional resources whether we are interacting with the video or not. Those additional HTTP connections will slow down overall page load times and gives a lower Page Speed Score.</p>
+<p>Furthermore the longer it takes for a page to display content to the user and become interactive the more likely the user it is to leave the page and not come back. Hence this experiment… Using <a href="https://www.labnol.org/internet/light-youtube-embeds/27941/">digital inspiration’s lazy loading method</a> as a model we’ll explore how to use it, what it does and whether it’s actually worth using it or not.</p>
+<h2 id="the-lazy-loaded-version" tabindex="-1">The lazy loaded version</h2>
+<blockquote>
+<p>Lazy loading is a design pattern commonly used in computer programming to defer initialization of an object until the point at which it is needed. It can contribute to efficiency in the program’s operation if properly and appropriately used.</p>
+<p>— <a href="https://www.wikiwand.com/en/Lazy_loading">Wikipedia</a></p>
+</blockquote>
+<p>In the context of a web page/application I use lazy loading to prevent an item from loading until it becomes visible on the screen (comes into the viewport). Once the video comes into view we wait for user’s input by either clicking or taping the video before playback begins.</p>
+<p>We use the HTML below to indicate where to place the video and what video (using the video Youtube ID) to place there.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>youtube-player<span class="token punctuation">"</span></span> <span class="token attr-name">data-id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>VIDEO_ID<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The Javascript below will build three elements:</p>
+<ul>
+<li>A div element to hold the video iframe</li>
+<li>An img element containing the poster image and a play button</li>
+<li>The <code>iframe</code> element that contains the video and attributes like autoplay and no related videos at the end</li>
+</ul>
+<pre class="language-javascript"><code class="language-javascript">document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"DOMContentLoaded"</span><span class="token punctuation">,</span>
+  <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> div<span class="token punctuation">;</span>
+    <span class="token keyword">let</span> n<span class="token punctuation">;</span>
+    <span class="token keyword">let</span> v <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementsByClassName</span><span class="token punctuation">(</span><span class="token string">"youtube-player"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>n <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> n <span class="token operator">&lt;</span> v<span class="token punctuation">.</span>length<span class="token punctuation">;</span> n<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        div <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">"div"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        div<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">"data-id"</span><span class="token punctuation">,</span> v<span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        div<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token function">loadThumb</span><span class="token punctuation">(</span>v<span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        div<span class="token punctuation">.</span>onclick <span class="token operator">=</span> loadIframe<span class="token punctuation">;</span>
+        v<span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>div<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword">function</span> <span class="token function">loadThumb</span><span class="token punctuation">(</span><span class="token parameter">id</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> thumb <span class="token operator">=</span> <span class="token string">'&lt;img src="https://i.ytimg.com/vi/ID/hqdefault.jpg">'</span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> play <span class="token operator">=</span> <span class="token string">'&lt;div class="play">&lt;/div>'</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> thumb<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token string">"ID"</span><span class="token punctuation">,</span> id<span class="token punctuation">)</span> <span class="token operator">+</span> play<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  
+  <span class="token keyword">function</span> <span class="token function">loadIframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> iframe <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">"iframe"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> embed <span class="token operator">=</span> <span class="token string">"https://www.youtube.com/embed/ID?autoplay=1&amp;rel=0"</span><span class="token punctuation">;</span>
+  iframe<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">"src"</span><span class="token punctuation">,</span> embed<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token string">"ID"</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  iframe<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">"frameborder"</span><span class="token punctuation">,</span> <span class="token string">"0"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  iframe<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">"allowfullscreen"</span><span class="token punctuation">,</span> <span class="token string">"1"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">this</span><span class="token punctuation">.</span>parentNode<span class="token punctuation">.</span><span class="token function">replaceChild</span><span class="token punctuation">(</span>iframe<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+</code></pre>
+<p>Finally, we use CSS to style the video and programatically add the play button. as an overlay.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.youtube-player</span> <span class="token punctuation">{</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span>
+  <span class="token property">padding-bottom</span><span class="token punctuation">:</span> 56.23%<span class="token punctuation">;</span>
+  <span class="token comment">/* Use 75% for 4:3 videos */</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">overflow</span><span class="token punctuation">:</span> hidden<span class="token punctuation">;</span>
+  <span class="token property">max-width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 5px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.youtube-player iframe</span> <span class="token punctuation">{</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+  <span class="token property">z-index</span><span class="token punctuation">:</span> 100<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> transparent<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.youtube-player img</span> <span class="token punctuation">{</span>
+  <span class="token property">bottom</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+  <span class="token property">max-width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">right</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+  <span class="token property">cursor</span><span class="token punctuation">:</span> pointer<span class="token punctuation">;</span>
+  <span class="token property">-webkit-transition</span><span class="token punctuation">:</span> .4s all<span class="token punctuation">;</span>
+  <span class="token property">-moz-transition</span><span class="token punctuation">:</span> .4s all<span class="token punctuation">;</span>
+  <span class="token property">transition</span><span class="token punctuation">:</span> .4s all<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.youtube-player img:hover</span> <span class="token punctuation">{</span>
+  <span class="token property">-webkit-filter</span><span class="token punctuation">:</span> <span class="token function">brightness</span><span class="token punctuation">(</span>75%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.youtube-player .play</span> <span class="token punctuation">{</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 72px<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 72px<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 50%<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 50%<span class="token punctuation">;</span>
+  <span class="token property">margin-left</span><span class="token punctuation">:</span> -36px<span class="token punctuation">;</span>
+  <span class="token property">margin-top</span><span class="token punctuation">:</span> -36px<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"../images/play.png"</span><span class="token punctuation">)</span></span> no-repeat<span class="token punctuation">;</span>
+  <span class="token property">cursor</span><span class="token punctuation">:</span> pointer<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li><a href="https://www.labnol.org/internet/light-youtube-embeds/27941/">https://www.labnol.org/internet/light-youtube-embeds/27941/</a></li>
+<li><a href="https://webdesign.tutsplus.com/tutorials/how-to-lazy-load-embedded-youtube-videos--cms-26743">https://webdesign.tutsplus.com/tutorials/how-to-lazy-load-embedded-youtube-videos--cms-26743</a></li>
+<li><a href="http://codepen.io/tutsplus/pen/RRVRro">http://codepen.io/tutsplus/pen/RRVRro</a></li>
+<li><a href="https://www.sitepoint.com/faster-youtube-embeds-javascript/">https://www.sitepoint.com/faster-youtube-embeds-javascript/</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="node-and-http%2F2" tabindex="-1">Node and HTTP/2</h1>
+<p>HTTP/2 is the later evolution of the HTTP protocol that powers the web. It’s main goal is to improve performance and latency over existing HTTP 1.1 implementations. For more details see Ilyia Gregorik’s High Performance Browser Networking <a href="https://hpbn.co/http2/">chapter on HTTP/2</a></p>
+<p>HTTP/2 landed in Node.js 8.4 behind a flag. With Node.js 9, it became an experimental part of Node core, still at stability 1. This is the version we’ll be working with. Do not run production workloads using this API yet, since it might change. Check the Node HTTP/2 API documentation for more information</p>
+<h2 id="getting-an-ssl-certificate-for-localhost" tabindex="-1">Getting an SSL certificate for localhost</h2>
+<aside class="message warning">
+  <p>While it's possible use HTTP/2 without TSL no current browser supports it. If you want to serve content through HTTP/2 to web browsers you must do it securely through HTTPS.</p>
+</aside>
+<p>To run the example above, you have to generate a private key and a certificate for your server. To do so, run this command:</p>
+<pre class="language-bash"><code class="language-bash">openssl req -newkey rsa:2048 -new -nodes -x509 -days <span class="token number">3650</span> -keyout key.pem -out cert.pem
+</code></pre>
+<p>When it asks for the common name, make sure to enter <code>localhost</code>.</p>
+<p>We will use these keys in the following examples.</p>
+<p><strong>Do not use self-signed keys in production servers!</strong> For production servers you can purchase a certificate or use <a href="https://letsencrypt.org/">let’s encrypt</a> to generate free certificates.</p>
+<p>Also be aware the most browsers will indicate that the site is insecure. You can safely ignore this warning if you’re working on your local development machine.</p>
+<h2 id="basic-server-example" tabindex="-1">Basic Server Example</h2>
+<p>The most basic example using this API will serve a stream to the client.</p>
+<p>We first require the necessary modules. Because both of them are part of the core Node.js system we don’t need to install them.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> http2 <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'http2'</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Next, we creaate our securre server. We pass two parameters that are read synchronously: the location of our SSL key and certificate. We do it synchronously because we need the read to be complete before we move forward with the rest of the process.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> server <span class="token operator">=</span> http2<span class="token punctuation">.</span><span class="token function">createSecureServer</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">key</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./key.pem'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">cert</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./cert.pem'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Remember that this is a low level API. We’re working through a connection between a <a href="https://nodejs.org/api/http2.html#http2_class_http2secureserver">http2SecureServer</a> object and one underlying socket.</p>
+<p>We listen for three events between the socket and the server:</p>
+<ul>
+<li><a href="https://nodejs.org/api/http2.html#http2_event_error">error</a>: Happens when an error occurs during the processing of an Http2Session</li>
+<li><a href="https://nodejs.org/api/http2.html#http2_event_socketerror">sockerError</a>: Triggered when an ‘error’ is emitted on the Socket instance bound to the Http2Session. If this event is not handled, the ‘error’ event will be re-emitted on the Socket</li>
+<li><a href="https://nodejs.org/api/http2.html#http2_event_stream">stream</a>: fired when a new Http2Stream is created. When invoked, the handler function will receive a reference to the Http2Stream object, a Headers Object, and numeric flags associated with the creation of the stream</li>
+</ul>
+<p>The stream will respond with the content type of the response, the status code and the payload of the response. Because the stream is a Duplex, read and write enabled, we use the end property to write our content. See the description of the writable stream’s <a href="https://nodejs.org/api/stream.html#stream_writable_end_chunk_encoding_callback">end method</a> for more information and to see what additional tricks you have at your disposal.</p>
+<pre class="language-javascript"><code class="language-javascript">server<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'error'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'socketError'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'stream'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">stream<span class="token punctuation">,</span> headers</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// stream is a Duplex</span>
+  stream<span class="token punctuation">.</span><span class="token function">respond</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token string-property property">'content-type'</span><span class="token operator">:</span> <span class="token string">'text/html'</span><span class="token punctuation">,</span>
+    <span class="token string-property property">':status'</span><span class="token operator">:</span> <span class="token number">200</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  stream<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token string">'&lt;h1>Hello World&lt;/h1>'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>The final task is to set the server to listen in the specified port. In a production environment I would put the value for the port in a configuration file or in <code>package.json</code></p>
+<pre class="language-javascript"><code class="language-javascript">server<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">7300</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="static-file-server" tabindex="-1">Static File Server</h2>
+<aside class="message info">
+<p>This file server is taken from <a href="https://dexecure.com/blog/how-to-create-http2-static-file-server-nodejs-with-examples/">How to create a zero dependency HTTP/2 static file server with Node.js (with examples)</a></p>
+</aside>
+<p>As usual we require the files that we need. <code>mime-types</code> is not part of core Node so you must install with with npm (<code>npm i mime-types</code>) before continuing.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> http2 <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'http2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> mime <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'mime-types'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The next block of code handles configuration of the server.</p>
+<ul>
+<li>We define <a href="https://nodejs.org/api/http2.html#http2_http2_constants">http2.constants</a> to make it easier to work with error codes.</li>
+<li>Next, we create an object holding the location of the certificate and key</li>
+<li>We set up the server using the options object as a parameter</li>
+<li>The location of the server root; in this case the <code>public</code> directory.</li>
+</ul>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> <span class="token punctuation">{</span>
+  <span class="token constant">HTTP2_HEADER_PATH</span><span class="token punctuation">,</span>
+  <span class="token constant">HTTP2_HEADER_METHOD</span><span class="token punctuation">,</span>
+  <span class="token constant">HTTP_STATUS_NOT_FOUND</span><span class="token punctuation">,</span>
+  <span class="token constant">HTTP_STATUS_INTERNAL_SERVER_ERROR</span>
+<span class="token punctuation">}</span> <span class="token operator">=</span> http2<span class="token punctuation">.</span>constants<span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">key</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./key.pem'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">cert</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./cert.pem'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> server <span class="token operator">=</span> http2<span class="token punctuation">.</span><span class="token function">createSecureServer</span><span class="token punctuation">(</span>options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> serverRoot <span class="token operator">=</span> <span class="token string">"./public"</span><span class="token punctuation">;</span>
+</code></pre>
+<p><code>respondToStreamError</code> is a functions that will handle 400 (<code>HTTP_STATUS_NOT_FOUND</code>) and 500 (<code>HTTP_INTERNAL_SERVER_ERROR</code>) error codes.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">respondToStreamError</span><span class="token punctuation">(</span><span class="token parameter">err<span class="token punctuation">,</span> stream</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>err<span class="token punctuation">.</span>code <span class="token operator">===</span> <span class="token string">'ENOENT'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      stream<span class="token punctuation">.</span><span class="token function">respond</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token string-property property">":status"</span><span class="token operator">:</span> <span class="token constant">HTTP_STATUS_NOT_FOUND</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      stream<span class="token punctuation">.</span><span class="token function">respond</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token string-property property">":status"</span><span class="token operator">:</span> <span class="token constant">HTTP_STATUS_INTERNAL_SERVER_ERROR</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  stream<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The stream method is where we make all the changes.  We first set up variables to hold the following information about the request</p>
+<ul>
+<li>Request Path</li>
+<li>Request Method</li>
+<li>The full path to the requested item</li>
+<li>The mime type of the objject we’re responding with</li>
+</ul>
+<p>We then use <code>respondWithFile</code> to return the file with the appropriate mime type and use <code>respondToStreamError</code> to provide an error if appropriate.</p>
+<pre class="language-javascript"><code class="language-javascript">server<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'stream'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">stream<span class="token punctuation">,</span> headers</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> reqPath <span class="token operator">=</span> headers<span class="token punctuation">[</span><span class="token constant">HTTP2_HEADER_PATH</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> reqMethod <span class="token operator">=</span> headers<span class="token punctuation">[</span><span class="token constant">HTTP2_HEADER_METHOD</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> fullPath <span class="token operator">=</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>serverRoot<span class="token punctuation">,</span> reqPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> responseMimeType <span class="token operator">=</span> mime<span class="token punctuation">.</span><span class="token function">lookup</span><span class="token punctuation">(</span>fullPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  stream<span class="token punctuation">.</span><span class="token function">respondWithFile</span><span class="token punctuation">(</span>fullPath<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">'content-type'</span><span class="token operator">:</span> responseMimeType
+  <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token function-variable function">onError</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token function">respondToStreamError</span><span class="token punctuation">(</span>err<span class="token punctuation">,</span> stream<span class="token punctuation">)</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>As always we listen in the specified port.</p>
+<pre class="language-javascript"><code class="language-javascript">server<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">7350</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="pushing-resources%3A-push" tabindex="-1">Pushing Resources:  Push</h2>
+<p>One of the best new features, and one that is very hard to use correctly, is server push. The idea is that, if we know that the current page or another page on the site will use a resource, we can have the server push the resource to the browser before it requests it.</p>
+<p>The configuration and <code>respondToStreamError</code> are the same as the static file server.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> http2 <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'http2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> mime <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'mime-types'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  <span class="token constant">HTTP2_HEADER_PATH</span><span class="token punctuation">,</span>
+  <span class="token constant">HTTP2_HEADER_METHOD</span><span class="token punctuation">,</span>
+  <span class="token constant">HTTP_STATUS_NOT_FOUND</span><span class="token punctuation">,</span>
+  <span class="token constant">HTTP_STATUS_INTERNAL_SERVER_ERROR</span>
+<span class="token punctuation">}</span> <span class="token operator">=</span> http2<span class="token punctuation">.</span>constants<span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">key</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./key.pem'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">cert</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./cert.pem'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> server <span class="token operator">=</span> http2<span class="token punctuation">.</span><span class="token function">createSecureServer</span><span class="token punctuation">(</span>options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> serverRoot <span class="token operator">=</span> <span class="token string">"./public"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">respondToStreamError</span><span class="token punctuation">(</span><span class="token parameter">err<span class="token punctuation">,</span> stream</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>err<span class="token punctuation">.</span>code <span class="token operator">===</span> <span class="token string">'ENOENT'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      stream<span class="token punctuation">.</span><span class="token function">respond</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token string-property property">":status"</span><span class="token operator">:</span> <span class="token constant">HTTP_STATUS_NOT_FOUND</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      stream<span class="token punctuation">.</span><span class="token function">respond</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token string-property property">":status"</span><span class="token operator">:</span> <span class="token constant">HTTP_STATUS_INTERNAL_SERVER_ERROR</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  stream<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+server<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'stream'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">stream<span class="token punctuation">,</span> headers</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> reqPath <span class="token operator">=</span> headers<span class="token punctuation">[</span><span class="token constant">HTTP2_HEADER_PATH</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> reqMethod <span class="token operator">=</span> headers<span class="token punctuation">[</span><span class="token constant">HTTP2_HEADER_METHOD</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> fullPath <span class="token operator">=</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>serverRoot<span class="token punctuation">,</span> reqPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> responseMimeType <span class="token operator">=</span> mime<span class="token punctuation">.</span><span class="token function">lookup</span><span class="token punctuation">(</span>fullPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>It’s inside the stream event that we make our changes. First, if the file ends with <code>.html</code> we respond with the file matching the name and assign the correct value to the <code>content-type</code> header.  If there’s an error we respond with <code>respondToStreamError</code>.</p>
+<p>We could use the same system to generate responses for other content types that we know we’ll serve on our pages.</p>
+<pre class="language-javascript"><code class="language-javascript">  <span class="token keyword">if</span> <span class="token punctuation">(</span>fullPath<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span><span class="token string">".html"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'html'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token comment">// handle HTML file</span>
+      stream<span class="token punctuation">.</span><span class="token function">respondWithFile</span><span class="token punctuation">(</span>fullPath<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+        <span class="token string-property property">"content-type"</span><span class="token operator">:</span> <span class="token string">"text/html"</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+        <span class="token function-variable function">onError</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+          <span class="token function">respondToStreamError</span><span class="token punctuation">(</span>err<span class="token punctuation">,</span> stream<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We use <code>pushStream</code> to initate a push event. We know that we want to push <code>font.woff</code> and we know the id of the parent stream. All that is lleft is to add the resource to the push stream send it to the client.</p>
+<p>As usual, if we get an error we use <code>respondToStreamError</code> to provide a response.</p>
+<pre class="language-javascript"><code class="language-javascript">      stream<span class="token punctuation">.</span><span class="token function">pushStream</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token string-property property">":path"</span><span class="token operator">:</span> <span class="token string">"/font.woff"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">parent</span><span class="token operator">:</span> stream<span class="token punctuation">.</span>id <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">pushStream</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'pushing'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        pushStream<span class="token punctuation">.</span><span class="token function">respondWithFile</span><span class="token punctuation">(</span>path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>serverRoot<span class="token punctuation">,</span> <span class="token string">"/font.woff"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+          <span class="token string-property property">'content-type'</span><span class="token operator">:</span> <span class="token string">"text/css"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+            <span class="token function-variable function">onError</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+              <span class="token function">respondToStreamError</span><span class="token punctuation">(</span>err<span class="token punctuation">,</span> pushStream<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>If it’s not an HTML file then we just serve it normally, using <code>respondWithFile</code> to return the resource and using <code>responseMimeType</code> as the value for the <code>content-type</code> header.</p>
+<pre class="language-javascript"><code class="language-javascript">  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token comment">// handle static file</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>fullPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    stream<span class="token punctuation">.</span><span class="token function">respondWithFile</span><span class="token punctuation">(</span>fullPath<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token string-property property">'content-type'</span><span class="token operator">:</span> responseMimeType
+    <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+      <span class="token function-variable function">onError</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token function">respondToStreamError</span><span class="token punctuation">(</span>err<span class="token punctuation">,</span> stream<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The last step is to hear for requests on the specified port.</p>
+<pre class="language-javascript"><code class="language-javascript">server<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">7350</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="express" tabindex="-1">Express</h2>
+<p>Express has plans to support the native Node.js  implementation on version 5.0, which is currently in alpha release and without support for . If you’re interested there is a <a href="https://github.com/expressjs/express/pull/2237">tracking issue</a> for Express 5.0 in Github.</p>
+<h2 id="if-you-can%E2%80%99t-wait" tabindex="-1">If you can’t wait</h2>
+<p>If you really think you must implement HTTP/2 in your production application right now there are implementations of HTTP/2 and SPDY (the framework that HTTP/2 is based on) available.</p>
+<p>I’ve played with the <a href="https://github.com/spdy-http2/node-spdy">node-spdy</a> module. It provides a more mature implementation of HTTP/2 in Node and also supports the Google propietary SPDY server extensions that were the basis for HTTP/2.</p>
+<p>After installing the <code>spdy</code> module (<code>npm i spdy</code>) my starting point (taken from the module’s <a href="https://github.com/spdy-http2/node-spdy/blob/master/README.md">README</a>) looks like this</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> spdy <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'spdy'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">key</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./key.pem'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">cert</span><span class="token operator">:</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./cert.pem'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+  <span class="token literal-property property">spdy</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">protocols</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'h2'</span><span class="token punctuation">,</span> <span class="token string">'spdy/3.1'</span><span class="token punctuation">,</span> <span class="token string">'http/1.1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">plain</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    <span class="token string-property property">'x-forwarded-for'</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+
+    <span class="token literal-property property">connection</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">windowSize</span><span class="token operator">:</span> <span class="token number">1024</span> <span class="token operator">*</span> <span class="token number">1024</span><span class="token punctuation">,</span> <span class="token comment">// Server's window size</span>
+      <span class="token literal-property property">autoSpdy31</span><span class="token operator">:</span> <span class="token boolean">false</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> server <span class="token operator">=</span> spdy<span class="token punctuation">.</span><span class="token function">createServer</span><span class="token punctuation">(</span>options<span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  res<span class="token punctuation">.</span><span class="token function">writeHead</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  res<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token string">'hello world!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+server<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="links-and-resources" tabindex="-1">Links and Resources</h2>
+<ul>
+<li>HTTP/2 Specs
+<ul>
+<li>Hypertext Transfer Protocol version 2 - <a href="https://httpwg.github.io/specs/rfc7540.html">RFC7540</a></li>
+<li>HPACK - Header Compression for HTTP/2 - <a href="https://httpwg.github.io/specs/rfc7541.html">RFC7541</a></li>
+</ul>
+</li>
+<li><a href="https://http2.github.io/faq/">HTTP/2 FAQ</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance//">Introduction to HTTP/2</a></li>
+<li><a href="https://docs.google.com/document/d/1K0NykTXBbbbTlv60t5MyJvXjqKGsCVNYHyLEXIxYMv0/edit">Rules of Thumb for HTTP/2 Push</a></li>
+<li><a href="https://nodejs.org/api/http2.html">Node.js HTTP/2 documentation</a></li>
+<li><a href="https://github.com/spdy-http2/node-spdy">node-spdy module</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

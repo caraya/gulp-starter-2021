@@ -1,0 +1,76 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="adding-information-based-on-the-type-of-resource" tabindex="-1">Adding information based on the type of resource</h1>
+<p>For a long time I’ve seen icons attached to links to help users figure out what type of links they are.</p>
+<p>This was particularly important in the days of plugins because users haad to have the right plugins to view different types of content.</p>
+<p>Taking the following HTML fragment,</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stats<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Stats <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span>
+    <span class="token attr-name">data-icon</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token entity" title="&#x21dd;">&amp;#x21dd;</span><span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We can use the following css to add an icon after the string <code>Stats</code>:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">[data-icon]:after</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> icons<span class="token punctuation">;</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token function">attr</span><span class="token punctuation">(</span>data-icon<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">speak</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>For modern browsers we can use atttribute selectors to change add the icon as a background image and then move it to where we need to. This works particularly well with SVG images</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">a[href$=".pdf"]</span> <span class="token punctuation">{</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'icons/pdf.png'</span><span class="token punctuation">)</span></span>
+    0 50% no-repeat<span class="token punctuation">;</span>
+  <span class="token property">padding-left</span><span class="token punctuation">:</span> 20px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We can also use other <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors">attribute selectors</a> to tailor the way we display icons for links and what icon we want to display for each link.</p>
+<p>We can use the <code>[attribute^=value]</code> selector to add a link to all external resources to differentiate them from internal links that jump to other parts of the same document or other documents on the same site.</p>
+<p>Note that, in this case, we don’t care if the link is <code>http</code> or <code>https</code>; They both start with http.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">a[href^=http]</span> <span class="token punctuation">{</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'icons/external.svg'</span><span class="token punctuation">)</span></span>
+    0 50% no-repeat<span class="token punctuation">;</span>
+  <span class="token property">padding-left</span><span class="token punctuation">:</span> 20px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We can also use the <code>[attribute*=value]</code> to match at least a single ocurrence of value. In the examples below we look for link attributes that match Twitter or Facebook and add the corresponding link.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">a[href*="twitter.com"]</span> <span class="token punctuation">{</span>
+  <span class="token property">background</span><span class="token punctuation">:</span><span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>icons/twitter-icon.svg<span class="token punctuation">)</span></span>
+    0 50% no-repeat<span class="token punctuation">;</span>
+  <span class="token property">padding-left</span><span class="token punctuation">:</span>19px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">a[href*="facebook.com"]</span> <span class="token punctuation">{</span>
+  <span class="token property">background</span><span class="token punctuation">:</span><span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>icons/11facebook-icon.svg<span class="token punctuation">)</span></span>
+    0 50% center<span class="token punctuation">;</span>
+  <span class="token property">padding-left</span><span class="token punctuation">:</span>19px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

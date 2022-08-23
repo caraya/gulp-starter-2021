@@ -1,0 +1,100 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="file-handling-access-api" tabindex="-1">File Handling Access API</h1>
+<p>In <a href="https://web.dev/file-system-access/">The File System Access API: simplifying access to local files</a>, the authorsdescribe how to use the API to create file management functionality for web applications</p>
+<p>The idea is that we’ll be able to open a file from, display it in the browser and then, if desired, save it to a new location in our local file system.</p>
+<p>To open a file we’ll use the following code.</p>
+<p>We define the following constants and variables:</p>
+<ul>
+<li>Capture the button to open a file</li>
+<li>Capture the button to save a file</li>
+<li>Capture the text area where we’ll insert the text</li>
+<li>Capture the content that we’ll save</li>
+<li>Sets up an empty variable for the file handle we want to work with</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> openButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'.openButton'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> saveButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'.saveButton'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> display <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'.content-area'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> dataToSave <span class="token operator">=</span> display<span class="token punctuation">.</span>innerText<span class="token punctuation">;</span>
+<span class="token keyword">let</span> fileHandle<span class="token punctuation">;</span>
+</code></pre>
+<p>The <code>openFile</code> function is called when the <code>open file</code> button is clicked. It opens the file, reads the content and puts the content in the text area.</p>
+<p>The function runs the following steps:</p>
+<ol>
+<li>We use feature detection to make sure the feature is supported, if not then we bail</li>
+<li>We create a new file handle and show the file picker dialogue</li>
+<li>Open the file</li>
+<li>Read and convert the content of the file to text</li>
+<li>Insert the content of the file into the display text area</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">openFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'showOpenFilePicker'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 1</span>
+    <span class="token punctuation">[</span>fileHandle<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">await</span> window<span class="token punctuation">.</span><span class="token function">showOpenFilePicker</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
+    <span class="token keyword">const</span> file <span class="token operator">=</span> <span class="token keyword">await</span> fileHandle<span class="token punctuation">.</span><span class="token function">getFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+    <span class="token keyword">const</span> contents <span class="token operator">=</span> <span class="token keyword">await</span> file<span class="token punctuation">.</span><span class="token function">text</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+    display<span class="token punctuation">.</span>innerText <span class="token operator">=</span> contents<span class="token punctuation">;</span> <span class="token comment">// 5</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'filehandle API not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="saving-a-file" tabindex="-1">Saving a file</h2>
+<p>Saving a file is a little more complicated. We need to create a new file handle, capture the content to save, write the content to the file and then close the file and save it.</p>
+<p>The steps are as follows:</p>
+<ol>
+<li>Use a feature query to detect if showSaveFilePicker is supported. If it’s not then bail</li>
+<li>Show the save file picker</li>
+<li>Create a <code>FileSystemWritableFileStream</code> to write to</li>
+<li>Write the file</li>
+<li>close the file and write the contents to disk.</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">saveFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'showSaveFilePicker'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 1</span>
+    <span class="token keyword">const</span> newHandle <span class="token operator">=</span> <span class="token keyword">await</span> window<span class="token punctuation">.</span><span class="token function">showSaveFilePicker</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
+      <span class="token keyword">const</span> writableStream <span class="token operator">=</span> <span class="token keyword">await</span> newHandle<span class="token punctuation">.</span><span class="token function">createWritable</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+        <span class="token keyword">await</span> writableStream<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span>dataToSave<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+      <span class="token keyword">await</span> writableStream<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 5</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Finally we attack the functions to the click event of the corresponding button.</p>
+<pre class="language-js"><code class="language-js">openButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> openFile<span class="token punctuation">)</span><span class="token punctuation">;</span>
+saveButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> saveFile<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="links-and-resources" tabindex="-1">Links and resources</h2>
+<ul>
+<li><a href="https://github.com/WICG/file-system-access/blob/main/EXPLAINER.md">Public explainer</a></li>
+<li><a href="https://wicg.github.io/file-system-access/">File System Access</a> and <a href="https://w3c.github.io/FileAPI/">File</a> specifications at WICG</li>
+<li><a href="https://www.chromestatus.com/feature/6284708426022912">ChromeStatus.com entry</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API">File System Access API</a> — MDN</li>
+<li><a href="https://docs.google.com/document/d/1NJFd-EWdUlQ7wVzjqcgXewqC5nzv_qII4OvlDtK6SE8/edit">File System Access API</a> — Chromium Security Model</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

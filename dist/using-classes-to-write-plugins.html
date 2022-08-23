@@ -1,0 +1,49 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="using-classes-to-write-plugins" tabindex="-1">Using classes to write plugins</h1>
+<p>A diffrent solution to using prefixes to identify your code is to enclose the plugin functions in a class and call the class methods statically.</p>
+<p>Consider this example that contains a static <code>send</code> method of a class that sends email to specific people when publishing a post:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">emailer</span> <span class="token punctuation">{</span>
+  <span class="token keyword">static</span> <span class="token keyword">function</span> <span class="token function-definition function">send</span><span class="token punctuation">(</span><span class="token variable">$post_ID</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+    <span class="token variable">$friends</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'bob@example.org,susie@example.org'</span><span class="token punctuation">;</span>
+    <span class="token function">mail</span><span class="token punctuation">(</span><span class="token variable">$friends</span><span class="token punctuation">,</span><span class="token string double-quoted-string">"sally's blog updated"</span><span class="token punctuation">,</span><span class="token string single-quoted-string">'Just updated my blog: http://blog.example.com'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token variable">$post_ID</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_action</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'publish_post'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'emailer'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'send'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>The class has a method send that implements the plugin functionality.</p>
+<p>The <code>add_action()</code> function outside of the class adds the action to WordPress that tells it to call the send method when a post is published. The array used in the second parameter tells the plugin system to call the static method of the class <code>emailer</code> named <code>send</code>.</p>
+<p>The function send is protected from the global namespace by the class declaration. It is not possible to call send() directly, and so any other function named send will not collide with this one. If you did want to call send(), you would need to use a scope resolution operator, like this: emailer::send()</p>
+<p>Gutenberg provides blocks</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="pointer-events" tabindex="-1">Pointer Events</h1>
+<p>on May, 2019 I wrote a post about <a href="https://publishing-project.rivendellweb.net/pointer-events/">Pointer Events</a> as an introduction to Pointer Events and how they could be polyfilled for browsers (Safari) that didn’t support them natively.</p>
+<p>Almost a year later things have progressed. Safari supports the feature so there’s no need for a polyfill and it’s now practical to use in production.</p>
+<p>As a refresher, these are the events, the onEvent handlers and a brief explanation of when they trigger, taken from <a href="https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events">MDN</a></p>
+<table>
+ <thead>
+  <tr>
+   <th scope="col">Event</th>
+   <th scope="col">On Event Handler</th>
+   <th scope="col">Description</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointerover">pointerover</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointerover"><code>onpointerover</code></a></td>
+   <td>Fired when a pointer is moved into an element's hit test boundaries.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointerenter">pointerenter</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointerenter"><code>onpointerenter</code></a></td>
+   <td>Fired when a pointer is moved into the hit test boundaries of an element or one of its descendants, including as a result of a pointerdown event from a device that does not support hover (see <code>pointerdown</code>).</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointerdown">pointerdown</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointerdown"><code>onpointerdown</code></a></td>
+   <td>Fired when a pointer becomes <em>active buttons state</em>.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointermove">pointermove</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointermove"><code>onpointermove</code></a></td>
+   <td>Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointerup">pointerup</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointerup"><code>onpointerup</code></a></td>
+   <td>Fired when a pointer is no longer <em>active buttons state</em>.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointercancel">pointercancel</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointercancel"><code>onpointercancel</code></a></td>
+   <td>A browser fires this event if it concludes the pointer will no longer be able to generate events (for example the related device is deactived).</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointerout">pointerout</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointerout"><code>onpointerout</code></a></td>
+   <td>Fired for several reasons including: pointer is moved out of the hit test boundaries of an element; firing the pointerup event for a device that does not support hover (see pointerup); after firing the <code>pointercancel</code> event (see <code>pointercancel</code>); when a pen stylus leaves the hover range detectable by the digitizer.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/pointerleave">pointerleave</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onpointerleave"><code>onpointerleave</code></a></td>
+   <td>Fired when a pointer is moved out of the hit test boundaries of an element. For pen devices, this event is fired when the stylus leaves the hover range detectable by the digitizer.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/gotpointercapture">gotpointercapture</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/ongotpointercapture"><code>ongotpointercapture</code></a></td>
+   <td>Fired when an element receives pointer capture.</td>
+  </tr>
+  <tr>
+   <td><code><a href="https://developer.mozilla.org//en-US/docs/Web/Events/lostpointercapture">lostpointercapture</a></code></td>
+   <td><a href="https://developer.mozilla.org//en-US/docs/Web/API/GlobalEventHandlers/onlostpointercapture"><code>onlostpointercapture</code></a></td>
+   <td>Fired after pointer capture is released for a pointer.</td>
+  </tr>
+ </tbody>
+</table>
+<p>The idea is to recreate two basic event handlers so they’ll work across devices: click and hover.</p>
+<h2 id="first%2C-naive-implementation" tabindex="-1">First, naive implementation</h2>
+<p>Using the following HTML code.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Click Me!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We can use the following Javascript code to listen for <code>pointerdown</code> and <code>pointerover</code> using code like the one below.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>PointerEvent<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> box <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">".box"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  box<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerdown"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Pointer click equivalent"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  box<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerover"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Pointer moved in"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We wrap our code on a basic feature detection block to make sure we only use the feature in browsers that support it.</p>
+<p>Next, we capture a reference to the HTML object that we want to work with and add the two event listeners.</p>
+<p>Most of the time this will be OK as the behavior we want is similar across pointing devices</p>
+<h2 id="take-two" tabindex="-1">Take two</h2>
+<p>But there are times when we may want to do things differently based on what type of device is accessing the element and how it’s doing it.</p>
+<p>For example, it’s different to click on a button with your finger than with a pen.</p>
+<p>The <code>pointerover</code> event remains the same as that one doesn’t need to know the type of pointing device that we used.</p>
+<p>We change <code>pointerdown</code> to a switch statement where we test for different types of pointer devices and take appropriate action based on the type of device.</p>
+<p>We use a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement to match the type of pointer in use: mouse, pen, or touch.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> box <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">".box"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>PointerEvent<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  box<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerover"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Pointer moved in"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  box<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerdown"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">switch</span><span class="token punctuation">(</span>evt<span class="token punctuation">.</span>pointerType<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">case</span> <span class="token string">"mouse"</span><span class="token operator">:</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'mouse input detected'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">case</span> <span class="token string">"pen"</span><span class="token operator">:</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'pen/stylus input detected'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">case</span> <span class="token string">"touch"</span><span class="token operator">:</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'touch input detected'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">default</span><span class="token operator">:</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'pointerType is empty or could not be detected'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="refining-the-code" tabindex="-1">Refining the code</h2>
+<p>The last portion of this post will cover some refinements that we can do to the script to improve performance.</p>
+<p>First we create external functions for each of the events that we want to handle.</p>
+<pre class="language-js"><code class="language-js">
+<span class="token keyword">function</span> <span class="token function">handlePointerOver</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Pointer moved in"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">handlePenInput</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"pen/stylus input detected"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">handleTouchInput</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"touch input detected"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">handleMouseInput</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"mouse input detected"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Then we reference the functions from inside the event handlers. This way we make the code more modular.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>PointerEvent<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  box<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerover"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token function">handlePointerEvent</span><span class="token punctuation">(</span>evt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  box<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerdown"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Pointer is down"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">switch</span> <span class="token punctuation">(</span>evt<span class="token punctuation">.</span>pointerType<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">case</span> <span class="token string">"mouse"</span><span class="token operator">:</span>
+        <span class="token function">handleMouseInput</span><span class="token punctuation">(</span>evt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">case</span> <span class="token string">"pen"</span><span class="token operator">:</span>
+        <span class="token function">handlePenInput</span><span class="token punctuation">(</span>evt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">case</span> <span class="token string">"touch"</span><span class="token operator">:</span>
+        <span class="token function">handleTouchInput</span><span class="token punctuation">(</span>evt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">default</span><span class="token operator">:</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"pointerType could not be detected"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We can further refine the touch event handler by using multi-touch interactions as explained in MDN’s <a href="https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events/Multi-touch_interaction">Multi-touch interaction</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

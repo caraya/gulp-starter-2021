@@ -1,0 +1,117 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="github-actions-for-process-automation" tabindex="-1">Github Actions for Process Automation</h1>
+<p>A lot of times we need to build a project every time we make changes. I picked my Gulp publishing process to test if Github actions work with this.</p>
+<p>The idea is that every time we push a commit or we close a Pull Request, Github Actions will run the Gulp default build process from the content in the <code>main</code> branch.</p>
+<p>See the <a href="https://docs.github.com/en/actions">Github Actions Documentation</a> for more information about the tool, how it works and what you can do with it.</p>
+<h2 id="the-first-try" tabindex="-1">The First Try</h2>
+<p>In the first pass, we want to validate that the project is set up correctly and that can run the build process inside the action.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">name</span><span class="token punctuation">:</span> NodeJS with Gulp
+
+<span class="token key atrule">on</span><span class="token punctuation">:</span>
+  <span class="token key atrule">push</span><span class="token punctuation">:</span>
+    <span class="token key atrule">branches</span><span class="token punctuation">:</span> <span class="token punctuation">[</span> main <span class="token punctuation">]</span>
+  <span class="token key atrule">pull_request</span><span class="token punctuation">:</span>
+    <span class="token key atrule">branches</span><span class="token punctuation">:</span> <span class="token punctuation">[</span> main <span class="token punctuation">]</span>
+
+<span class="token key atrule">jobs</span><span class="token punctuation">:</span>
+  <span class="token key atrule">build</span><span class="token punctuation">:</span>
+    <span class="token key atrule">runs-on</span><span class="token punctuation">:</span> ubuntu<span class="token punctuation">-</span>latest
+
+    <span class="token key atrule">steps</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> <span class="token key atrule">uses</span><span class="token punctuation">:</span> actions/checkout@v2
+
+    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Use Node.js 14.x
+      <span class="token key atrule">uses</span><span class="token punctuation">:</span> actions/setup<span class="token punctuation">-</span>node@v1
+      <span class="token key atrule">with</span><span class="token punctuation">:</span> 
+        <span class="token key atrule">node-version</span><span class="token punctuation">:</span> 14.x 
+
+    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Build
+      <span class="token key atrule">run</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string">
+        npm install
+        gulp</span>
+</code></pre>
+<p>The idea remains the same. We want to run the build process for every commit and every pull request made on the <code>main</code> branch.</p>
+<p>We run the build process usint the <code>ubuntu-latest</code> runner available from Github.</p>
+<p>We use two actions to run the process:</p>
+<ul>
+<li><a href="https://github.com/actions/checkout">Checkout</a> will checkout the code from the repository’s <code>main</code> branch</li>
+<li><a href="https://github.com/actions/setup-node">Setup Node</a> will setup one or more versions of Node.js to run the actions with.</li>
+</ul>
+<p>We then create a run action to install the packages and run the default Gulp build task.</p>
+<h2 id="publish-the-results" tabindex="-1">Publish the results</h2>
+<p>Right now we can build the files but they stay inside the action and we can’t see the result, even though we tell Gulp to put the files in the <code>dist</code> directory.</p>
+<p>To do this we add two  more actions, one to commit the files and a second one to push the results to the <code>main</code> branch.</p>
+<p>We first set the user’s name and email to use in the commit using <code>git config --local</code>.</p>
+<p>We add all the files to the commit.</p>
+<p>If the result of running <code>git status --porcelain</code> is empty (has a length of 0), then we set the <a href="https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions">workflow command</a> to set the <code>push</code> flag to false. There is nothing for us to commit.</p>
+<p>Otherwise we commit the changes and set the <code>push</code> flag to true.</p>
+<p>The second action checks if the <code>push</code> flag is set to true. If it is it uses the <a href="https://github.com/ad-m/github-push-action">GitHub Action for GitHub Push</a> action to push the changes to the <code>main</code> branch using Github Tokens generated as part of the Actions workflow.</p>
+<pre class="language-yaml"><code class="language-yaml">    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Commit files
+      <span class="token key atrule">id</span><span class="token punctuation">:</span> commit
+      <span class="token key atrule">run</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string">
+        git config --local user.email "action@github.com"
+        git config --local user.name "github-actions"
+        git add --all
+        if [-z "$(git status --porcelain)"]; then
+           echo "::set-output name=push::false"
+        else
+           git commit -m "Add changes" -a
+           echo "::set-output name=push::true"
+        fi</span>
+      <span class="token key atrule">shell</span><span class="token punctuation">:</span> bash
+
+    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Push changes
+      <span class="token key atrule">if</span><span class="token punctuation">:</span> steps.commit.outputs.push == 'true'
+      <span class="token key atrule">uses</span><span class="token punctuation">:</span> ad<span class="token punctuation">-</span>m/github<span class="token punctuation">-</span>push<span class="token punctuation">-</span>action@master
+      <span class="token key atrule">with</span><span class="token punctuation">:</span>
+         <span class="token key atrule">github_token</span><span class="token punctuation">:</span> $<span class="token punctuation">{</span><span class="token punctuation">{</span> secrets.GITHUB_TOKEN <span class="token punctuation">}</span><span class="token punctuation">}</span>
+</code></pre>
+<h2 id="using-github-pages-to-show-the-results" tabindex="-1">Using Github Pages to show the results</h2>
+<p>Now we have the code generated by the Actions in the repository’s main branch the final question is how to show the results to the users.</p>
+<p>We could change the build process to point to the <code>docs</code> directory instead of <code>dist</code>. Once we do that then Github Pages, as configured in the repository settings should take care of the rest.</p>
+<p>Another option is to use the <a href="https://github.com/JamesIves/github-pages-deploy-action">GitHub Pages Deploy Action</a> to deploy the <code>dist</code> folder to Github Pages.</p>
+<p>Rather than deploy it to the <code>docs</code> folder in <code>main</code>. I’ve chosen to deploy it to a <code>gh-pages</code> branch in the repository. My first naive attempt had it push everything in the <code>dist</code> directory to main, without realizing that it would wipe out the entire repository.</p>
+<p>I was able to fix it by force pushing the content back into main. Yes, there are many posts telling you that what I did is not safe and I shouldn’t do it; but I’m the only one working on the project and I know I’m not losing any work, so it’s OK in this case, but I wouldn’t do it in a team setting.</p>
+<pre class="language-yaml"><code class="language-yaml">    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Deploy to Github Pages
+      <span class="token key atrule">uses</span><span class="token punctuation">:</span> JamesIves/github<span class="token punctuation">-</span>pages<span class="token punctuation">-</span>deploy<span class="token punctuation">-</span>action@4.1.5
+      <span class="token key atrule">with</span><span class="token punctuation">:</span>
+        <span class="token key atrule">branch</span><span class="token punctuation">:</span> gh<span class="token punctuation">-</span>pages
+        <span class="token key atrule">folder</span><span class="token punctuation">:</span> dist
+</code></pre>
+<p>The action is simple. It tells the action what packages to use via the <code>uses</code> attribute and then, inside the <code>with</code> attribute it tells it what branch to deploy to (<code>branch</code>) and what directory to deploy from (<code>folder</code>).</p>
+<h2 id="conclusion" tabindex="-1">Conclusion</h2>
+<p>As far as actions go, this project is a very simple one. I like that it requires no changes to the existing code in the repository, if we want to update the way we build the HTML documents or if we want to add more features, all we have to do is add them to the gulp build file and add any third-party installation to the actios YAML file.</p>
+<p>That said this particular project has some warnings attached to it.</p>
+<p>The first one is that it might timeout when compressing images with Squoosh. When first developing the Gulp build process I thought it would only be used on my laptop where I was OK with taking several minutes to complete. Using Github actions I’m not certain if it’s a good idea and whether it will timeout on the assigned runner. So far it hasn’t but the more images we add, the longer it’ll take.</p>
+<p>The actions are run in a Ubuntu machine. Trying to run them on a macOS runner causes errors. So far there is no mac-specific thing in the build process. That may change.</p>
+<p>If none of these issues affect you, actions are a great way to automate your workflow.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

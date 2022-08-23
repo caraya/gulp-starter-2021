@@ -1,0 +1,292 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="generic-blog-(web)-components" tabindex="-1">Generic Blog (Web) Components</h1>
+<p>A while back I wrote a set of Vue 2 components for a WordPress blog. It wasn’t a complete project, was missing functionality that I couldn’t figure out how to implement and I was afraid it would lock me in to a framework (although I would rather get locked into Vue than any of the other frameworks I’ve seen out there).</p>
+<p>Rather than work with a specific framework, I decided to revisit this as custom elements/web components.</p>
+<p>according to <a href="https://custom-elements-everywhere.com/">Custom Elements Everywhere</a> most frameworks, at least those that were tested by the site, have pretty good support for custom elements. Even React works with custom elements as long as you make some modifications. There is also an experimental React branch that fully supports custom elements but there’s no guarantee that the branch will be merged in to the main React codebase.</p>
+<h2 id="so-what-are-web-components%3F" tabindex="-1">So what are web components?</h2>
+<p>Web components are a set of technologies that enable developers to create custom HTML elements that can be used on web pages.</p>
+<p>The component technologies for web components are:</p>
+<ul>
+<li><strong>Custom elements</strong>: A set of JavaScript APIs that allow you to define custom elements and their behavior, which can then be used as desired in your user interface</li>
+<li><strong>Shadow DOM</strong>: A set of JavaScript APIs for attaching an encapsulated “shadow” DOM tree to an element — which is rendered separately from the main document DOM — and controlling associated functionality. In this way, you can keep an element’s features private, so they can be scripted and styled without the fear of collision with other parts of the document.</li>
+<li><strong>HTML templates</strong>: The &lt;template&gt; and &lt;slot&gt; elements enable you to write markup templates that are not displayed in the rendered page. These can then be reused multiple times as the basis of a custom element’s structure.</li>
+</ul>
+<p>The basic approach for implementing a web component generally looks something like this:</p>
+<ul>
+<li>Using the ECMAScript 2015 class syntax create a class in which you specify your web component functionality</li>
+<li>Register your new custom element using the <code>CustomElementRegistry.define()</code> method, passing it the element name to be defined, the class or function in which its functionality is specified</li>
+<li>Attach a shadow DOM to the custom element using Element.attachShadow() method
+<ul>
+<li>Add child elements, event listeners, etc., to the shadow DOM using regular DOM methods.</li>
+</ul>
+</li>
+<li>Define an HTML template using &lt;template&gt; and &lt;slot&gt;
+<ul>
+<li>Again use regular DOM methods to clone the template and attach it to your shadow DOM.</li>
+</ul>
+</li>
+<li>Use your custom element wherever you like on your page, just like you would any regular HTML element.</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token comment">// Create a class for the element</span>
+<span class="token keyword">class</span> <span class="token class-name">PopUpInfo</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Create a shadow root</span>
+    <span class="token keyword">const</span> shadow <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">'open'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Create structure elements</span>
+    <span class="token keyword">const</span> wrapper <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'span'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    wrapper<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'class'</span><span class="token punctuation">,</span> <span class="token string">'wrapper'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">const</span> icon <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'span'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    icon<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'class'</span><span class="token punctuation">,</span> <span class="token string">'icon'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    icon<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'tabindex'</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">const</span> info <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'span'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    info<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'class'</span><span class="token punctuation">,</span> <span class="token string">'info'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">const</span> text <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'data-text'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    info<span class="token punctuation">.</span>textContent <span class="token operator">=</span> text<span class="token punctuation">;</span>
+
+    <span class="token keyword">let</span> imgUrl<span class="token punctuation">;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">hasAttribute</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      imgUrl <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      imgUrl <span class="token operator">=</span> <span class="token string">'img/default.png'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">const</span> img <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    img<span class="token punctuation">.</span>src <span class="token operator">=</span> imgUrl<span class="token punctuation">;</span>
+    icon<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">const</span> style <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'style'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    style<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">
+      .wrapper {
+        position: relative;
+      }
+      .info {
+        font-size: 0.8rem;
+        width: 200px;
+        display: inline-block;
+        border: 1px solid black;
+        padding: 10px;
+        background: white;
+        border-radius: 10px;
+        opacity: 0;
+        transition: 0.6s all;
+        position: absolute;
+        bottom: 20px;
+        left: 10px;
+        z-index: 3;
+      }
+      img {
+        width: 1.2rem;
+      }
+      .icon:hover + .info, .icon:focus + .info {
+        opacity: 1;
+      }
+    </span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+
+    shadow<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>style<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    shadow<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    wrapper<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>icon<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    wrapper<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>info<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'popup-info'</span><span class="token punctuation">,</span> PopUpInfo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="using-the-lit-library" tabindex="-1">Using the Lit library</h2>
+<p><a href="https://lit.dev/">Lit</a> is the spiritual successor to the Polymer library and it makes it easier to work with Web Components.</p>
+<p>Instead of using plain custom elements, we’ll take advantage of Lit features that will make the work easier.</p>
+<p>An example custom element built with Lit:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>LitElement<span class="token punctuation">,</span> html<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'lit'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">class</span> <span class="token class-name">CEElement</span> <span class="token keyword">extends</span> <span class="token class-name">LitElement</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">//implementation</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> html<span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">&lt;span part="textspan">This text will be red&lt;/span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+window<span class="token punctuation">.</span>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'c-e'</span><span class="token punctuation">,</span> CEElement<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="additional-specifications-that-enhance-web-components" tabindex="-1">Additional specifications that enhance web components</h2>
+<p>There are additional specifications that enhance the existing web component applies</p>
+<p><a href="https://web.dev/css-module-scripts/">CSS modules</a> and <a href="https://web.dev/constructable-stylesheets/">Constructable Stylesheets</a> eliminate the need for &lt;style&gt; elements in your custom elements.</p>
+<p>Using CSS modules you can import stylesheets using Javascript and then attach them to your custom elements’ shadow roots.</p>
+<p>The main advantage of this method is that you can do so with any number of custom elements on a page, as well as the root stylesheet for your page.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> sheet <span class="token keyword">from</span> <span class="token string">'./styles.css'</span> 
+  <span class="token keyword">assert</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'css'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token comment">// adds the sheet to the root document</span>
+document<span class="token punctuation">.</span>adoptedStyleSheets <span class="token operator">=</span> <span class="token punctuation">[</span>sheet<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Adds the imported styelsheet </span>
+<span class="token comment">// to a shadowroot</span>
+shadowRoot<span class="token punctuation">.</span>adoptedStyleSheets <span class="token operator">=</span> <span class="token punctuation">[</span>sheet<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Earlier versions of the Web Components specifications had shadow piercing combinators to offer a way for the host document to style content inside custom elements. This was powerful but broke encapsulation and was later removed from the specifications.</p>
+<p>Instead of the piercing combinator we now have <a href="https://drafts.csswg.org/css-shadow-parts/">CSS Shadow Parts</a> as way to signal that we want to apply styles from an external stylesheet to the custom element.</p>
+<p>the <code>c-e</code> element does this by using the <code>part</code> attribute with a name value in the template.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">CEElement</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">//implementation</span>
+  <span class="token punctuation">}</span>
+  <span class="token operator">&lt;</span>template id<span class="token operator">=</span><span class="token string">"c-e-template"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>span part<span class="token operator">=</span><span class="token string">"textspan"</span><span class="token operator">></span>This text will be red<span class="token operator">&lt;</span><span class="token operator">/</span>span<span class="token operator">></span>
+  <span class="token operator">&lt;</span><span class="token operator">/</span>template<span class="token operator">></span>
+<span class="token punctuation">}</span>
+
+window<span class="token punctuation">.</span>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'c-e'</span><span class="token punctuation">,</span> CEElement<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>In the CSS, we use the name of the custom element and the <code>::part</code> pseudo-element to select the part we want to style.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">c-e::part(textspan)</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>For more information, see</p>
+<ul>
+<li><a href="https://drafts.csswg.org/css-cascade-6/#scoped-styles">Scoped Styles</a></li>
+<li><a href="https://www.xanthir.com/talks/2022-06-10/">Keeping Your CSS Small</a></li>
+</ul>
+<h2 id="what-components-to-build%3F" tabindex="-1">What components to build?</h2>
+<p>Here’s a list of the minimal set of components I want to build for this project:</p>
+<ul>
+<li>Show all posts</li>
+<li>Show single posts</li>
+<li>Show all pages</li>
+<li>Show all categories</li>
+<li>Show post matching a category</li>
+<li>Show all tags</li>
+<li>Show posts matching a tags</li>
+<li>Post pagination</li>
+<li>Page pagination</li>
+</ul>
+<p>As an example, I will build a component to show all posts (or at least the latest 10).</p>
+<h2 id="building-an-example-component" tabindex="-1">Building an example component</h2>
+<p>The easiest component to get started is the <code>blog-posts</code> component. It displays a list of the latest 10 posts.</p>
+<p>We first import the components of the Lit library that we want to use:</p>
+<ul>
+<li><code>LitElement</code> and <code>html</code> from the <code>lit</code> package</li>
+<li><code>unsafeHTML</code> from its own package in the <code>lit/directives</code> there</li>
+</ul>
+<p>We then create a class that extends the <code>LitElement</code> class. This means that we can use the features of the base class and expand it with functionality specific to the custom element we’re creating.</p>
+<p>We first define the properties for this component. In this case we have only one: the data that we’ll retrieve from the API as an object.</p>
+<p>We then run our constructor function. We call the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super">super()</a> to call the parent class’s constructor (in this case LitElement’s constructor) and then we run fetchData() using <code>this.fetchData()</code>.</p>
+<p>This has initialized our class with both the properties from the parent class and our properties and methods.</p>
+<p>We could also run <code>this.fetchData()</code> in one of the component lifecycle methods but I want to be absolutely sure that the data is loaded before we render the component.</p>
+<p><code>fetchData()</code> runs a fetch request for the posts endpoint at <code>https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts?embedded=true</code> and sets the <code>data</code> property to the response data.</p>
+<p>Promises are one way to handle asynchronous code. We could also use async/await to achieve the same goal.</p>
+<p>The renderer is where the magic happens.</p>
+<p>IF the data variable <code>this.data</code> is not set, we display a loading message since the fetch promises haven’t fulfilled yet and these is nothing to show.</p>
+<p>Once the data is loaded we can populate the template. We use the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">array.map</a> method to ensure that we have an array to work with and the <code>html</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates">tagged template</a> to render the HTML for each component</p>
+<p>In this instance WordPress has already sanitized the data for use so it’s OK to use the <a href="https://lit.dev/docs/templates/directives/#unsafehtml">unsafeHTML</a> directive to render the content as HTML rather than text. If you can’t ensure that the data is sanitized you should not use the <code>unsafeHTML</code> directive or you’ll open your application to XSS attcks.</p>
+<p>The template also provides part attributes so we can use the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::part">::part</a> pseudo-element to style the content inside the custom element from one master stylesheet outside it.</p>
+<p>The final step is to define the element as a custom element. We use the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry/define">customElements.define</a> to associate the name that we want to use <code>blog-posts</code> witht he function that defines it <code>BlogPosts</code>.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> LitElement<span class="token punctuation">,</span> html <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'lit'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> unsafeHTML <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'lit/directives/unsafe-html.js'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">BlogPosts</span> <span class="token keyword">extends</span> <span class="token class-name">LitElement</span> <span class="token punctuation">{</span>
+  <span class="token keyword">static</span> <span class="token keyword">get</span> <span class="token function">properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">data</span><span class="token operator">:</span> Object<span class="token punctuation">,</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">fetchData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">fetchData</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+  <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token keyword">this</span><span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> html<span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">
+          &lt;h2>Loading...&lt;/h2>
+        </span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> html<span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">
+      </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token keyword">this</span><span class="token punctuation">.</span>data
+        <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">post</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+          html<span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">&lt;article part="article-post">
+            &lt;h2>&lt;a href="</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>post<span class="token punctuation">.</span>link<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">"></span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>post<span class="token punctuation">.</span>title<span class="token punctuation">.</span>rendered<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">&lt;/a>&lt;/h2>
+
+            &lt;div class="post-content" part="article-content">
+              </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token function">unsafeHTML</span><span class="token punctuation">(</span>post<span class="token punctuation">.</span>excerpt<span class="token punctuation">.</span>rendered<span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+            &lt;/div>
+          &lt;/article>
+          </span><span class="token template-punctuation string">`</span></span>
+        <span class="token punctuation">)</span>
+      <span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+    </span><span class="token template-punctuation string">`</span></span>
+  <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span>
+
+customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'blog-posts'</span><span class="token punctuation">,</span> BlogPosts<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We can then use the custom element anywhere we want to by running the following steps:</p>
+<p>Import the script as a module.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/path/to/blog-post.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>and use the tag you defined in the script wherever you want to place the element at</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blog-posts</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blog-posts</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="future-evolution" tabindex="-1">Future Evolution</h2>
+<p>The basic element works and it displays the content as we intended.</p>
+<p>There are a few things that I will save for a future interation of the component.</p>
+<h3 id="change-the-links" tabindex="-1">Change the links</h3>
+<p>Right now the links point to the original server. The first iteration will change the links to individual posts.</p>
+<p>Because the links point to individual pages, we need to figure out how to display the individual posts. Do we link to the JSON content of the individual post or do we create a custom URL?</p>
+<h3 id="customize-the-element" tabindex="-1">Customize the element</h3>
+<p>The element currently uses the default values for the number of pages and the page number where we want to start:</p>
+<ul>
+<li><code>per_page</code>: how many posts per page. The default is 10</li>
+<li><code>page</code>: what page (or group) of posts we want to see. The default is 1</li>
+</ul>
+<h3 id="use-storybook" tabindex="-1">Use Storybook</h3>
+<p>Once we have our component ready, we can look at <a href="https://storybook.js.org/">Storybook</a> as a way to show all the available components to potential users.</p>
+<p>Storybook provides a way to use it with web components.<a href="https://storybook.js.org/docs/web-components/get-started/introduction">Introduction to Storybook for Web Components</a></p>
+<h2 id="code-repository" tabindex="-1">Code Repository</h2>
+<p>The code for this project, both the custom elements and the Storybook data are available on Github at <a href="https://github.com/caraya/blog-components">https://github.com/caraya/blog-components</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

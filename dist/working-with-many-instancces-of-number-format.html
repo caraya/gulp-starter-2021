@@ -1,0 +1,89 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="formating-numbers-with-javascript" tabindex="-1">Formating numbers with Javascript</h1>
+<p>When working with numbers on Javascript I’ve most frequently seen <code>toLocaleString</code> as the solution to format numbers.</p>
+<p>The following example uses US Dollars as the currency and <code>accounting</code> as the currency sign, it will display negative numbers in parenthesis.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> n1 <span class="token operator">=</span> <span class="token number">199874</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> n2 <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">199874.</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>n1<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'en-US'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'currency'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currency</span><span class="token operator">:</span> <span class="token string">'USD'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currencySign</span><span class="token operator">:</span> <span class="token string">'accounting'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>n2<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'en-US'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'currency'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currency</span><span class="token operator">:</span> <span class="token string">'USD'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currencySign</span><span class="token operator">:</span> <span class="token string">'accounting'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Sadly if we work with more than a few numbers it gets cumbersome as we have to add the <code>toLocaleString</code> object to the number with all its children.</p>
+<p>We may be able to shorten it some if we move the options to an object, and then reference the object wherever we need to format numbers.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> n1 <span class="token operator">=</span> <span class="token number">199874</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> n2 <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">199874</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> enProperties <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">"currency"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currency</span><span class="token operator">:</span> <span class="token string">"USD"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currencySign</span><span class="token operator">:</span> <span class="token string">"accounting"</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>n1<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">"en-US"</span><span class="token punctuation">,</span> enProperties<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>n2<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">"en-US"</span><span class="token punctuation">,</span> enProperties<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> usCurrencyFormat <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>NumberFormat</span><span class="token punctuation">(</span><span class="token string">'en-US'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">"currency"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currency</span><span class="token operator">:</span> <span class="token string">"USD"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">currencySign</span><span class="token operator">:</span> <span class="token string">"accounting"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>usCurrencyFormat<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token number">12345.6789</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// $12,345.68</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>usCurrencyFormat<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">12345.67891</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// ($12,345.68)</span>
+</code></pre>
+<p>This is awesome but it has its drawbacks. The <code>Intl</code> API is part of the most recent version of ECMAScript (2020) and, as such, browser support is limited; some aspects of the are not supported in Safari.</p>
+<p>Fortunately there are polyfills to cover this until support improves.</p>
+<p><a href="https://formatjs.io/">Format.js</a> provides a series of libraries to support i18n on your applications. The want that we want to work with is <code>@fotmatjs/intl-numberformat/</code>. This will provide support for both number formatting libraries discussed in the post for older browsers.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> @formatjs/intl-numberformat
+</code></pre>
+<p>Then we can use either <code>toLocaleString</code> or <code>Int.numberFormat</code> in our code without having to worry about native support.</p>
+<p>The <a href="https://codesandbox.io/">codesandbox</a> below is forked and modified from the original by <a href="https://elijahmanor.com/format-js-numbers">Elijah Manor</a>.</p>
+<iframe src="https://codesandbox.io/embed/zealous-flower-h3vjv?fontsize=14&hidenavigation=1&module=%2Fsrc%2Findex.js&theme=dark"
+     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="zealous-flower-h3vjv"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

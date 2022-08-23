@@ -1,0 +1,134 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="more-examples" tabindex="-1">More examples</h1>
+<p>This is a more complex example of a xAPI statement. It addresses some of the questions</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"actor"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"objectType"</span><span class="token operator">:</span> <span class="token string">"person"</span><span class="token punctuation">,</span>
+    <span class="token property">"displayName"</span><span class="token operator">:</span> <span class="token string">"Carlos Araya"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"verb"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://w3id.org/xapi/dod-isd/verbs/presented"</span><span class="token punctuation">,</span>
+    <span class="token property">"display"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"presented"</span><span class="token punctuation">,</span>
+      <span class="token property">"es-CL"</span><span class="token operator">:</span> <span class="token string">"presentó"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"present"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"object"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"http://ns.rivendellweb.net/activities/conference-presentation"</span><span class="token punctuation">,</span>
+    <span class="token property">"objectType"</span><span class="token operator">:</span> <span class="token string">"Presentation"</span><span class="token punctuation">,</span>
+    <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"Conference presentation"</span><span class="token punctuation">,</span>
+      <span class="token property">"es-CL"</span><span class="token operator">:</span> <span class="token string">"Presentación en conferencia"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"displayName"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"The what and the why of xAPI"</span><span class="token punctuation">,</span>
+      <span class="token property">"es-CL"</span><span class="token operator">:</span> <span class="token string">"El qué y el por qué de xAPI"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"context"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"Conference"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"The Conference"</span><span class="token punctuation">,</span>
+      <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://theconference.com/"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h4 id="converting-content-by-hand" tabindex="-1">Converting content by hand</h4>
+<p>There are tools that will convert SCORM to cmi5. Tools like TinCanJS, and Rustici (SCORM) Driver require you to open the courses and change the SCORM scripts and API calls to xAPI (when using TinCanJS) and platform neutral calls (when using Rustici Driver)</p>
+<p>The following examples use <a href="http://rusticisoftware.github.io/TinCanJS/">TinCanJS</a> to build the different parts of an xAPI interaction with an LRS.</p>
+<p>The first block attempts to connect to the specified LRS using the credentials given in the user name and password fields.</p>
+<p>Unlike many things on the web today. This code must be run synchronously, nothing else in the page can run until we know if we were able to log in to the LRS.</p>
+<p>In the catch block we could also pop an alert or some other way to notify the user that the connection was unsuccessful.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> lrs<span class="token punctuation">;</span>
+
+<span class="token keyword">try</span> <span class="token punctuation">{</span>
+  lrs <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">TinCan<span class="token punctuation">.</span>LRS</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">endpoint</span><span class="token operator">:</span> <span class="token string">"https://cloud.scorm.com/tc/public/"</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">username</span><span class="token operator">:</span> <span class="token string">"&lt;Test User>"</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">password</span><span class="token operator">:</span> <span class="token string">"&lt;Test Password>"</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">allowFail</span><span class="token operator">:</span> <span class="token boolean">false</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">catch</span> <span class="token punctuation">(</span>ex<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Failed to setup LRS object: "</span><span class="token punctuation">,</span> ex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// TODO: do something with error</span>
+  <span class="token comment">// can't communicate with LRS</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The next section is where we build the statement that we want to send to the LRS. See <a href="#structuring">Structuring the xAPI JSON object</a> for more details of the different parts of the statement we’re building.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> statement <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">TinCan<span class="token punctuation">.</span>Statement</span><span class="token punctuation">(</span>
+  <span class="token punctuation">{</span>
+    <span class="token literal-property property">actor</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token literal-property property">mbox</span><span class="token operator">:</span> <span class="token string">"mailto:info@tincanapi.com"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">verb</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token literal-property property">id</span><span class="token operator">:</span> <span class="token string">"http://adlnet.gov/expapi/verbs/experienced"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">target</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token literal-property property">id</span><span class="token operator">:</span> <span class="token string">"http://rusticisoftware.github.com/TinCanJS"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We use XHR to save the statement to the LRS. While most modern browsers support fetch, we’re bound to support older systems where fetch is not supported. Rather than using a polyfill, the creators of TinCan.js chose to support the older protocol as it’ll allow older browsers to talk to the LRS.</p>
+<pre class="language-js"><code class="language-js">lrs<span class="token punctuation">.</span><span class="token function">saveStatement</span><span class="token punctuation">(</span>statement<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token function-variable function">callback</span><span class="token operator">:</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">err<span class="token punctuation">,</span> xhr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>err <span class="token operator">!==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>xhr <span class="token operator">!==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Failed to save statement: "</span> <span class="token operator">+</span> xhr<span class="token punctuation">.</span>responseText <span class="token operator">+</span> <span class="token string">" ("</span> <span class="token operator">+</span> xhr<span class="token punctuation">.</span>status <span class="token operator">+</span> <span class="token string">")"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token comment">// TODO: do something with error, didn't save statement</span>
+          <span class="token keyword">return</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Failed to save statement: "</span> <span class="token operator">+</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// TODO: do something with error, didn't save statement</span>
+        <span class="token keyword">return</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Statement saved"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token comment">// TODO: do something with success (possibly ignore)</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>There are other portions of the TinCan.js library that we haven’t used because they are not used to send data to the LRS.</p>
+<p>xAPI Quarterly published an article about how to <a href="https://xapiquarterly.com/2016/07/captivate-javascript-xapi-customization-best-practices-xapi/">customize Adobe Captivate to generate xAPI statements</a> that shows how we could make other authoring tools generate xAPI statements even if the tool doesn’t support the API natively.</p>
+<p>Another way to get statements on our content and products is to roll up our slves and code the statement and communication with the LRS ourselves. This would make our content less dependent on third party authoring tools and it would give us more flexibility on how we create and deploy our content.</p>
+<p>We’ll discuss more about one way to add xAPI statements to our content later.</p>
+<h3 id="what-content-do-we-want-to-track%3F-from-what-sources%3F" tabindex="-1">What content do we want to track? From what sources?</h3>
+<h3 id="do-we-need-an-lms%3F" tabindex="-1">Do we need an LMS?</h3>
+<h3 id="is-the-lms-budled-with-an-lrs%3F-do-we-need-it-to-be%3F" tabindex="-1">Is the LMS budled with an LRS? Do we need it to be?</h3>
+<h3 id="are-we-hosting-on-premise%3F-private-cloud%3F-vendor%3F" tabindex="-1">Are we hosting on premise? private cloud? vendor?</h3>
+<h3 id="how-will-learners-authenticate%3F" tabindex="-1">How will learners authenticate?</h3>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

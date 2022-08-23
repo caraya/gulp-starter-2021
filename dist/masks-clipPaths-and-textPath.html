@@ -1,0 +1,148 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="svg-masks-and-clip-paths-and-text-on-a-path" tabindex="-1">SVG Masks and Clip Paths and Text on a path</h1>
+<p>One of the fun things to explore is how we can mask and clip SVG elements and how we can do “text on a path” effects. As we explore these new elements we’ll visit additional elements that make part of the mask and path functionality and how CSS interacts with SVG (TL,DR: It doesn’t use the same elements).</p>
+<h2 id="masks" tabindex="-1">Masks</h2>
+<p><code>mask</code> Defines an alpha mask for <a href="https://en.wikipedia.org/wiki/Digital_compositing">compositing</a> the current object into the background. It will ‘bleed’ the background into the foreground element</p>
+<p>The <code>pattern</code> element defines a graphics object which you can tile (repeat at x and y coordinate intervals) to cover an area. This is similar to what we can do with blend modes in CSS</p>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/patternUnits"><code>patternUnits</code></a> attribute defines the coordinate system in use for <code>x</code>, <code>y</code>, <code>width</code> and <code>height</code> properties of the element.</p>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/image"><code>image</code></a> SVG element includes images inside SVG documents. <strong>It can display raster image files (JPG or PNG) or other SVG files. The behaviort for animated GIFs is undefined.</strong></p>
+<p>The SVG <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text"><code>text</code></a> element defines a graphics element consisting of text. It’s possible to apply a gradient, pattern, clipping path, mask, or filter to <code>text</code>, just like any other SVG graphics element.</p>
+<p>If text is included within SVG outside a <code>text</code> element, it is not rendered. <strong>This is different from being hidden by default, as setting the display property will not show the text.</strong></p>
+<p>The SVG portion of the example includes the image pattern and the text that we want to use as the mask.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>defs</span><span class="token punctuation">></span></span>
+	  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pattern</span>  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wood<span class="token punctuation">"</span></span>
+              <span class="token attr-name">patternUnits</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>userSpaceOnUse<span class="token punctuation">"</span></span>
+              <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+	  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>image</span>
+            <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://subtlepatterns.com/patterns/purty_wood.png<span class="token punctuation">"</span></span>
+            <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pattern</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>defs</span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!--
+    The text below will have the background image of the pattern
+  --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span> <span class="token attr-name">y</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.2em<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>SVG rocks!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS sets the dimensions of the SVG element and the text fill, the color inside the element, to use the wood pattern we’ve defined in the SVG.</p>
+<p>When we use CSS to style SVG elements we need to be aware that SVG doesn’t use the same selectors, attributes, and values than regular CSS.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">svg</span> <span class="token punctuation">{</span>
+	<span class="token property">width</span><span class="token punctuation">:</span> 8em<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span>
+	<span class="token property">font-weight</span><span class="token punctuation">:</span> 900<span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 5em<span class="token punctuation">;</span>
+  <span class="token property">line-height</span><span class="token punctuation">:</span> 1.2<span class="token punctuation">;</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Arial Black'</span><span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">text</span> <span class="token punctuation">{</span>
+  <span class="token property">fill</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>#wood<span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="clip-path" tabindex="-1">Clip Path</h2>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath"><code>clipPath</code></a> defines a clipping path.</p>
+<p>The idea is that whatever changes we make to the image will not go larger than the clipping path. In this example, we create to elements inside the SVG a circle and a path with the shape of a heart.</p>
+<p>We use the clipping path with the <code>clip-path</code> property.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 100 100<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>clipPath</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>myClip<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>circle</span> <span class="token attr-name">cx</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>40<span class="token punctuation">"</span></span> <span class="token attr-name">cy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>35<span class="token punctuation">"</span></span> <span class="token attr-name">r</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>35<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>clipPath</span><span class="token punctuation">></span></span>
+ 
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>path</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>heart<span class="token punctuation">"</span></span> <span class="token attr-name">d</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>M10,30 A20,20,0,0,1,50,30 A20,20,0,0,1,90,30 Q90,60,50,90 Q10,60,10,30 Z<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+ 
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>use</span> <span class="token attr-name">clip-path</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>url(#myClip)<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#heart<span class="token punctuation">"</span></span> <span class="token attr-name">fill</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>red<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS handles the animation using key frames. We’re animating the <code>r</code> attribute from CSS. We want the circle to grow into the full size of the cliping element and ignore anything falling outside.</p>
+<p>Unfortunately this example doesn’t work in Firefox (tested with 67 nightly in a Mac) because it doesn’t support geometry properties in CSS. <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1383650">Bug 1383650</a> is tracking the issue but it doesn’t appear to be high priority.</p>
+<p>The workaround is to remove the <code>clip-path=&quot;url(#myClip)&quot;</code> from the use element . We loose the animation but at least we get the color we want to display the clipped element in.</p>
+<p>I’m also researching if it’s possible to do this with JavaScript or with CSS <code>@support</code> techniques.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">html,body,svg</span> <span class="token punctuation">{</span>
+  <span class="token property">height</span><span class="token punctuation">:</span>100%<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@keyframes</span> animateHeart</span> <span class="token punctuation">{</span>
+  <span class="token selector">from</span> <span class="token punctuation">{</span>
+    <span class="token property">r</span><span class="token punctuation">:</span> 0
+  <span class="token punctuation">}</span>
+
+  <span class="token selector">to</span> <span class="token punctuation">{</span>
+    <span class="token property">r</span><span class="token punctuation">:</span> 60px
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">#myClip circle</span> <span class="token punctuation">{</span>
+  <span class="token property">animation</span><span class="token punctuation">:</span> animateHeart 15s infinite<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="text-path" tabindex="-1">Text Path</h2>
+<p><code>textPath</code> places text the shape of a path element defined alongside it.</p>
+<p>For <code>textPath</code> to work the element we use to wrap our content around must be a path. In earlier versions of this example I tried to use a <code>circle</code> but it doesn’t work. Manually creating a circle with SVG is not easy, so I cheated. I created the circle in Adobe Illustrator and then exported it as SVG and copied it to Codepen.</p>
+<p><code>textLength</code> (essentially the circumference of the circle) is used as an alternative to letter-spacing for Firefox, which currently doesn’t support letter-spacing for SVG</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span>
+      <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 600 600<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>defs</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>path</span> <span class="token attr-name">d</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>M276.14,178C395,178,491.29,259.54,491.29,360.12S395,542.24,276.14,542.24,61,460.7,61,360.12,157.32,178,276.14,178Z<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>textcircle<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>defs</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span> <span class="token attr-name">textLength</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1200<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>textPath</span> <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#textcircle<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      The fellowship of the ring
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>textPath</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS portion of this example is simple. It defines the dimensions of the <code>svg</code> element and the font attributes.</p>
+<p>In most production cases I would never import the font directly into the CSS file but since this is a demo I’m making an exception. For production I would likely host the font on the same server and cache it using a service worker.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'https://fonts.googleapis.com/css?family=Fredoka+One'</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span></span>
+
+<span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> end<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token selector">svg</span> <span class="token punctuation">{</span> <span class="token property">width</span><span class="token punctuation">:</span> 80%<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+<span class="token selector">text</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 38px<span class="token punctuation">;</span>
+	<span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Fredoka One'</span><span class="token punctuation">,</span> cursive<span class="token punctuation">;</span>
+	<span class="token property">font-weight</span><span class="token punctuation">:</span> 900<span class="token punctuation">;</span>
+	<span class="token property">text-transform</span><span class="token punctuation">:</span> uppercase<span class="token punctuation">;</span>
+	<span class="token property">letter-spacing</span><span class="token punctuation">:</span> 24px<span class="token punctuation">;</span>
+	<span class="token property">fill</span><span class="token punctuation">:</span> rebeccapurple<span class="token punctuation">;</span>
+  <span class="token property">opacity</span><span class="token punctuation">:</span> 0.8<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="conclusion" tabindex="-1">Conclusion</h2>
+<p>SVG can be as simple or as complicated as you need it to be. There are other areas that I want to further explore as I move deeper into the things you can and cannot do with SVG as a vector graphic format.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

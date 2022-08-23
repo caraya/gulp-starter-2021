@@ -1,0 +1,98 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="linting-wordpress-php-files" tabindex="-1">Linting WordPress PHP files</h1>
+<p>While I’ve been doing WordPress theme development I’ve also been working on getting PHPCS (<a href="https://github.com/squizlabs/PHP_CodeSniffer">PHP Code Sniffer</a>) to work properly on my projects.</p>
+<p>I think I’ve finally got it. As usual, I was making things too hard on myself and it ended up being far easier to set up and use.</p>
+<p>The first tool we need is <a href="https://getcomposer.org/">Composer</a> to install and manage dependencies. Think of Composer as the PHP version of NPM.</p>
+<p>Since I’m working on a Mac, I chose to install it with <a href="https://brew.sh/">Homebrew</a> using the command below:</p>
+<pre class="language-bash"><code class="language-bash">brew <span class="token function">install</span> <span class="token function">composer</span>
+</code></pre>
+<p>The next step is to install PHPCS and the <a href="https://github.com/WordPress/WordPress-Coding-Standards">WordPress Coding Standards</a> globally for the current user using Composer.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">composer</span> global require squizlabs/php_codesniffer wp-coding-standards/wpcs
+</code></pre>
+<p>Installing the Coding Standards doesn’t make them available to PHPCS. To make them available we need to add them to the version of PHPCS we just installed.</p>
+<pre class="language-bash"><code class="language-bash">phpcs --config-set installed_paths <span class="token punctuation">\</span>
+~/.composer/vendor/wp-coding-standards/wpcs
+</code></pre>
+<p>If you get an error saying that phpcs was not found, it is likely that the directory where you installed PHPCS is not on your path. Try the following command:</p>
+<pre class="language-bash"><code class="language-bash">~/.composer/vendor/bin/phpcs <span class="token punctuation">\</span>
+--config-set installed_paths <span class="token punctuation">\</span>
+~/.composer/vendor/wp-coding-standards/wpcs
+</code></pre>
+<p>The last step is to validate that we successfully installed the WordPress Coding Standards. Running the command below will produce a list of all the coding standards available for the current PHPCS installation.</p>
+<pre class="language-bash"><code class="language-bash">phpcs -i
+</code></pre>
+<p>If the WordPress Coding Standards were successfully installed, the command should return:</p>
+<pre class="language-text"><code class="language-text">The installed coding standards are PEAR, Zend, PSR2,
+MySource, Squiz, PSR1, PSR12, WordPress,
+WordPress-Extra, WordPress-Docs and WordPress-Core
+</code></pre>
+<p>If it doesn’t you need to review the prior steps and, possibly, reinstall the WordPress Coding Standards.</p>
+<h2 id="configuration" tabindex="-1">Configuration</h2>
+<p>PHPCS uses XML configuration files to tell the tools how to lint the files. This may not be what most people prefer but it’s a one time only configuration that can be reused for different projects</p>
+<pre class="language-xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ruleset</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Rivendellweb<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>Rivendellweb Wordpress Coding Standards<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>file</span><span class="token punctuation">></span></span>.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>file</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 1 --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arg</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>extensions<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>php<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arg</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 2 --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arg</span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>-colors<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arg</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 3 --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arg</span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>ns<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arg</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 4 --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>rule</span> <span class="token attr-name">ref</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>WordPress-Extra<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 5 --></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclude</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>WordPress.PHP.DisallowShortTernary<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclude</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 6 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>rule</span><span class="token punctuation">></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>rule</span> <span class="token attr-name">ref</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>WordPress-Docs<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>rule</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 7 --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>rule</span> <span class="token attr-name">ref</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Generic.CodeAnalysis.UnusedFunctionParameter<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>rule</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 8 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>rule</span> <span class="token attr-name">ref</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Generic.Commenting.Todo<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>rule</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 8 --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>config</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>minimum_supported_wp_version<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>4.9<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>config</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 9 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ruleset</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The example configuration file performs the following tasks that match the comments in the file above:</p>
+<ol>
+<li>What files we want to scan</li>
+<li>Scan only files with a PHP extension</li>
+<li>Pass an argument to include colors in the console report</li>
+<li>Show sniff codes in all reports. The default is to hide them</li>
+<li>Tell PHPCS what rules you want to use</li>
+<li>Include specific rules you want to ignore as children of the rule element</li>
+<li>You can include additional rules packages</li>
+<li>You can also include specific rules from a package without using the full package</li>
+<li>Tell PHPCS the minimal version that we want to work with</li>
+</ol>
+<p>You can see a more detailed configuration file in the Code Sniffer repo’s <a href="https://github.com/squizlabs/PHP_CodeSniffer/blob/master/phpcs.xml.dist">Sample PHPCS configuration file</a></p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

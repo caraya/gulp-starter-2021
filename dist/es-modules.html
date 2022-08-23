@@ -1,0 +1,384 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="es6-modules%2C-now-in-a-browser-near-you" tabindex="-1">ES6 modules, now in a browser near you</h1>
+<p>There are some news and changes since I last visited ES6 modules. I started hearing more and more about WebPack and how it did the one thing that Rollup doesn’t… it splits the code in different bundles based on the overall size of your Javasacrip files.</p>
+<p>The latest news is that modules are now supported in browsers so packaging them may or may not be as necessary any more.</p>
+<h2 id="es6-modules-defined" tabindex="-1">ES6 modules defined</h2>
+<p>In ES6 each module is defined in its own file. The functions or variables defined in a module are not visible outside unless you explicitly export them. This means that you can write code in your module and only export those values which should be accessed by other parts of your app.</p>
+<p>ES6 modules are declarative in nature. To export certain variables from a module you just use the keyword export. Similarly, to consume the exported variables in a different module you use import.</p>
+<h2 id="rollup" tabindex="-1">Rollup</h2>
+<p>Things haven’t changed since the last time <a href="https://publishing-project.rivendellweb.net/es6-babel-and-you-modules-the-what-and-the-how/">I worked with Rollup</a> so I’ll use the same example I used then.</p>
+<p>The first part of the example is the notional image manipulations. We load the image using a promise and resolve it on load and reject with a new error. The other functions just log what they would to to console.</p>
+<p>Using the <code>export</code> keyword tells the parsers that the function can be imported from other scripts as we’ll do later in our main script.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// image-manip.js</span>
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">loadImage</span><span class="token punctuation">(</span><span class="token parameter">url</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Promise</span><span class="token punctuation">(</span> <span class="token punctuation">(</span><span class="token parameter">resolve<span class="token punctuation">,</span> reject</span><span class="token punctuation">)</span> <span class="token operator">=></span><span class="token punctuation">{</span>
+    <span class="token keyword">var</span> image <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Image</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    image<span class="token punctuation">.</span>src <span class="token operator">=</span> url<span class="token punctuation">;</span>
+
+    image<span class="token punctuation">.</span><span class="token function-variable function">onload</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token function">resolve</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    image<span class="token punctuation">.</span><span class="token function-variable function">onerror</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token function">reject</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'Could not load image at '</span> <span class="token operator">+</span> url<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">scaleToFit</span><span class="token punctuation">(</span><span class="token parameter">width<span class="token punctuation">,</span> height<span class="token punctuation">,</span> image</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Scaling image to '</span> <span class="token operator">+</span> width <span class="token operator">+</span> <span class="token string">' x '</span> <span class="token operator">+</span> height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> image<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">watermark</span><span class="token punctuation">(</span><span class="token parameter">text<span class="token punctuation">,</span> image</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Watermarking image with '</span> <span class="token operator">+</span> text<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> image<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">grayscale</span><span class="token punctuation">(</span><span class="token parameter">image</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Converting image to grayscale'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> image<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Our main script uses the <code>import</code> keyword to bring the exported fnctions from the image-manip library into the current file. We then use it to create a function without having to redefine the functions, we just use them.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// app.js</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> loadImage<span class="token punctuation">,</span> scaleToFit<span class="token punctuation">,</span> watermark<span class="token punctuation">,</span> grayscale <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'./image-manip.js'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Image processing pipeline</span>
+<span class="token keyword">function</span> <span class="token function">processImage</span><span class="token punctuation">(</span><span class="token parameter">image</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">loadImage</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">image</span><span class="token punctuation">)</span>  <span class="token operator">=></span> <span class="token punctuation">{</span>
+      document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token function">scaleToFit</span><span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token number">450</span><span class="token punctuation">,</span> image<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">image</span><span class="token punctuation">)</span>  <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token function">watermark</span><span class="token punctuation">(</span><span class="token string">'The Real Estate Company'</span><span class="token punctuation">,</span> image<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">image</span><span class="token punctuation">)</span>  <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token function">grayscale</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'we had a problem in running processImage '</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>To create a <a href="http://rollupjs.org/">Rollup</a> bundle we need to do the following:</p>
+<ol>
+<li>Install Rollup globally</li>
+<li>Install Rollup and related plugins at the project level</li>
+<li>Create a <code>rollup.config.js</code> configuration file</li>
+<li>Run the command line, configure your package file to run the build through NPM or your build system</li>
+</ol>
+<p>NPM installation is pretty straight forward. This will take care of steps 1 and 2 of our task list.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> -g rollup
+
+<span class="token function">npm</span> <span class="token function">install</span> -D rollup <span class="token punctuation">\</span>
+babel-preset-es2015-rollup<span class="token punctuation">\</span> 
+rollup-plugin-babel <span class="token punctuation">\</span>
+rollup-plugin-commonjs <span class="token punctuation">\</span>
+rollup-plugin-json <span class="token punctuation">\</span>
+rollup-plugin-node-resolve
+</code></pre>
+<p>The configuration file tells Rollup what files to work with and how to process them. This is step 3 in our task list.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token string">'use strict'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> commonjs <span class="token keyword">from</span> <span class="token string">'rollup-plugin-commonjs'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> nodeResolve <span class="token keyword">from</span> <span class="token string">'rollup-plugin-node-resolve'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> json <span class="token keyword">from</span> <span class="token string">'rollup-plugin-json'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">entry</span><span class="token operator">:</span> <span class="token string">'./es6/main.js'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token function">nodeResolve</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">jsnext</span><span class="token operator">:</span> <span class="token boolean">true</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">commonjs</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">include</span><span class="token operator">:</span> <span class="token string">'node_modules/**'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">dest</span><span class="token operator">:</span> <span class="token string">'./bundle.js'</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>How we run the command depends on the tooling we have set up. We can run Rollup from the command line using a command like the one below. This command assumes that there is a <code>rollup.config.js</code> in the directory where we run the command.</p>
+<pre class="language-bash"><code class="language-bash">rollup -c --output bundle-2.js <span class="token comment"># --output is equivalent to dest</span>
+</code></pre>
+<p>We can also configure NPM to run our Rollup build as a script. In the example below we run the command using <code>npm run build</code> which will then trigger the build sing the configuration available in the same directory.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token punctuation">{</span>
+  <span class="token punctuation">..</span>.,
+  <span class="token string">"scripts"</span><span class="token builtin class-name">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"test"</span><span class="token builtin class-name">:</span> <span class="token string">"echo <span class="token entity" title="\&quot;">\"</span>Error: no test specified<span class="token entity" title="\&quot;">\"</span> &amp;&amp; exit 1"</span>,
+    <span class="token string">"build"</span><span class="token builtin class-name">:</span> <span class="token string">"rollup -c"</span>
+  <span class="token punctuation">}</span>,
+  <span class="token punctuation">..</span>.
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The final version is a Gulp task to handle transpilation to ES5 and run Rollup to create the bundle. This is pretty close to the configuration file but split differently to accomodate the two step process. Soon creating bundles for browsers will become easier because we won’t need the transpilation process… browers are beginning to support modules natively.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> rollup <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'rollup'</span><span class="token punctuation">)</span>
+<span class="token punctuation">;</span>
+
+gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> rollup<span class="token punctuation">.</span><span class="token function">rollup</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">entry</span><span class="token operator">:</span> <span class="token string">"./src/main.js"</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token function">nodeResolve</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+          <span class="token literal-property property">jsnext</span><span class="token operator">:</span> <span class="token boolean">true</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">commonjs</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+          <span class="token literal-property property">include</span><span class="token operator">:</span> <span class="token string">'node_modules/**'</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+      <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">bundle</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      bundle<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">format</span><span class="token operator">:</span> <span class="token string">"umd"</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">moduleName</span><span class="token operator">:</span> <span class="token string">"library"</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">dest</span><span class="token operator">:</span> <span class="token string">"./bundle.js"</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">sourceMap</span><span class="token operator">:</span> <span class="token boolean">true</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="webpack" tabindex="-1">Webpack</h2>
+<p><a href="https://webpack.js.org/">Webpack</a> is the 500 pound gorilla when it comes to compressing and bundling web content. It works on both CSS and Javascript to take over a lot of things that we can and should do in our build process.</p>
+<p>That said it does some things that no other build system does. It works to create CSS and Javascript bundles from the same configuration (assuming that it is properly configured), it will warn you if any of your bundles are over 250Kb which prevents the bundles from slowing down page loading.</p>
+<p>I think it’s too big a tool that tries to do too much but, again, it seems that everyone is using it so you may be called to use it whether you like it or not.</p>
+<p>We will only concentrate on Javascript bunding, code spliting and shaking. I will not use Webpack for handing images and S/CSS because I don’t think we should be converting it all to Javascript.  Think about it, we load over 1MB of images into our pages, and a couple hundred KB of CSS and we will convert all those images to strings just so we can feed them to Javascript and then place them back into their correct locations? Thanks but no thanks… I would much rather use traditional strategies built around Gulp and it’s ecosystem rather than split it into something completely different</p>
+<h3 id="installing-webpack" tabindex="-1">Installing Webpack</h3>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># install webpack and dependencies</span>
+<span class="token function">npm</span> <span class="token function">install</span>  webpack <span class="token punctuation">\</span>
+babel-core <span class="token punctuation">\</span>
+babel-loader <span class="token punctuation">\</span>
+babel-preset-es2015 --save-dev
+
+<span class="token comment"># build project structure</span>
+<span class="token function">mkdir</span> -p project/src
+</code></pre>
+<p>Create the following files and place them in the location indicated in the first line of each file. If it doesn’t have a path, like <code>src/to/file.js</code> then it goes in the project folder.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- index.html --></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>utf-8<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>Hello webpack<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>root<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dist/bundle.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We’ll place the script in the <code>app</code> directory. This example is deliberately simple, It can be as complex as you need it to be.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// src/app.js</span>
+<span class="token keyword">const</span> root <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#root'</span><span class="token punctuation">)</span>
+root<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">&lt;p>Hello webpack.&lt;/p></span><span class="token template-punctuation string">`</span></span>
+</code></pre>
+<p>The final script of this build process is the Webpack configuration file.  This file will transpile the <code>app.js</code> file into ES5 and then convert it into <code>bundle.js</code> for use in all browsers.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// webpack.config.js</span>
+<span class="token keyword">const</span> webpack <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'webpack'</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> config <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">context</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">'src'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">entry</span><span class="token operator">:</span> <span class="token string">'./app.js'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">output</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">path</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">'dist'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">filename</span><span class="token operator">:</span> <span class="token string">'bundle.js'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">module</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">test</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.jsx$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+      <span class="token literal-property property">include</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">'src'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">use</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">loader</span><span class="token operator">:</span> <span class="token string">'babel-loader'</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">options</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token literal-property property">presets</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token punctuation">[</span><span class="token string">'es2015'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">modules</span><span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">]</span>
+          <span class="token punctuation">]</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+module<span class="token punctuation">.</span>exports <span class="token operator">=</span> config
+</code></pre>
+<p>In order to run the files we need to modify the project’s <code>package.json</code> to add scripts that will run Webpack. There are ways to incorporate the tool into Gulp and Grunt buuild processes, that is left as an exercisse to the reader.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"scripts"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"build"</span><span class="token operator">:</span> <span class="token string">"webpack"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>One last thing to consider. The configuration presented above will bundle everything together and that may not always be desirable.</p>
+<p>We can modify the Webpack configuration script to bundle all our vendor assets into separate chunks.
+The modified script looks like this:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> webpack <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'webpack'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+module<span class="token punctuation">.</span><span class="token function-variable function">exports</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">env</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+        <span class="token literal-property property">entry</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+            <span class="token literal-property property">main</span><span class="token operator">:</span> <span class="token string">'./index.js'</span><span class="token punctuation">,</span>
+            <span class="token literal-property property">vendor</span><span class="token operator">:</span> <span class="token string">'moment'</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">output</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+            <span class="token literal-property property">filename</span><span class="token operator">:</span> <span class="token string">'[name].[chunkhash].js'</span><span class="token punctuation">,</span>
+            <span class="token literal-property property">path</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">'dist'</span><span class="token punctuation">)</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token keyword">new</span> <span class="token class-name">webpack<span class="token punctuation">.</span>optimize<span class="token punctuation">.</span>CommonsChunkPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'vendor'</span> <span class="token comment">// Specify the common bundle's name.</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>By providing multiple entry points we make it easier to use the <code>CommonsChunkPlugin</code> to bundle together our vendor (normally third party) libraries. In the example we’re bundling moment but this may also be an array of our vendor dependencies.</p>
+<p>If you want more information, check the <a href="https://webpack.js.org/guides/">Webpack Guides</a>.</p>
+<h3 id="why-do-we-need-to-convert-everything-to-javascript%3F" tabindex="-1">Why do we need to convert everything to Javascript?</h3>
+<p>Granted, everyone has an opinion on this subject. Mine is that I don’t think everything in JS is the answer to all our development issues.</p>
+<h2 id="modules-natively-in-browsers" tabindex="-1">Modules natively in browsers</h2>
+<p>Rollup and Webpack are popular because, until recently, there was no way to work with modules directly in web browsers. Even though ES6 is almost 2 years old we had no browser that supported modules natively.</p>
+<p>That is changing. Native support for modules is starting to come out in browsers… it’s still experimental in most of them but it’s a good sign that they will come into release version of the browsers soon. The current list of supported browsers:</p>
+<ul>
+<li>Safari 10.1.</li>
+<li>Chrome Canary 60 – behind the Experimental Web Platform flag in <code>chrome:flags</code></li>
+<li>Firefox 54 – behind the <code>dom.moduleScripts.enabled</code> setting in <code>about:config</code></li>
+<li>Edge 15 – behind the Experimental JavaScript Features setting in <code>about:flags</code></li>
+</ul>
+<p>Differences between regular scripts and module scripts when used in the browsers (taken from <a href="http://exploringjs.com/es6/ch_modules.html#sec_overview-modules">exploring ES6</a>:</p>
+<table>
+  <thead>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Scripts</th>
+      <th>Modules</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTML element</td>
+      <td><code>&lt;script&gt;</code></td>
+      <td><code>&lt;script type="module"&gt;</code></td>
+    </tr>
+    <tr>
+      <td>Default mode</td>
+      <td>non-strict</td>
+      <td>strict</td>
+    </tr>
+    <tr>
+      <td>Top-level variables are</td>
+      <td>global</td>
+      <td>local to module</td>
+    </tr>
+    <tr>
+      <td>Value of <code>this</code> at top level</td>
+      <td><code>window</code></td>
+      <td><code>undefined</code></td>
+    </tr>
+    <tr>
+      <td>Executed</td>
+      <td>synchronously</td>
+      <td>asynchronously</td>
+    </tr>
+    <tr>
+      <td>Declarative imports (<code>import</code> statement)</td>
+      <td>no</td>
+      <td>yes</td>
+    </tr>
+    <tr>
+      <td>Programmatic imports (Promise-based API)</td>
+      <td>yes</td>
+      <td>yes</td>
+    </tr>
+    <tr>
+      <td>File extension</td>
+      <td><code>.js</code></td>
+      <td><code>.js</code></td>
+    </tr>
+  </tbody>
+</table>
+<p>There are two ways to create a module. External and internal modules, each of which can export and import multiple named functions from other modules.</p>
+<p>Take the following <code>utils.js</code> external module that explorts a single function to append text to the body of a page.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// utils.js</span>
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">addTextToBody</span><span class="token punctuation">(</span><span class="token parameter">text</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> div <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'div'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  div<span class="token punctuation">.</span>textContent <span class="token operator">=</span> text<span class="token punctuation">;</span>
+  document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>div<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This internal module imports <code>addTextToBody</code> from <code>utils.js</code> and uses it as a local function without name spacing.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script type<span class="token operator">=</span><span class="token string">"module"</span><span class="token operator">></span>
+  <span class="token keyword">import</span> <span class="token punctuation">{</span>addTextToBody<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'./utils.js'</span><span class="token punctuation">;</span>
+
+  <span class="token function">addTextToBody</span><span class="token punctuation">(</span><span class="token string">'Modules are pretty cool.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>The last concern when working with native module implementations is how to handle older browsers. Most modern browsers have repurposed the <code>type</code> attribute of the <code>script</code> element: If it’s value is module the JS engine will treat the content as a module with different rules than those for normal scripts.</p>
+<p>To target older browsers use the <code>nomodule</code> attribute.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script type<span class="token operator">=</span><span class="token string">"module"</span> src<span class="token operator">=</span><span class="token string">"module.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+<span class="token operator">&lt;</span>script nomodule src<span class="token operator">=</span><span class="token string">"fallback.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>There is a lot more to learn about native module implementation. Some of the things that caught my attention when researching modules:</p>
+<p><strong>They only run once per page</strong> no matter how many times you load it.</p>
+<p><strong>Modules and script modules never block rendering</strong>. They always run as if the <code>defered</code> attribute was set in the calling script tag. The defer tag means that the script will execute after the content is downloaded but before the DOMContentLoaded event is fired.</p>
+<p><strong>Modules and inline (script) modules can use async attribute</strong> meaning that they can be made to load without blocking HTML rendering but it also means that you can no longer guarantee execution order. If the order your scripts run in is important rely on the defered attribute discussed earlier.</p>
+<p><strong>Must use a valid Javascript Mime Type or it will not execute</strong>. In this context, a valid Javascript Mime Type is one of those listed in the <a href="https://html.spec.whatwg.org/multipage/scripting.html#javascript-mime-type">HTML Standard</a>:</p>
+<ul>
+<li>application/ecmascript</li>
+<li>application/javascript</li>
+<li>application/x-ecmascript</li>
+<li>application/x-javascript</li>
+<li>text/ecmascript</li>
+<li>text/javascript</li>
+<li>text/javascript1.0</li>
+<li>text/javascript1.1</li>
+<li>text/javascript1.2</li>
+<li>text/javascript1.3</li>
+<li>text/javascript1.4</li>
+<li>text/javascript1.5</li>
+<li>text/jscript</li>
+<li>text/livescript</li>
+<li>text/x-ecmascript</li>
+<li>text/x-javascript</li>
+</ul>
+<h2 id="links-and-resources" tabindex="-1">Links and resources</h2>
+<ul>
+<li><a href="https://jakearchibald.com/2017/es-modules-in-browsers/">https://jakearchibald.com/2017/es-modules-in-browsers/</a></li>
+<li><a href="https://medium.com/@samthor/es6-modules-in-chrome-canary-m60-ba588dfb8ab7">https://medium.com/@samthor/es6-modules-in-chrome-canary-m60-ba588dfb8ab7</a></li>
+<li><a href="http://2ality.com/2014/09/es6-modules-final.html">http://2ality.com/2014/09/es6-modules-final.html</a></li>
+<li><a href="https://ponyfoo.com/articles/es6-modules-in-depth">https://ponyfoo.com/articles/es6-modules-in-depth</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

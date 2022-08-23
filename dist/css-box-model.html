@@ -1,0 +1,84 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="understanding-the-css-box-model" tabindex="-1">Understanding the CSS box model</h1>
+<p>One of the things I’ve always had problem understanding is the CSS box model.  I’m wrinting this, based on content from MDN to try and understand it better.</p>
+<p>When laying out a document, the browser treats each element as a rectangular box according to the standard CSS basic box model. CSS determines the size, position, and properties of these boxes.</p>
+<p>Every box is composed of four areas: content, padding, border, and margin.</p>
+<figure>
+  <img src="https://www.w3.org/TR/css-box-3/images/box.png">
+  <figcaption>Different box models in CSS<figcaption>
+</figure>
+<p><strong>The content area</strong> contains the “real” content of the element, such as text, an image, or a video player.</p>
+<p>Its dimensions are the width and height of content-box. It often has a background color or background image.</p>
+<p><strong>The padding area</strong> extends the content area to include the element’s padding. Its dimensions are the padding-box width and and height.</p>
+<p>The thickness of the padding is determined by the padding-top, padding-right, padding-bottom, padding-left, and shorthand padding properties.</p>
+<p><strong>The border area</strong> extends the padding area to include the element’s borders. Its dimensions are the border-box width and the border-box height.</p>
+<p>The thickness of the borders are determined by the border-width and shorthand border properties.</p>
+<p>If the box-sizing property is set to border-box, the border area’s size can be explicitly defined with the width, min-width, max-width, height, min-height, and max-height properties.</p>
+<p>The margin area, bounded by the margin edge, extends the border area to include an empty area used to separate the element from its neighbors. Its dimensions are the margin-box width and the margin-box height.</p>
+<p>The size of the margin area is determined by the margin-top, margin-right, margin-bottom, margin-left, and shorthand margin properties. When margin collapsing occurs, the margin area is not clearly defined since margins are shared between boxes.</p>
+<p>So the idea is that, by default, when we have the following CSS declaration:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.my-box</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 1200px<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 900px<span class="token punctuation">;</span>
+  <span class="token property">margin-top</span><span class="token punctuation">:</span> 10px<span class="token punctuation">;</span>
+  <span class="token property">margin-left</span><span class="token punctuation">:</span> 20px<span class="token punctuation">;</span>
+  <span class="token property">margin-bottom</span><span class="token punctuation">:</span> 20px<span class="token punctuation">;</span>
+  <span class="token property">margin-right</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The dimensions of the box containing the <code>.my-box</code> element are:</p>
+<p><strong>height: 930px (900px content height + 10px margin-top + 20px margin-bottom)</strong></p>
+<h2 id="box-sizing" tabindex="-1">Box sizing</h2>
+<p>If the element has any border or padding, this is then added to the width and height to get the final size of the box that’s rendered on the screen. When you set width and height, you have to adjust the value you give to allow for any border or padding that may be added.</p>
+<p>The <a href="https://drafts.csswg.org/css-ui-3/#box-sizing">box-sizing property</a> can be used to adjust this behavior:</p>
+<p><strong>content-box</strong> gives you the default CSS box-sizing behavior.</p>
+<p>If you set an element’s width to 100 pixels, then the element’s content box will be 100 pixels wide, and the width of any border or padding will be added to the final rendered width.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.my-box</span> <span class="token punctuation">{</span>
+  <span class="token property">box-sizing</span><span class="token punctuation">:</span> content-box<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 800px<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 800px<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 10px solid #5B6DCD<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 5px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>border-box</strong> tells the browser to account for any border and padding in the values you specify for an element’s width and height.</p>
+<p>If you set an element’s width to 100 pixels, that 100 pixels will include any border or padding you added, and the content box will shrink to absorb that extra width. This typically makes it much easier to size elements.</p>
+<p>When there is a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/background-color">background-color</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/background-image">background-image</a> set on a box, it extends to the outer edge of the border (i.e. extends underneath the border in z-ordering). This default behavior can be altered with the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/background-clip">background-clip</a> css property.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.my-box</span> <span class="token punctuation">{</span>
+  <span class="token property">box-sizing</span><span class="token punctuation">:</span> border-box<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 800px<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 10px solid #5B6DCD<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 5px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Make sure that if you’re using box-sizing in an element that will be reused in multiple places that the same value for the property is used everywhere in the app.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

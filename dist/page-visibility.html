@@ -1,0 +1,95 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="page-visibility" tabindex="-1">Page Visibility</h1>
+<p>There is nothing more anoying than having audio/video playing in a tab when it’s in the background or when the browser is minimized.</p>
+<p>The <a href="https://www.w3.org/TR/page-visibility/">Page Visibility API</a> gives us control of what to do with media or any other element of a page when the tab is hidden or not visible. Some of the things we can do with this API:</p>
+<ul>
+<li>Pausing a video when the page has lost user focus.</li>
+<li>Stop an HTML5 canvas animation from running when a user is not on the page.</li>
+<li>Show a notification to the user only when the page is active.</li>
+<li>Stop movement of a slider carousel when the page has lost focus.</li>
+</ul>
+<p>The API introduces two new attributes to the <code>document</code> element: <code>document.visibilityState</code> and <code>document.hidden</code>.</p>
+<p><code>document.visibilityState</code> holds four different values which are as below:</p>
+<ul>
+<li><strong>hidden</strong>: Page is not visible on any screen</li>
+<li><strong>prerender</strong>: Page is loaded off-screen and not visible to user</li>
+<li><strong>visible</strong>: Page is visible</li>
+<li><strong>unloaded</strong>: Page is about to unload (user is navigating away from current page)</li>
+</ul>
+<p><code>document.hidden</code> is boolean property, that is set to false if page is visible and true if page is hidden.</p>
+<p>The first example pauses a video if the container tab is hidden or not visible and plays it otherwise.</p>
+<p>We start by adding a <code>visibilitychange</code> event listener to the document. Inside the listener we check if the document is hidden and pause the video if it is; otherwise we play it.</p>
+<pre class="language-javascript"><code class="language-javascript">video <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'myVideo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'visibilitychange'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>document<span class="token punctuation">.</span>hidden<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The most obvious use is to control video playback when the tab is not visible. When I wrote about creating <a href="https://publishing-project.rivendellweb.net/custom-controls-for-html5-video/">custom controls for HTML5 video</a> I used a click event handler like this one to control video play/pause status:</p>
+<pre class="language-javascript"><code class="language-javascript">play<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token parameter">e</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// Prevent Default Click Action</span>
+  e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>video<span class="token punctuation">.</span>paused<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/pause.svg'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We can further enhance it so that it will only play the video if the document is visible.</p>
+<p>We wrap the if block that controls playback in another if block that tests the page’s visibility state and only moves forward if we can see the page. If the page is not visible then we pause the video, regardless of whether it’s currently playing.</p>
+<p>The code now looks like this:</p>
+<pre class="language-javascript"><code class="language-javascript">play<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token parameter">e</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// Prevent Default Click Action</span>
+  e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>document<span class="token punctuation">.</span>visibilityState <span class="token operator">===</span> <span class="token string">'visible'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>video<span class="token punctuation">.</span>paused<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/pause.svg'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>With those simple changes we’ve ensured that the video will not play in the background and that there will be no other distractions when we work on other tabs.  We then should do something similar for our keyboard video controls.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

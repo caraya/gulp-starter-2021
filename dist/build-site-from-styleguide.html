@@ -1,0 +1,205 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="build-a-site-from-a-style-guide" tabindex="-1">Build a site from a style guide</h1>
+<h2 id="exploring-fractal" tabindex="-1">Exploring Fractal</h2>
+<p>Fractal is a Node application. To install it run the following command:</p>
+<pre class="language-sh"><code class="language-sh">npm install -g @frctl/fractal
+</code></pre>
+<p>This will install a <code>fractal</code> command line tool.</p>
+<pre class="language-bash"><code class="language-bash">fractal --help
+┌───────────────────────────────────────────────────────┐
+│ Fractal interactive CLI                               │
+│───────────────────────────────────────────────────────│
+│ - Use the <span class="token builtin class-name">help</span> <span class="token builtin class-name">command</span> to see all available commands. │
+│ - Use the <span class="token builtin class-name">exit</span> <span class="token builtin class-name">command</span> to <span class="token builtin class-name">exit</span> the app.               │
+│───────────────────────────────────────────────────────│
+│ Powered by Fractal v1.1.7                             │
+└───────────────────────────────────────────────────────┘
+
+fractal ➤
+</code></pre>
+<p>Note that we’re working with the published version, not the one</p>
+<h2 id="core-concepts" tabindex="-1">Core Concepts</h2>
+<p>Now that we’ve installed and run Fractal we’ll explore some of the basic concepts. This is not an exhaustive reference, for that go to the <a href="http://fractal.build/guide/">Fractal Guide</a> that covers this in a lot more detail. This document covers how I use the tool.</p>
+<h3 id="view-templates" tabindex="-1">View templates</h3>
+<p>Fractal can use any template engine we want. By default it uses handlebars with additional extensions. A basic Handlebar template looks like this:</p>
+<pre class="language-handlebars"><code class="language-handlebars"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>entry<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span><span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span> <span class="token variable">title</span> <span class="token delimiter punctuation">}}</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>body<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span> <span class="token variable">body</span> <span class="token delimiter punctuation">}}</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>This will take the <code>title</code> string from a configuration file or as passed to the element and use it inside the h1 element. It will do the same thing with the <code>body</code> content and the div in the body element.</p>
+<p>We can create partial templates to build more comple layouts. For example we can create a page template, a header template and a footer-scripts template to hold different parts of our page.</p>
+<p>The <code>header</code> template contains the head element and all its children. We use it because, other than the tilte, these elements are not likely to change. The template looks like this:</p>
+<pre class="language-handlebars"><code class="language-handlebars"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/styles/video-load.css<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>utf-8<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>viewport<span class="token punctuation">"</span></span>
+      <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>width=device-width,minimum-scale=1,maximum-scale=1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span><span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token variable">title</span><span class="token delimiter punctuation">}}</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We use the <code>footer-scripts</code> to add scripts that we want to add to all content pages of our site. It contains all the scripts that I use so it may get pruned and made into different versions depending on what the specific page needs. The default script is shown below:</p>
+<pre class="language-handlebars"><code class="language-handlebars"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/scripts/lazy-load.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/scripts/vendor/moment-with-locales.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/scripts/vendor/prism.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/scripts/vendor/fontfaceobserver.standalone.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/scripts/load-fonts.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/scripts/lazy-load-video.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The final template is for our basic pages. It will use the two partial templates we’ve seen before and build the page. The default Handlebars way looks like this:</p>
+<pre class="language-handlebars"><code class="language-handlebars"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span>
+<span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token punctuation">></span> <span class="token variable">header</span> <span class="token delimiter punctuation">}}</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+
+<span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{{</span> <span class="token variable">yield</span> <span class="token delimiter punctuation">}}}</span></span>
+
+<span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token punctuation">></span> <span class="token variable">footer-scripts</span> <span class="token delimiter punctuation">}}</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We can nest templates inside each other to make content even more moular. We could take our header and title element and make a template out of them. We’ll look at this in more detail when we build a component.</p>
+<p>If I’m working on a style guide then I will use them extensively. If I’m building the style guide as part of a larger project I may stick with standard handlebars or those available from the <a href="https://github.com/helpers/handlebars-helpers">handlebars-helpers</a> collection, I don’t want to stay tied to Fractal any more than absolutely necessary, particularly if the project is for a client.</p>
+<p>You can check the existing Fractal helpers in the documentation guide (<a href="http://fractal.build/guide/core-concepts/views#using-handlebars">Using Handlebars</a> section). I will use the <code>render</code> helper to illustrate how they work.</p>
+<pre class="language-handlebars"><code class="language-handlebars"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span>
+<span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token variable">render</span> <span class="token string">'@header'</span> <span class="token delimiter punctuation">}}</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+
+<span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{{</span> <span class="token variable">yield</span> <span class="token delimiter punctuation">}}}</span></span>
+
+<span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token variable">render</span> <span class="token string">'@footer-scripts'</span> <span class="token delimiter punctuation">}}</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The result should be the same but behind the scenes Fractal will do additional work with the rendered template. We don’t need to know what it is, it just works :)</p>
+<h3 id="context-data" tabindex="-1">Context data</h3>
+<p>Context data can be used to populate parts of the template. The two most common ways to do it are to create a .json file or to use YAML front matter at the top of the page. The idea is that you don’t need to manually give titles or do things with the template, for example we could create the following <a href="http://json.org/">JSON</a> file for a component may look like this:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"context"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Level 1 Heading"</span><span class="token punctuation">,</span>
+    <span class="token property">"author"</span><span class="token operator">:</span> <span class="token string">"Aragorn, King of the West"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We could also provide the same data at the document level using <a href="http://yaml.org/">YAML</a>. The JSON file converted to YAML front matter works like this. We can extend this with additional information and data to work with our templates.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
+<span class="token key atrule">context</span><span class="token punctuation">:</span>
+  <span class="token key atrule">title</span><span class="token punctuation">:</span> <span class="token string">"Level 1 Heading"</span>
+  <span class="token key atrule">author</span><span class="token punctuation">:</span> <span class="token string">"Aragorn, King of the West"</span>
+<span class="token punctuation">---</span>
+</code></pre>
+<h3 id="configuration-files" tabindex="-1">Configuration files</h3>
+<p>Components, documentation pages and collections can all have their own (optional) configuration files associated with them.</p>
+<p>In order to be recognised, configuration files must:</p>
+<ul>
+<li>Reside in the same directory as the item that they are configuring</li>
+<li>Have a file name in the format item-name.config.{js|json|yml} - for example button.config.json, patterns.config.js or changelog.config.yml</li>
+</ul>
+<p>Some things to note:</p>
+<ul>
+<li>The javascript version (the one that exports a module) is not as strict as the JSON version in terms of quoting string attributes</li>
+</ul>
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">title</span><span class="token operator">:</span> <span class="token string">'Base Layout'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">status</span><span class="token operator">:</span> <span class="token string">'prototype'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">context</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">title</span><span class="token operator">:</span> <span class="token string">'Click me!'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">author</span><span class="token operator">:</span> <span class="token string">'Carlos'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Base Layout"</span><span class="token punctuation">,</span>
+  <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"prototype"</span><span class="token punctuation">,</span>
+  <span class="token property">"context"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Click me!"</span><span class="token punctuation">,</span>
+    <span class="token property">"author"</span><span class="token operator">:</span> <span class="token string">"Carlos"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Some configuration items will have their values inherited from upstream collections or their default settings if the values are not set in the item’s configuration file directly.</p>
+<p>This can also be thought of a cascade of configuration values from their default settings down through any nested collection configurations and into the item itself.</p>
+<h3 id="naming-%26-referencing" tabindex="-1">Naming &amp; referencing</h3>
+<p>Fractal is a flat-file system, and makes use of some simple file and folder naming conventions to help it parse the file system and generate the underlying data model.</p>
+<p>One of the main disadvantages of flat-file systems is that when one item references another via a path, moving any of those items inevitably results in those links breaking. So Fractal also supports a reference system, whereby items can use ‘handles’ instead of paths to link parts of the system together.</p>
+<p>Unless told otherwise, Fractal will infer the name of a component or documentation page from its view template file name (or the parent directory for ‘compound’ components). It will then use this name (plus some other information) to generate a handle for the item. Handles are what will be used to reference that item elsewhere around your project.</p>
+<div class="message info">
+  <p>Names and handles are both ‘slug’ type strings, and will contain only lowercase, alphanumeric characters plus underscores and dashes.</p>
+</div>
+<p>The name will also be used to generate a default label and a title for the item. Labels are the text that will be used when the item is referenced in any navigation (for example in the web UI) and the title value is the text that will be used anywhere else a human-readable name for the item is required.</p>
+<p>For a template in blockquote-large.hbs:</p>
+<pre class="language-bash"><code class="language-bash">├── components
+│   └── blockquote-large.hbs
+</code></pre>
+<p>The following labels and slugs will be generated:</p>
+<ul>
+<li>name: blockquote-large</li>
+<li>handle: blockquote-large</li>
+<li>label: Blockquote Large</li>
+<li>title: Blockquote Large</li>
+</ul>
+<h3 id="statuses" tabindex="-1">Statuses</h3>
+<p>Pages can have statuses associated with them.</p>
+<p>Each status has a colour and a label that can be displayed in the web UI (and other places) to help people quickly understand the status of each component.</p>
+<p>Fractal defines some default statuses, but you are free to define your own to suit the needs of your project, or customise the colours and labels associated with these statuses.</p>
+<h2 id="building-a-component" tabindex="-1">Building a component</h2>
+<p>In this example we’ll build a header element with title and author children. We’ll build two separate templates, the first one has the content of the template that we can style as needed.</p>
+<pre class="language-handlebars"><code class="language-handlebars">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span><span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token variable">title</span><span class="token delimiter punctuation">}}</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>by<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span><span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token variable">author</span><span class="token delimiter punctuation">}}</span></span>
+</code></pre>
+<p>The second template takes the content template and inserts it into a header element. The cool thing is that we can start with as small templates as we want or need to acommodate atomic design principles</p>
+<pre class="language-handlebars"><code class="language-handlebars"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>header</span><span class="token punctuation">></span></span>
+  <span class="token handlebars language-handlebars"><span class="token delimiter punctuation">{{</span><span class="token punctuation">></span> <span class="token punctuation">@</span><span class="token variable">head</span><span class="token delimiter punctuation">}}</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>header</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="moving-the-components-to-fractal" tabindex="-1">Moving the components to Fractal</h2>
+<p>To move a component into Fractal do the following:</p>
+<ol>
+<li>Create the Handlebars template</li>
+</ol>
+<ul>
+<li>Make sure you’ve already created all the components that you’ll use inside the current element</li>
+</ul>
+<ol start="2">
+<li>Create the configuration file for your component</li>
+<li>Create the styles (note that these are for display only, the style should go into your SASS or CSS)</li>
+<li>Preview.</li>
+</ol>
+<h1 id="static-sites-for-rapid-prototyping" tabindex="-1">Static sites for Rapid Prototyping</h1>
+<p>Now that we have a way to create components and preview them using Fractal we can look at how we can use the same handlebars templates to build a static web site.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

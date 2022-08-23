@@ -1,0 +1,93 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="background-sync-and-background-fetch" tabindex="-1">background sync and background fetch</h1>
+<p>Service workers are awesome at what they do. They provide better performance, offline capabilities and the ability to intercept request and provide custom responses.</p>
+<p>Out of the box they don’t work well with large files or with background processing of files. This is where background sync and background fetch come in… They provides means to do one off sync and fetch large files in the background.</p>
+<h2 id="background-sync" tabindex="-1">Background Sync</h2>
+<p>The service worker API has had <a href="https://developers.google.com/web/updates/2015/12/background-sync">background sync</a> for a while which, in its current iteration, allows the service worker to defer work until the user has connectivity. This means the user could type a message, hit send, and leave the site knowing that the message will be sent either now, or when they have connectivity.</p>
+<p>You can also use background sync to cache individual items in a page independently of the status of the user’s network or whether the user is actively engaged with the site.</p>
+<p>The code belows assumes that we’ve already registered a service worker. The code below waits for the service worker to load then registers a sync with a name or tag. We’ll use the tag in the service worker code to identify the event that triggered the sync.</p>
+<p>If the <code>navigator.serviceWorker.ready</code> promise is rejected (most likely because the Operating System rejected the sync) we’ll trigger the catch portion of the promise and run the command we wanted to sync.</p>
+<p>If the browser doesn’t support service workers or, more likely, background sync, we run the command anyway.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'serviceWorker'</span> <span class="token keyword">in</span> navigator <span class="token operator">&amp;&amp;</span> <span class="token string">'SyncManager'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span>ready<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">reg</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> reg<span class="token punctuation">.</span>sync<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token string">'myFirstSync'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">postDataFromThePage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token function">postDataFromThePage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>In the service worker we register a new event to handle the sync requests. We can perform different actions depending on the tag that triggered the request. In the simplest form, we match the sync event tag and perform something… <code>postDataFromThePage()</code> will cache resources and perform the tasks we set it up to.</p>
+<pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'sync'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>tag <span class="token operator">==</span> <span class="token string">'myFirstSync'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span><span class="token function">postDataFromThePage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>It’s important to know that this is for one off sync operations, not for repeated operations or to fetch large files like audio or video files.</p>
+<p>According to caniuse (<a href="https://caniuse.com/#feat=background-sync">background sync api</a>) the feature is Chrome-only at the moment, Edge and Firefox have it under development.</p>
+<h2 id="background-fetch" tabindex="-1">Background Fetch</h2>
+<div class="message warning">
+  <p>This API currently works in Chrome 71 with the experimental web features flag enabled or through an origin trial.</p>
+</div>
+<p>Background fetch is different. The API allows you to download large payloads like MP3 or DASH video segments. The download will pause if the user loses connectivity and resume when they get back online. It is also user-initiated; background fetch will</p>
+<p>The idea is like this:</p>
+<ol>
+<li>You tell the browser to perform a group of fetches in the background.</li>
+<li>The browser fetches those things, displaying progress to the user.</li>
+<li>Once the fetch has completed or failed, the browser opens your service worker and fires an event to tell you what happened. This is where you decide what to do with the responses, if anything.</li>
+</ol>
+<p>If the user closes pages to your site after step 1, that’s ok, the download will continue. Because the fetch is highly visible and easily abortable, there isn’t the privacy concern of a way-too-long background sync task. Because the service worker isn’t constantly running, there isn’t the concern that it could abuse the system, such as mining bitcoin in the background.</p>
+<p>If the user starts the download while offline, or goes offline during the download, the background fetch will be paused and resumed when there is connectivity.</p>
+<p>Background Fetch is an ideal tool if you want to allow users to selectively download longer pieces of content like audio, video or longer chapters or stories in a collection.</p>
+<h3 id="building-your-background-fetch" tabindex="-1">Building your background fetch</h3>
+<p>Because we’re asking the user to decide when they want to fetch the content, we can’t rely on the service worker itself to do the update.</p>
+<ul>
+<li>
+<p>Background Sync</p>
+<ul>
+<li><a href="https://wicg.github.io/BackgroundSync/spec/">Background Sync Specification</a></li>
+<li><a href="https://developers.google.com/web/updates/2015/12/background-sync">Introducing Background Sync</a></li>
+<li><a href="https://ponyfoo.com/articles/backgroundsync">Background Sync</a> by Dean Hume at <a href="https://ponyfoo.com/">Ponyfoo</a></li>
+</ul>
+</li>
+<li>
+<p>Background Fetch</p>
+<ul>
+<li><a href="https://developers.google.com/web/updates/2018/12/background-fetch">Introducing Background Fetch</a></li>
+<li><a href="https://medium.com/google-developer-experts/background-fetch-api-get-ready-to-use-it-69cca522cd8f">Background Fetch API: Get Ready To Use It!</a></li>
+<li><a href="https://bgfetch-http203.glitch.me/">Background Fetch Demo App</a> by <a href="https://twitter.com/jaffathecake">Jake Archibald</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

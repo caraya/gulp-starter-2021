@@ -1,0 +1,136 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="intersection-observers%3A-making-it-easier-to-lazy-load-content" tabindex="-1">Intersection Observers: Making it easier to lazy load content</h1>
+<p>What I love about Paul Lewis’ Developer Diaries is that he points me to new technologies and better ways to work with web content. In this case (video below) he clued me into a new API: Intersection Observers.</p>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ncYQkOrKTaI?rel=0" frameborder="0" allowfullscreen></iframe>
+</div>
+<p>The idea behind Intersection Observers is that we don’t really need to load content until it comes into the viewport (it’s visible in the browser’s window). We can configure the action that happens when the selected object comes into view.</p>
+<p>The best example of Intersection Observers I can think of is to lazy load images only when the image in question appears in the viewport, not before. This will make our page load faster because only the two top-most images will load when the page loads and, we all know, images are the biggest hogs when it comes to web page payload.</p>
+<p>The script performs the following actions</p>
+<ol>
+<li>Create the IntersectionObserver and bind it to the  function we want it to work with</li>
+<li>For each image that we want to change
+<ul>
+<li>Add the src attribute using the value from the data-src attribute in the same element</li>
+<li>Stop observing the current target</li>
+</ul>
+</li>
+<li>Convert node list of all images with data-src attributed to array</li>
+<li>Observe each image belonging to the array defined in step 3</li>
+</ol>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Script derived from: </span>
+<span class="token comment">// Quick introduction to the Intersection Observer API </span>
+<span class="token comment">// by Jeremias Menichelli </span>
+<span class="token comment">// 1. Create the IntersectionObserver and bind it to the </span>
+<span class="token comment">// function we want it to work with</span>
+<span class="token keyword">let</span> observer <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IntersectionObserver</span><span class="token punctuation">(</span>onChange<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">onChange</span><span class="token punctuation">(</span><span class="token parameter">changes</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// 2. For each image that we want to change</span>
+  changes<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token parameter">change</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token comment">// * Add the src attribute using the value</span>
+    <span class="token comment">// from the data-src attribute in the same element</span>
+    change<span class="token punctuation">.</span>target<span class="token punctuation">.</span>src <span class="token operator">=</span> change<span class="token punctuation">.</span>target<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span>
+
+    <span class="token comment">// * Stop observing the current target</span>
+    observer<span class="token punctuation">.</span><span class="token function">unobserve</span><span class="token punctuation">(</span>change<span class="token punctuation">.</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 5. Convert node list of all images with data-src attributed to array</span>
+<span class="token keyword">const</span> imgs <span class="token operator">=</span> <span class="token punctuation">[</span> <span class="token operator">...</span>document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'img[data-src]'</span><span class="token punctuation">)</span> <span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 6. Observe each image belonging to the array above</span>
+imgs<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token parameter">img</span> <span class="token operator">=></span> observer<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>In the <a href="https://caraya.github.io/intersection-observer/">demo page</a> I set the first two images to always load by setting a <code>src</code> attribute for the images instead of a <code>data-src</code> attribute to be manipulated by the script. This will ensure that the content above the fold or partially above the fold will display regardless of whether the browser supports IntersectionObsservers or not.</p>
+<p>Browser support is spotty at best. Acording to <a href="http://caniuse.com/#feat=intersectionobserver">caniuse.com</a> only Chrome and Opera support the API out of the box, Firefox supports it behind a flag (<code>dom.IntersectionObserver.enabled</code>) in <code>about:config</code> and Edge has it under development. But to load the images in browsers that don’t support IntersectionObservers we have to do jump through a few more workarounds.</p>
+<p>The idea is that if the browser doesn’t support Intersection Observers we load the images right away, using this API as a progressive enhancement.</p>
+<p>We modify the script to do as follows:</p>
+<ol>
+<li>Convert node list of all images with data-src attributed to array</li>
+<li>Wrap the code on a feature test for IntersectionObserver</li>
+<li>Create the IntersectionObserver and bind it to the function we want it to work with</li>
+<li>For each image that we want to change
+<ul>
+<li>Add the src attribute using the value from the data-src attribute in the same element</li>
+<li>Stop observing the current target</li>
+</ul>
+</li>
+<li>Observe each image belonging to the array defined in step 3</li>
+<li>If the browser doesn’t support Interaction Observer then we load all the images right away</li>
+</ol>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// 1. Convert node list of all images with </span>
+<span class="token comment">// data-src attribute to an array</span>
+<span class="token keyword">const</span> imgs <span class="token operator">=</span> <span class="token punctuation">[</span> <span class="token operator">...</span>document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'img[data-src]'</span><span class="token punctuation">)</span> <span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 2. Wrap the code on a feature test for IntersectionObserver</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'IntersectionObserver'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// 3. Create the IntersectionObserver and bind it to the function </span>
+  <span class="token comment">// we want it to work with</span>
+  <span class="token keyword">let</span> observer <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IntersectionObserver</span><span class="token punctuation">(</span>onChange<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">function</span> <span class="token function">onChange</span><span class="token punctuation">(</span><span class="token parameter">changes</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 4. For each image that we want to change</span>
+    changes<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">change</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token comment">// * take image url from `data-src` attribute</span>
+      change<span class="token punctuation">.</span>target<span class="token punctuation">.</span>src <span class="token operator">=</span> change<span class="token punctuation">.</span>target<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span>
+      <span class="token comment">// * Stop observing the current target</span>
+      observer<span class="token punctuation">.</span><span class="token function">unobserve</span><span class="token punctuation">(</span>change<span class="token punctuation">.</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+
+<span class="token comment">// 5. Observe each image derived from the array above</span>
+  imgs<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">img</span><span class="token punctuation">)</span> <span class="token operator">=></span> observer<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+<span class="token comment">// 6. if the browser doesn't support Intersection Observer </span>
+<span class="token comment">// we log to console and load images manually</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Intersection Observers not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">function</span> <span class="token function">loadImages</span><span class="token punctuation">(</span><span class="token parameter">imgs</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    imgs<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">image</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      image<span class="token punctuation">.</span>src <span class="token operator">=</span> image<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">loadImages</span><span class="token punctuation">(</span>imgs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+</code></pre>
+<p>Once this API is deployed on all browsers we’ll be able to lazy load content without having to worry about the positioning or threshold of when the images appear in the viewport. Is this the only way to do it? no, it isn’t. Brian Rinaldi’s <a href="http://developer.telerik.com/featured/lazy-loading-images-on-the-web/">Lazy Loading Images on the Web</a> covers how to lazy load images without using Intersection Observers.</p>
+<ul>
+<li><a href="https://jeremenichelli.github.io/2016/04/quick-introduction-to-the-intersection-observer-api/">Quick introduction to the Intersection Observer API</a></li>
+<li><a href="https://developers.google.com/web/updates/2016/04/intersectionobserver">IntersectionObserver’s Coming into View</a></li>
+<li><a href="https://github.com/WICG/IntersectionObserver/blob/gh-pages/explainer.md">IntersectionObserver Explainer</a> from WCIG</li>
+<li><a href="https://wicg.github.io/IntersectionObserver/">IntersectionObserver Spec Work</a></li>
+<li><a href="https://developers.google.com/web/updates/2016/04/intersectionobserver">Google Developers’ Article</a></li>
+<li><a href="http://developer.telerik.com/featured/lazy-loading-images-on-the-web/">Lazy Loading Images on the Web</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
