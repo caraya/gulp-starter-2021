@@ -1,0 +1,237 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="font-formats-for-the-web-and-converting-from-one-to-another">Font formats for the web and converting from one to another</h1>
+<p>Using fonts on the web has a longer story than what many would think.</p>
+<p>The <code>@font-face</code> at-rule has been around since the early days of the web. Initially there were no fonts on the web… the goal was to share documents, not to produce the polished documents that we see today.</p>
+<p>In the beginning, web browsers relied on locally installed fonts both for performance (the modems of the time would take forever to download a font).</p>
+<p>We could use any of the pre-defined fonts:</p>
+<ul>
+<li><span style="font-family: Andale Mono;">Andale Mono</span></li>
+<li><span style="font-family: Arial;">Arial</span></li>
+<li><span style="font-family: Arial Black;">Arial Black</span></li>
+<li><span style="font-family: Comic Sans MS;">Comic Sans MS</span></li>
+<li><span style="font-family: Courier New;">Courier New</span></li>
+<li><span style="font-family: Georgia;">Georgia</span></li>
+<li><span style="font-family: Impact;">Impact</span></li>
+<li><span style="font-family: Times New Roman;">Times New Roman</span></li>
+<li><span style="font-family: Trebuchet MS;">Trebuchet MS</span></li>
+<li><span style="font-family: Verdana;">Verdana</span></li>
+<li><span style="font-family: Webdings;">Webdings</span> (Webdings)</li>
+</ul>
+<p>There were several methods for embeding fonts that didnt’ catch on like TrueDoc in 1996, an outline font standard developed by Bitstream, or Embedded OpenType (EOT) in 1997.</p>
+<p>CSS 2.0, introduced in 1998, included support for @font-face in pretty much the same way as it does now but browsers were afraid of being seen as contributors to font piracy so they didn’t implement it when it was first released.</p>
+<p>It wasn’t until 2008 that browsers (re)introduced <code>@font-face</code> with support for different formats:</p>
+<ul>
+<li>The beta version of Safari 4 implemented @font-face support for TrueType fonts</li>
+<li>The beta version of Firefox 3.1 implemented support for both TrueType and OpenType</li>
+</ul>
+<p>Other browsers continued to support separate formats which eventually led to the “bulletproof @font-face syntax”, dating back to 2009 in Paul Irish’s <a href="https://www.paulirish.com/2009/bulletproof-font-face-implementation-syntax/">Bulletproof @font-face Syntax</a></p>
+<p>in 2009, Small Batch announced the Typekit project, a subscription-based ‘middleman’ service for designers and developers, which allowed safer embedding of fonts via the @font-face CSS declaration and some JavaScript.</p>
+<p>We now have a variety of services like TypeKit (acquired by Adobe and now known as Adobe Fonts). The biggest one is <a href="https://fonts.google.com/">Google Fonts</a></p>
+<p>Things have improved in terms of common support. All modern browsers except IE and Opera Mini now <a href="https://caniuse.com/?search=WOFF2">support WOFF2 fonts</a>.</p>
+<p>The four most used formats for fonts are:</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/TrueType">TTF</a> (True Type Fonts)</li>
+<li><a href="https://en.wikipedia.org/wiki/OpenType">OTF</a> (Open Type Fonts)</li>
+<li><a href="https://www.w3.org/TR/WOFF/">WOFF</a> (Web Open Font Format 1.0)</li>
+<li><a href="https://www.w3.org/TR/WOFF2/">WOFF2</a> (Web Open Font Format 2.0)</li>
+</ul>
+<p>What format you use depends on the browsers you must support.</p>
+<p>Not all fonts are available in all formats and I’ve found out over time that I have to do manual conversions, usually from TTF or OTF to newer formats.</p>
+<p>I will run through the process both to illustrate the tools and process I use to compress fonts from TTF to WOFF and WOFF2</p>
+<h2 id="getting-started">Getting Started</h2>
+<p>I downloaded <a href="https://fonts.google.com/specimen/Open+Sans">Open Sans</a> from Google Fonts as the basis for the compression examples.</p>
+<h2 id="woff">WOFF</h2>
+<p>To convert to WOFF, I use the <a href="https://www.npmjs.com/package/ttf2woff">ttf2woff</a> utility, available as a Node package.</p>
+<p>To install it, run the following command:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -g ttf2woff
+</code></pre>
+<p>To conver the font to WOFF, use the following command, replacing both instances of the font-name with the font you’re working with.</p>
+<pre class="language-bash"><code class="language-bash">ttf2woff <span class="token punctuation">\</span>
+OpenSans-VariableFont_wdth,wght.ttf <span class="token punctuation">\</span>
+OpenSans-VariableFont_wdth,wght.woff
+</code></pre>
+<p>and then do the same thing with the italic version of the variable fonts:</p>
+<pre class="language-bash"><code class="language-bash">ttf2woff <span class="token punctuation">\</span>
+OpenSans-Italic-VariableFont_wdth,wght.ttf <span class="token punctuation">\</span>
+OpenSans-Italic-VariableFont_wdth,wght.woff
+</code></pre>
+<p>If you’re not working with a variable font, you can run the same command for each individual font.</p>
+<pre class="language-bash"><code class="language-bash">ttf2woff OpenSans-Bold.ttf OpenSans-Bold.woff
+ttf2woff OpenSans-BoldItalic.ttf OpenSans-BoldItalic.woff
+ttf2woff OpenSans-Italic.ttf OpenSans-Italic.woff
+ttf2woff OpenSans-Regular.ttf OpenSans-Regular.woff
+</code></pre>
+<h2 id="woff2">WOFF2</h2>
+<p>WOFF2 is an evolution of the WOFF format that provides further savings in terms of file size.</p>
+<p>To convert the font to WOFF2 I’m using Google’s <a href="https://github.com/google/woff2">WOFF2 Reference Implementation</a></p>
+<p>Install the library via Homebrew or your platform-specific package manager with the following command:</p>
+<pre class="language-bash"><code class="language-bash">brew brew <span class="token function">install</span> woff2
+</code></pre>
+<p>And run the compression tool with the following commands:</p>
+<pre class="language-bash"><code class="language-bash">woff2_compress <span class="token punctuation">\</span>
+OpenSans-VariableFont_wdth,wght.ttf
+woff2_compress <span class="token punctuation">\</span>
+OpenSans-Italic-VariableFont_wdth,wght.ttf
+</code></pre>
+<p>These are the results of compressing our regular variable font with the different formats:</p>
+<table>
+<thead>
+<tr>
+<th>Font</th>
+<th>Format</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenSans-VariableFont_wdth,wght</td>
+<td>TTF</td>
+<td>530KB</td>
+</tr>
+<tr>
+<td>OpenSans-VariableFont_wdth,wght</td>
+<td>WOFF</td>
+<td>345KB</td>
+</tr>
+<tr>
+<td>OpenSans-VariableFont_wdth,wght</td>
+<td>WOFF2</td>
+<td>280KB</td>
+</tr>
+</tbody>
+</table>
+<p>And these are the results for the italic variable font. Note how the values for all formats are slightly larger in this example.</p>
+<table>
+<thead>
+<tr>
+<th>Font</th>
+<th>Format</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenSans-Italic-VariableFont_wdth,wght</td>
+<td>TTF</td>
+<td>580 KB</td>
+</tr>
+<tr>
+<td>OpenSans-Italic-VariableFont_wdth,wght</td>
+<td>WOFF</td>
+<td>389KB</td>
+</tr>
+<tr>
+<td>OpenSans-Italic-VariableFont_wdth,wght</td>
+<td>WOFF2</td>
+<td>310KB</td>
+</tr>
+</tbody>
+</table>
+<p>If we also take into consideration that WOFF2 is supported across all browsers, except IE and Opera Mini, it is safe to say that, size-wise, WOFF 2 is the best format to use.</p>
+<h2 id="subsetting">Subsetting</h2>
+<p>We converted the fonts to WOFF2 and did the best we could do without resorting to exotic compression tools like Brotli or Zopfli.</p>
+<p>There is one more thing we can do to improve the file size of the fonts: subsetting.</p>
+<p>SUbsetting is the process of taking a large font file and creating smaller font files, with fewer characters or OpenType features.</p>
+<h3 id="subsetting-to-the-latin-character-set">Subsetting to the latin character set</h3>
+<p>For this demo we’ll just reduce the characters in the font to those necessary for Latin scripts using <a href="https://github.com/zachleat/glyphhanger">Glyphhanger</a> to generate both WOFF and WOFF2 versions of the subset fonts.</p>
+<pre class="language-bash"><code class="language-bash">glyphhanger --latin <span class="token punctuation">\</span>
+--subset<span class="token operator">=</span>OpenSans-VariableFont.woff2  <span class="token punctuation">\</span>
+--formats<span class="token operator">=</span>woff-zopfli,woff2
+</code></pre>
+<p>And the equivalent command for the italic variable font:</p>
+<pre class="language-bash"><code class="language-bash">glyphhanger --latin <span class="token punctuation">\</span>
+--subset<span class="token operator">=</span>OpenSans-Italic-VariableFont.woff2  <span class="token punctuation">\</span>
+--formats<span class="token operator">=</span>woff-zopfli,woff2
+</code></pre>
+<h3 id="subsetting-to-ascii">Subsetting to ASCII</h3>
+<p>Perhaps the most aggressive subsetting available that doesn’t match pages is subsetting to the <a href="https://en.wikipedia.org/wiki/ASCII">US-ASCII</a> character set. This will handle English and no other language since ASCII was created to represent characters in the English alphabet.</p>
+<p>Running Glyphhanger to subset to the US_ASCII character set looks like this:</p>
+<pre class="language-bash"><code class="language-bash">glyphhanger --US_ASCII <span class="token punctuation">\</span>
+--subset<span class="token operator">=</span>OpenSans-VariableFont.woff2  <span class="token punctuation">\</span>
+--formats<span class="token operator">=</span>woff-zopfli,woff2
+</code></pre>
+<p>The equivalent command for the Italic font:</p>
+<pre class="language-bash"><code class="language-bash">glyphhanger --US_ASCII <span class="token punctuation">\</span>
+--subset<span class="token operator">=</span>OpenSans-Italic-VariableFont.woff2  <span class="token punctuation">\</span>
+--formats<span class="token operator">=</span>woff-zopfli,woff2
+</code></pre>
+<p>This produces the smallest font size by a large margin as shown in the following table</p>
+<table>
+<thead>
+<tr>
+<th>Font</th>
+<th>Subset</th>
+<th>Format</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenSans-VariableFont</td>
+<td>Latin</td>
+<td>WOFF + Zopfli</td>
+<td>330KB</td>
+</tr>
+<tr>
+<td>OpenSans-VariableFont</td>
+<td>Latin</td>
+<td>WOFF2</td>
+<td>276KB</td>
+</tr>
+<tr>
+<td>OpenSans-VariableFont</td>
+<td>ASCII</td>
+<td>WOFF + Zopfli</td>
+<td>74KB</td>
+</tr>
+<tr>
+<td>OpenSans-VariableFont</td>
+<td>ASCII</td>
+<td>WOFF2</td>
+<td>63 KB</td>
+</tr>
+<tr>
+<td>OpenSans-Italic-VariableFont</td>
+<td>Latin</td>
+<td>WOFF + Zopfli</td>
+<td>373KB</td>
+</tr>
+<tr>
+<td>OpenSans-Italic-VariableFont</td>
+<td>Latin</td>
+<td>WOFF2</td>
+<td>310KB</td>
+</tr>
+<tr>
+<td>OpenSans-Italic-VariableFont</td>
+<td>ASCII</td>
+<td>WOFF + Zopfli</td>
+<td>83KB</td>
+</tr>
+<tr>
+<td>OpenSans-Italic-VariableFont</td>
+<td>ASCII</td>
+<td>WOFF2</td>
+<td>70KB</td>
+</tr>
+</tbody>
+</table>
+<p>However unless you’re absolutely sure that you will use English only with no phrases from other Latin languages like Spanish or French then you should use the ASCII subset; otherwise I would recommend the Latin Subset.</p>
+<p>The sizes will also vary with the font or fonts you use. There are fonts that deliver a single variable font to cover all possible styles and variations. These fonts will be larger overall, but the larger size is offset by it being a single file to download.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

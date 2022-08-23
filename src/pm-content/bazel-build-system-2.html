@@ -1,0 +1,170 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="specific-languages-and-toolchains">Specific languages and toolchains</h1>
+<p>In the <a href="https://publishing-project.rivendellweb.net/first-look-bazel-build-system/">last post</a> we looked at Bazel, what it is, installation on macOS using homebrew, and a Bazel-based project’s basic configuration.</p>
+<p>This post will look at using Bazel to run Typescript and Node.js builds using Bazel. Future posts will look at styling and backend toolchains</p>
+<h2 id="javascript%2C-typescript-and-node.js">Javascript, Typescript and Node.js</h2>
+<p>To work directly with Javascript we’ll leverage two items</p>
+<ul>
+<li>Every Javascript file is also a legal Typescript file</li>
+<li>We’re already looking at implementing a Node.js-based build system that will use Javascript/Typescript</li>
+</ul>
+<p>Before Bazel will work we need to install the following Node packages.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D @bazel/protractor <span class="token punctuation">\</span>
+@bazel/rollup <span class="token punctuation">\</span>
+@bazel/terser <span class="token punctuation">\</span>
+@bazel/typescript <span class="token punctuation">\</span>
+@types/jasmine <span class="token punctuation">\</span>
+html-insert-assets <span class="token punctuation">\</span>
+http-server <span class="token punctuation">\</span>
+protractor <span class="token punctuation">\</span>
+rollup <span class="token punctuation">\</span>
+terser <span class="token punctuation">\</span>
+typescript
+</code></pre>
+<p>At its most basic, the following <code>WORKSPACE</code> file will load the Bazel rules for Node.js, tell Bazel where to find the project’s package.json and use the default version of Node and NPM. <strong>It will not install the packages in package.json.</strong></p>
+<pre class="language-python"><code class="language-python">load<span class="token punctuation">(</span><span class="token string">"@bazel_tools//tools/build_defs/repo:http.bzl"</span><span class="token punctuation">,</span> <span class="token string">"http_archive"</span><span class="token punctuation">)</span>
+
+http_archive<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"build_bazel_rules_nodejs"</span><span class="token punctuation">,</span>
+  sha256 <span class="token operator">=</span> <span class="token string">"121f17d8b421ce72f3376431c3461cd66bfe14de49059edc7bb008d5aebd16be"</span><span class="token punctuation">,</span>
+  urls <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"https://github.com/bazelbuild/rules_nodejs/releases/download/2.3.1/rules_nodejs-2.3.1.tar.gz"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+load<span class="token punctuation">(</span><span class="token string">"@build_bazel_rules_nodejs//:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"node_repositories"</span><span class="token punctuation">)</span>
+
+node_repositories<span class="token punctuation">(</span>package_json <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"//:package.json"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>We can then start building our rules in <code>BUILD.bazel</code>. This example is taken from Bazel’s rules for <a href="https://github.com/bazelbuild/rules_nodejs/tree/stable/examples/app">Node.js example app</a></p>
+<p>The first step is to load the resources that we’ll use for this particular build file. There are two types of resources we load:</p>
+<ul>
+<li>Included in a bazel_rules package like <code>@build_bazel_rules_nodejs</code></li>
+<li>Included from Node.js like <code>@npm//@bazel/protractor</code> or <code>@npm//http-server</code></li>
+</ul>
+<pre class="language-python"><code class="language-python">load<span class="token punctuation">(</span><span class="token string">"@build_bazel_rules_nodejs//:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"pkg_web"</span><span class="token punctuation">)</span>
+load<span class="token punctuation">(</span><span class="token string">"@npm//@bazel/protractor:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"protractor_web_test_suite"</span><span class="token punctuation">)</span>
+load<span class="token punctuation">(</span><span class="token string">"@npm//@bazel/rollup:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"rollup_bundle"</span><span class="token punctuation">)</span>
+load<span class="token punctuation">(</span><span class="token string">"@npm//@bazel/terser:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"terser_minified"</span><span class="token punctuation">)</span>
+load<span class="token punctuation">(</span><span class="token string">"@npm//@bazel/typescript:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"ts_devserver"</span><span class="token punctuation">,</span> <span class="token string">"ts_project"</span><span class="token punctuation">)</span>
+load<span class="token punctuation">(</span><span class="token string">"@npm//html-insert-assets:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"html_insert_assets"</span><span class="token punctuation">)</span>
+load<span class="token punctuation">(</span><span class="token string">"@npm//http-server:index.bzl"</span><span class="token punctuation">,</span> <span class="token string">"http_server"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>We then define a default vissibility for this build, whether other build or artifacts from other builds can see the artifacts from this build. We make it public.</p>
+<p>See <a href="https://docs.bazel.build/versions/master/visibility.html">visibility</a> in the Blaze documentation for more information.</p>
+<pre class="language-python"><code class="language-python">package<span class="token punctuation">(</span>default_visibility <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"//visibility:public"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>We fisrt define an <code>_ASSETS</code> private variable containing data that other tasks in the buildfile will use.</p>
+<pre class="language-python"><code class="language-python">_ASSETS <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token string">":bundle.min"</span><span class="token punctuation">,</span>
+  <span class="token string">"//styles:base.css"</span><span class="token punctuation">,</span>
+  <span class="token string">"//styles:test.css"</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span>
+</code></pre>
+<p>The remainder of the BUILD file defines the targets to build the application.</p>
+<p>Every target has a set of attributes:</p>
+<ul>
+<li><code>name</code> defines how we reference the target on the command line and from other targets</li>
+<li><code>srcs</code> define the source files that must be compiled to create the artifact for the target</li>
+<li><code>deps</code> define other targets that must be built before this target and linked into it There are three different types of dependencies
+<ul>
+<li>Within the same package (MyBinary’s dependency on <code>:mylib</code>)</li>
+<li>A third-party artifact outside of the source hierarchy (mylib’s dependency on <code>@npm//@types/jasmine</code> from NPM)</li>
+</ul>
+</li>
+</ul>
+<p>Some targets have additional attributes. For more information about specifics look at the corresponding <code>@bazel/*</code> NPM packages or the corresponding Bazel rules packages.</p>
+<pre class="language-python"><code class="language-python">ts_project<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"app"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"app.ts"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+ts_devserver<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"devserver"</span><span class="token punctuation">,</span>
+  <span class="token comment"># We'll collect all the devmode JS sources from these TypeScript libraries</span>
+  deps <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">":app"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+rollup_bundle<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"bundle"</span><span class="token punctuation">,</span>
+  entry_point <span class="token operator">=</span> <span class="token string">":app.ts"</span><span class="token punctuation">,</span>
+  deps <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">":app"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+terser_minified<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"bundle.min"</span><span class="token punctuation">,</span>
+  src <span class="token operator">=</span> <span class="token string">":bundle"</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># Copy index.html to the output folder, adding &lt;script> and &lt;link> tags</span>
+html_insert_assets<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"inject_tags"</span><span class="token punctuation">,</span>
+  outs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"index.html"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  args <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token string">"--out=$@"</span><span class="token punctuation">,</span>
+    <span class="token string">"--html=$(execpath :index.tmpl.html)"</span><span class="token punctuation">,</span>
+    <span class="token string">"--roots=$(RULEDIR)"</span><span class="token punctuation">,</span>
+    <span class="token string">"--assets"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token punctuation">[</span><span class="token string">"$(execpaths %s)"</span> <span class="token operator">%</span> a <span class="token keyword">for</span> a <span class="token keyword">in</span> _ASSETS<span class="token punctuation">]</span><span class="token punctuation">,</span>
+  data <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">":index.tmpl.html"</span><span class="token punctuation">]</span> <span class="token operator">+</span> _ASSETS<span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+pkg_web<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"package"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">":inject_tags"</span><span class="token punctuation">]</span> <span class="token operator">+</span> _ASSETS<span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+http_server<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"prodserver"</span><span class="token punctuation">,</span>
+  data <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">":package"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  templated_args <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"package"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># This could also be `ts_library`</span>
+ts_project<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"tsconfig-test"</span><span class="token punctuation">,</span>
+  testonly <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"app.e2e-spec.ts"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  extends <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"tsconfig.json"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  deps <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token string">"@npm//@types/jasmine"</span><span class="token punctuation">,</span>
+    <span class="token string">"@npm//@types/node"</span><span class="token punctuation">,</span>
+    <span class="token string">"@npm//protractor"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+protractor_web_test_suite<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"prodserver_test"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"app.e2e-spec.js"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  on_prepare <span class="token operator">=</span> <span class="token string">":protractor.on-prepare.js"</span><span class="token punctuation">,</span>
+  server <span class="token operator">=</span> <span class="token string">"//:prodserver"</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+protractor_web_test_suite<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"devserver_test"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"app.e2e-spec.js"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  on_prepare <span class="token operator">=</span> <span class="token string">":protractor.on-prepare.js"</span><span class="token punctuation">,</span>
+  server <span class="token operator">=</span> <span class="token string">"//:devserver"</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># Just a dummy test so that we have a test target for //... on certain bazelci platforms with bazel_integration_test</span>
+sh_test<span class="token punctuation">(</span>
+  name <span class="token operator">=</span> <span class="token string">"dummy_test"</span><span class="token punctuation">,</span>
+  srcs <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"dummy_test.sh"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

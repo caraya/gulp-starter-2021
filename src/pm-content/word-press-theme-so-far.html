@@ -1,0 +1,88 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <p>This is my first attempt in a while to create a fully customized WordPress theme without using Genesis or other theme frameworks. The idea is to use modern web technologies like CSS Grid, Variable Fonts and others to experiment with what it takes to add these technologies to a WordPress theme using <a href="https://underscores.me/">Underscores</a> as the starter theme.</p>
+<p>It is also a playground for working with progressive enhancement, responsive design and how to accommodate multiple screen sizes in the same WordPress theme.</p>
+<p>Some aspects that I think are important to highlight and also some areas where further work is needed.</p>
+<h2 id="variable-fonts">Variable Fonts</h2>
+<p>The theme uses a single variable font, <a href="https://www.recursive.design/">Recursive</a> for everything from monospaced code examples to the casual font face used for the title header and everything in between, replacing 6 font files with a single 523KB WOFF2 one.</p>
+<p>Yes, it’s over 500KB of fonts, but we’ve taken care of not interrupting the page loading experience by using several tools and techniques:</p>
+<ul>
+<li>subsetting the font using [Glyphhanger](<a href="https://www.filamentgroup.com/lab/glyphhanger">https://www.filamentgroup.com/lab/glyphhanger</a></li>
+<li>Using <a href="https://fontfaceobserver.com/">Font Face Observer</a> to add classes based on font loading results</li>
+<li>Use <a href="https://developers.google.com/web/updates/2016/02/font-display">font-display</a> to swap the font in after it has finished loading.</li>
+</ul>
+<p>To make everything work in WordPress we need to:</p>
+<ul>
+<li>Enqueue the font or load it a local CSS stylesheet</li>
+<li>Enqueue FontFace Observer</li>
+<li>wrap the inline script that uses Fontface Observer in a PHP function and then use <code>add_action</code> to add the script to the footer of all documents.
+The process is documented in <a href="https://publishing-project.rivendellweb.net/using-variable-fonts-in-a-wordpress-theme/">Using Variable Fonts in a WordPress theme</a></li>
+</ul>
+<p>The biggest disadvantage of variable fonts is that they require fairly recent browsers and operating systems to work so they must be treated as an enhancement and alternative fonts must be built into the stacks, preferably fonts that are close in size so that the text will not shift too much when the web font loads.</p>
+<p>Another disadvantage is that, as I write this, Recursive is still in beta and there will be several more releases before it is deemed ready for production. I will continue to track the changes and will update the font when needed.</p>
+<h3 id="adapting-third-party-libraries-to-use-variable-fonts">Adapting third-party libraries to use variable fonts</h3>
+<p>As documented in <a href="https://publishing-project.rivendellweb.net/modifying-prism-js-to-use-a-variable-font/">Modifying Prism.js to use a variable font</a> I’ve tweaked the <a href="https://prismjs.com/">Prism.js</a> CSS stylesheet to also use Recursive and its <code>MONO</code> axis</p>
+<p>Yes, this ties me down to a specific version of Prism but, unless there are major changes in the Prism codebase or they add a new language that I must have, eliminating another potential font download is worth the effort.</p>
+<h2 id="grid">Grid</h2>
+<p>One of the earliest decisions I made was to use <a href="https://gridbyexample.com">CSS Grid</a> for the layout and it works amazingly well.</p>
+<h2 id="theme-structure">Theme Structure</h2>
+<p>I have added the minimum necessary to make the theme work as designed. It usually involves adding styles, adding templates or modifying existing templates.</p>
+<p>I’ve also used the <a href="https://codex.wordpress.org/Theme_Unit_Test">WordPress Unit Test Data</a> to validate that the content works as intended with as many types of content available on WordPress as possible.</p>
+<h3 id="to-gutenberg-or-not-to-gutenberg">To Gutenberg or not to Gutenberg</h3>
+<p>I’ve struggled with supporting Gutenberg on my theme or not until I realized that it doesn’t matter what I choose, it’s the people using the theme that get to choose whether to use it or not.</p>
+<h3 id="header">Header</h3>
+<p>The header uses the following items:</p>
+<ul>
+<li><a href="https://developer.wordpress.org/themes/functionality/custom-logo/">Custom logo</a></li>
+<li><a href="https://bravokeyl.com/exploring-title-tag-theme-feature/">Dynamic title</a></li>
+<li><a href="https://developer.wordpress.org/themes/functionality/navigation-menus/">Navigation menu</a></li>
+</ul>
+<p>The custom logo and menu are conditional. If the corresponding setting on the appearance admin menu is not selected, then it will not appear in the front end.</p>
+<h3 id="content">Content</h3>
+<p>Content is pretty much untouched from the original Underscores sources.</p>
+<p>There are a few edge cases that I need to address like full-bleed images in a grid when they are not direct children of the grid element but they don’t seem to impact the code appearance or the readability of the content itself.</p>
+<h3 id="footer">Footer</h3>
+<p>The footer area uses two widget areas laid out using flexbox rows. Each area is also a flexbox laid using columns.</p>
+<p>This may be more work than what’s needed but it gives me the flexibility to add multiple widgets in whatever order I choose.</p>
+<h2 id="javascript-build-system">Javascript build system</h2>
+<p>I’ve adopted a build system I originally crafted for SASS-based workflows. It works but SASS itself is starting to not support the workflows I’ve been using for a while.</p>
+<p>There are other libraries that I’m evaluating as potential replacements for SASS and they would require minimal effort as far as the build system is concerned.</p>
+<p>See <a href="https://publishing-project.rivendellweb.net/postcss-deep-dive/">PostCSS deep dive</a></p>
+<p>Javascript still runs through Babel but some code still depends on jQuery to work. jQuery is useful but it takes away a lot of the newer functionality available to Javascript.</p>
+<p>So one thing I may evaluate going forward is whether the tradeoff between browser support and language features is worth it.</p>
+<h2 id="some-things-still-outstanding">Some things still outstanding</h2>
+<p>Some things I’m thinking about and considering as I move forward completing the theme.  Some of these things are nice to have while others are things I’ve never attempted before when working on a theme.</p>
+<h3 id="full-bleed-figures">Full-bleed figures</h3>
+<p>Full bleed images, with or without captions, are one of the few things that don’t work.</p>
+<p>I’m researching what it would take to fix the issue.</p>
+<h3 id="jquery-or-javascript">jQuery or Javascript</h3>
+<p>Evaluate if the tradeoff between Javascript features and browser support is worth it, particularly in light that some features already require modern browsers and operating systems.</p>
+<h3 id="plugging-things-to-the-customizer">Plugging things to the customizer</h3>
+<p>Right now the theme and the customizer have little or no relationship. One of the next tasks is to figure out how to hook the theme into the customizer.</p>
+<p>We do this to make sure that users don’t need to tweak the HTML/PHP and CSS directly.</p>
+<h3 id="amp-compatibility">AMP compatibility</h3>
+<p>What, if anything, we need to do to make sure the site is AMP-ready?</p>
+<h2 id="credits">Credits</h2>
+<ul>
+<li><a href="https://underscores.me/">Underscores</a> Starter Theme</li>
+<li><a href="https://www.lynda.com/WordPress-tutorials/WordPress-Building-Themes-from-Scratch-Using-Underscores/491704-2.html">Building Themes from Scratch Using Underscores</a> from <a href="http://Lynda.com">Lynda.com</a> / Linkedin Learning</li>
+<li><a href="https://github.com/mor10/humescores">humescores</a> from <a href="https://mor10.com">Morten Rand-Hendriksen</a></li>
+<li><a href="https://recursive.design">Recursive</a> variable font</li>
+<li><a href="https://codepen.io/jpamental/">Codepen Work by Jason Pamental</a>, especially <a href="https://codepen.io/jpamental/pen/MPaxaP">FF Meta Variable Font Demo</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

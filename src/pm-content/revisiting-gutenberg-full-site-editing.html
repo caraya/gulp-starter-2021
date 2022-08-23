@@ -1,0 +1,1586 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="revisiting-gutenberg-full-site-editing">Revisiting Gutenberg full site editing</h1>
+<p>Now that WordPress 5.9 is close to release, we can revisit the Gutenberg full site editing experience since more of it will be baked into core rather than the Gutenberg plugin.</p>
+<p>I’m not a fan of full site editing just like I’m not completely sold on Gutenberg as an editor even after a few years. But, since the market is moving in this direction, I believe that developers should be aware of Gutenberg and the FSE to provide guidance on the optimal approach to the client’s project.</p>
+<p>I’ve been reading and researching the latest improvements to the FSE experience and I’m not certain if the current use cases have been thought through in Gutenberg.</p>
+<h2 id="understanding-the-full-site-editing-experience">Understanding the Full Site Editing experience</h2>
+<p>I’ve set up a brand new WordPress site to work with Gutenberg. I’ve documented previous work with Gutenberg in the blog posts below:</p>
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-full-site-editing-and-block-based-themes/">Gutenberg full-site editing and Block-Based Themes</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/a-new-way-to-create-block-plugins/">A New Way to Create Block Plugins</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-a-step-forward-or-two-steps-back/">Gutenberg: A step forward or two steps back?</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-how-do-we-work-with-older-content/">Gutenberg: How do we work with older content?</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-random-thoughts-and-conclusions/">Gutenberg: Additional Thoughts and Conclusions</a></li>
+<li>Building Gutenberg blocks
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-1/">Part 1</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-2/">Part 2</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-3/">Part 3</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/building-gutenberg-blocks-part-4/">Part 4</a></li>
+</ul>
+</li>
+</ul>
+<p>Linking to the above gives me a baseline for the content in this post.</p>
+<p>If you’re reading this, I’m assuming can:</p>
+<ul>
+<li>Build React-based Gutenberg blocks</li>
+<li>Pack Gutenberg blocks into a plugin</li>
+<li>Create style variations for a block</li>
+<li>Style blocks with CSS</li>
+<li>Create a theme.json global configuration file</li>
+</ul>
+<p>There are still some questions to ask. Having the answers would make moving to a Gutenberg-based theme easier:</p>
+<ul>
+<li>How can you load prism scripts and styles into a theme.json file?</li>
+<li>How do you include third-party fonts and scripts into a Gutenberg theme? is enqueueing the font enough?</li>
+</ul>
+<h2 id="creating-blocks-versus-the-current-system%3A-react-versus-php">Creating blocks versus the current system: React versus PHP</h2>
+<p>React blocks are the core of Gutenberg, both the ones that are bundled with WordPress Core, those that are built by third-party groups like StudioPress, and those that you build yourself as bespoke blocks that address your specific needs.</p>
+<p>That said, Gutenberg doesn’t fully eliminate the need for PHP. There are still places where PHP is necessary.</p>
+<p><strong>Block Filters</strong>
+: WordPress provides a series of <a href="https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/">filters</a> that can be used to modify the block before it is rendered.
+: Some of the filters are written in PHP and the ones that seem to be written in Javascript, it is hard to tell from the examples and the prose surrounding them.</p>
+<p><strong>Plugins</strong>
+: <a href="https://developer.wordpress.org/plugins/">plugins</a> are still the preferred way to package content for use in WordPress, whether it’s in Gutenberg or outside.
+: Writing plugins is not complicated but it’s not trivial either. It gets more complicated if you plan to share the plugin in the <a href="http://WordPress.org">WordPress.org</a> repository as there are more rules to follow.</p>
+<p>That brings up what, to me, is the biggest problem with Gutenberg:</p>
+<blockquote>
+<p><strong>Not all WordPress developers are React developers, and they shouldn’t be</strong>.</p>
+</blockquote>
+<p>I understand that there are tons of blocks available by default and that several theme framework makers like Elementor and Genesis have released block plugins. But just like with jQuery and any other framework, there is a time when your needs may grow beyond what’s available, or beyond the price you’re willing to pay, so you will have to build your own so yes, you will become a React developer.</p>
+<p>A good starting point is the Node-based <a href="https://developer.wordpress.org/block-editor/reference-guides/packages/packages-create-block/">create-block</a> package. This tool will automate the creation of a basic block for you but that’s all it does, it’s still on you as the developer to create the block itself. It will also start you on what the WordPress team considers best practices for creating blocks.</p>
+<p>There are some new things that replace techniques that we’ve taken for granted as WordPress developers but they mean that we have to move away from the PHP that we’ve used since the beginning and move to React.</p>
+<p>We’ll discuss some of these features (as I understand them) in future posts.</p>
+<h1 id="new-gutenberg-features%3A-query-blocks">New Gutenberg Features: Query blocks</h1>
+<p>Gutenberg offers the Query Block as an alternative to the standard loop written in PHP to populate and customize the site’s content.</p>
+<p>This is how the loop looks on PHP</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token variable">$args</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span> 
+  <span class="token string single-quoted-string">'posts_per_page'</span> <span class="token operator">=></span> <span class="token number">3</span><span class="token punctuation">,</span> 
+  <span class="token string single-quoted-string">'post_type'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'post'</span><span class="token punctuation">,</span> 
+  <span class="token string single-quoted-string">'post_status'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'publish'</span> 
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token variable">$my_custom_query</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">WP_Query</span><span class="token punctuation">(</span> <span class="token variable">$args</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Custom Loop</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token variable">$my_custom_query</span><span class="token operator">-></span><span class="token function">have_posts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">{</span>
+  <span class="token keyword">while</span><span class="token punctuation">(</span> <span class="token variable">$my_custom_query</span><span class="token operator">-></span><span class="token function">have_posts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token variable">$my_custom_query</span><span class="token operator">-></span><span class="token function">the_post</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// HTML structure of our post</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Nothing matched the query</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Return to regular query loops</span>
+<span class="token function">wp_reset_postdata</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>The <a href="https://wordpress.org/support/article/query-loop-block/">query and query loop blocks</a> provide equivalent functionality when working with Gutenberg both to populate and to modify the results of the query.</p>
+<p>To add a block click on the add block button and select the <code>Query Loop block</code>. You can also type <code>“/query loop”</code> and hit enter in a new paragraph block to add one quickly.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1642798424/publishing-project.rivendellweb.net/gutenberg-query-loop/gutenberg-query-loop-png?_i=AA' alt='Gutenberg add query loop dialogue' width='width' height='height'>
+  <figcaption>Gutenberg add query loop dialogue with templates on the left and the option to start from scratch</figcaption>
+</figure>
+<p>Once you select the <code>query loo</code> from the block menu you’re presented with a series of options below the block choices on the left side of the screen and the option to create a new post and start from scratch under the post settings on the right hand side.</p>
+<p>If you choose to use one of the predefined templates then you can save and use the template.</p>
+<p>If you choose to create your own then you will have to build the page from available or customized blocks and then publish it.</p>
+<p>Think of the query loop block as providing the default structure for the posts. We can run additional query blocks to get comments, get posts from a specific category, tag, or author or geet custom post types.</p>
+<p><a href="https://wptavern.com/understanding-the-query-block-and-its-importance-in-site-editing">Understanding the Query Block and Its Importance in Site Editing</a> explains how to use the query block when desveloping a new theme.</p>
+<p>We will discuss custom post types, how to create them in PHP and how to use them in Gutenberg in future posts.</p>
+<h1 id="new-gutenberg-features%3A-creating-block-and-page-templates">New Gutenberg Features: Creating block and page templates</h1>
+<p>As part of the <a href="https://developer.wordpress.org/block-editor/getting-started/full-site-editing/">Full Site Editing (FSE)</a> experience, templates and page templates give you a way to prepackage blocks (similar to what variations do) and full-page templates for the theme.</p>
+<p>Templates and page templates currently  require the <a href="https://wordpress.org/plugins/gutenberg/">Gutenberg plugin</a> and will not run in WordPress Core right now, that will change sometime during the 5.9 cyclle.</p>
+<p>To understand the block template and block template parts work let’s look at the structure of a block-based theme.</p>
+<pre class="language-text"><code class="language-text">.
+├── LICENSE
+├── README.md
+├── assets
+│   ├── css
+│   ├── images
+│   └── js
+├── block-template-parts
+│   ├── footer.html
+│   └── header.html
+├── block-templates
+│   ├── 404.html
+│   ├── index.html
+│   ├── page-home.html
+│   ├── page.html
+│   └── single.html
+├── functions.php
+├── inc
+│   ├── block-patterns.php
+│   └── block-styles.php
+├── index.php
+├── readme.txt
+├── screenshot.png
+├── style.css
+└── theme.json
+</code></pre>
+<p>The themes reorganize the structure as well as the way we author the content.</p>
+<p>For contrast we’ll look at the structure of Twenty Twentyone, an old default theme in WordPress.</p>
+<p>The equivalent to the content in <code>template-parts</code> and its child directories in older themes like Twenty Twentyone is stored in a single <code>block-templates</code> directory.</p>
+<p>The <code>block-template-parts</code> directory is a flattened version of the <code>template-parts</code> directory in Twenty Twentyone.</p>
+<pre class="language-text"><code class="language-text">.
+├── 404.php
+├── archive.php
+├── assets
+│   ├── css
+│   ├── images
+│   ├── js
+│   └── sass
+├── classes
+│   ├── class-twenty-twenty-one-custom-colors.php
+│   ├── class-twenty-twenty-one-customize-color-control.php
+│   ├── class-twenty-twenty-one-customize-notice-control.php
+│   ├── class-twenty-twenty-one-customize.php
+│   ├── class-twenty-twenty-one-dark-mode.php
+│   └── class-twenty-twenty-one-svg-icons.php
+├── comments.php
+├── footer.php
+├── functions.php
+├── header.php
+├── image.php
+├── inc
+│   ├── back-compat.php
+│   ├── block-patterns.php
+│   ├── block-styles.php
+│   ├── custom-css.php
+│   ├── menu-functions.php
+│   ├── starter-content.php
+│   ├── template-functions.php
+│   └── template-tags.php
+├── index.php
+├── package-lock.json
+├── package.json
+├── page.php
+├── postcss.config.js
+├── readme.txt
+├── screenshot.png
+├── search.php
+├── searchform.php
+├── single.php
+├── style-rtl.css
+├── style.css
+└── template-parts
+    ├── content
+    ├── excerpt
+    ├── footer
+    ├── header
+    └── post
+</code></pre>
+<p>The other major difference is how the templates are written. Rather than using PHP and HTML, block templates use special HTML comments.</p>
+<p>You can build templates directly in Gutenberg using the block editor. To edit with the built-in editor, follow these steps:</p>
+<p>Select the editor under appearance menu. If you don’t see the editor link then you don’t have the latest version of the Gutenberg plugin as this is not part of WordPress Core.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1642888660/publishing-project.rivendellweb.net/gutenberg-editor-01/gutenberg-editor-01-png?_i=AA' alt='Gutenberg Editor Menu' width='317' height='auto'>
+  <figcaption>Gutenberg Editor Link Location</figcaption>
+</figure>
+<p>Once you are in the editor, click on the WordPress logo on the the top left of the screen and you will be shown the options to edit templates or template parts.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1642886276/publishing-project.rivendellweb.net/gutenberg-editor-02/gutenberg-editor-02-png?_i=AA' alt='Gutenberg Editor Menu'  width="674">
+  <figcaption>Gutenberg Editor Link Location</figcaption>
+</figure>
+<p>If you select the templates option you will see a list of available templates that you can already use on your page.</p>
+<p>To create a new template click on <code>Add  New</code> and give it a title. You can then edit the template as any other item in Gutenberg.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1642887480/publishing-project.rivendellweb.net/gutenberg-editor-03/gutenberg-editor-03-png?_i=AA' alt='Gutenberg Editor Menu'>
+  <figcaption>Add new page templates</figcaption>
+</figure>
+<p>Another way to edit templates is to manually write the code that Gutenberg uses to generate the code.</p>
+<p>To do this first create a template that has all the elements and placeholders you want to use, then export the code by clicking the more options button on the top right of the screen and selecting 'export`. This will save a zip file with all the code on the templates to your local file system.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1642894116/publishing-project.rivendellweb.net/export-template-01/export-template-01-png?_i=AA' alt='Export template dialogue' width='375'>
+  <figcaption>Export and download template and template parts</figcaption>
+</figure>
+<div class="message warning">
+<h3>Warning</h3>
+<p>Some older material spoke about an edit option that would allow you to edit the template in place. I haven't been able to find it so I recommend the export method instead.</p>
+</div>
+<p>You can then copy the template files into your own templates or edit them to customize them. If you’re customizing them it’s important that you understand what the different parts of the templates do.</p>
+<p>The templates use HTML comments and data with the <code>wp:</code> rivendellweb to indicate Gutenberg specific elements/blocks and curly brackets to indicate attributes.</p>
+<p>The first example shows what a paragraph with attributes looks like. In this casse, the the attribute tells WordPress that the block is a paragraph and that it is aligned to the right. The content of the paragraph is the HTML and CSS necessary to render the right-aligned paragraph.</p>
+<p>Note that for content that uses CSS, Gutenberg uses the has-{attribute name and value} convention for selector naming</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:paragraph {"align":"right"} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>has-text-align-right<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>... like this one, which is right aligned.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:paragraph --></span>
+</code></pre>
+<p>You can also nest blocks inside other blocks.</p>
+<p>The next example shows the tags used for a query loop block along with pagination inside the individual posts.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:query --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-query<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- wp:post-template --></span>
+  <span class="token comment">&lt;!-- wp:post-title /--></span>
+  <span class="token comment">&lt;!-- wp:post-date /--></span>
+  <span class="token comment">&lt;!-- wp:post-excerpt /--></span>
+  <span class="token comment">&lt;!-- /wp:post-template --></span>
+
+  <span class="token comment">&lt;!-- wp:query-pagination --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-query-pagination<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- wp:query-pagination-previous /--></span>
+    <span class="token comment">&lt;!-- wp:query-pagination-numbers /--></span>
+    <span class="token comment">&lt;!-- wp:query-pagination-next /--></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- /wp:query-pagination --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:query --></span>
+</code></pre>
+<p>The learning curve may seem daunting at first but, starting from existing templates, it’s not so daunting after all.</p>
+<h1 id="new-gutenberg-features%3A-conditionally-loading-block-assets">New Gutenberg Features: Conditionally loading block assets</h1>
+<p>One issue that I always found problematic with Gutenberg blocks is that it loads all assets all the time regardless of whether we use in our projects or not.</p>
+<p>As of WordPress 5.8 we can work around this to only load the blocks that are used.</p>
+<p>We define our block as normal. When creating a block we can define separate scripts and stiles for the front and back end using code like the one below:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">register_block_type</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'rivendellweb/test-block'</span><span class="token punctuation">,</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'editor_script'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'rivendellweb-test-block-script'</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'editor_style'</span>  <span class="token operator">=></span> <span class="token string single-quoted-string">'rivendellweb-test-block-editor-style'</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'style'</span>         <span class="token operator">=></span> <span class="token string single-quoted-string">'rivendellweb-test-block-style'</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'script'</span>        <span class="token operator">=></span> <span class="token string single-quoted-string">'rivendellweb-test-block-frontend'</span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>If you then also specify a filter that will only load the blocks assets when the block is actually used:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'should_load_separate_core_block_assets'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'__return_true'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>For more reference, see: <a href="https://mkaz.blog/wordpress/conditionally-load-block-assets-part-3/">Conditionally Load Block Assets, Part 3</a> and <a href="https://make.wordpress.org/core/2021/07/01/block-styles-loading-enhancements-in-wordpress-5-8/">Block-styles loading enhancements in WordPress 5.8</a></p>
+<h1 id="new-gutenberg-features%3A-block-and-global-configuration">New Gutenberg Features: block and global configuration</h1>
+<p>Gutenberg provides additional ways to configure blocks and themes using JSON files one for block levels and one for global theme settings.</p>
+<p>We’ll look at each of these in more detail</p>
+<h2 id="block.json-as-a-block-configuration-point">block.json as a block configuration point</h2>
+<p>The <code>block.json</code> file is both a configuration point (what it is an how it works) and a way to make the metadata in the JSON file available to both PHP and Javascript.</p>
+<p>The code below provides metadata for a block that creates message box for info, warning and danger notices.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token string">"https://schemas.wp.org/trunk/block.json"</span><span class="token punctuation">,</span>
+  <span class="token property">"apiVersion"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"rivendellweb/notice"</span><span class="token punctuation">,</span>
+  <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Notice"</span><span class="token punctuation">,</span>
+  <span class="token property">"category"</span><span class="token operator">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span>
+  <span class="token property">"parent"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"core/group"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"icon"</span><span class="token operator">:</span> <span class="token string">"star"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Shows info, warning or danger notices"</span><span class="token punctuation">,</span>
+  <span class="token property">"keywords"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"alert"</span><span class="token punctuation">,</span> <span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token string">"0.1.0"</span><span class="token punctuation">,</span>
+  <span class="token property">"textdomain"</span><span class="token operator">:</span> <span class="token string">"rivendellweb"</span><span class="token punctuation">,</span>
+  <span class="token property">"attributes"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
+      <span class="token property">"source"</span><span class="token operator">:</span> <span class="token string">"html"</span><span class="token punctuation">,</span>
+      <span class="token property">"selector"</span><span class="token operator">:</span> <span class="token string">".message"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"providesContext"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"rivendellweb/message"</span><span class="token operator">:</span> <span class="token string">"message"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"usesContext"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"groupId"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"supports"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"align"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"styles"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"info"</span><span class="token punctuation">,</span> <span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"Info"</span><span class="token punctuation">,</span> <span class="token property">"isDefault"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span> <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"warning"</span><span class="token punctuation">,</span> <span class="token property">"label"</span><span class="token operator">:</span>  <span class="token string">"Warning"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span> <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"danger"</span><span class="token punctuation">,</span> <span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"Danger"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span> <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"other"</span><span class="token punctuation">,</span> <span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"Other"</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"example"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"attributes"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"This is a notice!"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"editorScript"</span><span class="token operator">:</span> <span class="token string">"file:./build/index.js"</span><span class="token punctuation">,</span>
+  <span class="token property">"script"</span><span class="token operator">:</span> <span class="token string">"file:./build/script.js"</span><span class="token punctuation">,</span>
+  <span class="token property">"viewScript"</span><span class="token operator">:</span> <span class="token string">"file:./build/view.js"</span><span class="token punctuation">,</span>
+  <span class="token property">"editorStyle"</span><span class="token operator">:</span> <span class="token string">"file:./build/index.css"</span><span class="token punctuation">,</span>
+  <span class="token property">"style"</span><span class="token operator">:</span> <span class="token string">"file:./build/style.css"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>If your theme supports lazy loading assets, then the enqueuing of scripts and styles for your block will be optimized and will only be loaded when the block is actively used. We discussed this technique in a previous post.</p>
+<p>The Block Type REST API Endpoint can only list blocks registered on the server, so <em>the WordPress team recommends registering blocks server-side</em>. Using the <code>block.json</code> configuration file simplifies this registration.</p>
+<p>If you wish to <a href="https://developer.wordpress.org/block-editor/getting-started/tutorials/create-block/submitting-to-block-directory/">submit your block(s) to the Block Directory</a> for inclusion, all blocks contained in your plugin must have a <code>block.json</code> file for the Block Directory to recognize them.</p>
+<p>More information about the block directory can be found in this <a href="https://wordpress.org/support/article/block-directory/">support article about the block directory</a>.</p>
+<p>If you choose not to submit your blocks to the block directory, the WordPress Plugins Directory can detect <code>block.json</code> files, highlight blocks included in plugins, and extract their metadata to show the users a list of the blocks bundled with your theme.</p>
+<p>The <code>blocks.json</code> file follows a schema definition which makes development easier and allows other tools like text and code editors to provide validation, autocomplete and other support tools.</p>
+<p>To use the schema, add the following to the top of the block.json.</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token string">"https://schemas.wp.org/trunk/block.json"</span>
+</code></pre>
+<p>For more information, check
+<a href="https://developer.wordpress.org/block-editor/reference-guides/block-api/block-metadata/">Block Metadata</a> page in the Block Editor Handbook.</p>
+<h2 id="block-registration">Block registration</h2>
+<p>One of the ways in which we can take advantage</p>
+<h3 id="php-(server-side)">PHP (server-side)</h3>
+<p>The register_block_type function that aims to simplify the block type registration on the server, can read metadata stored in the block.json file.</p>
+<p>This function takes two params relevant in this context ($block_type accepts more types and variants):</p>
+<ul>
+<li><code>$block_type (string)</code> – path to the folder where the block.json file is located or full path to the metadata file if named differently.</li>
+<li><code>$args (array)</code> – an optional array of block type arguments. Default value: []. Any arguments may be defined. However, the one described below is supported by default:
+<ul>
+<li><strong>$render_callback (callable)</strong>: callback used to render blocks of this block type.</li>
+</ul>
+</li>
+</ul>
+<p>It returns the registered block type (WP_Block_Type) on success or false on failure.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">register_block_type</span><span class="token punctuation">(</span>
+    <span class="token constant">__DIR__</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/notice'</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'render_callback'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'render_block_core_notice'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<h3 id="javascript-(client-side)">JavaScript (client-side)</h3>
+<p>Because the block is registered on the server, you only need to register the client-side settings on the client using the same block’s name.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">registerBlockType</span><span class="token punctuation">(</span> <span class="token string">'my-plugin/notice'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    edit<span class="token operator">:</span> Edit<span class="token punctuation">,</span>
+    <span class="token comment">// ...other client-side settings</span>
+<span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Registering the block on the server with PHP is still the recommended way to register the block, however, you can also register the block on the client using the <code>registerBlockType</code> method from the <code>@wordpress/blocks</code> package using the metadata loaded from <code>block.json</code>.</p>
+<p>The function takes two parameters:</p>
+<ul>
+<li><strong>$blockNameOrMetadata (string|Object)</strong> – block type name (supported previously) or the metadata object loaded from the block.json file with a bundler (e.g., webpack) or a custom Babel plugin.</li>
+<li><strong>$settings (Object)</strong> – client-side block settings.</li>
+</ul>
+<p>It returns the registered block type (WPBlock) on success or undefined on failure.</p>
+<h2 id="theme.json-as-a-central-configuration-point">theme.json as a central configuration point</h2>
+<p><a href="https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/">theme.json</a> provides a means to configure a theme for use with Gutenberg that doesn’t require editing <code>functions.php</code> or <code>style.css</code>.</p>
+<p>The code below is a working theme.json and combines elements of the <a href="https://wordpress.org/themes/armando/">Armando</a> theme by <a href="https://wordpress.org/themes/author/poena/">Carolina Nymark</a> and a theme I’m working on to replace my existing <a href="https://github.com/caraya/rivendellweb-wptheme">Rivendellweb</a> theme that runs my <a href="https://publishing-project.rivendellweb.net/">Publishing Project</a> blog.</p>
+<p>The first part of the block defines the schema location and version. I choose to use the <code>$schema</code> property to define the location of the schema so it’s easier to work with the schema, having the URL present adds validation and syntax checking to the workflow in most editors.</p>
+<p>Version 2 is the neweest version of the schema. Version 1 is still available but won’t be receiving any further changes as far as I’m aware.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token string">"https://schemas.wp.org/trunk/theme.json"</span><span class="token punctuation">,</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The next section is the largest one and it configures all the settings for the theme. We will be able to override these default values in later definitions, otherwise, these are the value that the theme will use throughout.</p>
+<p>If a property has a boolean (true/false) value it indicates if the theme will support the property, otherwise, the property will have one or more values attached to it.</p>
+<p>Most of the properties will use three basci parameters:</p>
+<ul>
+<li><strong>slug</strong> — the slug (computer-readable name) of the property</li>
+<li><strong>value / gradient</strong> — the value of the property (it may also be an array of values)</li>
+<li><strong>name</strong> — the human-readable name of the property</li>
+</ul>
+<pre class="language-json"><code class="language-json">  <span class="token property">"settings"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"appearanceTools"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"border"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"color"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"radius"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"style"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"width"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"background"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"custom"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"customDuotone"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"customGradient"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"defaultGradients"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"defaultPalette"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"link"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+      <span class="token property">"text"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"duotone"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"colors"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token string">"#000"</span><span class="token punctuation">,</span>
+            <span class="token string">"#FFF"</span>
+          <span class="token punctuation">]</span><span class="token punctuation">,</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"black-and-white"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Black and White"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"gradients"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"blush-bordeaux"</span><span class="token punctuation">,</span>
+          <span class="token property">"gradient"</span><span class="token operator">:</span> <span class="token string">"linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%)"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Blush bordeaux"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"blush-light-purple"</span><span class="token punctuation">,</span>
+          <span class="token property">"gradient"</span><span class="token operator">:</span> <span class="token string">"linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%)"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Blush light purple"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"palette"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"strong-magenta"</span><span class="token punctuation">,</span>
+          <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"#a156b4"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Strong magenta"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"very-dark-grey"</span><span class="token punctuation">,</span>
+          <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"rgb(131, 12, 8)"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Very dark grey"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Properties under “custom” create new CSS Custom Properties that we can use in other parts of the <code>theme.json</code> file and elsewhere in our CSS</p>
+<p>The algorithm to create CSS Variables out of the settings under the “custom” key works this way:</p>
+<p>We want a mechanism to parse back a variable name such <code>--wp--custom--line-height--body</code> to its object form in theme.json. We use the same separation for presets.</p>
+<p>A few notes about this process:</p>
+<ul>
+<li>camelCased keys are transformed into its kebab-case form, as to follow the CSS property naming schema. lineHeight is transformed into line-height</li>
+<li>Keys at different depth levels are separated by –</li>
+<li>Don’t use – in the names of the keys within the custom object</li>
+</ul>
+<pre class="language-json"><code class="language-json">    <span class="token property">"layout"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"contentSize"</span><span class="token operator">:</span> <span class="token string">"800px"</span><span class="token punctuation">,</span>
+      <span class="token property">"wideSize"</span><span class="token operator">:</span> <span class="token string">"1000px"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"spacing"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"blockGap"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+      <span class="token property">"padding"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"margin"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"units"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"px"</span><span class="token punctuation">,</span>
+        <span class="token string">"em"</span><span class="token punctuation">,</span>
+        <span class="token string">"rem"</span><span class="token punctuation">,</span>
+        <span class="token string">"vh"</span><span class="token punctuation">,</span>
+        <span class="token string">"vw"</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Typography controls typographical and font-related settings. This is where you define the font stacks for your theme. One outstanding item that I’m not sure how to handle is using web fonts you own rather than fonts from Google Fonts or other providers.</p>
+<pre class="language-json"><code class="language-json">    <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"customFontSize"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"dropCap"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"fontStyle"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"fontWeight"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"letterSpacing"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"lineHeight"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+      <span class="token property">"textDecoration"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"textTransform"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"fontFamilies"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"fontFamily"</span><span class="token operator">:</span> <span class="token string">"-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Oxygen-Sans,Ubuntu,Cantarell,\"Helvetica Neue\",sans-serif"</span><span class="token punctuation">,</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"system-fonts"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"System Fonts"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"fontFamily"</span><span class="token operator">:</span> <span class="token string">"Geneva, Tahoma, Verdana, sans-serif"</span><span class="token punctuation">,</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"geneva-verdana"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"fontFamily"</span><span class="token operator">:</span> <span class="token string">"Cambria, Georgia, serif"</span><span class="token punctuation">,</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"cambria-georgia"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"fontSizes"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"extra-small"</span><span class="token punctuation">,</span>
+          <span class="token property">"size"</span><span class="token operator">:</span> <span class="token string">"16px"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Extra small"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"small"</span><span class="token punctuation">,</span>
+          <span class="token property">"size"</span><span class="token operator">:</span> <span class="token string">"18px"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Small"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
+          <span class="token property">"size"</span><span class="token operator">:</span> <span class="token string">"20px"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Normal"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"large"</span><span class="token punctuation">,</span>
+          <span class="token property">"size"</span><span class="token operator">:</span> <span class="token string">"24px"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Large"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"extra-large"</span><span class="token punctuation">,</span>
+          <span class="token property">"size"</span><span class="token operator">:</span> <span class="token string">"40px"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Extra large"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"huge"</span><span class="token punctuation">,</span>
+          <span class="token property">"size"</span><span class="token operator">:</span> <span class="token string">"96px"</span><span class="token punctuation">,</span>
+          <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Huge"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The declarations inside the <code>styles</code> object are applied to the body of the pages on the theme. Note that is uses CSS variables with the <code>--</code> separator as required for WordPress created CSS variables.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"styles"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"background"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--white)"</span><span class="token punctuation">,</span>
+      <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--black)"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"fontSize"</span><span class="token operator">:</span> <span class="token string">"20px"</span><span class="token punctuation">,</span>
+      <span class="token property">"fontFamily"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--font-family--system-fonts)"</span><span class="token punctuation">,</span>
+      <span class="token property">"lineHeight"</span><span class="token operator">:</span> <span class="token string">"1.7"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"spacing"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"margin"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"top"</span><span class="token operator">:</span> <span class="token string">"0px"</span><span class="token punctuation">,</span>
+        <span class="token property">"right"</span><span class="token operator">:</span> <span class="token string">"0px"</span><span class="token punctuation">,</span>
+        <span class="token property">"bottom"</span><span class="token operator">:</span> <span class="token string">"0px"</span><span class="token punctuation">,</span>
+        <span class="token property">"left"</span><span class="token operator">:</span> <span class="token string">"0px"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Styles specified in the <code>elements</code> sectioon apply to HTML elements.</p>
+<pre class="language-json"><code class="language-json">    <span class="token property">"elements"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"link"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"h1"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"fontSize"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--font-size--x-large)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"h2"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"fontSize"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--font-size--large)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"h3"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"h4"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"h5"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"h6"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--color--dark-blue)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Individual blocks, whether part of the core package, or added by a user, can provide their own styles. These are different than the styles provided on each individual block configuration.</p>
+<p>Where they use custom properties, these properties also use the <code>--</code> separator.</p>
+<pre class="language-json"><code class="language-json">    <span class="token property">"blocks"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"core/post-title"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"fontSize"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--font-size--x-large)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"core/paragraph"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"fontSize"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--font-size--medium)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"core/post-date"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"typography"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token property">"fontSize"</span><span class="token operator">:</span> <span class="token string">"var(--wp--preset--font-size--small)"</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>We can also define the template parts that we want to make available for theme development by adding them to the <code>templateParts</code> section. Where we know in advance (like headers and footers, we can specify the area as well).</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"templateParts"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"footer"</span><span class="token punctuation">,</span>
+      <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Footer"</span><span class="token punctuation">,</span>
+      <span class="token property">"area"</span><span class="token operator">:</span> <span class="token string">"footer"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"header"</span><span class="token punctuation">,</span>
+      <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Header"</span><span class="token punctuation">,</span>
+      <span class="token property">"area"</span><span class="token operator">:</span> <span class="token string">"header"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+</code></pre>
+<p>We can also define custom templates that we will use on our theme. We can also specify the types of content the template applies to.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"customTemplates"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"page-sidebar-left"</span><span class="token punctuation">,</span>
+      <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Two columns, left sidebar"</span><span class="token punctuation">,</span>
+      <span class="token property">"postTypes"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"page"</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"page-template-patterns"</span><span class="token punctuation">,</span>
+      <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Template for block pattern layouts"</span><span class="token punctuation">,</span>
+      <span class="token property">"postTypes"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"page"</span><span class="token punctuation">,</span>
+        <span class="token string">"post"</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>With the code we’ve discussed in this post we have the basis of a working theme. We can edit the theme in the Full Site Editor or creating the templates manually.</p>
+<h1 id="creating-templates-manually">Creating templates manually</h1>
+<p>When working with Gutenberg template parts and templates we have two options:</p>
+<ul>
+<li>Create them in the full site editor</li>
+<li>Create them manually using the appropriate markup</li>
+</ul>
+<p>This post will cover the later option and will serve as an overview of the markup we need to use to create the templates.</p>
+<p>Gutenberg template markup is written inside HTML comment tags. This example shows a basic Gutenberg element and its attributes:</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:query-title {"type":"archive"} /--></span>
+</code></pre>
+<p>The components of the element are:</p>
+<ul>
+<li>The wordpress rivendellweb, <code>wp:</code></li>
+<li>The name of the element, <code>query-title</code></li>
+<li>And any attributes as value pairs inside curly brackets, <code>{&quot;type&quot;:&quot;archive}</code></li>
+</ul>
+<p>The attributes are dependent on the element and not all attributes apply to all the available elements.</p>
+<h2 id="building-template-parts">Building template parts</h2>
+<p>The next example shows a template part built around a post query loop, a replacement for the traditional PHP loop.</p>
+<p>Breaking up the template in smaller sections to walk through them.</p>
+<p><code>wp:query</code> runs a query against the WordPress database and returns the results as specified in the query parameters.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:query-title {"type":"archive"} /--></span>
+<span class="token comment">&lt;!-- wp:term-description /--></span>
+<span class="token comment">&lt;!-- wp:query {
+  "queryId":1,
+  "query":{
+    "pages":"100",
+    "offset":0,
+    "postType":"post",
+    "categoryIds":[],
+    "tagIds":[],
+    "order":"desc",
+    "orderBy":"date",
+    "author":"",
+    "search":"",
+    "sticky":"",
+    "exclude":[],
+    "perPage":5,
+    "inherit":true
+    }
+  } --></span>
+</code></pre>
+<p>After defining the query, we build the markup for the content of the query.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-query<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- wp:post-template --></span>
+<span class="token comment">&lt;!-- wp:post-title {"isLink":true} /--></span>
+<span class="token comment">&lt;!-- wp:post-featured-image /--></span>
+<span class="token comment">&lt;!-- wp:group {"className":"is-style-valinor-box-shadow post-meta","backgroundColor":"light-grey"} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-group is-style-valinor-box-shadow post-meta has-light-grey-background-color has-background<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- wp:post-date /--></span>
+  <span class="token comment">&lt;!-- wp:post-author /--></span>
+  <span class="token comment">&lt;!-- wp:post-terms {"term":"category"} /--></span>
+  <span class="token comment">&lt;!-- wp:post-terms {"term":"post_tag"} /--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><span class="token comment">&lt;!-- /wp:group --></span>
+</code></pre>
+<p>Most of the templates deal with the post content.</p>
+<p><code>wp:title</code> displays the title of the block. Using the <code>isLink</code> attribute wraps the title generates a link to the post.</p>
+<p><code>wp-post-featured-image</code> shows the post featured image if one is available.</p>
+<p><code>wp:spacer</code> generates vertical space between blocks. The <code>height</code> parameter indicates how big the separator is.</p>
+<p>The child of the <code>wp:spacer</code> element is a <code>div</code> element with an inline style attribute matching the specified height in pixels.</p>
+<p>The <code>div</code> element also has an <code><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-hidden">aria-hidden</a></code> attribute set to <code>true</code> so the document’s accessibility tree will ignore it.</p>
+<p>The <code>className</code> parameter is optional and, if used it must match one or more class names inside the child element’s <code>style</code> attribute.</p>
+<p><code>wp:post-date</code> shows the data of the post was created.</p>
+<p><code>wp:post-author</code> contains the post author.</p>
+<p>We then use the <code>wp:post-terms</code> elements twice: one to show the categories assigned to the post and the second one to show the tags assigned to the post (if any).</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:spacer {"height":30} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">height</span><span class="token punctuation">:</span>30px</span><span class="token punctuation">"</span></span></span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-spacer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:spacer --></span>
+</code></pre>
+<p>We add another spacer before we add the content.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:post-excerpt {"moreText":"Continue reading"} /--></span>
+<span class="token comment">&lt;!-- wp:spacer {"height":20} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">height</span><span class="token punctuation">:</span>20px</span><span class="token punctuation">"</span></span></span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-spacer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:spacer --></span>
+<span class="token comment">&lt;!-- wp:separator {"color":"beige","className":"is-style-wide"} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hr</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-separator has-text-color has-background has-beige-background-color has-beige-color is-style-wide<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token comment">&lt;!-- /wp:separator --></span>
+<span class="token comment">&lt;!-- wp:spacer {"height":20} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">height</span><span class="token punctuation">:</span>20px</span><span class="token punctuation">"</span></span></span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-spacer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:spacer --></span>
+<span class="token comment">&lt;!-- /wp:post-template --></span>
+</code></pre>
+<p><code>wp:excerpt</code> generates an except for the post or page. The <code>moreText</code> attribute provides the text for the link to read the rest of the content.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:query-pagination --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-query-pagination<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- wp:query-pagination-previous /--></span><span class="token comment">&lt;!-- wp:query-pagination-next /--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:query-pagination --></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:query --></span>
+</code></pre>
+<p>The final piece of the <code>wp:query</code> element is the <code>wp:query-pagination</code> element that will generate the pagination links for the post.</p>
+<h2 id="building-templates">Building templates</h2>
+<p>Building templates is simpler than building the parts for them. The next example shows a template to generate a page.</p>
+<p>This template will use four template parts to generate a page.</p>
+<p>We use <code>wp:template-part</code> to add the header, main and footer parts. We use a <code>wp:spacer</code> element to create a gap between the main and footer parts.</p>
+<p>For each <code>wp:template-part</code> element we use, the <code>slug</code> attribute indicates the name of the part we want to use, the <code>tagName</code> attribute indicates the HTML tag we want to use to wrap the content we generate and <code>className</code> indicates the class name we want to add to the wrapping element.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:template-part {
+  "slug":"header",
+  "tagName":"header",
+  "align":"full",
+  "className":"site-header"
+} /--></span>
+<span class="token comment">&lt;!-- wp:template-part {
+  "slug":"main",
+  "tagName":"main",
+  "className":"site-main",
+  "layout":{
+    "inherit":true
+    }
+  } /--></span>
+<span class="token comment">&lt;!-- wp:spacer {"height":30} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">height</span><span class="token punctuation">:</span>30px</span><span class="token punctuation">"</span></span></span>
+  <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> 
+  <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-spacer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:spacer --></span>
+<span class="token comment">&lt;!-- wp:template-part {
+  "slug":"footer",
+  "tagName":"footer",
+  "align":"full",
+  "className":"site-footer"
+} /--></span>
+</code></pre>
+<p>Creating parts and templates by hand is not easy and it’s not recommended. If you want to leverage the full site editor you should create your blocks and templates visually with the tools provided in the editor.</p>
+<p>But sooner or later you will see the code for the template and it helps to understand how it works.</p>
+<h1 id="locking-blocks-and-templates">Locking blocks and templates</h1>
+<p>One of the things that has made me cautios about Gutenberg is how to give the client a set of plugins and themes that won’t become a footgun. Yes, they own the product but that doesn’t mean they will know how to use it properly.</p>
+<p>WordPress provides two ways to lock templates, one from PHP and another one, less powerful, from Javascript/React.</p>
+<p>The PHP solution requires using the <code>template_lock</code> property when registering the post type. This example provides a place holder for the <code>paragraph</code> block and then locks it</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> 
+<span class="token keyword">function</span> <span class="token function-definition function">myplugin_register_template</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token variable">$post_type_object</span> <span class="token operator">=</span> <span class="token function">get_post_type_object</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'post'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token variable">$post_type_object</span><span class="token operator">-></span><span class="token property">template</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/paragraph'</span><span class="token punctuation">,</span> 
+          <span class="token keyword">array</span><span class="token punctuation">(</span>
+            <span class="token string single-quoted-string">'placeholder'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'Add Description...'</span><span class="token punctuation">,</span>
+          <span class="token punctuation">)</span> 
+        <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token variable">$post_type_object</span><span class="token operator">-></span><span class="token property">template_lock</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'all'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_action</span><span class="token punctuation">(</span>
+  <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span>
+  <span class="token string single-quoted-string">'myplugin_register_template'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>The possible values for <code>template_lock</code> are:</p>
+<ul>
+<li><strong>all</strong> — prevents all operations. It is not possible to insert new blocks, move existing blocks, or delete blocks.</li>
+<li><strong>insert</strong> — prevents inserting or removing blocks, but allows moving existing blocks.</li>
+</ul>
+<p>The value of <code>template_lock</code> is inherited by InnerBlocks.</p>
+<p>If <code>templateLock</code> is not set in an InnerBlocks area, the locking of the parent InnerBlocks area is used.</p>
+<p>If the block is a top level block, the locking configuration of the current post type is used.</p>
+<h2 id="individual-block-locking">Individual block locking</h2>
+<p>We can also choose to lock individual blocks. Block-level lock takes priority over the templateLock feature. Currently, you can lock moving and removing blocks.</p>
+<p><strong>Block-level locking is an experimental feature that may be removed or changed  at anytime.</strong></p>
+<pre class="language-js"><code class="language-js">attributes<span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Prevent a block from being moved or removed.</span>
+  lock<span class="token operator">:</span> <span class="token punctuation">{</span>
+    remove<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    move<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The possible values for lock at the block level are:</p>
+<ul>
+<li><strong>remove</strong> — prevents users from removing the block</li>
+<li><strong>move</strong> — stops users from moving the block</li>
+</ul>
+<p>Block locking takes precendence over template locking. You can customize the locking behavior using <code>templateLock</code> to lock all templates and blocks and then override it in individual blocks as needed. This is one way to prevent users from modifying the themes and templates after we’ve published them.</p>
+<h1 id="styling-blocks">Styling blocks</h1>
+<p>Block Styles allow alternative styles to be applied to existing blocks whether they are defined in core or via third party plugins. They add a <code>className</code> attribute matching the style name to the block’s wrapper.THe attribute applies alternative styles for the block if the style is selected.</p>
+<p>The example registers a <em>narrow-paragraph</em> style for the core/paragraph block. When the user selects the narrow-paragraph style from the styles selector, an <code>is-style-narrow-paragraph</code> className attribute will be added to the block’s wrapper.</p>
+<pre class="language-js"><code class="language-js">wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">registerBlockStyle</span><span class="token punctuation">(</span>
+  <span class="token string">'core/paragraph'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"name"</span><span class="token operator">:</span> <span class="token string">"narrow-paragraph"</span><span class="token punctuation">,</span>
+    <span class="token string">"label"</span><span class="token operator">:</span> <span class="token string">"Narrow Paragraph"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<p>By adding <code>isDefault: true</code> you can mark the registered block style as the one that is recognized as active when no custom class name is provided. It also means that there will be no custom class name added to the HTML output for the style that is marked as default.</p>
+<p>To remove a block style use <code>wp.blocks.unregisterBlockStyle()</code>.</p>
+<pre class="language-js"><code class="language-js">wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">unregisterBlockStyle</span><span class="token punctuation">(</span>
+  <span class="token string">'core/quote'</span><span class="token punctuation">,</span>
+  <span class="token string">'large'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The above removes the block style named large from the core/quote block.</p>
+<p><strong>When unregistering a block style, there can be a race condition on which code runs first: registering the style, or unregistering the style. You want your unregister code to run last.</strong></p>
+<p>Do this by specifyin the component that is registering the style as a dependency, in this case wp-edit-post. Additionally, using <code>wp.domReady()</code> ensures the unregister code runs once the dom is loaded.**</p>
+<p>Enqueue your JavaScript with the following PHP code:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_blocks_enqueue</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'rivendellweb-blocks-script'</span><span class="token punctuation">,</span>
+        <span class="token function">plugins_url</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'rivendellweb-blocks.js'</span><span class="token punctuation">,</span> <span class="token constant">__FILE__</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp-blocks'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp-dom-ready'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp-edit-post'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">filemtime</span><span class="token punctuation">(</span> <span class="token function">plugin_dir_path</span><span class="token punctuation">(</span> <span class="token constant">__FILE__</span> <span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/rivendellweb-blocks.js'</span> <span class="token punctuation">)</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'enqueue_block_editor_assets'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_blocks_enqueue'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>The JavaScript code in <code>rivendellweb-blocks.js</code>:</p>
+<pre class="language-js"><code class="language-js">wp<span class="token punctuation">.</span><span class="token function">domReady</span><span class="token punctuation">(</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">unregisterBlockStyle</span><span class="token punctuation">(</span> <span class="token string">'core/quote'</span><span class="token punctuation">,</span> <span class="token string">'large'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="server-side-registration-helpers">Server-side registration helpers</h2>
+<p>While the samples provided do allow full control of block styles, they do require a considerable amount of code.</p>
+<p>To simplify the process of registering and unregistering block styles, two server-side functions are available: <code>register_block_style</code>, and <code>unregister_block_style</code>.</p>
+<h2 id="register_block_style">register_block_style</h2>
+<p>The <code>register_block_style</code> function receives the name of the block as the first argument and an array describing properties of the style as the second argument.</p>
+<p>The properties of the style array must include name and label:</p>
+<ul>
+<li><strong>name</strong>: The identifier of the style used to compute a CSS class.</li>
+<li><strong>label</strong>: A human-readable label for the style.</li>
+</ul>
+<p>Besides the two mandatory properties, the styles properties array should also include an inline_style or a style_handle property:</p>
+<ul>
+<li><strong>inline_style</strong>: Contains inline CSS code that registers the CSS class required for the style</li>
+<li><strong>style_handle</strong>: Contains the handle to an already registered style that should be enqueued in places where block styles are needed</li>
+</ul>
+<p>It is also possible to set the <code>is_default</code> property to true to mark one of the block styles as the default one.</p>
+<p>The following code sample registers a style for the quote block named “Blue Quote”, and provides an inline style that makes quote blocks with the <code>Blue Quote</code> style have blue color:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">register_block_style</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'core/quote'</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'name'</span>         <span class="token operator">=></span> <span class="token string single-quoted-string">'blue-quote'</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'label'</span>        <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Blue Quote'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'textdomain'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'inline_style'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'.wp-block-quote.is-style-blue-quote { color: blue; }'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>Alternatively, you can register a stylesheet that contains all your block-related styles and just pass the stylesheet’s handle so <code>register_block_style</code> function will make sure it is enqueue.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">wp_register_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'myguten-style'</span><span class="token punctuation">,</span> <span class="token function">get_template_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/custom-style.css'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">register_block_style</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'core/quote'</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'name'</span>         <span class="token operator">=></span> <span class="token string single-quoted-string">'fancy-quote'</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'label'</span>        <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Fancy Quote'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'textdomain'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'style_handle'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'rivendellweb-block-styles'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<h2 id="unregister_block_style">unregister_block_style</h2>
+<p><code>unregister_block_style</code> allows developers to unregister a block style previously registered <strong>on the server</strong> using <code>register_block_style</code>.</p>
+<p>The function has two arguments:</p>
+<ul>
+<li>The registered name of the block</li>
+<li>The name of the style</li>
+</ul>
+<p>The following example unregisters the style named <code>fancy-quote</code> from the quote block:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">unregister_block_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/quote'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'fancy-quote'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p><strong>The function unregister_block_style will only unregisters styles that were registered on the server using register_block_style.</strong> The function does not unregister a style registered using client-side code.</p>
+<p>We’ll revisit styling blocks when we talk about Gutenberg as a design system.</p>
+<h1 id="nesting-blocks">Nesting blocks</h1>
+<p>Often we want to create a block with multiple child blocks. For example, block quotes may have lists and other elements nested inside them.</p>
+<p>Container blocks like the columns blocks also support templates. This is achieved by assigning a nested template to the block.</p>
+<p>This PHP example creates a block with two items, one of them with additional nested children:</p>
+<ul>
+<li>A root level paragraph with a placeholder</li>
+<li>A columns block that will contain one or more children</li>
+<li>A column
+<ul>
+<li>An image</li>
+</ul>
+</li>
+<li>A column
+<ul>
+<li>A paragraph</li>
+</ul>
+</li>
+</ul>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token variable">$template</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/paragraph'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'placeholder'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'Add a root-level paragraph'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/columns'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/column'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/image'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/column'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'core/paragraph'</span><span class="token punctuation">,</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'placeholder'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'Add a inner paragraph'</span>
+      <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span> <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>We can also use Javascript / JSX block will create a blog and allow for child blocks to be added to it with the <code>InnerBlocks</code> property.</p>
+<p>It also shows how we can constrain the content of the block children to a specific list; In this example, we only allow paragraph and images to the <code>demo-01</code> block.</p>
+<pre class="language-jsx"><code class="language-jsx"><span class="token keyword">import</span> <span class="token punctuation">{</span> registerBlockType <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/blocks'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> InnerBlocks<span class="token punctuation">,</span> useBlockProps <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/block-editor'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token constant">ALLOWED_BLOCKS</span> <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token string">'core/image'</span><span class="token punctuation">,</span>
+  <span class="token string">'core/paragraph'</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+ 
+<span class="token function">registerBlockType</span><span class="token punctuation">(</span> <span class="token string">'rivendellweb-blocks/demo-01'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+
+  <span class="token function-variable function">edit</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> blockProps <span class="token operator">=</span> <span class="token function">useBlockProps</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token spread"><span class="token punctuation">{</span> <span class="token operator">...</span>blockProps <span class="token punctuation">}</span></span><span class="token punctuation">></span></span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">InnerBlocks</span></span> <span class="token attr-name">allowedBlocks</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span> <span class="token constant">ALLOWED_BLOCKS</span> <span class="token punctuation">}</span></span> <span class="token punctuation">/></span></span><span class="token plain-text">;
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+  <span class="token function-variable function">save</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> blockProps <span class="token operator">=</span> useBlockProps<span class="token punctuation">.</span><span class="token function">save</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token spread"><span class="token punctuation">{</span> <span class="token operator">...</span>blockProps <span class="token punctuation">}</span></span><span class="token punctuation">></span></span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">InnerBlocks.Content</span></span> <span class="token punctuation">/></span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>One of the earliest problems I had with Gutenberg was that I couldn’t create a blockquote if the text had lists in it. The issue appears to have been fixed but having this as a backup is always a good idea eventhough it requires more work to implement.</p>
+<h1 id="%40wordpress%2Fcreate-block">@wordpress/create-block</h1>
+<p><code>@wordpress/create-block</code> (<code>create-block</code> for short) is a Node package that provides the officially supported way to create blocks.</p>
+<p>The basic structure the script provides is as follows:</p>
+<pre class="language-tree"><code class="language-tree">.
+├── build
+│  ├── block.json
+│  ├── index.asset.php
+│  ├── index.css
+│  ├── index.css.map
+│  ├── index.js
+│  ├── index.js.map
+│  ├── style-index.css
+│  └── style-index.css.map
+├── node_modules
+├── demo-block.php
+├── package-lock.json
+├── package.json
+├── readme.txt
+└── src
+    ├── block.json
+    ├── edit.js
+    ├── editor.scss
+    ├── index.js
+    ├── save.js
+    └── style.scss
+</code></pre>
+<p>The script also installs the <code>@wordpress/scripts</code> package, which is a set of tools to make working with WordPress easier.</p>
+<p>You can run the package with the following command inside your server’s <strong>plugins</strong> directory:</p>
+<pre class="language-bash"><code class="language-bash">npx @wordpress/create-block rw-demo-block <span class="token punctuation">\</span>
+    --template @wordpress/create-block-tutorial-template <span class="token punctuation">\</span>
+    --title <span class="token string">"Demo Block"</span> <span class="token punctuation">\</span>
+    --namespace rivendellweb <span class="token punctuation">\</span>
+    --short-description <span class="token string">"Another awesome block"</span> <span class="token punctuation">\</span>
+    --category <span class="token string">"widgets"</span>
+</code></pre>
+<p>This command will give you all the tools you need to create a block along with a pre-filled plugin to start working from.</p>
+<p>The command <strong>will not</strong> install the plugin on your server. You have to do the installation and activation manually.</p>
+<p>You can also create your own base templates and use them with <code>create-block</code> and host them in Github so you can run them with the <code>create-block</code> command.</p>
+<p>The template contains at minimum the following files:</p>
+<ul>
+<li>An <code>index.js</code> file to run the template creation</li>
+<li>One or more <code>mustache</code> templates that will be processed when we create a block based on the template. These templates include scss style</li>
+<li>Optional <code>package.json</code> with the template metadata. We are not installing any modules from the template.</li>
+</ul>
+<p>Once you have the template ready to go you can run the code locally</p>
+<pre class="language-bash"><code class="language-bash">npx @wordpress/create-block --template ~/path/to/my-template/
+</code></pre>
+<p>or from NPM</p>
+<pre class="language-bash"><code class="language-bash">npx @wordpress/create-block --template my-template
+</code></pre>
+<p>For a good example of how custom templates work, see <a href="https://twitter.com/mkaz">Marcus Kazmierczak’s</a> overview of the process in <a href="https://mkaz.blog/wordpress/make-your-own-create-block-templates/">Make your own create-block templates</a>. You can also see the code from his tutorial on <a href="https://github.com/mkaz/mkaz-block-template">Github</a> and use it on your projects by running:</p>
+<pre class="language-bash"><code class="language-bash">npx  @wordpress/create-block --template mkaz-block-template
+</code></pre>
+<p>The <code>create-block</code> script automates a lot of the tedious tasks of creating a block. There are other ways to do it, but this is the way the WordPress team recommends.</p>
+<h1 id="revisiting-gutenberg-as-a-design-system">Revisiting Gutenberg as a design system</h1>
+<p>Gutenberg presents an interesting way to create and use design systems and present them to the user.</p>
+<p>I use the following definition of a design system:</p>
+<blockquote>
+<p>A design system is a complete set of standards intended to manage design at scale using reusable components and patterns.</p>
+<p><a href="https://www.nngroup.com/articles/design-systems-101/">Design Systems 101</a> — Nielsen Norman Group</p>
+</blockquote>
+<p>I wrote a series of posts on the topic of using Gutenberg as a design system and variations of those design items.</p>
+<ul>
+<li>Gutenberg as a design system
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-a-design-system-part-1/">Part 1</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-design-systems-part-2/">Part 2</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/gutenberg-as-design-systems-part-3/">Part 3</a></li>
+</ul>
+</li>
+</ul>
+<p>This post is a review and further exploration of Gutenberg-based design systems. This post will borrow some concepts from Brad Frost’s <a href="https://bradfrost.com/blog/post/atomic-web-design/">atomic design</a>.</p>
+<p>Below is Brad’s Presentation about Atomic Design, given at Beyond Tellerand in 2013</p>
+<div class="video">
+<iframe title="vimeo-player" src="https://player.vimeo.com/video/67476280?h=ece7ce5c06" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+</div>
+<h2 id="start-from-the-beginning%3A-building-atoms">Start from the beginning: Building Atoms</h2>
+<p>Atoms are the smallest building blocks of an Atomic Design System. In Gutenberg, atoms are the individual components and variations thereof.</p>
+<p>The default blocks are well documented so we won’t discuss them here.</p>
+<h3 id="defining-a-color-palette">Defining a color palette</h3>
+<p>One of the first things I look at is how to define a color palette. I will use the different palettes show in my <a href="https://rivendellweb-patterns.netlify.app/components/detail/colors--default.html">full color palette</a> created for a diffrent design system experiment.</p>
+<p>Taking advantage of the <code>theme.json</code> file, we can define a color palette based on the list of colors available to use.</p>
+<p>Usually the client will give you a list of colors that match their brand or you can create your own list.</p>
+<p>Inside your <code>theme.json</code> file you can define your own colors inside the <code>palette</code> section. Each color has three attributes: <code>slug</code>, <code>color</code> and <code>name</code>.</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"palette"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"plum-crazy-purple"</span><span class="token punctuation">,</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"#6600CC"</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Plum Crazy Purple"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"rebecca-purple"</span><span class="token punctuation">,</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"#663399"</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Rebecca Purple"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"butterscotch"</span><span class="token punctuation">,</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"#D48827"</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Butterscotch"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"cherry"</span><span class="token punctuation">,</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"#D2042D"</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Cherry"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">"slug"</span><span class="token operator">:</span> <span class="token string">"black-cherry"</span><span class="token punctuation">,</span>
+    <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"#52253A"</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Black Cherry"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre>
+<p>Because of the way colors are displayed in the editor, we need to be mindful of the number of colors we use on our themes.</p>
+<p>We also need to be careful with color contrast between foreground and background colors. The last thing we want is for our text to be illegible because of poor cotrast with the background color.</p>
+<h3 id="loading-web-fonts">Loading web fonts</h3>
+<p>One of the most contentious things in working with WordPress overall is how to use web fonts.</p>
+<p>Ideally, this would be a matter of using fonts from CDNs like <a href="https://fonts.google.com/">Google Fonts</a> or <a href="https://fonts.adobe.com/">Adobe Fonts</a> but it’s not so easy… we need to be mindful of the following:</p>
+<ul>
+<li><a href="https://thehackernews.com/2022/01/german-court-rules-websites-embedding.html">German Court Rules Websites Embedding Google Fonts Violates GDPR</a></li>
+<li><a href="https://www.theregister.com/2022/01/31/website_fine_google_fonts_gdpr/">Website fined by German court for leaking visitor’s IP address via Google Fonts</a></li>
+</ul>
+<p>So we might have to use locally hosted web fonts or use system fonts.</p>
+<p>Since I’m trying to recreate an existing theme as an example, I will try to use the same local web font that I used in the original.</p>
+<p><a href="https://recursive.design">Recursive</a> is a variable font that I’ve been working with since it was in beta. It provides pretty much everything that you may need:</p>
+<ul>
+<li>A monospace code axis for pre-formated and code blocks</li>
+<li>Sans-serif, and casual axes for typographical work</li>
+<li>Variable weight axis from light to extra black (300 to 1000 in numeric values)</li>
+<li>Slant and cursive axes to control italics behavior</li>
+<li>A set of presets that combine the different values from the available axes to give you control without having to drop to the low level value adjustment</li>
+<li>Support for 200 latin languages out of the box</li>
+</ul>
+<p>TO get started we add the <code>@font-face</code> declaration to our stylesheet.</p>
+<p>Variable fonts make some changes to the <code>@font-face</code> syntax we are used to.</p>
+<p><code>font-weight</code> now takes two values representing the lowest and highest boundaries for the attribute. In this case the font support weights between 300 and 1000.</p>
+<p>I am using a subset of the full Recursive font that only includes lating languages. The <code>unicode-range</code> attribute indicates the specific Unicode codepoints that the font subset supports.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"path/to/Recursive.woff2"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 300 1000<span class="token punctuation">;</span>
+  <span class="token property">unicode-range</span><span class="token punctuation">:</span> U+000D<span class="token punctuation">,</span> U+0020-007E<span class="token punctuation">,</span> U+00A0-00FF<span class="token punctuation">,</span> U+0131<span class="token punctuation">,</span> U+0152-0153<span class="token punctuation">,</span>
+      U+02BB-02BC<span class="token punctuation">,</span> U+02C6<span class="token punctuation">,</span> U+02DA<span class="token punctuation">,</span> U+02DC<span class="token punctuation">,</span> U+2007-200B<span class="token punctuation">,</span> U+2010<span class="token punctuation">,</span> U+2012-2015<span class="token punctuation">,</span>
+      U+2018-201A<span class="token punctuation">,</span> U+201C-201E<span class="token punctuation">,</span> U+2020-2022<span class="token punctuation">,</span> U+2026<span class="token punctuation">,</span> U+2030<span class="token punctuation">,</span> U+2032-2033<span class="token punctuation">,</span>
+      U+2039-203A<span class="token punctuation">,</span> U+203E<span class="token punctuation">,</span> U+2044<span class="token punctuation">,</span> U+2052<span class="token punctuation">,</span> U+2074<span class="token punctuation">,</span> U+20AC<span class="token punctuation">,</span> U+2122<span class="token punctuation">,</span> U+2191<span class="token punctuation">,</span>
+      U+2193<span class="token punctuation">,</span> U+2212<span class="token punctuation">,</span> U+2215<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Next, we add the following default values to the <code>:root</code> element. We add them as CSS custom properties / variables so we can override themm later without having to worry about specificity later.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--mono</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--casl</span><span class="token punctuation">:</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--wght</span><span class="token punctuation">:</span> <span class="token string">"wght"</span> 400<span class="token punctuation">;</span>
+  <span class="token property">--slnt</span><span class="token punctuation">:</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--crsv</span><span class="token punctuation">:</span> <span class="token string">"CRSV"</span> 0.5<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We can then apply the properties to the <code>html</code> or <code>body</code> elements to set the default.</p>
+<p>This command will set the default font for the document (the body element and all its children) to Recursive with a system sans-serif backup. It will also change the parameters of the font to what we specify or to the values in the <code>:root</code></p>
+<pre class="language-css"><code class="language-css"><span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive"</span><span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> 
+    <span class="token function">var</span><span class="token punctuation">(</span>--mono<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--casl<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--wght<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--slnt<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--crsv<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Using CSS variables allow us to override the default values by reassigning them.</p>
+<p>In the following example we change the value of the casual axis from 0 (normal) to 1 (casual). This will make all <code>h2</code> elements appear in a more casual and playful font.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h2</span> <span class="token punctuation">{</span>
+  <span class="token property">--casl</span><span class="token punctuation">:</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">;</span>
+
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> 
+    <span class="token function">var</span><span class="token punctuation">(</span>--mono<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--casl<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--wght<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--slnt<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">var</span><span class="token punctuation">(</span>--crsv<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The axes described in this post only work with the Recursive variable font.</p>
+<p>Using the <code>font-variation-settings</code> syntax is not recommended. However, support for the recommended <code>font-variant-*</code> properties is uneven and depends on the feature we’re using</p>
+<h3 id="block-variations">Block variations</h3>
+<p>Another way we can create our atoms and other design elements is to use <a href="https://developer.wordpress.org/block-editor/reference-guides/block-api/block-variations/">block variations</a>.</p>
+<p>The variations API allows the creation of new variants of a block that share a common structure. This reduces the potential number of blocks we need to create and provides for a more consistent design system.</p>
+<p>The following example shows how to create block variations <strong>for default blocks</strong> and package them as a plugin. The same thing can be done in a theme if we want to tie the variations to a specific theme.</p>
+<p>The first step is to create the PHP file that will make the plugin work. Without the comment, the package will not be recognized as a plugin.</p>
+<p>We then make sure that the plugin cannot be accessed directly.</p>
+<p>The core of the PHP file are the functions that enqueue the Javascript file containing our variations and the stylesheet that implements the variations’ CSS styles.</p>
+<p><code>rivendellweb_enqueue_variations</code> enqueues and loads the script that holds the variations of the core blocks.</p>
+<p><code>rivendellweb_variation_styles</code> enqueues the styles associated with the variations.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token comment">/**
+ * Plugin Name: Rivendellweb variations
+ * Plugin URI: https://github.com/caraya/rivendellweb-variations
+ * Description: Rivendellweb blocks variations.
+ * Version: 0.1.0
+ * Author: Carlos Araya
+ *
+ * @package rivendellweb-blocks
+ */</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token operator">!</span> <span class="token function">defined</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'ABSPATH'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">exit</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_enqueue_variations</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'rivendellweb-script'</span><span class="token punctuation">,</span>
+        <span class="token function">plugins_url</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'./src/block-variations.js'</span><span class="token punctuation">,</span> <span class="token constant">__FILE__</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp-blocks'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp-dom-ready'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp-edit-post'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">filemtime</span><span class="token punctuation">(</span> <span class="token function">plugin_dir_path</span><span class="token punctuation">(</span> <span class="token constant">__FILE__</span> <span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'./src/block-variations.js'</span> <span class="token punctuation">)</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'enqueue_block_editor_assets'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_enqueue_variations'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_variation_styles</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'rivendellweb_variations_css'</span><span class="token punctuation">,</span>
+    <span class="token function">plugins_url</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'./src/block-variations.css'</span><span class="token punctuation">,</span>
+      <span class="token constant">__FILE__</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span>
+  <span class="token string single-quoted-string">'enqueue_block_assets'</span><span class="token punctuation">,</span> 
+  <span class="token string single-quoted-string">'rivendellweb_variation_styles'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>In <code>block-variations.js</code> we defined the variations we want to create. We use <a href="https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/">regusterBlockStyle</a> to define these variations.</p>
+<p><code>registerBlockStyle</code> has three basic parameters:</p>
+<ol>
+<li>The name of the block we are creating the variation for</li>
+<li>The computer-readable name used to compute the class name of the variation</li>
+<li>The human readable label</li>
+</ol>
+<pre class="language-js"><code class="language-js">wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">registerBlockStyle</span><span class="token punctuation">(</span> <span class="token string">'core/paragraph'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'lede-paragraph'</span><span class="token punctuation">,</span>
+  label<span class="token operator">:</span> <span class="token string">'Lede (first) Paragraph'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Blockquote variations</span>
+wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">registerBlockStyle</span><span class="token punctuation">(</span> <span class="token string">'core/quote'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'fancy-quote'</span><span class="token punctuation">,</span>
+  label<span class="token operator">:</span> <span class="token string">'Fancy Quote'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">registerBlockStyle</span><span class="token punctuation">(</span> <span class="token string">'core/quote'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'top-bottom-quote'</span><span class="token punctuation">,</span>
+  label<span class="token operator">:</span> <span class="token string">'Top and Bottom'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+wp<span class="token punctuation">.</span>blocks<span class="token punctuation">.</span><span class="token function">registerBlockStyle</span><span class="token punctuation">(</span> <span class="token string">'core/quote'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">'red-quote'</span><span class="token punctuation">,</span>
+  label<span class="token operator">:</span> <span class="token string">'Red Quote'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>THe final piece is the CSS necessary to style the variations.</p>
+<p>The classes use the following syntax: <strong>.is-style-{class-name}</strong></p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.is-style-lede-paragraph</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 1.5em <span class="token important">!important</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.is-style-fancy-quote</span> <span class="token punctuation">{</span>
+  <span class="token property">border-left</span><span class="token punctuation">:</span> 4px solid red<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.is-style-top-bottom-quote</span> <span class="token punctuation">{</span>
+  <span class="token property">border-top</span><span class="token punctuation">:</span> 4px solid black<span class="token punctuation">;</span>
+  <span class="token property">border-bottom</span><span class="token punctuation">:</span> 4px solid black<span class="token punctuation">;</span>
+  <span class="token property">border-left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.is-style-red-quote</span> <span class="token punctuation">{</span>
+  <span class="token property">border-left</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 5vmax<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>So far the variations work, but they require a lot of code and three different files to be susscesful.</p>
+<p>Registering the variations on the server reduces the amount of complexity we need to maintain.</p>
+<p>The idea is to use PHP’s <a href="https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/#register_block_style">register_block_style</a> function to consolidate all the information for the variations into one file.</p>
+<p>The function takes two parameters:</p>
+<ol>
+<li>The name of the block we are creating the variations for</li>
+<li>An array of properties for the style
+<ol>
+<li><strong>Name</strong>: The name of the variation used to compute the class name (<strong>required</strong>)</li>
+<li><strong>Label</strong>: The human-readable label (<strong>required</strong>)</li>
+<li>inline_style: Contains inline CSS code that registers the CSS class required for the style (<strong>optional</strong>)</li>
+<li><strong>style_handle</strong>: Contains the handle to an already registered style that should be enqueued in places where block styles are needed (<strong>optional</strong>)</li>
+<li><strong>is_default</strong>: Boolean value. If set to true it indicates that this variation is the default variation for the block (<strong>optional</strong>)</li>
+</ol>
+</li>
+</ol>
+<p>This example adds a blue quote varation to the <code>core/quote</code> block.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">register_block_style</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'core/quote'</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span>
+        <span class="token string single-quoted-string">'name'</span>         <span class="token operator">=></span> <span class="token string single-quoted-string">'blue-quote'</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'label'</span>        <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Blue Quote'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'textdomain'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string single-quoted-string">'inline_style'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'.wp-block-quote.is-style-blue-quote { color: blue; }'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p><code>unregister_block_style</code> unregisters a block style previously registered on the server using <code>register_block_style</code>.</p>
+<p>The function’s first argument is the registered name of the block, and the name of the style as the second argument.</p>
+<p>The following example unregister the blue quote variation.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">unregister_block_style</span><span class="token punctuation">(</span>
+  <span class="token string single-quoted-string">'core/quote'</span><span class="token punctuation">,</span>
+  <span class="token string single-quoted-string">'blue-quote'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<div class="message warning">
+  <p><strong>Important</strong></p>
+  <p>The function <code>unregister_block_style</code> only unregisters styles that were registered using <code>register_block_style</code> on the server. The function does not unregister a style registered using client-side code.</p>
+</div>
+<h2 id="block-patterns%3A-molecules%2C-oragnisms-and-templates">Block Patterns: Molecules, Oragnisms and Templates</h2>
+<p>In the Gutenberg world Block Patterns are predefined block layouts, available from the patterns tab of the block inserter.</p>
+<h3 id="register-block-categories">Register block categories</h3>
+<p>Before defining the block patterns I’ll make available via the plugin, I like to define one or more categories to collect the patterns under.</p>
+<p>Just like with blocks, the categories help organize the content in our own categories. A block or pattern can belong to more than one category.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rw_custom_register_my_pattern_categories</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">register_block_pattern_category</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'rivendellweb'</span><span class="token punctuation">,</span>
+      <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'label'</span> <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Rivendellweb'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rw-custom'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+ 
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rw_custom_register_my_pattern_categories'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<h3 id="registering-block-patterns">Registering block patterns</h3>
+<p>Once we install them we can then further customize and expand them</p>
+<p>The register_block_pattern helper function receives two arguments.</p>
+<ul>
+<li><strong>title</strong>: A machine-readable title with a naming convention of namespace/title</li>
+<li><strong>properties</strong>: An array describing properties of the pattern.</li>
+</ul>
+<p>The properties available for block patterns are:</p>
+<ul>
+<li><strong>title</strong>: A human-readable title for the pattern  (<strong>required</strong>)</li>
+<li><strong>content</strong>: Block HTML Markup for the pattern (<strong>required</strong>)</li>
+<li><strong>description</strong>: A visually hidden text used to describe the pattern in the inserter (<strong>optional</strong>)
+categories: An array of registered pattern categories used to group block patterns. Categories are registered using <code>register_block_pattern_category</code> (<strong>optional</strong>)</li>
+<li><strong>keywords</strong>: An array of aliases or keywords that help users discover the pattern while searching (<strong>optional</strong>)</li>
+<li><strong>viewportWidth</strong>: An integer specifying the intended width of the pattern to allow for a scaled preview of the pattern in the inserter  (<strong>optional</strong>)</li>
+</ul>
+<p>Make sure that you add the blocks in the init hook as shown in the example.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">register_block_pattern</span><span class="token punctuation">(</span>
+  <span class="token string single-quoted-string">'rivendellweb-patterns/demo-pattern'</span><span class="token punctuation">,</span>
+  <span class="token keyword">array</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'title'</span>       <span class="token operator">=></span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Two buttons'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'my-plugin'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'description'</span> <span class="token operator">=></span> <span class="token function">_x</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Two horizontal buttons, the left button is filled in, and the right button is outlined.'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'Block pattern description'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'my-plugin'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'content'</span>     <span class="token operator">=></span> <span class="token string double-quoted-string">"&lt;!-- wp:buttons {\"align\":\"center\"} -->\n&lt;div class=\"wp-block-buttons aligncenter\">&lt;!-- wp:button {\"backgroundColor\":\"very-dark-gray\",\"borderRadius\":0} -->\n&lt;div class=\"wp-block-button\">&lt;a class=\"wp-block-button__link has-background has-very-dark-gray-background-color no-border-radius\">"</span> <span class="token operator">.</span> <span class="token function">esc_html__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Button One'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'my-plugin'</span> <span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string double-quoted-string">"&lt;/a>&lt;/div>\n&lt;!-- /wp:button -->\n\n&lt;!-- wp:button {\"textColor\":\"very-dark-gray\",\"borderRadius\":0,\"className\":\"is-style-outline\"} -->\n&lt;div class=\"wp-block-button is-style-outline\">&lt;a class=\"wp-block-button__link has-text-color has-very-dark-gray-color no-border-radius\">"</span> <span class="token operator">.</span> <span class="token function">esc_html__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Button Two'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'my-plugin'</span> <span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string double-quoted-string">"&lt;/a>&lt;/div>\n&lt;!-- /wp:button -->&lt;/div>\n&lt;!-- /wp:buttons -->"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+ 
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'my_plugin_register_my_patterns'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>The syntax for the pattern context takes a while to learn and it’s not intuitive. The best way to learn the syntax is to look at existing patterns that match what you want to do and use them as a starting point. You can build the pattern in the Gutenberg Editor and then copy it into <code>content</code> parameter of the pattern you want to create.</p>
+<p>Because we’re working with PHP, we need to escape the HTML we use in the patterns to prevent misuse.</p>
+<p>For each registration method there is a corresponding unregistration method.</p>
+<h2 id="further-extensions%3A-custom-post-types">Further extensions: Custom Post Types</h2>
+<p>Another way to create elements for a design system is to use <a href="https://developer.wordpress.org/plugins/post-types/">custom post types</a></p>
+<p>We can use them with limited templates and patterns or we can creatae custom patterns for the CPTs or we can use CPTs as an authoring tool for content templates.</p>
+<h3 id="content-templates">Content templates</h3>
+<p><a href="https://mkaz.blog/wordpress/using-block-patterns-as-content-templates/">Using Block Patterns as content templates</a> an interesting way to create content patterns.</p>
+<p>These patterns can be as sinmple as the following example that describes an incident report.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:heading --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Summary<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:heading --></span>
+
+<span class="token comment">&lt;!-- wp:paragraph --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>What happened?<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:paragraph --></span>
+
+<span class="token comment">&lt;!-- wp:heading --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Timeline<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:heading --></span>
+
+<span class="token comment">&lt;!-- wp:paragraph --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>When did it happen?<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:paragraph --></span>
+
+<span class="token comment">&lt;!-- wp:heading --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Impact<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:heading --></span>
+
+<span class="token comment">&lt;!-- wp:paragraph --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Who was effected?<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:paragraph --></span>
+
+<span class="token comment">&lt;!-- wp:heading --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Process<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:heading --></span>
+
+<span class="token comment">&lt;!-- wp:paragraph --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Why did this happen?<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:paragraph --></span>
+
+<span class="token comment">&lt;!-- wp:heading --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Improvement<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:heading --></span>
+
+<span class="token comment">&lt;!-- wp:paragraph --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>What we are doing to prevent happening again<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:paragraph --></span>
+</code></pre>
+<p>If we write this pattern in the Gutenberg Editor then we get a visual experience of the pattern we’re creating and a visual approximation to what it will look like when the pattern is used.</p>
+<p>The article also presents a tool to create patterns from posts of a custom post type.</p>
+<h3 id="more-information">More information</h3>
+<ul>
+<li>WordPress CLI
+<ul>
+<li><a href="https://developer.wordpress.org/cli/commands/scaffold/post-type/">wp scaffold post-type</a></li>
+</ul>
+</li>
+<li>The Traditional Way
+<ul>
+<li><a href="https://developer.wordpress.org/plugins/post-types/registering-custom-post-types/">Registering Custom Post Types</a></li>
+</ul>
+</li>
+<li>The Gutenberg Way
+<ul>
+<li><a href="https://knowthecode.io/how-enable-gutenberg-editor-custom-post-type">How to Use Gutenberg with WordPress Custom Post Types</a></li>
+<li><a href="https://mkaz.blog/wordpress/using-block-patterns-as-content-templates/">Using Block Patterns as content templates</a></li>
+<li><a href="https://richtabor.com/build-block-patterns/">How to Build Block Patterns for the WordPress Block Editor</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="pagination-and-post-navigation">Pagination and Post Navigation</h1>
+<p>Gutenberg gives you the tools to do pagination visually but, unfortunately, I haven’t found a way to customize the pagination tool so that it works the way I want to.</p>
+<p>There are two different types of pagination in a WordPress-based blog: One for index and archive pages and one for individual posts.</p>
+<h2 id="index-page-navigation">Index Page Navigation</h2>
+<p>THe pagination layout I ended up using on my site looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:query-pagination {
+  "layout":{"type":"flex" "justifyContent":"center"}} --></span>
+  <span class="token comment">&lt;!-- wp:query-pagination-previous /--></span>
+
+  <span class="token comment">&lt;!-- wp:query-pagination-numbers /--></span>
+
+  <span class="token comment">&lt;!-- wp:query-pagination-next /--></span>
+<span class="token comment">&lt;!-- /wp:query-pagination --></span>
+</code></pre>
+<p>There are some issues with the default navigation.</p>
+<ul>
+<li>If there is no previous or next post, the remaining content will move. I would rather is remain static and the space be left empty so the navigation remains centered</li>
+<li>Because the page navigation is built inside the query-loop block, and we’ve styles the loop to be narrower so it looks acceptable the navigation is also constrained by the styles on the loop</li>
+</ul>
+<p>I’ve made the concious decision to let the previous and next post links overflow the parent element. However when both previous and next links are present the links are squished together and it doesn’t look like the design I intended.</p>
+<p>As a hacky workaround, for now, I’ve added this CSS to the site’s customizations:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.wp-block-query-pagination</span> <span class="token punctuation">{</span>
+    <span class="token property">width</span><span class="token punctuation">:</span> 80vw
+    <span class="token property">margin-left</span><span class="token punctuation">:</span> -225px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The negative margin will move the pagination container to the left to try and match the width of the footer below.</p>
+<p>I also need to test in other desktop and mobile devices to make sure that the pagination still works as intended there.</p>
+<h2 id="post-navigation">Post Navigation</h2>
+<p>Post navigation is different than the page navigation and it uses a lot more attributes in the Gutenberg comments.</p>
+<p>Structurally, the layout is built around a two column layout and leverages a lot of built-in block attributes and parameters.</p>
+<p>Each <code>post-navigation-link</code> element has three attributes that are relevant:</p>
+<ul>
+<li><code>type</code>: This is the type of link. It can be <code>previous</code> or <code>next</code></li>
+<li><code>showTitle</code>: This is a boolean that determines if the title of the post should be shown</li>
+<li><code>linkLabel</code>: Boolean that indicates if the link should have a label</li>
+</ul>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:columns {"style":{"spacing":{"margin":{"top":"2.38rem","bottom":"2.38rem"}}},"className":"post-nav"} --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-columns post-nav<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">margin-top</span><span class="token punctuation">:</span>2.38rem<span class="token punctuation">;</span><span class="token property">margin-bottom</span><span class="token punctuation">:</span>2.38rem</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- wp:column {"verticalAlignment":"center"} --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-column is-vertically-aligned-center<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- wp:post-navigation-link {"type":"previous","showTitle":true,"linkLabel":true} /--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- /wp:column --></span>
+
+    <span class="token comment">&lt;!-- wp:column --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-column is-style-default<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- wp:post-navigation-link {"textAlign":"left","showTitle":true,"linkLabel":true} /--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- /wp:column --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:columns --></span>
+</code></pre>
+<p>I like that the navigation links have attributes matching functionality, I just wish they were better documented for those of us wishing that we could edit them directly on the template.</p>
+<h1 id="gutenberg%3A-my-issues-(2022-version)">Gutenberg: My Issues (2022 version)</h1>
+<p>This is a place to document issues I’m finding as I build my theme. A lot of these issues may be cause by my lack of experience with Gutenberg and the way the full site editor works.</p>
+<p>I will file issues about these items in the Gutenberg repo where I feel it’s necessary.</p>
+<h2 id="adjusting-expectations">Adjusting Expectations</h2>
+<p>One of the things I’m not sure works as intended or that I’m not understanding correctly is how the full site editor works.</p>
+<p>If I’m understanding this correctly, the changes on the editor should be reflected to the corresponding file I’m editing and viceversa, right?</p>
+<p>This is not the case. I’ve made extensive changes to the theme I’m working on and none of those changes are reflected in the file I’m working with. Likewise, I’ve made significant changes in template files and they are not reflected in the editor.</p>
+<p>I asked the question in the WordPress Slack and the answer I got was it was working as designed.</p>
+<blockquote>
+<p>That’s actually deliberate, even if it’s initially confusing. The customizations that you use within the site editor are saved as CPTs. You can export the templates to get the HTML version if you want to put them into the code, but this way the user’s changes are non-destructive and you can safely update the theme or even change themes and keep your templates. You can’t export the theme.json file yet, but that’s coming. (edited)</p>
+<p>From: <a href="https://wordpress.slack.com/archives/C02QB2JS7/p1644781268400009">Make WordPress Slack — core-editor discussion</a></p>
+</blockquote>
+<p>It appears that if I want to continue creating block themes, I will have to use the full site editor as the source of truth and remember to export the files periodically and to update the editor to match the layout if I’m making changes directly to the template.</p>
+<p>See these Github Issues for context and discussion on the isue:</p>
+<ul>
+<li><a href="https://github.com/WordPress/gutenberg/issues/22469">How to sync edits made within a theme’s HTML files to the Block Editor (Full-site editing)</a></li>
+<li>See <a href="https://github.com/WordPress/gutenberg/issues/22469#issuecomment-669210648">this comment</a> in particular for a way to potentially edit content on the file system and have it automatically reflect on the editor and the front end</li>
+<li><a href="https://github.com/WordPress/gutenberg/issues/29864">On Locking and TemplateLocking</a>.</li>
+</ul>
+<h2 id="poor-or-non-existant-block-documentation">Poor or non-existant block documentation</h2>
+<p>Documentation for the blocks API is sparse and, almost, non existant.</p>
+<p>I thought the Storybook section of the Gutenberg repo may help but I found out that it is for Gutenberg’s low-level components, not the blocks that we use in the editor.</p>
+<p>I believe the only way to get a good idea of what the core blocks can do is to create a layout that you like and then copy it or export it into your favorite editor to see how it works and if there are any attributes worth documenting for future use.</p>
+<h2 id="mixing-html-with-template-content">Mixing HTML with template content</h2>
+<p>I’m trying to get something like this in the full site editor:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Posted by: <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>link/to/author/archive<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Carlos<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Posted on: <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>link/to/date/archive<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>February 22, 2021<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The current layout is a nested column layout. The label is a paragraph element, and the author name and date posted are Gutenberg elements inside a <code>div</code> element so we can make it into a flexbox layout.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:column {"width":"100%"} --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-column<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">flex-basis</span><span class="token punctuation">:</span>100%</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- wp:columns --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-columns<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- wp:column {"width":"50%"} --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-column<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">flex-basis</span><span class="token punctuation">:</span>50%</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- wp:paragraph {"fontSize":"small"} --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>has-small-font-size<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Posted by:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- /wp:paragraph --></span>
+      <span class="token comment">&lt;!-- wp:post-author-name {"fontSize":"small"} /--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- /wp:column --></span>
+
+    <span class="token comment">&lt;!-- wp:column {"width":"50%"} --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wp-block-column<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">flex-basis</span><span class="token punctuation">:</span>50%</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- wp:paragraph {"fontSize":"small"} --></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>has-small-font-size<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>posted on:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- /wp:paragraph --></span>
+      <span class="token comment">&lt;!-- wp:post-date {"isLink":true,"fontSize":"small"} /--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- /wp:column --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- /wp:columns --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- /wp:column --></span>
+</code></pre>
+<p>I can’t seem to figure out if there is a pattern similar to what we do for <code>wp:post-navigation</code> links where there is a label available (even though we can’t edit its content) inserted as a span that we can tweak with CSS.</p>
+<p>Again, I’m not sure if this is something I’m doing wrong or if it’s something that is just not available in Gutenberg at all.</p>
+<h2 id="navigation-issues">Navigation issues</h2>
+<p>If there is no previous or next post, the remaining content will move. However when both previous and next links are present the links are squished together and it doesn’t look like the design I intended, regardless of the code I use.</p>
+<p>When both previous and next links are present the links break down into two lines and they only take the width of the query-loop block.</p>
+<p>I came around with a CSS solution that kind of does what I need it to. The negative margin is a hack to make the navigation stay centered and match the footer below it.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">div[class*="wp-container"].wp-block-query-pagination</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 80vw<span class="token punctuation">;</span>
+  <span class="token property">margin-left</span><span class="token punctuation">:</span> -250px<span class="token punctuation">;</span>  
+<span class="token punctuation">}</span>
+</code></pre>
+<p>There is more research I need to do to make sure this won’t break on desktop screens with different resolutions.</p>
+<h2 id="how-many-sources-for-blocks-are-enough%3F">How many sources for blocks are enough?</h2>
+<p>In an ideal world, installing all the block libraries that we want wouldn’t be a problem, right?</p>
+<p>Unfortunately, installing multiple block collections can be problematic and may cause performance issues and  confuse users when a given block breaks because the package it was installed from hasn’t been installed in the new WordPress installation.</p>
+<p>SO how do we plan for the number of block plugins that we install? Do we need to install external packages for added functionality?</p>
+<h2 id="creating-header-navigation-menus">Creating header navigation menus</h2>
+<p>Surprisingly one of the hardest part of building a theme was adding a navigation for the header element.</p>
+<p>At the most basic, the <code>wp:navigation</code> has a single attribute that links the menu to the underlying navigation post using the post’s ID attribute.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:navigation {"ref":295} /--></span>
+</code></pre>
+<p>The problem I’ve had is that I can’t figure out how to build the navigation page so, until I figure out how to build the menu page, I’ve built a static menu with hardcoded links. The modified link looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- wp:navigation {
+  "className":"main-navigation",
+  "layout":{
+    "type":"flex",
+    "setCascadingProperties":true,
+    "justifyContent":"right",
+    "alignItems":"center"
+    }
+  } --></span>
+
+  <span class="token comment">&lt;!-- wp:navigation-link {
+    "label":"About",
+    "title":"about",
+    "type":"page",
+    "url":"/about/"
+  } /--></span>
+
+  <span class="token comment">&lt;!-- wp:navigation-link {
+    "label":"Privacy",
+    "title":"Privacy",
+    "type":"page",
+    url":"/privacy"
+  } /--></span>
+
+  <span class="token comment">&lt;!-- wp:navigation-link {
+    "label":"Codepen",
+    "title":"Codepen",
+    "type":"link",
+    "url":"https://codepen.io/caraya"
+  } /--></span>
+
+  <span class="token comment">&lt;!-- wp:navigation-link {
+    "label":"Projects",
+    "title":"Projects",
+    "type":"link",
+    "url":"https://caraya.github.io/mprojects/"
+  } /--></span>
+
+  <span class="token comment">&lt;!-- wp:navigation-link {
+    "label":"Patterns",
+    "title":"Patterns",
+    "type":"link",
+    "url":"https://rivendellweb-patterns.netlify.app/"
+  } /--></span>
+  
+  <span class="token comment">&lt;!-- wp:navigation-link {
+    "label":"Layouts",
+    "title":"Layouts",
+    "type":"link",
+    "url":"https://rivendellweb-layout-experiments.netlify.app/"
+  } /--></span>
+<span class="token comment">&lt;!-- /wp:navigation --></span>
+</code></pre>
+<p>The information available about the<a href="https://make.wordpress.org/core/2022/01/07/the-new-navigation-block/">navigation block</a> doesn’t cover how to build the navigation pages. Until I do then I’ll have to keep the static link around, perhaps as a separate pattern.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="building-a-stylesheet-using-%40layers">Building a stylesheet using @layers</h1>
+<div class='message info'>
+  <p>Note:</p>
+  <p>Credit for a lot of information on this post goes to Miriam Zuzanne's <a href="https://css-tricks.com/css-cascade-layers/">A Complete Guide to CSS Cascade Layers</a> publlished in CSS Tricks.</p>
+</div>
+<p>CSS layers present an interesting design paradigm. They allow developers to group styles based on criteria we define.</p>
+<p>For the example, we’ll define four layers.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> 
+  base
+  layout
+  utilities
+  theme<span class="token punctuation">;</span></span>
+</code></pre>
+<p>The order we declare our layers is important. The order of the layers will dictate how they cascade.</p>
+<p>In our example, the rules from the <code>theme</code> layer will have precedence over the rules in the <code>layout</code> layer.</p>
+<p>Using the layers we defined earlier, the cascade precedence order (from more to least important) is:</p>
+<ol>
+<li>Styles outside a layers</li>
+<li>base</li>
+<li>layout</li>
+<li>utilities</li>
+<li>theme</li>
+</ol>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/important">!important</a> property will change the order of properties in @layers as it does in regular stylesheets using <code>!important</code> the order of precedence will be reversed before we apply our regular layer ordering</p>
+<ol>
+<li><code>!important</code> theme</li>
+<li><code>!important</code> utilities</li>
+<li><code>!important</code> layout</li>
+<li><code>!important</code> base</li>
+<li>base</li>
+<li>layout</li>
+<li>utilities</li>
+<li>theme</li>
+</ol>
+<h2 id="revert-layer"><code>revert-layer</code></h2>
+<p>The <code>rever-layer</code> keyword allow us to revert the property to the value held in the previous <code>@layer</code>.</p>
+<p>In the example below, the <code>no-theme</code> class will revert the color to the previous layer, setting it green.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> default</span> <span class="token punctuation">{</span>
+  <span class="token selector">a</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> green<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@layer</span> theme</span> <span class="token punctuation">{</span>
+  <span class="token selector">a</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> purple<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+  <span class="token selector">.no-theme</span> <span class="token punctuation">{</span>
+    <span class="token property">color</span><span class="token punctuation">:</span> revert-layer<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="adding-rules-to-layers">Adding rules to layers</h2>
+<p>Since we declared the project layers at the top of the document and set their precedence order, we then add rules to individual layers by calling the <code>@layer</code> at-rule with the name of the layer we want to place the rules in and then add as many rules as we need to.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> utilities</span> <span class="token punctuation">{</span>
+  <span class="token selector">.padding-lg</span> <span class="token punctuation">{</span>
+    <span class="token property">padding</span><span class="token punctuation">:</span> .8rem<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We can add multiple rules to each layer and we can repeat the process multiple times. Each time it will append the new rules to the layer.</p>
+<h3 id="adding-entire-stylesheets-to-a-layer">Adding entire stylesheets to a layer</h3>
+<p>We can also import stylesheets directly to a @layer using the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@import">@import</a> at rule with a <code>layer</code> attribute indicating what <code>@layer</code> the browser should attach the stylesheet to.</p>
+<p>This is particularly useful when using third-party scripts or when working with a modular architecture.</p>
+<p>In this example, we add a local copy of <a href="https://necolas.github.io/normalize.css/">normalize.css</a> to the <code>reset</code> @layer.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'normalize.css'</span><span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>reset<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+</code></pre>
+<h3 id="nesting-layers">Nesting layers</h3>
+<p>we can also nest layers:</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> defaults</span> <span class="token punctuation">{</span>  
+  <span class="token comment">/* Ordering the sublayers */</span>
+  <span class="token atrule"><span class="token rule">@layer</span> reset<span class="token punctuation">,</span> typography<span class="token punctuation">;</span></span>
+
+  <span class="token atrule"><span class="token rule">@layer</span> typography</span> <span class="token punctuation">{</span>
+    <span class="token comment">/* Styles go here */</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token atrule"><span class="token rule">@layer</span> reset</span> <span class="token punctuation">{</span>
+    <span class="token comment">/* Styles go here */</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We can reference these nested layers using a dot notation like <code>defaults.reset</code> and <code>defaults.typography</code>.</p>
+<p>The rules of layer-ordering apply at each level of nesting. Any styles that are not further nested are considered “un-layered” in that context, and have priority over further nested styles:</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> defaults</span> <span class="token punctuation">{</span>
+  <span class="token selector">:any-link</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> green<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+  <span class="token comment">/* layered defaults (lower priority) */</span>
+  <span class="token atrule"><span class="token rule">@layer</span> reset</span> <span class="token punctuation">{</span>
+    <span class="token selector">a[href]</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="mixing-with-existing-content">Mixing with existing content</h2>
+<p>My biggest issue is what to do if we’re implementing layers with existing code.</p>
+<p>All styles outside of layers are put in an implicit layer at the end of the document, making these styles the ones with the highest priority and will override all content in layers.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h1</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> green<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@layer</span> layer-1</span> <span class="token punctuation">{</span> <span class="token selector">h1</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@layer</span> layer-2</span> <span class="token punctuation">{</span> <span class="token selector">h1</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> orange<span class="token punctuation">;</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+<span class="token atrule"><span class="token rule">@layer</span> layer-3</span> <span class="token punctuation">{</span> <span class="token selector">h1</span> <span class="token punctuation">{</span> <span class="token property">color</span><span class="token punctuation">:</span> yellow<span class="token punctuation">;</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+</code></pre>
+<p>We can build get around this limitation by adding layers before the layers created for the framework. The example below uses a lower layer to override <code>!important</code> styles from the framework, and a higher layer to override normal styles.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@layer</span> 
+  bootstrap.important<span class="token punctuation">,</span>
+  bootstrap.bootstrap<span class="token punctuation">,</span>
+  bootstrap.local<span class="token punctuation">;</span></span>
+
+<span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'bootstrap.css'</span><span class="token punctuation">)</span></span> <span class="token function">layer</span><span class="token punctuation">(</span>bootstrap.bootstrap<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+
+<span class="token atrule"><span class="token rule">@layer</span> bootstrap.local</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* most of our normal bootstrap overrides can live here */</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@layer</span> bootstrap.important</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* 
+    add !important styles in a lower layer 
+    to override any !important bootstrap 
+    styles 
+  */</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="why-would-we-want-%40layers">Why would we want @layers</h2>
+<p>Layers have some interesting use cases. We’ve discussed some already so I’ll cover one that is think an important one: building a CSS architecture.</p>
+<h3 id="building-a-css-architecture">Building a CSS architecture</h3>
+<p>In <a href="https://www.xfive.co/blog/itcss-scalable-maintainable-css-architecture/">ITCSS: Scalable and Maintainable CSS Architecture</a> the author documents ITCSS, an architecture for CSS styles and Miriam Suzanne documents one possibility of implementing such technology in <a href="https://css-tricks.com/css-cascade-layers/">A Complete Guide to CSS Cascade Layers</a>.</p>
+<p>The pyramid below</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1660864470/publishing-project.rivendellweb.net/itcss-layers/itcss-layers.svg?_i=AA' alt='ITCSS pyramid' width="731">
+  <figcaption>ITCSS Pyramid</figcaption>
+</figure>
+<p>We can build the pyramid using <code>@layer</code>s representing each step in the pyramid, from generic to specific.</p>
+<ol>
+<li>low level <code>normalization</code> styles</li>
+<li>element <code>defaults</code>, for basic typography and legibility</li>
+<li><code>themes</code>, like light and dark modes</li>
+<li>re-usable <code>patterns</code></li>
+<li><code>layouts</code> and larger page structures individual <code>components</code></li>
+<li><code>overrides</code> and <code>utilities</code></li>
+</ol>
+<p>This model presets a flat structure. We can go deeper and nest items in them. We could load <code>normalize.css</code> as a nested layer under a normalization layer.</p>
+<p>We could also load nest light and dark mode themes into the <code>themes</code> <code>@layer</code></p>
+<p>In the end, how you structure your layers is up to you and what makes the most sense for your project.</p>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@layer">@layer</a> — MDN</li>
+<li><a href="https://developer.chrome.com/blog/cascade-layers/">Cascade Layers</a> — Chrome Developers</li>
+<li><a href="https://css-tricks.com/css-cascade-layers/">A Complete Guide to CSS Cascade Layers</a></li>
+<li><a href="https://ishadeed.com/article/cascade-layers/">Hello, CSS Cascade Layers</a></li>
+<li><a href="https://www.xfive.co/blog/itcss-scalable-maintainable-css-architecture/">ITCSS: Scalable and Maintainable CSS Architecture</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

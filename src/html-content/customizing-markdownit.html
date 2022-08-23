@@ -1,7 +1,7 @@
-<h1 id="customizing-markdown-it" tabindex="-1">Customizing Markdown-it</h1>
+<h1 id="customizing-markdown-it">Customizing Markdown-it</h1>
 <p>In the <a href="https://publishing-project.rivendellweb.net/getting-markdown-plugins-to-work-with-gulp/">last post</a> we modified a Gulp workflow to include Markdown-it directly. But there are parts that can’t be done with plugins and are not part of the Markdown-It API.</p>
 <p>This post will explore some of the customizations I’ve done with the Markdown-It API.</p>
-<h2 id="manipulating-images%3A-adding-the-loading-attribute" tabindex="-1">Manipulating images: adding the loading attribute</h2>
+<h2 id="manipulating-images%3A-adding-the-loading-attribute">Manipulating images: adding the loading attribute</h2>
 <p>The first example is a simple one. We will add the <code>loading=&quot;lazy&quot;</code> attribute to all images so that browsers that support native lazy loading will use the feature and only load the image when it’s about to appear in the viewport or already in the viewport.</p>
 <pre class="language-js"><code class="language-js">md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span><span class="token function-variable function">image</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> slf</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> token <span class="token operator">=</span> tokens<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">;</span>
@@ -11,7 +11,7 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Just by adding this attribute we’ve made lazy loading images the default behavior. Other than images that appear in above the fold when the page loads, all other images will load only when they appear in the viewport.</p>
-<h2 id="adding-attributes-to-links" tabindex="-1">Adding attributes to links</h2>
+<h2 id="adding-attributes-to-links">Adding attributes to links</h2>
 <p>Add <code>rel=&quot;noopener norefeerrer&quot;</code> attributes to links for SEO purposes</p>
 <p>The final format should be <code>&lt;a href=&quot;https://example.com/&quot;  rel=&quot;noopener noreferrer&quot;&gt;Example Link&lt;/a&gt;</code>.</p>
 <p>Using the <code>noopener</code> tells the browser to open a link in a new tab without providing backdoor access to the webpage that opened the link. This is achieved by not setting the <code>window.opener</code> property thus returning a null value.</p>
@@ -28,7 +28,7 @@ md<span class="token punctuation">.</span>renderer<span class="token punctuation
   <span class="token keyword">return</span> <span class="token function">defaultLinkOpenRenderer</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self<span class="token punctuation">)</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="adding-classes-to-list-and-list-items" tabindex="-1">Adding classes to list and list items</h2>
+<h2 id="adding-classes-to-list-and-list-items">Adding classes to list and list items</h2>
 <p>There are a few things that I like doing with lists. Instead of trying to add attribute after attribute to control styles, I pass one or more classes to either the list itself of individual list items.</p>
 <p>The first example adds a class attribute to the ordered (bulleted list). This could be used to change the numbering schema used on the list or style the list itself.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> <span class="token function-variable function">proxy</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> self</span><span class="token punctuation">)</span> <span class="token operator">=></span> self<span class="token punctuation">.</span><span class="token function">renderToken</span><span class="token punctuation">(</span>tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -51,7 +51,7 @@ md<span class="token punctuation">.</span>renderer<span class="token punctuation
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We’re using lists as an example. We could use a similar technique with other elements like tables, and paragraphs.</p>
-<h2 id="wrapping-images-in-figure-elements" tabindex="-1">Wrapping images in figure elements</h2>
+<h2 id="wrapping-images-in-figure-elements">Wrapping images in figure elements</h2>
 <p>The hardest one of these extensions is wrapping images in figure elements.</p>
 <p>The first pass is easy enough, although it is also misleading since it doesn’t do exactly what we want.</p>
 <p>The first version of this task, wraps the image in a <code>figure</code> element as part of the return statement.</p>
@@ -72,7 +72,7 @@ md<span class="token punctuation">.</span>renderer<span class="token punctuation
 <p>As a result, the parser wraps the image in a <code>p</code> element.</p>
 <p>So the next, and significantly harder task, is to remove the paragraphs and replace them with a <code>figure</code> element, which is sematically more appropriate than a paragraph.</p>
 <p>At the same time, it would be nice if we could add a cpation to the image using the <code>figcaption</code> element.</p>
-<h2 id="wrapping-images-in-figure-elements-(version-2)" tabindex="-1">Wrapping images in figure elements (Version 2)</h2>
+<h2 id="wrapping-images-in-figure-elements-(version-2)">Wrapping images in figure elements (Version 2)</h2>
 <p>The second version of this code is a bit more complicated.</p>
 <p>In addition to the lazy loading attribute, it takes the value of the <code>alt</code> attribute and uses it as the caption for the image</p>
 <pre class="language-js"><code class="language-js">md<span class="token punctuation">.</span>renderer<span class="token punctuation">.</span>rules<span class="token punctuation">.</span><span class="token function-variable function">image</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">tokens<span class="token punctuation">,</span> idx<span class="token punctuation">,</span> options<span class="token punctuation">,</span> env<span class="token punctuation">,</span> slf</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -95,7 +95,7 @@ md<span class="token punctuation">.</span>renderer<span class="token punctuation
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>figure</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
 </code></pre>
 <p>It still doesn’t get rid of the paragraphs, still working on figuring out how to do the replacement but, as it is, it works well enough without requiring a plugin.</p>
-<h2 id="wrapping-images-in-figure-elements-using-a-third-party-plugin-(take-1)" tabindex="-1">Wrapping images in figure elements using a third party plugin (take 1)</h2>
+<h2 id="wrapping-images-in-figure-elements-using-a-third-party-plugin-(take-1)">Wrapping images in figure elements using a third party plugin (take 1)</h2>
 <p>I haven’t been able to find a way to remove the paragraph container around the image. When I was about ready to give up I came across a pointer to the <a href="https://www.npmjs.com/package/markdown-it-custom-block">markdown-it-custom-block</a> plugin that lets me do exactly what I want and then some.</p>
 <p>The original code using the plugin looks like this</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> cb <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'markdown-it-custom-block'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -120,7 +120,7 @@ md<span class="token punctuation">.</span><span class="token function">use</span
 <pre class="language-markdown"><code class="language-markdown">@[img](1#Sample alt content will also be used for captions#400px#./images/demo.webp)
 </code></pre>
 <p>This is more complicated than it needs to be, but it works.</p>
-<h2 id="wrapping-images-in-figure-elements-using-a-third-party-plugin-(take-2)" tabindex="-1">Wrapping images in figure elements using a third party plugin (take 2)</h2>
+<h2 id="wrapping-images-in-figure-elements-using-a-third-party-plugin-(take-2)">Wrapping images in figure elements using a third party plugin (take 2)</h2>
 <p>One of the first things I thought about was removing the index and letting CSS take care of the indexing for us. Hardcoding the index in Markdown is a bad idea. If we insert images then all the indexes change and we need to edit every single image to compensate.</p>
 <p>Using CSS generated content we can automate the indexing and generation of the <code>Figure &lt;id&gt;:</code> content in the captions:</p>
 <pre class="language-css"><code class="language-css"><span class="token selector">article</span> <span class="token punctuation">{</span>

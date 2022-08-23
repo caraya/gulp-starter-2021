@@ -1,0 +1,852 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <p><a id="markdown-using-aria" name="using-aria"></a></p>
+<h1 id="using-aria">Using ARIA</h1>
+<!-- TOC -->
+<ul>
+<li><a href="#using-aria">Using ARIA</a>
+<ul>
+<li><a href="#what-is-aria">What is ARIA</a></li>
+<li><a href="#best-practices">Best practices</a>
+<ul>
+<li><a href="#the-code">The Code</a></li>
+</ul>
+</li>
+<li><a href="#test-the-results">Test the results</a>
+<ul>
+<li><a href="#lighthouse-accessibility-test">Lighthouse Accessibility Test</a></li>
+<li><a href="#axe-and-axe-coconut-browser-extensions">aXe and aXe Coconut Browser Extensions</a></li>
+<li><a href="#testing-with-a-screenreader">Testing With A Screenreader</a></li>
+</ul>
+</li>
+<li><a href="#its-not-just-the-tech">It’s Not Just The Tech</a></li>
+<li><a href="#links-and-resources">Links and Resources</a></li>
+</ul>
+</li>
+</ul>
+<!-- /TOC -->
+<p>Accessibility is one of the most important aspects of development and one that we don’t pay as much attention as we should.</p>
+<p>We will look at ARIA (Accessible Rich Internet Applications), what it is and how we can use it in our content to help improve the accessibility of web applications and pages. we will also discuss When it’s better to use native elements and DOM interactions rather than create our own.</p>
+<p>we will also look at ARIA best practices and authoring guidelines. These are particularly suited to custom elements and components we create using Polymer or React-based applications.</p>
+<p>As a last step we will look at a page using Voice Over, the screen reader bundled as part of MacOS. This will give us an idea of what a user with visual disabilities experiences when they read the content.</p>
+<p><a id="markdown-what-is-aria" name="what-is-aria"></a></p>
+<h2 id="what-is-aria">What is ARIA</h2>
+<p><a href="https://www.w3.org/TR/wai-aria-1.1/">ARIA</a> is a W3C specification that describes how to increase the accessibility of web pages, in particular, dynamic content, and user interface components developed with Ajax, HTML, JavaScript, and related technologies.</p>
+<p>The specification provides a set of roles, states, and properties that define accessible user interface elements and can be used to improve the accessibility and interoperability of web content and applications. These semantics are designed to allow an author to properly convey user interface behaviors and structural information to assistive technologies in document-level markup</p>
+<p>HTML provides a full suite of accessibility affordances for the built in HTML elements; for example, a button is given the implicity role of button without assiging a <code>role</code> or <code>aria-role</code> attribute. This is the main reason why we should always use them when possible. Where we have to create our own elements we can use ARIA to provide cues for assistive technology devices on how to handle the custom elements.</p>
+<p>One use for ARIA elements and attributes is to give assistive technology devices an association between title and its content.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>table1-desc<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Table title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content<span class="token punctuation">"</span></span> <span class="token attr-name">aria-labelledby</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>table1-desc<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Content<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The example below compares a native button HTML element with a custom element.</p>
+<p>The HTML button element looks like this</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Click me<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>This has many built in accessibility considerations:</p>
+<ul>
+<li>It’s focusable</li>
+<li>It’s part of the navigation order for the page</li>
+<li>Can be navigated with keyboard</li>
+<li>It creates a focus ring around it when you click on it</li>
+</ul>
+<p>But there are times when we have to create our own element to represent a button either because it’s generated dynamically or because we need specific functionality. However, that doesn’t meant we can get away with not providing accessibility acommodations.</p>
+<p>In the example below we’re making a clickable button based on an HTML <code>a</code> element with an SVG image as the text. We’ve also added <code>tabindex</code> and <code>aria-pressed</code> attributes and assigned a <code>role</code> attribute.</p>
+<p>Using Javascript we can change the value of aria-pressed attribute. we will look at it when we explore the Javascript portion of our custom element</p>
+<h3 id="rps_label">Role, Property, State, and Tabindex  Attributes</h3>
+<table aria-labelledby="rps_label" class="data attributes">
+  <thead>
+    <tr>
+      <th scope="col">Role</th>
+      <th scope="col">Attribute</th>
+      <th scope="col">Element</th>
+      <th scope="col">Usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">`button`</th>
+      <td></td>
+      <td>
+        `a`
+      </td>
+      <td>
+        <ul>
+          <li>Identifies the element as a `button` widget.</li>
+          <li> Accessible name for the button is defined by the text content of the element.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <th scope="row">
+        `tabindex="0"`
+      </th>
+      <td>
+        `a`
+      </td>
+      <td>
+        <ul>
+          <li>Includes the element in the tab sequence.</li>
+          <li>Needed on the `a` element because it does not have a `href` attribute.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <th scope="row">`aria-pressed="false"`</th>
+      <td>`a`</td>
+      <td>
+        <ul>
+          <li>Identifies the button as a toggle button.</li>
+          <li>Indicates the toggle button is not pressed.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <th scope="row">`aria-pressed="true"`</th>
+      <td>`a`</td>
+      <td>
+      <ul>
+          <li>Identifies the button as a toggle button.</li>
+          <li>Indicates the toggle button is pressed.</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p> </p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>toggle<span class="token punctuation">"</span></span> <span class="token attr-name">aria-pressed</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>false<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Mute
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>use</span> <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span>
+    <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>images/mute.svg#icon-sound<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>use</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS will style using <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Attribute_selectors">attribute selectors</a> for the role attribute and aria-pressed attributes and the SVG element.  The code below provides the following functionality:</p>
+<ul>
+<li>A base state</li>
+<li>A hover state</li>
+<li>A focus state that removes the default focus ring</li>
+<li>A custom focust state unsing the <code>::before</code> pseudo element that replaces the default focus we removed</li>
+<li>The same four states for a button with the <code>aria-pressed</code> attribute</li>
+<li>Styling for the SVG element</li>
+</ul>
+<pre class="language-css"><code class="language-css"><span class="token selector">[role="button"]</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> inline-block<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> .4em .7em<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 1px solid <span class="token function">hsl</span><span class="token punctuation">(</span>213<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">border-radius</span><span class="token punctuation">:</span> 5px<span class="token punctuation">;</span>
+  <span class="token property">box-shadow</span><span class="token punctuation">:</span> 0 1px 2px <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 27%<span class="token punctuation">,</span> 55%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">overflow</span><span class="token punctuation">:</span> visible<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #fff<span class="token punctuation">;</span>
+  <span class="token property">text-shadow</span><span class="token punctuation">:</span> 0 -1px 1px <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 27%<span class="token punctuation">,</span> 25%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 51%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 53%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 47%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"]:hover</span> <span class="token punctuation">{</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>213<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 29%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 31%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 33%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 27%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token property">cursor</span><span class="token punctuation">:</span> default<span class="token punctuation">;</span>
+  <span class="token property">outline</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"]:focus</span> <span class="token punctuation">{</span>
+  <span class="token property">outline</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"]:focus::before</span> <span class="token punctuation">{</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">z-index</span><span class="token punctuation">:</span> -1<span class="token punctuation">;</span>
+  <span class="token comment">/* button border width - outline width - offset */</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>-1px - 3px - 3px<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">right</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>-1px - 3px - 3px<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">bottom</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>-1px - 3px - 3px<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>-1px - 3px - 3px<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 3px solid <span class="token function">hsl</span><span class="token punctuation">(</span>213<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/* button border radius + outline width + offset */</span>
+  <span class="token property">border-radius</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span>5px + 3px + 3px<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">''</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"]:active</span> <span class="token punctuation">{</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>213<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 31%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 53%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 47%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">box-shadow</span><span class="token punctuation">:</span> inset 0 3px 5px 1px <span class="token function">hsl</span><span class="token punctuation">(</span>216<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 30%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"][aria-pressed]</span> <span class="token punctuation">{</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">box-shadow</span><span class="token punctuation">:</span> 0 1px 2px <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 27%<span class="token punctuation">,</span> 55%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">text-shadow</span><span class="token punctuation">:</span> 0 -1px 1px <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 27%<span class="token punctuation">,</span> 25%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 51%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 53%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 47%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"][aria-pressed]:hover</span> <span class="token punctuation">{</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 29%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 31%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 33%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 27%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token property">cursor</span><span class="token punctuation">:</span> default<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"][aria-pressed="true"]</span> <span class="token punctuation">{</span>
+  <span class="token property">padding-top</span><span class="token punctuation">:</span> .5em<span class="token punctuation">;</span>
+  <span class="token property">padding-bottom</span><span class="token punctuation">:</span> .3em<span class="token punctuation">;</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 31%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 63%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 57%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">box-shadow</span><span class="token punctuation">:</span> inset 0 3px 5px 1px <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 30%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"][aria-pressed="true"]:hover</span> <span class="token punctuation">{</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 31%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to bottom<span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 43%<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 37%<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">box-shadow</span><span class="token punctuation">:</span> inset 0 3px 5px 1px <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 82%<span class="token punctuation">,</span> 20%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"][aria-pressed]:focus::before</span> <span class="token punctuation">{</span>
+  <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>261<span class="token punctuation">,</span> 71%<span class="token punctuation">,</span> 49%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">[role="button"] svg</span> <span class="token punctuation">{</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> .15em auto -.15em<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+  <span class="token property">pointer-events</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<aside class="message info">
+  <p>The script below is licensed according to the <a href="https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document">W3C Software License</a></p>
+</aside>
+<p>The Javascript takes care of the user interaction with our button.</p>
+<p>We first deefine constants for the icon images and create an <code>init</code> functions to capture the button and set up event listeners for click and keydown events.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> <span class="token constant">ICON_MUTE_URL</span>  <span class="token operator">=</span> <span class="token string">'images/mute.svg#icon-mute'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token constant">ICON_SOUND_URL</span> <span class="token operator">=</span> <span class="token string">'images/mute.svg#icon-sound'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">init</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> toggleButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'toggle'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Add event listeners to the various buttons</span>
+  toggleButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> toggleButtonEventHandler<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  toggleButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keydown'</span><span class="token punctuation">,</span> toggleButtonEventHandler<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The next function handle events for the button both keyboard and click events.</p>
+<p>The <code>keydown</code> event will handle pressing either the space key (keycode 32) or the enter key (keycode 13) to trigger the button state.</p>
+<p>the <code>click</code> event handles both elements with a role of button or are a button element (the tag name is button).</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">toggleButtonEventHandler</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> type <span class="token operator">=</span> event<span class="token punctuation">.</span>type<span class="token punctuation">;</span>
+
+  <span class="token comment">// Grab the keydown and click events</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>type <span class="token operator">===</span> <span class="token string">'keydown'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// If either enter or space is pressed, execute the funtion</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>keyCode <span class="token operator">===</span> <span class="token number">13</span> <span class="token operator">||</span> event<span class="token punctuation">.</span>keyCode <span class="token operator">===</span> <span class="token number">32</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token function">toggleButtonState</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>type <span class="token operator">===</span> <span class="token string">'click'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Only allow this event if either role is correctly set</span>
+    <span class="token comment">// or a correct element is used.</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>target<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'role'</span><span class="token punctuation">)</span> <span class="token operator">===</span> <span class="token string">'button'</span> <span class="token operator">||</span> event<span class="token punctuation">.</span>target<span class="token punctuation">.</span>tagName <span class="token operator">===</span> <span class="token string">'button'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token function">toggleButtonState</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The next function is the heart of the script and changes attributes in the <code>a</code> element and the <code>svg</code> child.</p>
+<p>We set up variables to hold information about the event we’re holding, the <code>aria-pressed</code> attribute and the value we want to start with (<code>true</code>)</p>
+<p>We get the icon we want by catching the first use element inside the button and set it to the mute version of the icon.</p>
+<p>IF the aria-pressed attribute has a <code>true</code> value then we change it to false and swap the icon to the unmuted version.</p>
+<p>Finally we set the <code>aria-pressed</code> attribute to the new value and the <code>xlink:href</code> value to the new ICON.</p>
+<p>The <code>xlink:href</code> attribute inside the svg element needs a little explanation. Because SVG is an XML-based language the regular href attribute will not work and we have to use <a href="https://www.w3.org/TR/xlink11/">XLINK</a>, a vocabulary designed to link XML-based resourceas.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">toggleButtonState</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> button <span class="token operator">=</span> event<span class="token punctuation">.</span>target<span class="token punctuation">;</span>
+  <span class="token keyword">let</span> currentState <span class="token operator">=</span> button<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-pressed'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> newState <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">let</span> icon <span class="token operator">=</span> button<span class="token punctuation">.</span><span class="token function">getElementsByTagName</span><span class="token punctuation">(</span><span class="token string">'use'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> newIconState <span class="token operator">=</span> <span class="token constant">ICON_MUTE_URL</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// If aria-pressed is set to true, set newState to false</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>currentState <span class="token operator">===</span> <span class="token string">'true'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    newState <span class="token operator">=</span> <span class="token string">'false'</span><span class="token punctuation">;</span>
+    newIconState <span class="token operator">=</span> <span class="token constant">ICON_SOUND_URL</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// Set the new aria-pressed state on the button</span>
+  button<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-pressed'</span><span class="token punctuation">,</span> newState<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  icon<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'xlink:href'</span><span class="token punctuation">,</span> newIconState<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We set up the <code>init</code> function to run when the window is loaded. We could also use <code>domContentLoaded</code> instead but in this particular example either event works.</p>
+<pre class="language-javascript"><code class="language-javascript">window<span class="token punctuation">.</span>onload <span class="token operator">=</span> init<span class="token punctuation">;</span>
+</code></pre>
+<p>As you can see, implementing our own controls, even one as simple as a button, is a fairly complex task that requires a lot of scripting that the native button element gives you for free. This is always worth considering.</p>
+<p><a id="markdown-best-practices" name="best-practices"></a></p>
+<h2 id="best-practices">Best practices</h2>
+<p>Rather than reinvent the wheel I’ll look at two collections of accessibility best practices: <a href="https://www.w3.org/TR/wai-aria-practices-1.1/">WAI-ARIA Authoring Practices 1.1</a> and Ebay’s  <a href="https://ebay.gitbooks.io/mindpatterns/">MIND Patterns: Accessibility Patterns for the Web</a> (suggested by Rob Dodson).</p>
+<p>we will take the accordion example from the ARIA Authoring Practices and explore what we need to have in an accessible component. Note that, as of this writing, MIND does not have suggestions for an accordion element.</p>
+<p>This is a longer exercise than the one we did for the button demo earlier. Longer because of the element complexity, because there are many more moving parts and because there is no native equivalent on the web platform.</p>
+<p>Before we get started there are a couple terminology items we need to get out of the way: headers and panels as they refer to the according object.</p>
+<dl>
+  <dt><strong>Accordion Header</strong></dt>
+  <dd>Label for or thumbnail representing a section of content that also serves as a control for showing, and in some implementations, hiding the section of content. </dd>
+  <dd>&nbsp;</dd>
+  <dd>In some accordions, there are additional elements that are always visible adjacent to the accordion header. For instance, a menubutton may accompany each accordion header to provide access to actions that apply to that section. And, in some cases, a snippet of the hidden content may also be visually persistent.</dd>
+  <dt><strong>Accordion Panel</strong></dt>
+  <dd>Section of content associated with an accordion header.</dd>
+</dl>
+<p>Next we look at the keyboard interactions that we need and should have for our
+<strong>Keyboard Interaction</strong></p>
+<ul>
+<li>Required elements
+<ul>
+<li><kbd>Enter</kbd> or <kbd>Space</kbd>:
+<ul>
+<li>When focus is on the accordion header for a collapsed panel, expands the associated panel. If the implementation allows only one panel to be expanded, and if another panel is expanded, collapses that panel</li>
+<li>When focus is on the accordion header for an expanded panel, collapses the panel if the implementation supports collapsing. Some implementations require one panel to be expanded at all times and allow only one panel to be expanded; so, they do not support a collapse function</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Optional Elements
+<ul>
+<li><kbd>Down Arrow</kbd>: If focus is on an accordion header, moves focus to the next accordion header. If focus is on the last accordion header, either does nothing or moves focus to the first accordion header</li>
+<li><kbd>Up Arrow</kbd>: If focus is on an accordion header, moves focus to the previous accordion header. If focus is on the first accordion header, either does nothing or moves focus to the last accordion header.</li>
+<li><kbd>Home</kbd>: When focus is on an accordion header, moves focus to the first accordion header</li>
+<li><kbd>End</kbd>: When focus is on an accordion header, moves focus to the last accordion header.</li>
+<li><kbd>Control + Page Down</kbd>: If focus is inside an accordion panel or on an accordion header, moves focus to the next accordion header. If focus is in the last accordion header or panel, either does nothing or moves focus to the first accordion header</li>
+<li><kbd>Control + Page Up</kbd>: If focus is inside an accordion panel, moves focus to the header for that panel. If focus is on an accordion header, moves focus to the previous accordion header. If focus is on the first accordion header, either does nothing or moves focus to the last accordion header.</li>
+</ul>
+</li>
+</ul>
+<p><strong>ARIA Roles, States, and Properties:</strong></p>
+<ul>
+<li>The title of each accordion header is contained in an element with role <a href="https://www.w3.org/TR/wai-aria-1.1/#button" class="role-reference">button</a></li>
+<li>Each accordion header <code>button</code> is wrapped in an element with role <a href="https://www.w3.org/TR/wai-aria-1.1/#heading" class="role-reference">heading</a> that has a value set for <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-level" class="property-reference">aria-level</a> that is appropriate for the information architecture of the page
+<ul>
+<li>If the native host language has an element with an implicit <code>heading</code> and <code>aria-level</code>, such as an HTML heading tag, a native host language element may be used</li>
+<li>The <code>button</code> element is the only element inside the <code>heading</code> element. That is, if there are other visually persistent elements, they are not included inside the <code>heading</code> element</li>
+</ul>
+</li>
+<li>If the accordion panel associated with an accordion header is visible, the header <code>button</code> element has <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-expanded" class="state-reference">aria-expanded</a> set to <code>true</code>. If the panel is not visible, <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-expanded" class="state-reference">aria-expanded</a> is set to <code>false</code></li>
+<li>The accordion header <code>button</code> element has <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-controls" class="property-reference">aria-controls</a> set to the ID of the element containing the accordion panel content</li>
+<li>If the accordion panel associated with an accordion header is visible, and if the accordion does not permit the panel to be collapsed, the header <code>button</code> element has <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-disabled" class="state-reference">aria-disabled</a> set to <code>true</code></li>
+<li>Optionally, each element that serves as a container for panel content has role
+<a href="https://www.w3.org/TR/wai-aria-1.1/#region" class="role-reference">region</a> and
+<a href="https://www.w3.org/TR/wai-aria-1.1/#aria-labelledby" class="property-reference">aria-labelledby</a> with a value that refers to the button that controls display of the panel
+<ul>
+<li>Avoid using the <code>region</code> role in circumstances that create landmark region proliferation, e.g., in an accordion that contains more than approximately 6 panels that can be expanded at the same time</li>
+<li>Role <code>region</code> is especially helpful to the perception of structure by screen reader users when panels contain heading elements or a nested accordion</li>
+</ul>
+</li>
+</ul>
+<p><a id="markdown-the-code" name="the-code"></a></p>
+<h3 id="the-code">The Code</h3>
+<p>As with the button example we will look at the HTML, CSS and Javascript separately to get an idea of what is involved to build this accessible component.</p>
+<p>The HTML uses a description list to group together headers (using the <code>dt</code> element) and panels (using <code>dd</code>)</p>
+<p>The code introduces the following ARIA attributes, some of them seen in the button demo:</p>
+<ul>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#usage_intro">role</a> provides a way to clasify elements according to function, similar to the <a href="https://www.w3.org/TR/role-attribute/">Role 1.0 Recommendation</a>. The semantics provided in ARIA are specific to accessibility roles, the Roles Recommendation provides more generic use caases</li>
+<li><a href="https://www.w3.org/TR/role-attribute/">aria-disabled</a> Indicates that the element is perceivable (we can see it and read it in the page) but disabled (we can’t interact with it, so it is not editable or otherwise operable)
+<ul>
+<li>Used in conjunction with the <code>disabled</code> attribute</li>
+<li>This is different than being hidden using the <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-hidden">aria-hidden</a> or being read-only using the <a href="https://www.w3.org/TR/wai-aria-1.1/#aria-readonly">aria-readonly</a></li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-level">aria-level</a> defines the position of the element within the page hierarchy
+<ul>
+<li>Multiple elements in a set may have the same value for this attribute</li>
+<li>This attribute can be used to provide an explicit indication of the level when that is not possible to calculate from the document structure or the aria-owns attribute</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-expanded">aria-expanded</a> indicates whether the element, or another grouping element it controls, is currently expanded or collapsed
+<ul>
+<li>If the element with the <code>aria-expanded</code> attribute controls the expansion of another grouping container that is not ‘owned by’ the element, the author should reference the container by using the <code>aria-controls</code> attribute.</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-controls">aria-controls</a> Identifies the element (or elements) whose contents or presence are controlled by the current element
+<ul>
+<li>For the accordion we’ll use the heading to control the associated panels</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/wai-aria-1.1/#aria-labelledby">aria-labelledby</a> identifies the element (or elements) that labels the current element</li>
+</ul>
+<pre class="language-html"><code class="language-html">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>page-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Accordion Demo<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dl</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordionGroup<span class="token punctuation">"</span></span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>presentation<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dt</span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>heading<span class="token punctuation">"</span></span> <span class="token attr-name">aria-level</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>3<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span>   <span class="token attr-name">aria-expanded</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span>
+                <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-trigger<span class="token punctuation">"</span></span>
+                <span class="token attr-name">aria-controls</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sect1<span class="token punctuation">"</span></span>
+                <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordion1id<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Personal Information<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-icon<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dt</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dd</span>   <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sect1<span class="token punctuation">"</span></span>
+          <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>region<span class="token punctuation">"</span></span>
+          <span class="token attr-name">aria-labelledby</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordion1id<span class="token punctuation">"</span></span>
+          <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-panel<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>fieldset</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Name
+              <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span>  <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span>
+                    <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Name<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc1<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>required<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">aria-required</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc2<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Email
+              <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">aria-hidden</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span>  <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span>
+                    <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Email<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc2<span class="token punctuation">"</span></span>
+                    <span class="token attr-name">aria-required</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc3<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Phone:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Phone<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc3<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc4<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Extension:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Ext<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc4<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc5<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Country:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Country<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc5<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc6<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>City/Province:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>City_Province<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cufc6<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>fieldset</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dd</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dt</span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>heading<span class="token punctuation">"</span></span> <span class="token attr-name">aria-level</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>3<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span>   <span class="token attr-name">aria-expanded</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>false<span class="token punctuation">"</span></span>
+                <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-trigger<span class="token punctuation">"</span></span>
+                <span class="token attr-name">aria-controls</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sect2<span class="token punctuation">"</span></span>
+                <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordion2id<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Billing Address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-icon<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dt</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dd</span>   <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sect2<span class="token punctuation">"</span></span>
+          <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>region<span class="token punctuation">"</span></span>
+          <span class="token attr-name">aria-labelledby</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordion2id<span class="token punctuation">"</span></span>
+          <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-panel<span class="token punctuation">"</span></span> <span class="token attr-name">hidden</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>fieldset</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>billing flex<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-add1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Address 1:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-add1<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-add1<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-add2<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Address 2:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-add2<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-add2<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-city<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>City:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-city<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-city<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-state<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>State:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-state<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-state<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-zip<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Zip Code:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-zip<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>b-zip<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>fieldset</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dd</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dt</span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>heading<span class="token punctuation">"</span></span> <span class="token attr-name">aria-level</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>3<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span>   <span class="token attr-name">aria-expanded</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>false<span class="token punctuation">"</span></span>
+                <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-trigger<span class="token punctuation">"</span></span>
+                <span class="token attr-name">aria-controls</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sect3<span class="token punctuation">"</span></span>
+                <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordion3id<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Shipping Address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-icon<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dt</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dd</span>   <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sect3<span class="token punctuation">"</span></span>
+          <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>region<span class="token punctuation">"</span></span>
+          <span class="token attr-name">aria-labelledby</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accordion3id<span class="token punctuation">"</span></span>
+          <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accordion-panel<span class="token punctuation">"</span></span> <span class="token attr-name">hidden</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>fieldset</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-add1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Address 1:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-add1<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-add1<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-add2<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Address 2:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-add2<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-add2<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-city<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>City:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-city<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-city<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-state<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>State:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-state<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-state<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-zip<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Zip Code:<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-zip<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>m-zip<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>fieldset</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dd</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dl</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS controls the layout and animation for the different items we’ve defined in markup</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.Accordion</span> <span class="token punctuation">{</span>
+    <span class="token property">border</span><span class="token punctuation">:</span> 1px solid <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 82%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">border-radius</span><span class="token punctuation">:</span> .3em<span class="token punctuation">;</span>
+    <span class="token property">box-shadow</span><span class="token punctuation">:</span> 0 1px 2px <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 82%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion > * + *</span> <span class="token punctuation">{</span>
+    <span class="token property">border-top</span><span class="token punctuation">:</span> 1px solid <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 82%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion-trigger</span> <span class="token punctuation">{</span>
+    <span class="token property">background</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+    <span class="token property">border</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 13%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> 1rem<span class="token punctuation">;</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+    <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">padding</span><span class="token punctuation">:</span> 1em 1.5em<span class="token punctuation">;</span>
+    <span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span>
+    <span class="token property">text-align</span><span class="token punctuation">:</span> left<span class="token punctuation">;</span>
+    <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion dt:first-child .Accordion-trigger</span> <span class="token punctuation">{</span>
+    <span class="token property">border-radius</span><span class="token punctuation">:</span> .3em .3em 0 0<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion-trigger:focus,
+.Accordion-trigger:hover</span> <span class="token punctuation">{</span>
+    <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 93%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion-icon</span> <span class="token punctuation">{</span>
+    <span class="token property">border</span><span class="token punctuation">:</span> solid <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 62%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">border-width</span><span class="token punctuation">:</span> 0 2px 2px 0<span class="token punctuation">;</span>
+    <span class="token property">height</span><span class="token punctuation">:</span> .5rem<span class="token punctuation">;</span>
+    <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+    <span class="token property">right</span><span class="token punctuation">:</span> 1.5em<span class="token punctuation">;</span>
+    <span class="token property">top</span><span class="token punctuation">:</span> 50%<span class="token punctuation">;</span>
+    <span class="token property">transform</span><span class="token punctuation">:</span> <span class="token function">translateY</span><span class="token punctuation">(</span>-60%<span class="token punctuation">)</span> <span class="token function">rotate</span><span class="token punctuation">(</span>45deg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">width</span><span class="token punctuation">:</span> .5rem<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion-trigger:focus .Accordion-icon,
+.Accordion-trigger:hover .Accordion-icon</span> <span class="token punctuation">{</span>
+    <span class="token property">border-color</span><span class="token punctuation">:</span> <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 13%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion-trigger[aria-expanded="true"] .Accordion-icon</span> <span class="token punctuation">{</span>
+    <span class="token property">transform</span><span class="token punctuation">:</span> <span class="token function">translateY</span><span class="token punctuation">(</span>-50%<span class="token punctuation">)</span> <span class="token function">rotate</span><span class="token punctuation">(</span>-135deg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.Accordion-panel</span> <span class="token punctuation">{</span>
+    <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">padding</span><span class="token punctuation">:</span> 1em 1.5em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">fieldset</span> <span class="token punctuation">{</span>
+    <span class="token property">border</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+    <span class="token property">padding</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">input</span> <span class="token punctuation">{</span>
+    <span class="token property">border</span><span class="token punctuation">:</span> 1px solid <span class="token function">hsl</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span> 0%<span class="token punctuation">,</span> 62%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">border-radius</span><span class="token punctuation">:</span> .3em<span class="token punctuation">;</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> inherit<span class="token punctuation">;</span>
+    <span class="token property">padding</span><span class="token punctuation">:</span> .3em .5em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>I’ve broken the Javascript in sections to make sure I’m not inundating readers with bunches of terminology that I’m working on understanding myself.</p>
+<p>For all the elements that have the class <code>Accordion</code> we create an array anf run the instructions below.</p>
+<p>We set up constant holding information about the array, if allows toggle (has the attribute <code>data-allow-toggle</code>) and whether it allows multiple panels (has the attribute <code>data-allow-multiple</code>).</p>
+<p>Then we create arrays for elements inside the accordion; the triggers (<code>Accordion-trigger</code> class) and the panel (<code>Accordion-panel</code> class).</p>
+<pre class="language-javascript"><code class="language-javascript">Array<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'.Accordion'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">accordion</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+  <span class="token comment">// Allow for each toggle to both open and close individually</span>
+  <span class="token keyword">const</span> allowToggle <span class="token operator">=</span> accordion<span class="token punctuation">.</span><span class="token function">hasAttribute</span><span class="token punctuation">(</span><span class="token string">'data-allow-toggle'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Allow for multiple accordion sections to be expanded at the same time</span>
+  <span class="token keyword">const</span> allowMultiple <span class="token operator">=</span> accordion<span class="token punctuation">.</span><span class="token function">hasAttribute</span><span class="token punctuation">(</span><span class="token string">'data-allow-multiple'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Create the array of toggle elements for the accordion group</span>
+  <span class="token keyword">const</span> triggers <span class="token operator">=</span> Array<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>accordion<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'.Accordion-trigger'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> panels <span class="token operator">=</span> Array<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span>accordion<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'.Accordion-panel'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>I’ve broken the <code>click</code> event into two sections to handle the case where we don’t allow multiple panels and the two cases for <code>allowToggle</code> and <code>isExpanded</code>.</p>
+<p>The idea for the first block is that, if we don’t allow multiple panes to be open we want the open panes to close when we open a new one.</p>
+<pre class="language-javascript"><code class="language-javascript">  accordion<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> target <span class="token operator">=</span> event<span class="token punctuation">.</span>target<span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>target<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span><span class="token string">'Accordion-trigger'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> isExpanded <span class="token operator">=</span> target<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-expanded'</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">'true'</span><span class="token punctuation">;</span>
+
+      <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>allowMultiple<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        triggers<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">trigger</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token keyword">if</span> <span class="token punctuation">(</span>trigger<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-expanded'</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">'true'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>trigger<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-controls'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'hidden'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            trigger<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-expanded'</span><span class="token punctuation">,</span> <span class="token string">'false'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+</code></pre>
+<p>Then we test if we allow toggle events and whether the panel is expanded. If we allow both of these then we remove the <code>hidden</code> attribute and switch the value of the <code>aria-expanded</code> attribute to false.</p>
+<p>If we don’t allow toggle and the element is not expanded we remove the <code>hidden</code> attribute from the element with <code>aria-control</code> and set the <code>aria-expanded</code> attribute to true</p>
+<pre class="language-javascript"><code class="language-javascript">      <span class="token keyword">if</span> <span class="token punctuation">(</span>allowToggle <span class="token operator">&amp;&amp;</span> isExpanded<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+        document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>target<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-controls'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'hidden'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        target<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-expanded'</span><span class="token punctuation">,</span> <span class="token string">'false'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>allowToggle <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>isExpanded<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span>target<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-controls'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">removeAttribute</span><span class="token punctuation">(</span><span class="token string">'hidden'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Set the expanded state on the triggering element</span>
+        target<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-expanded'</span><span class="token punctuation">,</span> <span class="token string">'true'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+
+      event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The keyboard navigation for the accordion is more complicated as we have to consider where we are in the accordion or inside one of its children.</p>
+<p>The keydown event listener intoruces control modifiers to keyboard events. <code>ctrlModifier</code> only returns true if its assigned keys <strong>and</strong> the control key (represented by <code>event.ctrlKey</code>) are pressed.</p>
+<p>The accordion works with the following key codes:</p>
+<ul>
+<li>33 = Page Up</li>
+<li>34 = Page Down</li>
+<li>38 = Up,</li>
+<li>40 = Down</li>
+<li>35 = End</li>
+<li>36 = Home</li>
+</ul>
+<p>If the element we’re testing for has the class <code>Accordion-trigger</code> then we test which element are we over. If it’s an element the key wwe pressed were the <code>up</code> or <code>down</code> key or the <code>control + PageUp</code> or <code>control + PageDown</code> combinations.</p>
+<pre class="language-javascript"><code class="language-javascript">  <span class="token comment">// Bind keyboard behaviors on the main accordion container</span>
+  accordion<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keydown'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> target <span class="token operator">=</span> event<span class="token punctuation">.</span>target<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> key <span class="token operator">=</span> event<span class="token punctuation">.</span>which<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">const</span> ctrlModifier <span class="token operator">=</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>ctrlKey <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">33|34</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Is this coming from an accordion header?</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>target<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span><span class="token string">'Accordion-trigger'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token comment">// Up/ Down arrow and Control + Page Up/ Page Down keyboard operations</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">38|40</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span> <span class="token operator">||</span> ctrlModifier<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">const</span> index <span class="token operator">=</span> triggers<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">const</span> direction <span class="token operator">=</span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">34|40</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token number">1</span> <span class="token operator">:</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">const</span> length <span class="token operator">=</span> triggers<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+        <span class="token keyword">const</span> newIndex <span class="token operator">=</span> <span class="token punctuation">(</span>index <span class="token operator">+</span> length <span class="token operator">+</span> direction<span class="token punctuation">)</span> <span class="token operator">%</span> length<span class="token punctuation">;</span>
+
+        triggers<span class="token punctuation">[</span>newIndex<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">focus</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+</code></pre>
+<p>If we match ehter <code>home</code> or <code>end</code> we move to the first or last panel respectively.</p>
+<pre class="language-javascript"><code class="language-javascript">      <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">35|36</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// 35 = End, 36 = Home keyboard operations</span>
+        <span class="token keyword">switch</span> <span class="token punctuation">(</span>key<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token comment">// Go to first accordion</span>
+          <span class="token keyword">case</span> <span class="token string">'36'</span><span class="token operator">:</span>
+            triggers<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">focus</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+          <span class="token comment">// Go to last accordion</span>
+          <span class="token keyword">case</span> <span class="token string">'35'</span><span class="token operator">:</span>
+            triggers<span class="token punctuation">[</span>triggers<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">focus</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<p>If we use <code>control + PageUp</code> or <code>control + PageDown</code> then we want to make sure we do two things: prevent the default browser behavior and focus on the panel that we want to.</p>
+<pre class="language-javascript"><code class="language-javascript">    <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>ctrlModifier<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token comment">// Control + Page Up/ Page Down keyboard operations</span>
+      <span class="token comment">// Catches events that happen inside of panels</span>
+      panels<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">panel<span class="token punctuation">,</span> index</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>panel<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span>target<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          triggers<span class="token punctuation">[</span>index<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">focus</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+          event<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>An accordion is useful but it’s a lot of work to make it accessible. Still, it’s a good example of how to build accessible components.</p>
+<p><a id="markdown-test-the-results" name="test-the-results"></a></p>
+<h2 id="test-the-results">Test the results</h2>
+<p>Now that we’ve created accessible components. Now we get to test them.</p>
+<p>To test accessible components we’ll use 3 tools:</p>
+<ul>
+<li>The Accessibility Audit built into Chrome Dev Tools</li>
+<li>aXe and aXe Coconut from <a href="https://www.deque.com/">Deque Systems</a></li>
+<li>Screen Readers</li>
+</ul>
+<p><a id="markdown-lighthouse-accessibility-test" name="lighthouse-accessibility-test"></a></p>
+<h3 id="lighthouse-accessibility-test">Lighthouse Accessibility Test</h3>
+<p>In recent versions of Google Chrome there is a new <strong>Audits</strong> panel in Dev Tools. I start here because it uses Lighthouse to run the test and aXe Core under the hood so, unless you have specific requirements why aXe Core or Coconut are required, this may be the only tool you need outside of a screen reader.</p>
+<p>To get started open Dev Tools (<code>Control+Shift+I</code> in Windows, <code>Command+option+i</code> on Mac). You will see something similar to the image below. Click on <code>Audits</code>.</p>
+<figure>
+  <img src="images/audits-panel-devtool.png" alt="">
+  <figcaption>Audit Panel in Chrome Dev Tools</figcaption>
+</figure>
+<p>This will present you with a list of possible audits to run. In this case we want to uncheck all audits except accessibility. Then we click <code>Run Audit</code>.</p>
+<figure>
+  <img src="images/devtools-avilable-audits.png" alt="">
+  <figcaption>Available Audits in Chrome Dev Tools</figcaption>
+</figure>
+<p>Chrome will run its tests and give you a score and a list of items to change shown below.</p>
+<figure>
+  <img src="images/devtools-accessibility-audit-result.png" alt="">
+  <figcaption>Accessibility Audits Results</figcaption>
+</figure>
+<p>It’s important to realize that, while automated testing is good and will get you most of the way there, manual testing and decision making are still important.</p>
+<p>In the results shown in figure 3 I know that the constrast issues are the colors that I use for syntax highlighting (using Prism.js against the theme background). It’s up to me to decide if I want to change the theme to provide better contrast or keep the theme and the score of 91.</p>
+<p><a id="markdown-axe-and-axe-coconut-browser-extensions" name="axe-and-axe-coconut-browser-extensions"></a></p>
+<h3 id="axe-and-axe-coconut-browser-extensions">aXe and aXe Coconut Browser Extensions</h3>
+<p>aXe browser extension for <a href="https://chrome.google.com/webstore/detail/aXe/lhdoppojpmngadmnindnejefpokejbdd">Chrome</a>and <a href="https://github.com/dequelabs/aXe-firefox-devtools">Firefox</a> automates testing and evaluation of your page’s accessibility.</p>
+<aside class="message info">
+  <p>if you're using Firefox, be aware that the Firefox Extension may not work with the latest vesions. Deque provides an <a href="https://www.deque.com/blog/understanding-axe-attest-extension-compatibility-firefox/">explanation</a> about what version of aXe supports what version of the browser.</p>
+</aside>
+<div class="youtube-player" data-id="FW1giWW5M9I"></div>
+<!-- <div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/FW1giWW5M9I?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+</div> -->
+<p>If you need the latest functionality, for example you’re working with ShadowDOM and Custom Elements you can use <a href="https://chrome.google.com/webstore/detail/aXe-coconut/iobddmbdndbbbfjopjdgadphaoihpojp">aXe Coconut Chrome Extension</a> to use the latest aXe features and tests. The instructions are the same for both and they can be installed concurrently; think of Coconut as the aXe version of Chrome Canary.</p>
+<p>For Chrome the process is simple:</p>
+<p><strong>Download the appropriate extension from the Chrome Web Store</strong></p>
+<p><strong>Install the extension when prompted</strong></p>
+<p><strong>Open DevTools and select aXe or aXe Coconut (Figure 4 is open with aXe)</strong></p>
+<figure>
+  <img src="images/axe-after-install.png" alt="">
+  <figcaption>aXe ready to run</figcaption>
+</figure>
+<p><strong>Click Analyze on the left-hand frame</strong></p>
+<p><strong>Axe will prodeuce a report with all accessibility violations (figure 5 shows aXe Coconut)</strong></p>
+<figure>
+  <img src="images/axe-coconut-report.png" alt="">
+  <figcaption>aXe Coconut report</figcaption>
+</figure>
+<p>As with the Lighthouse report there are things that we’ll have to manually decide if there are errors or not and whether we need to change the code to fix the problems aXe reported.</p>
+<p><a id="markdown-testing-with-a-screenreader" name="testing-with-a-screenreader"></a></p>
+<h3 id="testing-with-a-screenreader">Testing With A Screenreader</h3>
+<p>The last part of the accessibility evaluation is to use a screen reader to read the page back to you. This will not catch accessibility violations like Lighthouse or aXe do but it’ll give you an idea of easy it is for screen readers to understand the content of your page or app.</p>
+<p>Rather than try to walk you through using a screen reader I’ll link to two awesome introductory tutorials from Rob Dodson, part of his <a href="https://www.youtube.com/playlist?list=PLNYkxOF6rcICWx0C9LVWWVqvHlYJyqw7g">A11ycasts series</a> in Youtube: one for Voice Oveer (built into macOS) and NVDA (free for Windows).</p>
+<div class="youtube-player" data-id="Jao3s_CwdRU"></div>
+<!-- <div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/Jao3s_CwdRU?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+</div> -->
+<div class="youtube-player" data-id="5R-6WvAihms"></div>
+<!--
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/5R-6WvAihms?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+</div>
+-->
+<p>It has been an eye opening experience to hear my content read back to me as an editor would; someone who doesn’t understand the content as well as I do and who doesn’t read what he meant to write rather than what’s actually written.</p>
+<p><a id="markdown-its-not-just-the-tech" name="its-not-just-the-tech"></a></p>
+<h2 id="it%E2%80%99s-not-just-the-tech">It’s Not Just The Tech</h2>
+<p>When we think about accessibility most of us think about screen readers but there’s a lot more. The automated and manual techniques are a starting point. After you make all the changes suggested by the tools you still have to make decisions about your content.</p>
+<div class="youtube-player" data-id="hRS_Uxq_LJ8"></div>
+<!-- <div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/hRS_Uxq_LJ8?rel=0" frameborder="0" allowfullscreen></iframe>
+</div> -->
+<p>This is the beginning of my learning accessibility. Will report back along the learning path.</p>
+<p><a id="markdown-links-and-resources" name="links-and-resources"></a></p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li>Accessibility
+<ul>
+<li><a href="https://www.youtube.com/watch?v=qdB8SRhqvFc">ARIA, Accessibility APIs and coding like you give a damn! – Léonie Watson</a></li>
+<li><a href="https://www.youtube.com/watch?v=gQADBOsjBTM">Leonie Watson: Using ARIA to solve everyday accessibility problems</a></li>
+<li><a href="https://github.com/WICG/inert">Inert Attribute</a></li>
+</ul>
+</li>
+<li>ARIA
+<ul>
+<li><a href="https://w3c.github.io/using-aria/">Using ARIA</a></li>
+<li>Best Practices
+<ul>
+<li><a href="https://www.w3.org/TR/wai-aria-practices-1.1/">WAI-ARIA Authoring Practices 1.1</a></li>
+<li><a href="https://ebay.gitbooks.io/mindpatterns/">MIND Patterns: Accessibility Patterns for the Web</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Voice Over
+<ul>
+<li><a href="https://help.apple.com/voiceover/info/guide/10.12/">Voice Over Getting Started Guide</a></li>
+<li><a href="http://lab.dotjay.com/notes/voiceover-commands/">Voice Over Commands</a></li>
+</ul>
+</li>
+<li>aXe and aXe Coconut
+<ul>
+<li><a href="https://www.deque.com/blog/test-leading-edge-accessibility-aXe-coconut-aXe-core-3-0/">Test the leading edge of accessibility with aXe Coconut and aXe-core 3.0-alpha</a></li>
+<li>Browser Extensions
+<ul>
+<li><a href="https://chrome.google.com/webstore/detail/aXe/lhdoppojpmngadmnindnejefpokejbdd">aXe Chrome Extension (Stable)</a></li>
+<li><a href="https://chrome.google.com/webstore/detail/aXe-coconut/iobddmbdndbbbfjopjdgadphaoihpojp">aXe Coconut Chrome Extension</a></li>
+<li><a href="https://chrome.google.com/webstore/detail/wave-evaluation-tool/jbbplnpkjmmeebjpijfedlgcdilocofh">WAVE</a></li>
+<li><a href="https://github.com/dequelabs/aXe-firefox-devtools">Firefox Devtools Integration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Chrome specific
+<ul>
+<li><a href="https://developers.google.com/web/fundamentals/accessibility/how-to-review">How To Do an Accessibility Review</a></li>
+<li><a href="https://www.youtube.com/watch?v=b0Q5Zp_yKaU">The new way to test accessibility with Chrome DevTools - A11ycasts #23</a></li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

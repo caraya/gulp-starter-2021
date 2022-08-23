@@ -1,0 +1,80 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="using-fontface-observer-in-wordpress">Using Fontface Observer in WordPress</h1>
+<p><a href="https://fontfaceobserver.com">Fontface observer</a> (FFO) is a font loader library that allows you to control the behavior of our downloadble fonts. This post will work through how to use the script in a WordPress installation.</p>
+<p>Using FontFace Observer is a two-step process. We first need to load the script and then we need to add an inline script to tell FFO what to do.</p>
+<h2 id="loading-the-script">Loading the script</h2>
+<p>We load the script using <code>wp-enqueue-scripts</code>; the same way that we’d load all our scripts and stylesheets.</p>
+<p>The following code snippet enqueues the Fontface Observer into a standalone function. However, if you’re already enqueing scripts and styles you could incorporate it into an existing enqueue function and action.</p>
+<pre class="language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_enqueue_ffo</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'ffo_script'</span><span class="token punctuation">,</span>
+			<span class="token function">get_stylesheet_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'/js/fontfaceobserver.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_enqueue_ffo'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="inserting-the-inline-script">Inserting the inline script</h2>
+<p>The second part is to insert an inline script on the footer of pages.</p>
+<p>THe function interleaves Javascript and PHP to build the function.</p>
+<p>The javascript itself does the following tasks:</p>
+<ol>
+<li>Loads the font</li>
+<li>If the font download succeeds
+<ol>
+<li>Add a <code>fontsLoaded</code> entry to session storage with <code>true</code></li>
+</ol>
+</li>
+<li>If loading the font fails
+<ol>
+<li>Add a <code>fontsLoaded</code> entry to session storage with <code>true</code></li>
+</ol>
+</li>
+</ol>
+<p>If session storage has a <code>fontsLoaded</code> attribute</p>
+<ol>
+<li>If the value is <code>true</code> add the <code>fonts-loaded</code> loaded class to the <code>html</code> element</li>
+<li>If the value is <code>false</code> add the <code>fonts-failed</code> loaded class to the <code>html</code> element</li>
+</ol>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendell_add_ffo</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+<span class="token delimiter important">?></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+    <span class="token keyword">const</span> recursive <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'Recursive VF'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> html <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
+    Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+      recursive<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+			sessionStorage<span class="token punctuation">.</span>fontsLoaded <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Recursive has loaded.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+			sessionStorage<span class="token punctuation">.</span>fontsLoaded <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Recursive failed to load'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+		<span class="token keyword">if</span> <span class="token punctuation">(</span>sessionStorage<span class="token punctuation">.</span>fontsLoaded<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-loaded'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+			html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-failed'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'wp_footer'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendell_add_ffo'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
+</code></pre>
+<p>We could further change the code so that if the fonts fail to load and the session storage value is false, we load an alternative font stack from Google fonts.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

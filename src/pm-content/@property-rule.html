@@ -1,0 +1,84 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="%40property-rule">@property Rule</h1>
+<p><a href="https://drafts.css-houdini.org/css-properties-values-api-1/#syntax-string">CSS Properties and Values API Level 1</a> provides a CSS equivalent solution to <code>CSS.registerProperty</code>, the <a href="https://drafts.css-houdini.org/css-properties-values-api-1/#at-property-rule"><code>@property</code></a> at-rule.</p>
+<p>Unfortunately it is not implemented by any browser yet.</p>
+<p>The reason why I’m writing about it now is that Chrome filed an <a href="https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/3ygpsew53a0/T7acB6sRBQAJ">Intent to Ship</a> the feature.</p>
+<h2 id="what-problem-are-houdini-custom-properties-trying-to-solve%3F">What problem are Houdini Custom Properties trying to solve?</h2>
+<p>Custom properties are treated as strings, so developers have to jump through hoops to make them work and have to do things that are not necessarily intuitive to create the effects they need.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--base-font-size</span><span class="token punctuation">:</span> 16<span class="token punctuation">;</span>
+  <span class="token property">--base-text-color</span><span class="token punctuation">:</span> <span class="token string">'#aaa'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> <span class="token function">calc</span><span class="token punctuation">(</span><span class="token function">var</span><span class="token punctuation">(</span>--base-font-size<span class="token punctuation">)</span> * 1px<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--base-text-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Another thing to consider is that, because all custom properties are treated as strings they not animatable and cannot be validated since the validator has no way of knowing what is the actual value of the property it’s parsing.</p>
+<h2 id="houdini-custom-properties">Houdini Custom Properties</h2>
+<p>Houdini makes it easier to deal with the drawbacks of custom properties and provides, in my opinion, a better developer experience.</p>
+<p>The first version of Houdini Custom Properties is written in JavaScript and it provides additional information about the properties that makes them easier to work with.</p>
+<p>The items that we must have on each custom property declaration:</p>
+<ul>
+<li><strong>name</strong>: the name of the custom property, including the two dashes (–)</li>
+<li><strong>syntax</strong>: one or more of the <a href="https://drafts.css-houdini.org/css-properties-values-api-1/#supported-names">valid syntax names</a> available
+<ul>
+<li>An optional multiplier (either <code>+</code>, <code>#</code>) immediately after the syntax name</li>
+<li>The separator character (<code>|</code>) between the values. This is only required if there is more than one value on the syntax</li>
+</ul>
+</li>
+<li><strong>initial value</strong>: The default value for the property. This includes the type of the value we’re using</li>
+<li><strong>inherits</strong>: Whether the property will propagate its value down the tree</li>
+</ul>
+<p>The first example will be used for font sizing and can take either a length or percentage value using the <code>&lt;length-percentage&gt;</code> shorthand syntax. The default value is 16px and it will inherit down the tree unless the CSS author overrides it.</p>
+<pre class="language-js"><code class="language-js"><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">"--base-font-size"</span><span class="token punctuation">,</span>
+  syntax<span class="token operator">:</span> <span class="token string">"&lt;length-percentage>"</span><span class="token punctuation">,</span>
+  initialValue<span class="token operator">:</span> <span class="token string">"16px"</span><span class="token punctuation">,</span>
+  inherits<span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The second example is a color custom property that uses a three-digit RGB color as the default value but can use any color syntax allowed in <a href="https://www.w3.org/TR/2018/REC-css-color-3-20180619/">CSS Color Module Level 3</a> and <a href="https://www.w3.org/TR/css-color-4/">CSS Color Module Level 4</a> (currently a working draft). This property will not inherit down the tree.</p>
+<pre class="language-js"><code class="language-js"><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  name<span class="token operator">:</span> <span class="token string">"--my-color"</span><span class="token punctuation">,</span>
+  syntax<span class="token operator">:</span> <span class="token string">"&lt;color>"</span><span class="token punctuation">,</span>
+  initialValue<span class="token operator">:</span> <span class="token string">"#333"</span><span class="token punctuation">,</span>
+  inherits<span class="token operator">:</span> <span class="token boolean">false</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="houdini-custom-properties-in-css">Houdini Custom Properties in CSS</h2>
+<p>One of the main reasons why I’ve refrained from using Houdini Custom Properties is that, until now, they must be defined in Javascript and they add an additional script, either inline or external, to the each page of the site you use them on.</p>
+<p>The new CSS <code>@property</code> at-rule takes the same values as the JavaScript version and needs to be placed in one stylesheet linked to the pages.</p>
+<p>The equivalent CSS @property version of the JavaScript examples are shown below.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@property</span> --base-font-size</span> <span class="token punctuation">{</span>
+  <span class="token property">syntax</span><span class="token punctuation">:</span> <span class="token string">"&lt;length-percentage>"</span><span class="token punctuation">;</span>
+  <span class="token property">initialValue</span><span class="token punctuation">:</span> <span class="token string">"16px"</span><span class="token punctuation">;</span>
+  <span class="token property">inherits</span><span class="token punctuation">:</span> true<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@property</span> --base-text-color</span> <span class="token punctuation">{</span>
+  <span class="token property">syntax</span><span class="token punctuation">:</span> <span class="token string">"&lt;color>"</span><span class="token punctuation">;</span>
+  <span class="token property">initialValue</span><span class="token punctuation">:</span> <span class="token string">"#333"</span><span class="token punctuation">;</span>
+  <span class="token property">inherits</span><span class="token punctuation">:</span> false<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The advantages of using Houdini-style custom properties is we can animate and validate them without having to jump through the hoops we have to today.</p>
+<p>The downside is that we have to write more code (either CSS or JavaScript) and still provide a fallback for browsers that don’t support custom properties or Houdini APIs yet.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

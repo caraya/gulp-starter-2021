@@ -1,4 +1,4 @@
-<h1 id="building-my-own-static-site-generator" tabindex="-1">Building my own static site generator</h1>
+<h1 id="building-my-own-static-site-generator">Building my own static site generator</h1>
 <p>In a way, this is the combination of two projects I’ve worked on at different times:</p>
 <ul>
 <li>A static site generator using <a href="https://mozilla.github.io/nunjucks/">Nunjucks</a></li>
@@ -7,19 +7,19 @@
 <p>After looking at the two projects, I figured out that the next logical step would be to combine them since they both do the same task in similar but slightly different ways.</p>
 <p>The standalone markup generator uses Node built-in methods to write the components of the template and insert the converted HTML fragment into the output file.</p>
 <p>The static site generator uses a Gulp build system to run the Markdown conversion using the Marked parser and the pushes the conversion into a Nunjuks template.</p>
-<h2 id="questions-about-the-code" tabindex="-1">Questions about the code</h2>
+<h2 id="questions-about-the-code">Questions about the code</h2>
 <p>As I’ve written the code I’ve also been working in answering these questions. They have dictated the shape of the current code and will likely dictate the shape of future changes.</p>
-<h3 id="what-markdown-parser-to-use%3F" tabindex="-1">What Markdown parser to use?</h3>
+<h3 id="what-markdown-parser-to-use%3F">What Markdown parser to use?</h3>
 <p>Since the two projects use different Markdown parsers the first question to ask is which one to use.</p>
 <p>The easiest option would be to use Marked, the parser that is bundled with the Nunjucks Gulp plugins. However, Marked lacks a good plugin ecosystem, or I wasn’t able to find one so I moved on to a different solution.</p>
 <p>I chose to work with Markdown-it, the parser I used for the standalone project. It provides a rich plugin ecosystem and it makes it possible to write a lot more of your content in Markdown, without having to write HTML.</p>
-<h3 id="using-gulp-to-run-the-system" tabindex="-1">Using Gulp to run the system</h3>
+<h3 id="using-gulp-to-run-the-system">Using Gulp to run the system</h3>
 <p>The next issue is whether we want to use a build system. Rather than pick up a new system to experiment with, I will use <a href="https://gulpjs.com/">Gulp</a>.</p>
 <p>This allows me to leverage code from existing projects to build the necessary tasks for the generator and it also allows me to expand beyond just Markdown and take care of other tasks like Javascript, CSS, and image compression.</p>
-<h3 id="using-front-matter-to-customize-items" tabindex="-1">Using Front Matter to customize items</h3>
+<h3 id="using-front-matter-to-customize-items">Using Front Matter to customize items</h3>
 <p>One of the things that has always bothered me about generating content from templates is the impossibility of editing individual items like titles, metadata and other items specific to individual pages.</p>
 <p>Front matter solves that problem. Using a combination of metadata and plugins allows you to customize individual items without having to do manual edits.</p>
-<h2 id="other-than-templates%2C-what-do-we-need%3F" tabindex="-1">Other than templates, what do we need?</h2>
+<h2 id="other-than-templates%2C-what-do-we-need%3F">Other than templates, what do we need?</h2>
 <p>I have a set of tasks to accomplish in addition to the Markdown conversion.</p>
 <ul>
 <li>Transpile Javascript with Babel</li>
@@ -27,9 +27,9 @@
 <li>Convert images to different formats and compress them to reduce file size using Libsquoosh</li>
 <li>Provide a preview server using Browsersync</li>
 </ul>
-<h2 id="the-code" tabindex="-1">The code</h2>
+<h2 id="the-code">The code</h2>
 <p>Now we’ll look at the code itself and break it into sections to make the narrative more coherent.</p>
-<h3 id="configuration-and-constants" tabindex="-1">Configuration and constants</h3>
+<h3 id="configuration-and-constants">Configuration and constants</h3>
 <p>The first block defines constant that we’ll use throughout the script to make it easier on ourselves. If there’s anything we need to change then we change it in one place and done.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Nunjucks consts for file location</span>
 <span class="token keyword">const</span> dist <span class="token operator">=</span> <span class="token string">'docs'</span><span class="token punctuation">;</span>
@@ -43,16 +43,16 @@
   <span class="token keyword">new</span> <span class="token class-name">nunjucks<span class="token punctuation">.</span>FileSystemLoader</span><span class="token punctuation">(</span>templates<span class="token punctuation">)</span>
 <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="markdown" tabindex="-1">Markdown</h3>
+<h3 id="markdown">Markdown</h3>
 <p>The first task uses Markdown-It to convert Markdown files to HTML fragments. The fragments are valid HTML files but are not full pages so they won’t necessarily render correctly on a browser and have no styles of their own.</p>
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'markdown'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> config <span class="token operator">=</span> <span class="token punctuation">{</span>
-    <span class="token literal-property property">options</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-      <span class="token literal-property property">preset</span><span class="token operator">:</span> <span class="token string">'commonmark'</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">html</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">xhtmlOut</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">linkify</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">typographer</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    options<span class="token operator">:</span> <span class="token punctuation">{</span>
+      preset<span class="token operator">:</span> <span class="token string">'commonmark'</span><span class="token punctuation">,</span>
+      html<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      xhtmlOut<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      linkify<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      typographer<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
   <span class="token keyword">return</span> gulp
@@ -124,13 +124,13 @@ description: Default Description
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'renderContent'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/pages/**/*.+(html|njk)'</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">nunjucksRender</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-        <span class="token literal-property property">path</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'./src/templates'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        path<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'./src/templates'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token comment">// output files in app folder</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./docs'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="sass-and-autoprefixer" tabindex="-1">Sass and Autoprefixer</h3>
+<h3 id="sass-and-autoprefixer">Sass and Autoprefixer</h3>
 <p>To create CSS I use SASS and Autoprefixer to generate correct CSS without having to write the prefixed versions myself.</p>
 <p>The first task runs SASS to generate the corresponding CSS. If you’ve been working with SASS for a while there are some changes th at may catch you by surprise as they did me.</p>
 <p>Dart SASS is now the default version so you probably want to work with Dart SASS on your projects going forward.</p>
@@ -139,7 +139,7 @@ description: Default Description
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'sass'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/sass/**/*.scss'</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>sass<span class="token punctuation">.</span><span class="token function">sync</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-        <span class="token literal-property property">outputStyle</span><span class="token operator">:</span> <span class="token string">'expanded'</span><span class="token punctuation">,</span>
+        outputStyle<span class="token operator">:</span> <span class="token string">'expanded'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'error'</span><span class="token punctuation">,</span> sass<span class="token punctuation">.</span>logError<span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./src/css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -157,19 +157,19 @@ description: Default Description
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="javascript" tabindex="-1">Javascript</h3>
+<h3 id="javascript">Javascript</h3>
 <p>I don’t expect to use this task often but it is nice to know that I have it available to transpile code into a version that will support all the 2017 and later features I need in my code.</p>
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'babel'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/es6/**/*.js'</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span>sourcemaps<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">babel</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-        <span class="token literal-property property">presets</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'@babel/preset-env'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        presets<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'@babel/preset-env'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span>sourcemaps<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token string">'.'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'src/scripts/**/*'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="image-compression" tabindex="-1">Image Compression</h3>
+<h3 id="image-compression">Image Compression</h3>
 <p>Until not too long ago, I used Imagemin to compress all my images. It was tedious to get them to work and the plugin ecosystem has been known to have version-specific issues.</p>
 <p>LibSquoosh is the CLI version of <a href="https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh">Squoosh</a> and <a href="https://www.npmjs.com/package/gulp-libsquoosh">gulp-libsquoosh</a> and it has none of Imagemin’s drawbacks.</p>
 <p>Libsquoosh provides all the encoder libraries as part of the package so there are no additional downloads and the codecs are built on <a href="https://webassembly.org/">WebAssembly</a> so there’s no dependency on Node-Gyp or other third party compilation tools.</p>
@@ -181,27 +181,27 @@ description: Default Description
             <span class="token comment">// console.log(src);</span>
             <span class="token keyword">const</span> extname <span class="token operator">=</span> path<span class="token punctuation">.</span><span class="token function">extname</span><span class="token punctuation">(</span>src<span class="token punctuation">.</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span>
             <span class="token keyword">let</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
-              <span class="token literal-property property">encodeOptions</span><span class="token operator">:</span> squoosh<span class="token punctuation">.</span>DefaultEncodeOptions<span class="token punctuation">[</span>extname<span class="token punctuation">]</span><span class="token punctuation">,</span>
+              encodeOptions<span class="token operator">:</span> squoosh<span class="token punctuation">.</span>DefaultEncodeOptions<span class="token punctuation">[</span>extname<span class="token punctuation">]</span><span class="token punctuation">,</span>
             <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
             <span class="token keyword">if</span> <span class="token punctuation">(</span>extname <span class="token operator">===</span> <span class="token string">'.jpg'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
               options <span class="token operator">=</span> <span class="token punctuation">{</span>
-                <span class="token literal-property property">encodeOptions</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-                  <span class="token literal-property property">jxl</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-                  <span class="token literal-property property">mozjpeg</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+                encodeOptions<span class="token operator">:</span> <span class="token punctuation">{</span>
+                  jxl<span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+                  mozjpeg<span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
                 <span class="token punctuation">}</span><span class="token punctuation">,</span>
               <span class="token punctuation">}</span><span class="token punctuation">;</span>
             <span class="token punctuation">}</span>
 
             <span class="token keyword">if</span> <span class="token punctuation">(</span>extname <span class="token operator">===</span> <span class="token string">'.png'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
               options <span class="token operator">=</span> <span class="token punctuation">{</span>
-                <span class="token literal-property property">encodeOptions</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-                  <span class="token literal-property property">avif</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+                encodeOptions<span class="token operator">:</span> <span class="token punctuation">{</span>
+                  avif<span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
                 <span class="token punctuation">}</span><span class="token punctuation">,</span>
-                <span class="token literal-property property">preprocessOptions</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-                  <span class="token literal-property property">quant</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-                    <span class="token literal-property property">enabled</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-                    <span class="token literal-property property">numColors</span><span class="token operator">:</span> <span class="token number">16</span><span class="token punctuation">,</span>
+                preprocessOptions<span class="token operator">:</span> <span class="token punctuation">{</span>
+                  quant<span class="token operator">:</span> <span class="token punctuation">{</span>
+                    enabled<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+                    numColors<span class="token operator">:</span> <span class="token number">16</span><span class="token punctuation">,</span>
                   <span class="token punctuation">}</span><span class="token punctuation">,</span>
                 <span class="token punctuation">}</span><span class="token punctuation">,</span>
               <span class="token punctuation">}</span><span class="token punctuation">;</span>
@@ -213,7 +213,7 @@ description: Default Description
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/images/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="utility-functions" tabindex="-1">Utility Functions</h2>
+<h2 id="utility-functions">Utility Functions</h2>
 <p>We have three utility functions to clean the installation to a default state and copy resources to the <code>docs</code> folder.</p>
 <p>I choose to copy resources because we want to be flexible. Rather than change tasks everytime we decide to add something to the process. We could do the same thing with CSS but if I decide to add anything, it will be to the <code>processCSS</code> task, not adding additional tasks to the process.</p>
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'clean'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -238,24 +238,24 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/fonts'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="preview-server" tabindex="-1">Preview server</h2>
+<h2 id="preview-server">Preview server</h2>
 <p>I might want to see the results of the process before I publish it so I set up a <a href="https://browsersync.io/">Browsersync</a>-based preview browser.</p>
 <p>It will pull the content from the <code>docs</code> directory and serve them as a website.</p>
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'serve'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token function">browserSync</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    <span class="token literal-property property">port</span><span class="token operator">:</span> <span class="token number">2509</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">notify</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">snippetOptions</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-      <span class="token literal-property property">rule</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">match</span><span class="token operator">:</span> <span class="token string">'&lt;span id="browser-sync-binding">&lt;/span>'</span><span class="token punctuation">,</span>
+    port<span class="token operator">:</span> <span class="token number">2509</span><span class="token punctuation">,</span>
+    notify<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    snippetOptions<span class="token operator">:</span> <span class="token punctuation">{</span>
+      rule<span class="token operator">:</span> <span class="token punctuation">{</span>
+        match<span class="token operator">:</span> <span class="token string">'&lt;span id="browser-sync-binding">&lt;/span>'</span><span class="token punctuation">,</span>
         <span class="token function-variable function">fn</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token parameter">snippet</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
           <span class="token keyword">return</span> snippet<span class="token punctuation">;</span>
         <span class="token punctuation">}</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">server</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-      <span class="token literal-property property">baseDir</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'.tmp'</span><span class="token punctuation">,</span> <span class="token string">'docs'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">middleware</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token function">historyApiFallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    server<span class="token operator">:</span> <span class="token punctuation">{</span>
+      baseDir<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'.tmp'</span><span class="token punctuation">,</span> <span class="token string">'docs'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      middleware<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token function">historyApiFallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -272,19 +272,19 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
     <span class="token string">'copy:fonts'</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="future-work" tabindex="-1">Future work</h2>
+<h2 id="future-work">Future work</h2>
 <p>We have a basic static site generator working. It produces the type of code I want and it produces all the assets needed for the static site.</p>
 <p>Yet there is still room for improvement and a lot of things I’d like to do with the code.</p>
-<h3 id="add-markdown-it-plugins" tabindex="-1">Add Markdown-it Plugins</h3>
+<h3 id="add-markdown-it-plugins">Add Markdown-it Plugins</h3>
 <p>Markdown-it has a very nice plugin collection that allows you to enhance the output of the Markdown source without having to add HTML to it.</p>
 <p>The standalone parser generator uses a set of these Markdown-it plugins and, in theory, it should be possible to add them to a Gulp plugin. I just need to figure out how to do it.</p>
-<h3 id="making-the-output-prettier" tabindex="-1">Making The Output Prettier</h3>
+<h3 id="making-the-output-prettier">Making The Output Prettier</h3>
 <p><a href="https://prettier.io/">Prettier</a> is a tool that formats code according to parameters and specifications. We can leverage the <a href="https://www.npmjs.com/package/gulp-prettier">Gulp-Prettier</a> plugin to format the HTML output before writing it to file.</p>
 <p>Need to do more research on how to do this. I believe it’s a matter of configuration, but I’m not sure.</p>
-<h3 id="customizing-layouts" tabindex="-1">Customizing Layouts</h3>
+<h3 id="customizing-layouts">Customizing Layouts</h3>
 <p>Right now I’ve created SASS and CSS files but I haven’t done much work on the CSS side. I’d like to create a better base layout for the site.</p>
 <p>This will also require a way to set up custom layouts for different types of pages. It might be possible to do it from the front matter but I’m not certain.</p>
-<h3 id="move-from-sass-to-postcss" tabindex="-1">Move From SASS to PostCSS</h3>
+<h3 id="move-from-sass-to-postcss">Move From SASS to PostCSS</h3>
 <p>When I started using SASS it was awesome because it was easy to use and had a lot more features than CSS at the time.</p>
 <p>Over the years, CSS has gained features that were once part of SASS and other preprocessors. Here’s a rundown of my favorite changes:</p>
 <ul>
@@ -294,13 +294,13 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 </ul>
 <p><a href="https://postcss.org/">PostCSS</a> is a Javascript tool that allows you to use future features in your current codebase, just like Babel does for Javascript.</p>
 <p>Changing the process to generate the final CSS means changing some of the code and deciding how much of SASS I want to emulate and how much am I comfortable discarding.</p>
-<h3 id="change-browserlists-versions" tabindex="-1">Change Browserlists Versions</h3>
+<h3 id="change-browserlists-versions">Change Browserlists Versions</h3>
 <p>Right now I’m working with a default configuration for Browser List. This will tell the applicatioons that use it, like Babel, PostCSS and others, to only change what’s necessary for the supported versions.</p>
 <p>The idea behind changing the browser list configuration is to make sure that we adhere to a sane configuration as described in <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a>.</p>
 <p>We’ll have to evaluate what impact, if any, the new browserlist has on our CSS and other items that use them.</p>
-<h3 id="properly-configure-%40babel%2Fpreset-env" tabindex="-1">Properly Configure @babel/preset-env</h3>
+<h3 id="properly-configure-%40babel%2Fpreset-env">Properly Configure @babel/preset-env</h3>
 <p><a href="https://web.dev/publish-modern-javascript/">@babel/preset-env</a> provides a way to target specific browsers, either by using Browserslist’s list or by providing a list of browsers.</p>
 <p>In the past I would have recommended switching to <a href="https://github.com/babel/preset-modules">@babel/preset-modules</a> because it potentially provides an even smaller file size by not rejecting the entire module if there are issues.</p>
 <p>The features from <code>@babel/preset-modules</code> have been rolled into <code>@babel/preset-env</code> so we should be able to properly configure it to obtain the same result.</p>
-<h3 id="automating-with-github-actions" tabindex="-1">Automating with Github Actions</h3>
+<h3 id="automating-with-github-actions">Automating with Github Actions</h3>
 <p>The final bit I want to work with is to use Github Actions for building the site automatically when we push changes. I know it is possible to do it, I do this with my writing samples. But will it work with this project?</p>

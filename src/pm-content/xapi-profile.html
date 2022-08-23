@@ -1,0 +1,326 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="building-an-xapi-profile">Building an xAPI profile</h1>
+<p>One thing that particularly caught my attention when researching xAPI and SCORM were the xAPI Activities.</p>
+<p>An activity is a group of verbs and activities that describe actions specific to a group or a sub-group. They are part of the answer to my question:</p>
+<blockquote>
+<p><em><strong>How can I build the statement: Person A implemented technology X?</strong></em>.</p>
+</blockquote>
+<p>This post will discuss some of the elements in a profile and provide some introductory information about them. While profiles are technical in nature, I believe that they are also useful for designers and teams looking to implement the verbs in a profile. When xAPI validators become available outside LRS implementation it will be nice to have the profiles to do local validation as well.</p>
+<h2 id="planning-what-do-we-want-to-say">Planning what do we want to say</h2>
+<p>Before we start looking at how to write the JSON-LD for our profile we need to define what we want to create and what it means.</p>
+<p>xAPI statements use an <strong>actor — verb — object/activity</strong> triplet model. The profile will deal with verbs and activities and will let the implementor deal with authenticating the actor and providing actor information to complete the triplet.</p>
+<p>We need to document what we’re defining and what external verbs and activities we want to use. It’s particularly important not to reinvent the wheel.</p>
+<p>Examples of activities:</p>
+<ul>
+<li>David <em>read</em> an <em>ebook</em></li>
+<li>Kay was <em>technical lead</em> for a <em>project</em></li>
+<li>Chris <em>implemented</em> an <em>API</em></li>
+<li>Paul <em>completed</em> an <em>online course</em></li>
+</ul>
+<p>Using these as examples we’ll build a profile that described these activities. In doing so we’ll see how to leverage existing xAPI statement components in addition to creating our own.</p>
+<p>The information in the <a href="http://xapi.vocab.pub/verbs/index.html">xAPI Vocab Server</a> is a good starting point to see what’s out there in terms of verbs and activities and how have other people defined things that we may want to use or define.</p>
+<p>However, we need to be sure that those external verbs and activities actually mean what we need to.</p>
+<h2 id="a-quick-overview">A quick overview</h2>
+<p>The following table, taken from the xAPI profile specification, describes the structure of an xAPI profile.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>IRI</td>
+      <td>The IRI of the Profile overall (not a specific version)</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>@context</code></td>
+      <td>URI</td>
+      <td>SHOULD be <code><a href="https://w3id.org/xapi/profiles/context">https://w3id.org/xapi/profiles/context</a></code> and MUST contain this URI if array-valued.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>type</code></td>
+      <td>String</td>
+      <td>MUST be <code>Profile</code>.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>conformsTo</code></td>
+      <td>URI</td>
+      <td>Canonical URI of the Profile specification version conformed to. The Profile specification version of this document is <a href="https://w3id.org/xapi/profiles#1.0" rel="nofollow">https://w3id.org/xapi/profiles#1.0</a>.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>prefLabel</code></td>
+      <td>Object</td>
+      <td>Language map of names for this Profile.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>definition</code></td>
+      <td>Object</td>
+      <td>Language map of descriptions for this Profile. If there are additional rules for the Profile as a whole that cannot be expressed using this specification, include them here, or at the seeAlso URL.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>seeAlso</code></td>
+      <td>URL</td>
+      <td>A URL containing information about the Profile. Recommended instead of especially long definitions.</td>
+      <td>Optional</td>
+    </tr>
+    <tr>
+      <td><code>versions</code></td>
+      <td>Array</td>
+      <td>An array of all <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#prof-ver-obj">Profile version</a> objects for this Profile.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>author</code></td>
+      <td>Object</td>
+      <td>An <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#orgs-persons">Organization or Person</a>.</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td><code>concepts</code></td>
+      <td>Array</td>
+      <td>An array of <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#concepts">Concepts</a> that make up this Profile.</td>
+      <td>Optional</td>
+    </tr>
+    <tr>
+      <td><code>templates</code></td>
+      <td>Array</td>
+      <td>An array of <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#statment-templates">Statement Templates</a> for this Profile.</td>
+      <td>Optional</td>
+    </tr>
+    <tr>
+      <td><code>patterns</code></td>
+      <td>Array</td>
+      <td>An array of <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#patterns">Patterns</a> for this Profile.</td>
+      <td>Optional</td>
+    </tr>
+  </tbody>
+</table>
+<p>We’ll explore things in more detail as we progress through building the profile.</p>
+<h2 id="building-the-profile">Building the profile</h2>
+<p>Before we start adding verbs and activities we need to define some properties about the profile we are creating.</p>
+<p>Some of these items use a <code>w3id.org</code> url. These will redirect to the correct URL and are meant to ensure that the files will remain available if the original URLs are removed or change address.</p>
+<p><code>@context</code> is a JSON-LD term and it is used to provide a way to map terms to IRI</p>
+<blockquote>
+<p>Simply speaking, a context is used to map terms to IRIs. Terms are case sensitive and most valid strings that are not reserved JSON-LD keywords can be used as a term. Exceptions are the empty string “” and strings that have the form of a keyword (i.e., starting with “@” followed exclusively by one or more ALPHA characters (see [RFC5234])), which must not be used as terms. Strings that have the form of an IRI (e.g., containing a “:”) should not be used as terms.</p>
+<p>Source: <a href="https://www.w3.org/TR/json-ld11/#the-context">The Context</a> in <a href="w3.org/TR/json-ld11/">JSON-LD 1.1</a></p>
+</blockquote>
+<p>I use a URL/URI in the <code>ns.rivendellweb.net</code> namespace for the profile ID. I’ve used this in the past to represent XML name spaces. I’m not sure if I’ll have to actually put something there or not.</p>
+<p>xAPI profiles use <a href="https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier">IRIs</a> (Internationalized Resource Identifiers) and not URIs.</p>
+<p>The main difference between an IRI and a URI/URL as used on the web is the character set they use:</p>
+<ul>
+<li>IRIs use <a href="https://en.wikipedia.org/wiki/Universal_Coded_Character_Set">UCS</a>, the ISO standard for Unicode, thus allowing for the identifiers to use characters outside ASCII</li>
+<li>URIs were specified to only use <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a> character set, making it impossible to use languages other than English</li>
+</ul>
+<p><code>type</code> is fixed and should always have the value of <code>profile</code>.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"@context"</span><span class="token operator">:</span> <span class="token string">"https://w3id.org/xapi/profiles/context"</span><span class="token punctuation">,</span>
+  <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile"</span><span class="token punctuation">,</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"Profile"</span><span class="token punctuation">,</span>
+</code></pre>
+<p><code>conformsTo</code> referes to the version of the xAPI profile spec that this profile follows. For now, the only version available is 1.0 and is represented by the <code>https://w3id.org/xapi/profiles#1.0</code> IRI</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"conformsTo"</span><span class="token operator">:</span> <span class="token string">"https://w3id.org/xapi/profiles#1.0"</span><span class="token punctuation">,</span>
+</code></pre>
+<p><code>prefLabel</code> is an array of the name of the profile in one or more languages. The developer profile only uses US English, but we could easily add languages.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"prefLabel"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"Rivendellweb Developer Profile"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p><code>definition</code> is an array of strings that describe the profile in different languages. Again, this example profile only uses US English.</p>
+<p><code>seeAlso</code> points to an IRI containing more information about the profile than what you can safely store</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"Rivendellweb Developer Profile"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"seeAlso"</span><span class="token operator">:</span> <span class="token string">"https://publishing-project.rivendellweb.net/"</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The <code>author</code> can be a person or organization. Regardless of the kind of author you use, name and URL are required.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"author"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"Person"</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Carlos Araya"</span><span class="token punctuation">,</span>
+    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"https://publishing-project.rivendellweb.net/"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>We can have one or more versions of a profile. To indicate a single version, we use a single child in the versions array using a unique ID and a <code>generatedAtTime</code> attribute to tell when the profile was created.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"versions"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+    <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"generatedAtTime"</span><span class="token operator">:</span> <span class="token string">"2020-11-17T16:00:00Z"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Once we update the profile we indicate so with additional children of the versions array.</p>
+<p>To indicate that this is a later version, use the <code>wasRevisionOf</code> attribute and point it to the prior version of the profile.</p>
+<p>Hypothetically, if we had 3 versions of the profile we could code them like this:</p>
+<pre class="language-json"><code class="language-json">versions <span class="token punctuation">[</span><span class="token punctuation">{</span>
+        <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v3.0"</span><span class="token punctuation">,</span>
+        <span class="token property">"wasRevisionOf"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v2.0"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token property">"generatedAtTime"</span><span class="token operator">:</span> <span class="token string">"2020-02-20T20:20:20Z"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v2.0"</span><span class="token punctuation">,</span>
+        <span class="token property">"wasRevisionOf"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token property">"generatedAtTime"</span><span class="token operator">:</span> <span class="token string">"2010-01-15T03:14:15Z"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+        <span class="token property">"generatedAtTime"</span><span class="token operator">:</span> <span class="token string">"2010-01-14T12:13:14Z"</span>
+<span class="token punctuation">}</span><span class="token punctuation">]</span>
+</code></pre>
+<h2 id="concepts">Concepts</h2>
+<p>The <code>concepts</code> section of a profile contains both <code>ActivityType</code> and <code>Verb</code> children.</p>
+<p>The <code>ActivityType</code> concept indicates the object in the <code>actor-verb-object</code> triplet of our statements. This is the recipient of the action indicated on the verb.</p>
+<p>The ID must be unique across all elements in the profile.</p>
+<p>For an object, the <code>type</code> attribute must be <code>ActivityType</code>. We’ll see other when we cover verbs and later when we talk about template and patterns.</p>
+<p>The definition is important. This tells users what the concept means and how it should be used. We can have multiple versions of the definition in different languages.</p>
+<p><code>inScheme</code> tells what specific version of  the profile this concept refers to.</p>
+<p><code>prefLabel</code> is an array of prefered names for the concept in different languages</p>
+<p>There is a set of optional attributes that help indicate relationships between concepts in this profile and concepts both in this profile and others. This means that we no longer have to define every verb and every activity in our profile, we can link to other profiles and leverage their work.</p>
+<dl>
+  <dt>deprecated (Boolean)</dt>
+  <dd>A boolean. If true, this Concept is deprecated.</dd>
+  <dt>broader (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from this Profile version that have a broader meaning.</dd>
+  <dt>broadMatch (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from a different Profile that have a broader meaning.</dd>
+  <dt>narrower (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from this Profile version that have a narrower meaning.</dd>
+  <dt>narrowMatch (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from different Profiles that have narrower meanings.</dd>
+  <dt>related (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from this Profile version that are close to this Concept's meaning.</dd>
+  <dt>relatedMatch (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from a different Profile or a different version of the same Profile that has a related meaning that is not clearly narrower or broader.</dd>
+  <dd>Useful to establish conceptual links between Profiles that can be used for discovery.</dd>
+  <dt>exactMatch (Array)</dt>
+  <dd>An array of IRIs of Concepts of the same type from a different Profile or a different version of the same Profile that have exactly the same meaning.
+</dl>
+<p>Some additional recommendations from the xAPI specification:</p>
+<ul>
+<li><strong>related</strong> MUST only be used on Concepts that are deprecated to indicate possible replacement Concepts in the same Profile, if there are any.</li>
+<li><strong>relatedMatch</strong> SHOULD be used to connect possible replacement Concepts to removed Concepts from previous versions of the same Profile, and for possible replacement Concepts in other Profiles of deprecated Concepts, as well as other loose relations.</li>
+<li><strong>exactMatch</strong> SHOULD be used rarely, mostly to describe connections to vocabularies that are no longer managed and do not use good URLs.</li>
+</ul>
+<pre class="language-json"><code class="language-json">  <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"concepts"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+      <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/activities/message"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"ActivityType"</span><span class="token punctuation">,</span>
+      <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"Information that is communicated by or to or between individual actors or groups of actors."</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"inScheme"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+      <span class="token property">"prefLabel"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"message"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/activities/e-book"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"ActivityType"</span><span class="token punctuation">,</span>
+      <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"A book in electronic form as a document, file, or interactive application with optional formatting and control features."</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"inScheme"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+      <span class="token property">"prefLabel"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"e-book"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The <code>Verb</code> concept is the action the actor did to the object, the verb component of the <code>actor-verb-object</code> definition of our action</p>
+<pre class="language-json"><code class="language-json">    <span class="token punctuation">{</span>
+      <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/verbs/collaborated"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"Verb"</span><span class="token punctuation">,</span>
+      <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"The activity involving multiple actors working together on an assignment, a project, a problem-solving challenge or a cause."</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"inScheme"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+      <span class="token property">"prefLabel"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"collaborated"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/verbs/watched"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"Verb"</span><span class="token punctuation">,</span>
+      <span class="token property">"exactMatch"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"http://activitystrea.ms/schema/1.0/watch"</span><span class="token punctuation">,</span> <span class="token string">"https://w3id.org/xapi/adb/verbs/watched"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"Indicates the actor observed a visual obect."</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"inScheme"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+      <span class="token property">"prefLabel"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en-US"</span><span class="token operator">:</span> <span class="token string">"watched"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="extensions">Extensions</h2>
+<p>Activities may define one or more extensions to refine other parts of the profile. The xAPI profile specification defines three types of extensions:</p>
+<ul>
+<li>ContextExtension in context</li>
+<li>ResultExtension in result</li>
+<li>ActivityExtension in an Activity Definition.</li>
+</ul>
+<p>For example, if we’re defininig a a conference presentation as an activity, we could provide additional information about the presentation like its title as an activity extension and we could provide information about the conference where user presented as a context extension</p>
+<p>I chose an inline schema to validate the object. It is valid JSON Schema fragment validated against the latest draft of the JSON Schema specification using <a href="https://www.jsonschemavalidator.net/">JSON Schema Validator</a>. The quotation marks inside the <code>inlineSchema</code> element are escaped to make sure the JSON validates.</p>
+<p>The other option is to use the <code>schema</code> property and a schema defined in an external JSON file.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/resources/conference-name"</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"ActivityExtension"</span><span class="token punctuation">,</span>
+    <span class="token property">"inScheme"</span><span class="token operator">:</span> <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"prefLabel"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en"</span><span class="token operator">:</span> <span class="token string">"Conference Information"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"definition"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"en"</span><span class="token operator">:</span> <span class="token string">"Stores the conference a presentation was delivered at."</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"recommendedVerbs"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/verbs/presented"</span><span class="token punctuation">,</span>
+      <span class="token string">"https://ns.rivendellweb.net/xapi/devprofile/v1.0.0/verbs/attended"</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"contentType"</span><span class="token operator">:</span> <span class="token string">"application/json"</span><span class="token punctuation">,</span>
+    <span class="token property">"inlineSchema"</span><span class="token operator">:</span> <span class="token string">"\"type\": \"object\",\"properties\": {\"conference_name\": {\"type\": \"string\",\"required\": true}}"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The only remaining item to research is how to integrate these extensions into the activities they extend. How do you reference the extension inside the verb or object it extends?</p>
+<h2 id="templates-and-patterns">Templates and Patterns</h2>
+<p>There are two more areas of a profile: templates and patterns.</p>
+<p><a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#statement-template-rules">Templates</a> (formally Statement Template Rules) describe a location or locations within Statements using JSONPath, then describe the restrictions on the value(s) there, such as inclusion, exclusion, or specific allowed or disallowed values for the locations that match the path.</p>
+<p><a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md#patterns">Patterns</a> indicate a group of one or more statments happen in the order the pattern defines.</p>
+<p>Both templates and patterns are more technical than previous sections. While they are still necessary to understand the profile they are a part of, they are less necessary to understand at the beginning of the process. I will continue reviewing these and will add new posts with more information about these elements of a profile.</p>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li>xAPI profiles
+<ul>
+<li>Part One: <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-about.md">About xAPI Profiles</a></li>
+<li>Part Two: <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-structure.md">xAPI Profiles Structure</a></li>
+<li>Part Three: <a href="https://github.com/adlnet/xapi-profiles/blob/master/xapi-profiles-communication.md">xAPI Profiles Communication and Processing</a></li>
+</ul>
+</li>
+<li><a href="http://xapi.vocab.pub/">xAPI Vocab Server</a></li>
+<li><a href="http://xapi.vocab.pub/#authoringprofiles">Authoring Profiles</a></li>
+<li><a href="https://xapi.com/blog/profile-recipes-vs-xapi-profiles/">Profile Recipes vs. xAPI Profiles</a></li>
+<li><a href="http://json-ld.org">JSON for Linking Data</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

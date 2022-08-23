@@ -1,0 +1,583 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="designing-for-the-tail-end">Designing for the tail end</h1>
+<p>Ever since I’ve been on the web (1994) I’ve been a part of a tension between the right and the easy way to do things, between tables and css, between frameworks, between techniques, between technologies and, it seems, between desktop and mobile or between native apps and mobile done right.</p>
+<p>With all the hardware limitations that we get with mobile, the web is still well placed to target emerging markets and lower end devices and poor network connectivity.</p>
+<p>To frame the post; the talk below by Alex Russell at <a href="https://samsungcreate.com/">Samsung Create</a> last April illustrates some of the issues that the web faces in mobile devices.</p>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/VpixmppRbZU?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+<p>I bring it up because Alex has been giving the same (or very similar) talk since 2016 or thereabouts. The issues he describes have not changed and that’s sad… particularly because we can do things about some of these aspects and understand those things that we cannot change will help us craft our experiences to ameliorate those problems.</p>
+<p>In the rest of this essay I will address some of these issues along with a few others that, I believe, make the web a good development platform.</p>
+<h3 id="developer-facing-issues">Developer facing issues</h3>
+<p>We’ve let the web grow fat. We’ve forgotten that a lot of people live in a world where iPhones and high end desktop machines are not the norm.  The information below shows how far we’ve let things go.</p>
+<p>Later, I will present possible solutions to these issues.</p>
+<blockquote>
+<p>The values in this section represent the median of all values the HTTP archive provides. Individual values may fall over and under those listed here and the average value will be higher.</p>
+</blockquote>
+<p>The point is that as developers we are lazy. None of the issues below are built into the platform and, later, we’ll see how we can address them:</p>
+  <table>
+    <thead>
+      <th style="widht: 50%">Issue</th>
+      <th>Source</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="widht: 50%">Images are still the largest portion of any page download. The median size for an image is 649.9 KB for desktops and
+        493.4 KB for mobile. These numbers are going down, but they are still bad when you consider that the average desktop
+        site makes 33 requests for images and the average mobile site makes 28 requests.</td>
+        <td>HTTP Archive <a href="https://httparchive.org/reports/state-of-images">State of Images</a></td>
+      </tr>
+      <tr>
+        <td style="widht: 50%">The median payload of scripts with a mime containing script or json is 402.9 KB for desktop and 361 KB for mobile. The
+        value doesn't indicate if the payload is compressed or not.</td>
+        <td>HTTP Archive <a href="https://httparchive.org/reports/state-of-javascript">State of Javascript</a></td>
+      </tr>
+      <tr>
+        <td style="widht: 50%">Even if we leave Javascript and images aside, the median desktop site sends 1511.2 KB down the wire. Mobile is slightly
+        better, it "only" sends 1253.9 KB</td>
+        <td>HTTP Archive <a href="https://httparchive.org/reports/state-of-javascript">State of Javascript</a></td>
+      </tr>
+      <tr>
+        <td style="widht: 50%">Mobile performance is improving but it's not ideal. It takes a median of 7.6 seconds from the time the navigation
+        starts until the layout stabilizes, web fonts are visible, and the page is responsive to user input</td>
+        <td>
+          HTTP Archive <a href="https://httparchive.org/reports/loading-speed">Loading Speed</a>
+        </td>
+      </tr>
+      <tr>
+        <td style="widht: 50%">It takes a median of 9.4 seconds from the time the navigation starts until the page is fully interactive and the network is idle. The performance metrics comes from Lighthouse and are only available for mobile</td>
+        <td>HTTP Archive <a href="https://httparchive.org/reports/loading-speed">Loading Speed</a></td>
+      </tr>
+    </tbody>
+  </table>
+<h2 id="framing-technical-issues">Framing technical issues</h2>
+<p>Depending on where you do business most, if not all, your users will come online in mobile devices and they won’t be top of the line iPhone X, iPad Pro or hight end Android devices like what we have in Urban areas of the US and Canada.</p>
+<p>Even in the United States and Canada we should not rely on high speed connections or that all our users will have good 3G, 4G and LTE connectivity, particularly in rural areas or in places where it’s not feasible to build high speed mobile infrastructure.</p>
+<p>Likewise, we shouldn’t believe that the throtled network settings in Chrome or other browsers. These simulations may change the characteristics of your network connection: slow it down or introduce additional latency or delays to the mix, but they will never be able to simulate other parts of the equation: waking up the CPUs, waking the cellular modem, the handshake between the phone and the closest cell tower and, from there, the TCP handshake, SSL connection and rendering of the page. They are a good starting point but, as the only testing,  it won’t cut the mustard.</p>
+<p>It’s always good to test on the devices that your target demographic will be using. Most of these devices will be cheap and underpowered compared with what you would normally use and they may be a closer approximation to what you will see in the field.</p>
+<h3 id="understanding-mobile-devices">Understanding mobile devices</h3>
+<p>In order to understand why mobile and desktop performance is so different we need to understand what makes a mobile device.</p>
+<p>Unlike desktop machines where we can expect the same performance from all the cores in the CPU (symmetrical multiprocessing) mobile devices are unlikely to use the same type of cores in their configuration. They are likely to have some powerful cores and some less powerful.</p>
+<p>When looking at mobile CPU specs, the important questions you should ask are:</p>
+<ul>
+<li>What type of cores does it use?</li>
+<li>What clock rate do the cores run at?</li>
+<li>How many are they?</li>
+</ul>
+<p>Why does the number of core matters and why should we care?</p>
+<p>Two reasons:</p>
+<ul>
+<li>What cores fire at what time to execute what task
+<ul>
+<li>Advertised speed is seldom the speed you get on a regular basis</li>
+<li>How does the asymetrical core configuration affect performance</li>
+</ul>
+</li>
+<li>How the layout of the SOC (System on a Chip) affects heat dissipation?
+<ul>
+<li>How does heat dissipation affect performance?</li>
+<li>Does a hot phone perform as well as a cold one?</li>
+</ul>
+</li>
+</ul>
+<p>The whole point of having cores with different characteristics is that the more powerful cores will see limited use and the lower-powered cores will be used more often because they consume less power overall… and power usage is a concern because we want the battery to last as long as possible and, at the same time don’t want the device to overheat, right?</p>
+<p>Overheating is always a cause for concern. It usually means that we’re hitting the CPU or GPU in your SOC harder than normal (generating heat) and they are drawing more power from the battery (generating heat). This makes the phone hotter than normal.</p>
+<p>As developers we may think this doesn’t touch us but it does. Think about it, the larger we keep the CPU (either high end or low end) running the more power it will use (draining the battery) and generate heat.</p>
+<h2 id="framing-the-business-case">Framing the business case</h2>
+<p>We’ve all heard the 3 second rule for page load. A variation of <em><strong>If your page takes longer than 3 seconds to load users will go away</strong></em>.</p>
+<p>Acording to Tami Everts in the <a href="https://developer.akamai.com/blog/2016/09/14/mobile-load-time-user-abandonment">Akamai Blog</a>:</p>
+<ul>
+<li>46% of consumers say that waiting for pages to load is their least favorite thing about shopping via mobile</li>
+<li>Average load time for mobile sites is 19 seconds over 3G [The HTTP Archive data uses median values instead]</li>
+<li>53% of visits to mobile sites are abandoned after 3 seconds</li>
+<li>Comparing faster sites (5 seconds) to slower ones (19 seconds), the faster sites had average session lengths that were 70% longer and bounce rates that were 35% lower</li>
+<li>Mobile sites that loaded in 5 seconds earned almost double the revenue of sites that took 19 seconds to load</li>
+</ul>
+<p>So, if your company’s page loads faster than the competition, users are more likely to use (and stay on) your site and not theirs.</p>
+<p>Furthermore, if you’re building native applications you need multiple teams working with multiple codebases to be up to date and have feature parity, which is not always easy or even possible to do.</p>
+<h2 id="framing-the-issue-through-social-lenses">Framing the issue through social lenses</h2>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/P9xEC55Kbpk?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+<p>Bruce Lawson’s presentation about the web around the world and it being our reponsibility to keep in mind those people who are not in the wealthy western hemisphere where we take connections and devices for granted.</p>
+<p>Designing apps and sites it’s not just a matter of creating a good technical framework. It’s also about knowing the culture and the people you are building the content for. This may mean a lot of research and, ideally, a visit to the country or countries that you’re building your application for.</p>
+<p>For example, do not force users to provide a first name <strong>and</strong> a last name. In southeast Asia there are people who only use one name; making them lie or make up a name just to use your service means they are not likely to use your service again, or at all.</p>
+<p>Bandwidth is an essential consideration. When the 1GB of bandwidth cost a large part of a user’s monthly salary, it becomes a very important to make the applications (native or web) as small as possible to make them affordable, not in the direct cost of the app but in the cost of the bandwidth it takes to download it.</p>
+<figure>
+  <img src='https://1e8q3q16vyc81g8l3h3md6q5f5e-wpengine.netdna-ssl.com/wp-content/uploads/2017/11/Regional-Broadband-Pricing.png' alt='Price of 1GB of broadband data as percentage of average income'>
+  <figcaption>Cost of 1GB of mobile prepaid data across 59 low- and middle-income countries at the end of 2016.</figcaption>
+</figure>
+<p>Perhaps the most important consideration is to meet your users where they are and in the language they speak. Using colors may be tricky if you haven’t researched their cultural significance. The table below shows how different cultures perceive different colors. You can see that the perceptions can be absolutely different.</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%">COLOR</th>
+      <th>USA</th>
+      <th>China</th>
+      <th>India</th>
+      <th>Egypt</th>
+      <th>Japan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="width: 20%; background: red;">Red</td>
+      <td>Danger<br>
+        Love<br>
+        Stop</td>
+      <td>Good fortune<br>
+        Luck<br>
+        Joy</td>
+      <td>Luck<br>
+        Fury<br>
+        Masculine</td>
+      <td>Death</td>
+      <td>Anger<br>
+        Danger</td>
+    </tr>
+    <tr>
+      <td style="background: orange;">Orange</td>
+      <td>Confident<br>
+        Dependable<br>
+        Corporate</td>
+      <td>Fortune<br>
+        Luck<br>
+        Joy</td>
+      <td>Sacred (the Color Saffron)</td>
+      <td>Virtue<br>
+        Faith<br>
+        Truth</td>
+      <td>Future<br>
+        Youth<br>
+        Energy</td>
+    </tr>
+    <tr>
+      <td style="background: yellow;">Yellow</td>
+      <td>Coward<br>
+      Joy<br>
+      Hope</td>
+      <td>Wealth<br>
+      Earth<br>
+      Royal</td>
+      <td>Celebration</td>
+      <td>Mourning</td>
+      <td>Grace<br>
+      Nobility</td>
+    </tr>
+    <tr>
+      <td style="background: green;">Green</td>
+      <td>Spring<br>
+      Money<br>
+      New</td>
+      <td>Health<br>
+      Prosperity<br>
+      Harmony</td>
+      <td>Romance<br>
+      New<br>
+      Harvest</td>
+      <td>Happiness<br>
+      Prosperity</td>
+      <td>Eternal life</td>
+    </tr>
+    <tr>
+      <td style="background: blue;">Blue</td>
+      <td>Confident<br>
+      Dependability<br>
+      Corporate</td>
+      <td>Heavenly<br>
+      Clouds</td>
+      <td>Mourning<br>
+      Disgust<br>
+      Chilling</td>
+      <td>Virtue<br>
+      Faith<br>
+      Truth</td>
+      <td>Villainy</td>
+    </tr>
+    <tr>
+      <td style="background: purple;">Purple</td>
+      <td>Royalty<br>
+      Imagination</td>
+      <td>Royalty</td>
+      <td>Unhappiness</td>
+      <td>Virtue</td>
+      <td>Wealth</td>
+      </tr>
+      <tr>
+      <td style="background: white;">White</td>
+      <td>Purity<br>
+      Peace<br>
+      Holy</td>
+      <td>Mourning</td>
+      <td>Fun<br>
+      Serenity<br>
+      Harmony</td>
+      <td>Joy</td>
+      <td>Purity<br>
+      Holiness</td>
+    </tr>
+    <tr>
+      <td style="background: black; color: white;">Black</td>
+      <td>Funeral<br>
+      Death<br>
+      Evil</td>
+      <td>Heaven<br>
+      Neutral<br>
+      High Quality</td>
+      <td>Evil</td>
+      <td>Death<br>
+      Evil</td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+<p>There is a similar issue with local languages and dialects. It is not a good assumption that most of your users outside the US and Canada speak English but, even if they do, it would help them (and you) enormously if you take the time to translate your content to their language or dialect.</p>
+<p>Yet for all the differences in languages and technologies, we are not that different.  In his two-part essay in <a href="https://www.smashingmagazine.com/2017/03/world-wide-web-not-wealthy-western-web-part-1/">Smashing magazine</a> Bruce Lawson addresses this.</p>
+<blockquote>
+<p>There is a more profound commonality as well. Below are the top-10 domains that Opera Mini users in the US visited in September 2016. (These figures are from Opera’s internal reporting tools; I was Deputy CTO of Opera until November 2016. Now I have no relationship with Opera.)</p>
+<ol>
+<li><a href="http://google.com">google.com</a></li>
+<li><a href="http://facebook.com">facebook.com</a></li>
+<li><a href="http://youtube.com">youtube.com</a></li>
+<li><a href="http://wikipedia.org">wikipedia.org</a></li>
+<li><a href="http://yahoo.com">yahoo.com</a></li>
+<li><a href="http://twitter.com">twitter.com</a></li>
+<li><a href="http://wellhello.com">wellhello.com</a></li>
+<li><a href="http://addthis.com">addthis.com</a></li>
+<li><a href="http://wordpress.com">wordpress.com</a></li>
+<li><a href="http://apple.com">apple.com</a></li>
+</ol>
+<p>The top-10 handsets used to view those websites were:</p>
+<ol>
+<li>Apple iPhone</li>
+<li>Apple iPad</li>
+<li>Samsung Galaxy S Duos 2</li>
+<li>Samsung Galaxy S3</li>
+<li>Samsung Galaxy Grand Prime</li>
+<li>Samsung Galaxy Grand Neo Plus</li>
+<li>Samsung Galaxy grand Neo GT</li>
+<li>Nokia Asha 201</li>
+<li>Samsung Galaxy Note III</li>
+<li>TracFone LG 306G</li>
+</ol>
+<p>The top-10 domains visited in Indonesia during the same period were:</p>
+<ol>
+<li><a href="http://facebook.com">facebook.com</a></li>
+<li><a href="http://google.com">google.com</a></li>
+<li><a href="http://google.co.id">google.co.id</a></li>
+<li><a href="http://wordpress.com">wordpress.com</a></li>
+<li><a href="http://youtube.com">youtube.com</a></li>
+<li><a href="http://blogspot.co.id">blogspot.co.id</a></li>
+<li><a href="http://wikipedia.org">wikipedia.org</a></li>
+<li><a href="http://indosat.com">indosat.com</a></li>
+<li><a href="http://liputan6.com">liputan6.com</a></li>
+<li><a href="http://xl.co.id">xl.co.id</a></li>
+</ol>
+<p>Note the commonalities — keeping in touch with friends and family; search; video; uncensored news and information (Wikipedia) — as well as the local variations.</p>
+<p>The top-10 handsets in Indonesia are lower-end than those used in the US:</p>
+<ol>
+<li>Nokia X2­01</li>
+<li>Nokia Asha 210</li>
+<li>Nokia C3-00</li>
+<li>Generic WAP</li>
+<li>Nokia Asha 205.1</li>
+<li>Samsung Galaxy V SM-G313HZ</li>
+<li>Nokia 215</li>
+<li>Nokia X2-02</li>
+<li>Samsung GTS5260 Star 2</li>
+<li>Nokia 5130 XpressMusic</li>
+</ol>
+<p>In Nigeria last month, almost the same kinds of websites were viewed — again, with local variations; Nigeria is football-crazy, hence <a href="http://goal.com">goal.com</a>.</p>
+<ol>
+<li><a href="http://google.com.ng">google.com.ng</a></li>
+<li><a href="http://facebook.com">facebook.com</a></li>
+<li><a href="http://google.com">google.com</a></li>
+<li><a href="http://naij.com">naij.com</a></li>
+<li><a href="http://youtube.com">youtube.com</a></li>
+<li><a href="http://bbc.com">bbc.com</a></li>
+<li><a href="http://opera.com">opera.com</a></li>
+<li><a href="http://wikipedia.org">wikipedia.org</a></li>
+<li><a href="http://goal.com">goal.com</a></li>
+<li><a href="http://waptrick.com">waptrick.com</a></li>
+</ol>
+<p>But the top-10 handsets in Nigeria are lower-end than in Indonesia.</p>
+<ol>
+<li>Nokia Asha 200</li>
+<li>Nokia Asha 210</li>
+<li>Nokia X2-01</li>
+<li>Nokia C3-00</li>
+<li>TECNO P5</li>
+<li>Nokia Asha 205</li>
+<li>Nokia Asha 201</li>
+<li>TECNO M3</li>
+<li>Infinix Hot Note X551</li>
+<li>Infinix Hot 2 X510</li>
+</ol>
+</blockquote>
+<p>Doing some digging on the specs of these phones is eye opening.</p>
+<p>For example the Nokia Asha 210 (number 2 most used phone in Indonesia and Nigeria in 2016 according to the stats above):</p>
+<ul>
+<li>Display: 2.40 inches</li>
+<li>No Front Camera</li>
+<li>Resolution: 240x320 pixels</li>
+<li>RAM: 32MB</li>
+<li>Storage: 64MB</li>
+</ul>
+<p>And your content has to work as well on both ends.</p>
+<h2 id="design-as-a-frame-of-reference">Design as a frame of reference</h2>
+<p>Google introduced the <a href="https://www.blog.google/technology/next-billion-users/">Next Billion Users</a> concept as an umbrella for initiatives geared towards the next generation of Internet users.</p>
+<p>These users will not be in North America or Western Europe. They will be un Sub Sahran Africa, Asia and Latin America, places like Brazil, China, India, Indonesia and Nigeria. They will be using mobile devices that, as a rule, are far less powerful than the devices we take for granted in far less reliable networks 2G and 3G networks.</p>
+<p>For the next billion it’s not a matter of mobile first but of mobile only. Their entire online experience is based on the devices they use.</p>
+<p>Many of them will use proxy browsers to maximize their bandwith usage. These browsers (like <a href="https://www.opera.com/mobile/android">Opera Mini</a>) create a new set of constraints for designers and developers.</p>
+<blockquote>
+<p>Opera Mini is not the only proxy browser available. It’s the one I’ve tested with and the one I’m most familiar with.</p>
+</blockquote>
+<p>Oper Mini has multiple settings whose names are dependent on version and Operatin System. See <a href="https://dev.opera.com/articles/browsers-modes-engines/">Opera Browsers, Modes &amp; Engines</a> for more information on the different versions of Opera Mini, their support for standards and the rendering engine they use.</p>
+<p>For the reminder of this section, I’ll assume that Mini is using its most aggressive data saving settings.</p>
+<div class="video">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6fBS8LOpIQc?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+<p>And the usage of proxy browsers like Opera Mini is why PWAs are well suited to emerging markets and why we should design for these lower end devices as well as for the high end phones and tablets that we are used to.</p>
+<p>I won’t go into the details of how to build a PWA. There’s plenty of information online about the subject, including <a href="https://developers.google.com/web/ilt/pwa/">Progressive Web Apps training curriculum</a> from Google navailable to use.</p>
+<p>PWAs use APIs that make web applications competitive with native apps in a more equal footing.</p>
+<p>Through service workers, PWAs provide caching mechanisms so that the content loads faster after the first visit and can intercept requests to modify or completely alter the response the user gets.</p>
+<p>PWAs can notify the user about new information and when there is updated content for the user to see using push notifications.</p>
+<p>Service workers can provide offline content, either a default offline page or a view of the last content stored in the cache.</p>
+<p>Finally, service workers improve the site’s performance beyond giving you offline capabilities. Depending on how you choose to cache your content, the browser may not need to fetch content from the network and, instead, it’ll get it from the cache… a much faster experience.</p>
+<p>And why is this important? Bruce Lawson states it succintly:</p>
+<blockquote>
+<p>Recently, my ex-Opera colleague Andreas Bovens and I interviewed a Nigerian and a Kenyan developer who made some of the earliest progressive web apps. Constance Okoghenun said:</p>
+<blockquote>
+<p>Nigerians are extremely data sensitive. People side-load apps and other content from third parties [or via] Xender. With PWAs […], without the download overhead of native apps […] developers in Nigeria can now give a great and up-to-date experience to their users.</p>
+</blockquote>
+<p>Kenyan developer Eugene Mutai said:</p>
+<blockquote>
+<p>[PWAs] may solve problems that make the daily usage of native mobile applications in Africa a challenge; for example, the size of apps and the requirement of new downloads every time they are updated, among many others.</p>
+</blockquote>
+<p>We are seeing the best PWAs come out of India, Nigeria, Kenya and Indonesia. Let’s look briefly at why PWAs are particularly well suited to emerging economies.</p>
+<p>With a PWA, all the user downloads is a manifest file, which is a small text file with JSON information. You link to the manifest file from the head element in your HTML document, and browsers that don’t understand it just ignore it and show a normal website. This is because HTML is fault-tolerant. The vital point here is that everybody gets something, and nobody gets a worse experience.</p>
+<p>Bruce Lawson — <a href="https://www.smashingmagazine.com/2017/03/world-wide-web-not-wealthy-western-web-part-1/">World Wide Web, Not Wealthy Western Web (Part 1)</a></p>
+</blockquote>
+<h2 id="server-side-performance-ideas">Server side performance ideas</h2>
+<p>From a technical standpoint we can optimize how we serve our content to users.</p>
+<p>Using HTTP/2 (or H/2) servers, configured with SSL, is a good first step to take to make sure that we’re serving assets without bundling. This is not ideal, Sérgio Gomes has written about <a href="https://sgom.es/posts/2017-06-30-ecmascript-module-loading-can-we-unbundle-yet/">why we can’t stop bundling assets yet</a> but, if you’re not going to bundle then updating to H/2 and enabling SSL/TLS us the next best thing.</p>
+<p>The SSL/TLS bit is not optional. Most of the APIs used for PWAs, Service Workers in particular, require secure origins because of how powerful they are and the impact of potential <a href="https://www.incapsula.com/web-application-security/man-in-the-middle-mitm.html">man in the middle attacks</a> or other kinds of spoofing</p>
+<p>The next reasonable step is to serve your static assets through a Content Delivery/Distribution Network (CDN) like <a href="https://www.akamai.com/">Akamai</a>, <a href="https://www.cloudflare.com/">Cloudflare</a> or <a href="https://cloudinary.com/">Cloudinary</a> for media assets. These CDNs are designed to distribute your content around multiple data centers around the world and to serve the assets from the closest data center to the user’s location.</p>
+<blockquote>
+<p>At its core, a CDN is a network of servers linked together with the goal of delivering content as quickly, cheaply, reliably, and securely as possible. In order to improve speed and connectivity, a CDN will place servers at the exchange points between different networks. These Internet exchange points (IXPs) are the primary locations where different Internet providers connect in order to provide each other access to traffic originating on their different networks. By having a connection to these high speed and highly interconnected locations, a CDN provider is able to reduce costs and transit times in high speed data delivery.</p>
+<p>— <a href="https://www.cloudflare.com/learning/cdn/what-is-a-cdn/">What is a CDN?</a></p>
+</blockquote>
+<p>Because a CDN serves content from the closes server to the user’s location and caches the resources it serves, users get faster downloads and quicker interactions with the content.</p>
+<p>We can further enhance our app or site’s performance using service workers to create client-side caches off the content the user accesses… Caching is just a starting point for what we can use service workers for.</p>
+<p>Because we manually configure all the caching routes, we have much more control over what we cache, what data we return and when do we use the network to retrieve new or updated assets. See <a href="https://developers.google.com/web/fundamentals/instant-and-offline/offline-cookbook/">The Offline Cookbook</a> and <a href="https://serviceworke.rs/">The ServiceWorker Cookbook</a> for ideas and code on how to use service workers.</p>
+<p>I’ve left out HTTP2 push and resource loading hints because, as Jake Archibald mentions in <a href="https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/">HTTP/2 push is tougher than I thought</a> there are enough bugs across browser implementations (mostly Edge and Safari) that make it dicey to use them reliably.</p>
+<h2 id="ideas-for-client-side">Ideas for client-side</h2>
+<p>SO how do we address some problems of the web? There are aspects that go beyond PWAs and contribute to the bloat of the web and, I would imagine, the large size of apps.</p>
+<p>For each of the problems listend in the <em>Developer Facing Problems</em> there is a solution that will work whether we use a build system or not. I avoided build system-based solutions as I don’t want to give the impression that a build system is required, just the extra effort of running the apps either locally or on the cloud.</p>
+<h3 id="image-sizes-and-download-times">Image sizes and download times</h3>
+<p>A solution for image sizes passes through <a href="https://responsiveimages.org/">responsive images</a> (either picture or srcset) and image compression with tools like <code>imagemin</code>.</p>
+<p>We don’t need to send the same high DPI retina image to all browser; we can choose what type of image to send and browsers are smart enough to know which one to use for each browser and screen size (if we set them up correctly).</p>
+<p>This is what a responsive image looks like:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>small.jpg<span class="token punctuation">"</span></span>
+     <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span> large.jpg 1024w,
+              medium.jpg 640w,
+              small.jpg 320w<span class="token punctuation">"</span></span>
+     <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>A rad wolf<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Both srcset, srcset and sizes (a related specification) are part of the <a href="https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-srcset">HTML specification</a> and is <a href="https://caniuse.com/#search=srcset">supported in all major browsers</a> so there should be no problem in using it across devices. If a browser doesn’t understand the <code>srcset</code> attribute it will just use <code>src</code> like any browser did until we got responsive images… they will get something, not just the optimized version of the image we wanted to give them.</p>
+<p><a href="https://cloudinary.com/">Cloudinary</a> has made available a <a href="http://www.responsivebreakpoints.com/">Responsive Image Generator</a> that allows you to create responsive images and their corresponding CSS styles in the cloud and then download it to use it on your project during development.</p>
+<h3 id="javascript-issues">Javascript issues</h3>
+<p>Problems with Javascript size and download time can be solved by bundling content and using tools like <a href="https://webpack.js.org/">Webpack</a> or <a href="https://webpack.js.org/">Rollup</a> to create and bundle, split into smaller pieces, tree shake the result so it’ll only use what is actually needed, and load only assets for a specific page or route (lazy loading).</p>
+<p>If we send large bundlles down to the users, it’ll take a while to parse the code we send. This will not hurt our high-end devices but it will be much longer for mid and lower-end phones we’re likely to see in rural areas or for people who can’t afford the latest and greatest.</p>
+<figure>
+  <a href="https://cdn-images-1.medium.com/max/1600/1*dnhO1M_zlmAhvtQY_7tZmA.jpeg"><img src="https://cdn-images-1.medium.com/max/1600/1*dnhO1M_zlmAhvtQY_7tZmA.jpeg" alt="" style="width:100%"></a>
+  <figcaption><a href="https://docs.google.com/spreadsheets/d/1wHcNNQea28LhwQ_amFamT33d5woVrJfJy53Z1k6V090/edit?usp=sharing">Parse times</a> for a 1MB bundle of JavaScript across desktop & mobile devices of differing classes. From <a href="https://medium.com/reloading/javascript-start-up-performance-69200f43b201">JavaScript Start-up Performance</a> by Addy Osmani.
+  </figcaption>
+</figure>
+<p>Mid and Lower level devices in other countries may be different and have different specs, usually less powerful than what we normally see.</p>
+<h3 id="meeting-users-where-they-are%3A-using-their-language">Meeting users where they are: using their language</h3>
+<p>We can also provide content in the users’ target language and take advantage of technologies that have been on the web for a while. Web fonts, used responsibly and with proper fallbacks, give you a device independent way to give users content in the languge they use every day without major changes to the structure of your CSS.</p>
+<p>First declare the language in the root element of your page, usually <code>html</code>:</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- provides a default language --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en-US<span class="token punctuation">"</span></span> <span class="token attr-name">dir</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>ltr<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+</code></pre>
+<p>and later in the document we add content in traditional Chinese, like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- Later in the document --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>zh-Hans<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>朋消然，地正成信青約屋角來邊還部下賽清受光可，綠不女外！
+權來星加智有花個費主母：機爭理陸行吃洋然答辦清大旅動節活性眼還起就情相蘭要運見……
+都靜內率機足轉<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We can use the following CSS to indicate what fonts we want to use for each case. We can go further and indicate multiple language fonts for different versions or dialects of the language. In this case we’ve indicated different fonts for traditional and simplified Chinese characters.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Times New Roman"</span><span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">:lang(zh-Hant)</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Kai<span class="token punctuation">,</span> KaiTi<span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">:lang(zh-Hans)</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> DFKai-SB<span class="token punctuation">,</span> BiauKai<span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>You can also use attribute selectors that exactly match
+the value of a language attribute (<code>[lang = &quot;...&quot;] </code>) or one that only matches the begining of the value  of a language attribute (<code> lang |= &quot;...&quot;]</code>).</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en-uk<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Content written in British English<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en-au<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>G'Day Mate<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>es<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Buenos días<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>es-cl<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hola<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+</code></pre>
+<pre class="language-css"><code class="language-css"><span class="token selector">*[lang="en-uk"]</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> black
+<span class="token punctuation">}</span>
+
+<span class="token selector">*[lang="es-cl"]</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> rebeccapurple<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">*[lang|="es"]</span> <span class="token punctuation">{</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> end<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Finally you can always create classes for the languages that you want to use and add them to the elements using that language.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.en-uk</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> black
+<span class="token punctuation">}</span>
+
+<span class="token selector">.es-cl</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> rebeccapurple<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.es</span> <span class="token punctuation">{</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> end<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>There’s another aspect of working with non-latin, non-western languages: writing direction.</p>
+<p>If you’ve seen Hebrew or Arabic text you’ll notice that is written in the opposite direction than English: right to left, top to bottom.</p>
+<p>There are other languages that write top to bottom, and either left to right or right to left.</p>
+<p>There is CSS that will make vertical languages is not hard but it’s not something that we’re used to seeing in most western content.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>japanese-vertical<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>こいけそ個課チクテャあえむ派たケトリネちたつよめ'
+  ねかへゆと都ヌミニセメ無かカルウャ「ウつ巣根都阿瀬個そ」
+  るるうほさフソメふ毛さ名ゃみゃ日シセウヒニウっれ根離名屋エコネヌ。
+  こっつろてとねつぬなつさそやほっツカトル夜知め鵜舳屋遊夜鵜区せすの
+  ぬ雲るきな屋素夜差っメケセア都毛阿模模派知ンカシけか瀬
+  列野毛よいーソコ区屋ろぬゅき<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<pre class="language-css"><code class="language-css"><span class="token selector">.japanese-vertical</span> <span class="token punctuation">{</span>
+  <span class="token property">writing-mode</span><span class="token punctuation">:</span> vertical-rl<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>You can see an example combining Latin and Japanese text in this <a href="https://caraya.github.io/grid-experiments/demo17.html">demo page</a></p>
+<p>Depending on your target audiences and the languages they use, this may be all you need to do. But there are other languages that use different directions and vertical alignments.</p>
+<p>The first step, always, is to localize your UI but the localizing the content is not too far away.</p>
+<h2 id="conclusion%3A-where-do-we-go-from-here%3F">Conclusion: Where do we go from here?</h2>
+<p>Perhaps the hardest part is to move away from a one size fits all modell and ask ourselves the question: “Does the web work well for what I’m trying to do?”</p>
+<p>Think about it… the web has no app store and no install friction. All that your users need is visit the URL in a browser that supports the PWA technologies, and voila, they are using a PWA and using the technologies without having to do anyting else but use their web browser. When they have engaged with the app enough times they can install it to the device (desktop or mobile) without having to follow the app store procedure and update the app with a large download every time the developer makes changes.</p>
+<p>Once they are there the APIs that make up a PWA give you features that look like native but work on the browser and make the experience better for all your users, not just those on mobile connections.</p>
+<p>And you’re not required to use all the APIs that make a PWA. For example, in my <a href="https://caraya.github.io/grid-experiments/">Layout experiments</a> I chose to implement a service worker to make sure that users get a consistent experience after their first visit without using a manifest or any other PWA API or technology.</p>
+<p>I’m not saying not to implement native applications but to evaluate your target audience and requirements before deciding if web or native are better for your application and your objectives.</p>
+<p>And, whether you decide the web is best for your project or not, you owe it to your users to optimize your content as much as possible.</p>
+<h2 id="links%2C-references%2C-tools">Links, References, Tools</h2>
+<ul>
+<li>Mobile connectivity, devices and chipsets
+<ul>
+<li><a href="https://www.gsma.com/mobileeconomy/">The Mobile Economy 2018</a></li>
+<li><a href="https://www.gsmarena.com/mobile_chipset_guide-review-1561p2.php">The all-mighty chipset</a></li>
+<li><a href="https://www.gsmarena.com/mobile_chipset_guide-review-1561p4.php">Chipset performance charts</a></li>
+<li><a href="https://fossbytes.com/whats-inside-smartphone-depth-look-parts-powering-everyday-gadget/">What’s Inside My Smartphone? — An In-Depth Look At Different Components Of A Smartphone</a></li>
+<li><a href="https://www.androidpit.com/phone-overheating">Why smartphones overheat, and how to stop it</a></li>
+</ul>
+</li>
+<li>Social aspects
+<ul>
+<li><a href="https://www.smashingmagazine.com/2017/03/world-wide-web-not-wealthy-western-web-part-1/">World Wide Web, Not Wealthy Western Web (Part 1)</a></li>
+<li><a href="https://www.smashingmagazine.com/2017/03/world-wide-web-not-wealthy-western-web-part-2/">World Wide Web, Not Wealthy Western Web (Part 2)</a></li>
+<li><a href="https://a4ai.org/broadband-pricing-data-2017/">New Broadband Pricing Data: What does it cost to purchase 1GB of mobile data?</a></li>
+<li><a href="https://a4ai.org/mobile-broadband-pricing-data/">Mobile Broadband Data Costs (2016)</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/poor-connectivity">Understanding Low Bandwidth and High Latency</a></li>
+</ul>
+</li>
+<li>Design
+<ul>
+<li><a href="https://design.google/library/beyond-desktop-research-immersion-trip/">Beyond Desktop Research: The Immersion Trip</a></li>
+<li><a href="https://www.youtube.com/playlist?list=PLJ21zHI2TNh8UjaNYMR4BP98t26NBT2VL">Global UX Speaker Series</a> Youtube playlist</li>
+<li><a href="https://www.thinkwithgoogle.com/intl/en-154/insights-inspiration/industry-perspectives/why-mobile-page-speed-is-visual-designers-problem/">Why mobile page speed is a Visual Designer’s problem</a></li>
+<li><a href="https://dev.opera.com/articles/making-sites-work-opera-mini/">Making websites that work well on Opera Mini</a></li>
+<li>Internationalization
+<ul>
+<li><a href="http://www.nobadmemories.com/blog/2017/04/better-together-displaying-japanese-and-english-text-on-the-web/">Better together: Displaying Japanese and English text on the web</a></li>
+<li><a href="https://www.w3.org/International/">W3C Internationalization (I18n) Activity</a>
+<ul>
+<li><a href="https://www.w3.org/International/techniques/authoring-html.en?open=style&amp;open=langstyle">Internationalization techniques: Authoring HTML &amp; CSS</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-alreq-20180222/">Text Layout Requirements for the Arabic Script</a></li>
+<li><a href="https://www.w3.org/International/articles/language-tags/">Language tags in HTML and XML</a></li>
+<li><a href="https://www.w3.org/International/getting-started/characters">Introducing Character Sets and Encodings</a></li>
+<li><a href="https://www.w3.org/International/articles/definitions-characters/">Character encodings: Essential concepts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Tools
+<ul>
+<li>Code bundling and tree shaking
+<ul>
+<li><a href="https://webpack.js.org/">Webpack</a></li>
+<li><a href="https://webpack.js.org/">Rollup</a></li>
+</ul>
+</li>
+<li>Trimming CSS
+<ul>
+<li><a href="https://github.com/uncss/uncss">UnCSS</a></li>
+</ul>
+</li>
+<li>Responsive Images
+<ul>
+<li><a href="https://www.responsivebreakpoints.com/">Responsive Image Breakpoints Generator</a></li>
+<li><a href="https://cloudinary.com/blog/push_button_art_direction_with_cloudinary_s_responsive_image_breakpoints_generator#comment-2973863753">Push-button Art Direction with Cloudinary’s Responsive Image Breakpoints Generator</a></li>
+</ul>
+</li>
+<li>Service Worker
+<ul>
+<li><a href="https://developers.google.com/web/tools/workbox/">Workbox.js</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>So what do we do?
+<ul>
+<li><a href="https://developers.google.com/web/fundamentals/perform*ance/why-performance-matters/">Why Performance Matters</a></li>
+<li>Google <a href="https://developers.google.com/web/showcase/tags/progressive-web-apps">PWA Case Studies</a></li>
+<li>Google PWA Checklist
+<ul>
+<li><a href="https://developers.google.com/web/progressive-web-apps/checklist#baseline">Baseline</a></li>
+<li><a href="https://developers.google.com/web/progressive-web-apps/checklist#exemplary">Exemplary</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

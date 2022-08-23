@@ -1,0 +1,96 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="different-strategies-for-using-%40support">Different strategies for using @support</h1>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@supports">@supports</a> at-rule allow us to test if something is supported in CSS.</p>
+<p>The version of <code>@supports</code> that we see most often is testing for a rule inside a selector.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">display</span><span class="token punctuation">:</span> grid<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token comment">/* 
+    Styles for when grid is supported
+  */</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We also have three logical operators: <code>and</code>, <code>or</code> and <code>not</code> that enable more complex queries.</p>
+<p>We can use <code>and</code> to test for more than one property. For example, we can test for grid and subgrid support.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> 
+  <span class="token punctuation">(</span><span class="token property">display</span><span class="token punctuation">:</span> grid<span class="token punctuation">)</span> <span class="token keyword">and</span> 
+  <span class="token punctuation">(</span><span class="token property">display</span><span class="token punctuation">:</span> subgrid<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token comment">/* code goes here */</span>
+  <span class="token punctuation">}</span>
+</code></pre>
+<p>The <code>or</code> operator comes in handy when dealing with vendor prefixes. As long as they work the same way we can put them in a <code>@supports</code> at-rule.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span>
+  <span class="token punctuation">(</span><span class="token property">display</span><span class="token punctuation">:</span> table<span class="token punctuation">)</span> <span class="token keyword">and</span>
+  <span class="token punctuation">(</span><span class="token property">display</span><span class="token punctuation">:</span> table-cell<span class="token punctuation">)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token comment">/*
+      Do something when the browser
+      supports both properties
+    */</span>
+  <span class="token punctuation">}</span>
+</code></pre>
+<p>The <code>not</code> operator negates the parameter that follows. In essence we’re telling the browser to do something if the property <strong>is not</strong> supported.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token keyword">not</span> <span class="token punctuation">(</span><span class="token property">display</span><span class="token punctuation">:</span> table<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token comment">/* 
+    code for browsers that don't
+    support display: table
+  */</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="selector-list-argument-of-%3Anth-child-pseudo-classes">Selector list argument of <code>:nth-child</code> pseudo-classes</h2>
+<div class="message info">
+<p><strong>Note:</strong></p>
+<p>As of this writing, the feature is only supported in Safari</p>
+</div>
+<p>All our examples work with properties and values like <code>(perspective: 10px)</code>. Most of the time this is all that we will need.</p>
+<p>But there are times when wed want to test for support of a selector like <code>:nth-child(-n+3 of li.important)</code></p>
+<p>Chris Coyier wrote <a href="https://css-tricks.com/supports-selector/">@supports selector()</a> to explain how the <code>selector()</code> functions works inside a <code>@support</code> at-rule. The idea is that you check if a selector is supported and add rules if they are:</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token function">selector</span><span class="token punctuation">(</span><span class="token selector-function-argument selector">:nth-child(1 of .foo)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">li:nth-child(odd of .list-item)</span> <span class="token punctuation">{</span>
+    <span class="token property">background</span><span class="token punctuation">:</span> lightgoldenrodyellow<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The selector we test for doesn’t have to be the same selector that we want to use, they just have to be valid CSS selectors.</p>
+<p>As with all feature queries using <code>@supports</code>, you can have style multiple elements when the query matches.</p>
+<p>You can also use the <code>not</code> operator to test if a feature is not supported.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* test if the selector is supported */</span>
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token function">selector</span><span class="token punctuation">(</span><span class="token selector-function-argument selector">:nth-child(1 of .foo)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">li</span> <span class="token punctuation">{</span>
+    <span class="token property">padding</span><span class="token punctuation">:</span> 0.25em<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token selector">li:nth-child(odd of .list-item)</span> <span class="token punctuation">{</span>
+    <span class="token property">background</span><span class="token punctuation">:</span> lightgoldenrodyellow<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  
+  <span class="token selector">li.separator</span> <span class="token punctuation">{</span>
+    <span class="token property">list-style</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+    <span class="token property">margin</span><span class="token punctuation">:</span> 0.25em 0<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/* test if the selector is not supported */</span>
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token keyword">not</span> <span class="token function">selector</span><span class="token punctuation">(</span><span class="token selector-function-argument selector">:nth-child(1 of .foo)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">li.separator</span> <span class="token punctuation">{</span>
+    <span class="token property">height</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
+    <span class="token property">list-style</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+    <span class="token property">border-top</span><span class="token punctuation">:</span> 1px dashed purple<span class="token punctuation">;</span>
+    <span class="token property">margin</span><span class="token punctuation">:</span> 0.25em 0<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

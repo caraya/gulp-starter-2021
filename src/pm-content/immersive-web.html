@@ -1,0 +1,246 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="immersive-web%3A-webgl%2C-webvr-and-beyond">Immersive Web: WebGL, WebVR and Beyond</h1>
+<p>Looking back at WebVR I realized how important it’s to keep paying attention to technologies that you’re interested in or they may change from under your feet.</p>
+<p>VR (and now AR) is one of these areas.</p>
+<h2 id="what-it-is">What it is</h2>
+<p>WebXR is an evolutionary step currently under <a href="https://github.com/GoogleChrome/OriginTrials/blob/gh-pages/explainer.md">Origin Trials</a>, a way to run experiments for a subset of developers using a feature. This allows for rapid iteration and quick feedback but without running the risk of the feature becoming a defacto standard, particularly when the API or feature is not finished.</p>
+<p>In this context I’ll use WebXR to mean the <a href="https://immersive-web.github.io/webxr-reference/webxr-device-api/">WebXR Device API</a>.</p>
+<p>WebXR lets you create AR and VR web sites by providing access to input and output capabilities of AR/VR hardware.</p>
+<p>Examples of hardware devices include:</p>
+<ul>
+<li><a href="https://vr.google.com/daydream/">Google’s Daydream</a></li>
+<li><a href="https://www3.oculus.com/rift/">Oculus Rift</a></li>
+<li><a href="http://www.samsung.com/global/galaxy/gear-vr/">Samsung Gear VR</a></li>
+<li><a href="https://www.htcvive.com/">HTC Vive</a></li>
+<li><a href="https://developer.microsoft.com/en-us/windows/mixed-reality">Windows Mixed Reality headsets</a></li>
+</ul>
+<p>For more details, watch Brandon Jones’ presentation at Google I/O this year for more details on WebXR.</p>
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/1t1gBVykneA?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+<h2 id="how-it-works%3F">How it works?</h2>
+<p>We’ll look at two examples of what we can do with WebXR: Using Magic Windows to place 3D content inside a regular web page and a second example of how to create old-school WebVR content to use with VR devices.</p>
+<p>For these demos we’ll use <a href="https://threejs.org/">Three.js</a> to actually build the content.</p>
+<h3 id="playing-webgl-content">Playing WebGL content</h3>
+<p>There shouldn’t be any difference in playing with WebGL content in browsers that support WebGL and WebVR/WebXR. WebGL is not part of this trial and shouldn’t affect the way WebGL content look on the browser.</p>
+<h3 id="playing-webxr-content-from-a-browser">Playing WebXR content from a browser</h3>
+<p>The next step is how to render content using one codebase that will work well with all possible uses for WebXR.</p>
+<p>Mozilla has released an extension to Three.js called <a href="https://github.com/mozilla/three.xr.js/">three.xr.js</a> that makes it easier to work creating WebXR content.</p>
+<p>The example below assumes that you’ve imported <code>three.js</code> and <code>three.xr.js</code>.</p>
+<p>What I like is that, while there’s a lot of code, even in this simple example, it’s mostly boilerplate for <code>three.xr</code> and can be abstracted to a separate file to be reused later.</p>
+<p>This is the <a href="https://mozilla.github.io/three.xr.js/examples/xr/basic/">basic example</a> from <code>three.xr.js</code> that will display the basic WebGL scene and detect if there is a VR or AR device available and, if there is one, present buttons to enter the Mixed Reality mode that the device supports.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> clock <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>Clock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> container<span class="token punctuation">;</span>
+<span class="token keyword">var</span> renderer<span class="token punctuation">,</span> camera<span class="token punctuation">,</span> scene<span class="token punctuation">;</span>
+<span class="token keyword">var</span> floor<span class="token punctuation">,</span> cube<span class="token punctuation">,</span> sky<span class="token punctuation">;</span>
+
+<span class="token comment">// ar, magicWindow, vr</span>
+<span class="token keyword">var</span> activeRealityType <span class="token operator">=</span> <span class="token string">'magicWindow'</span><span class="token punctuation">;</span>
+<span class="token comment">// Query for available displays then run init</span>
+<span class="token constant">THREE</span><span class="token punctuation">.</span>WebXRUtils<span class="token punctuation">.</span><span class="token function">getDisplays</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span>init<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">init</span><span class="token punctuation">(</span><span class="token parameter">displays</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Create a container div and append it to body</span>
+  container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span> <span class="token string">'div'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span> container <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Create three.js scene and camera</span>
+  scene <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>Scene</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  camera <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>PerspectiveCamera</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  scene<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span> camera <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  camera<span class="token punctuation">.</span>position<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  renderer <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>WebGLRenderer</span><span class="token punctuation">(</span> <span class="token punctuation">{</span> alpha<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  renderer<span class="token punctuation">.</span>autoClear <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  container<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span> renderer<span class="token punctuation">.</span>domElement <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Add custom content</span>
+  <span class="token comment">// Define the floor</span>
+  floor <span class="token operator">=</span>   <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>Mesh</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>PlaneGeometry</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>MeshBasicMaterial</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+              color<span class="token operator">:</span><span class="token number">0xffffff</span><span class="token punctuation">,</span>
+              transparent<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+              opacity<span class="token operator">:</span> <span class="token number">0.3</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  floor<span class="token punctuation">.</span>geometry<span class="token punctuation">.</span><span class="token function">rotateX</span><span class="token punctuation">(</span><span class="token operator">-</span> Math<span class="token punctuation">.</span><span class="token constant">PI</span> <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  scene<span class="token punctuation">.</span><span class="token function">add</span> <span class="token punctuation">(</span>floor<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Define a cube</span>
+  <span class="token keyword">var</span> geometry <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>BoxGeometry</span><span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">,</span><span class="token number">0.5</span><span class="token punctuation">,</span><span class="token number">0.5</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">var</span> material <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>MeshNormalMaterial</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  cube <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>Mesh</span><span class="token punctuation">(</span>geometry<span class="token punctuation">,</span> material<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  cube<span class="token punctuation">.</span>position<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1.5</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  cube<span class="token punctuation">.</span>rotation<span class="token punctuation">.</span>y <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token constant">PI</span><span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">;</span>
+  scene<span class="token punctuation">.</span><span class="token function">add</span> <span class="token punctuation">(</span>cube<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Define the sky</span>
+  <span class="token keyword">var</span> skyGeometry <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>SphereGeometry</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">var</span> skyMaterial <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>MeshNormalMaterial</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    side<span class="token operator">:</span> <span class="token constant">THREE</span><span class="token punctuation">.</span>BackSide
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  sky <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>Mesh</span><span class="token punctuation">(</span>skyGeometry<span class="token punctuation">,</span> skyMaterial<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  scene<span class="token punctuation">.</span><span class="token function">add</span> <span class="token punctuation">(</span>sky<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// End custom content</span>
+
+  <span class="token comment">// Define standard evnts and elements</span>
+  window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span> <span class="token string">'resize'</span><span class="token punctuation">,</span> onWindowResize<span class="token punctuation">,</span> <span class="token boolean">false</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">onWindowResize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">var</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Flag to start AR if is the unique display available.</span>
+    <span class="token constant">AR_AUTOSTART</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token comment">// Default: true</span>
+  <span class="token punctuation">}</span>
+  renderer<span class="token punctuation">.</span>xr <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">THREE<span class="token punctuation">.</span>WebXRManager</span><span class="token punctuation">(</span>options<span class="token punctuation">,</span> displays<span class="token punctuation">,</span> renderer<span class="token punctuation">,</span> camera<span class="token punctuation">,</span> scene<span class="token punctuation">,</span> update<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'sessionStarted'</span><span class="token punctuation">,</span> sessionStarted<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'sessionEnded'</span><span class="token punctuation">,</span> sessionEnded<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span>autoStarted<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token keyword">var</span> buttonsContainer <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span> <span class="token string">'div'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    buttonsContainer<span class="token punctuation">.</span>id <span class="token operator">=</span> <span class="token string">'buttonsContainer'</span><span class="token punctuation">;</span>
+    buttonsContainer<span class="token punctuation">.</span>style<span class="token punctuation">.</span>position <span class="token operator">=</span> <span class="token string">'absolute'</span><span class="token punctuation">;</span>
+    buttonsContainer<span class="token punctuation">.</span>style<span class="token punctuation">.</span>bottom <span class="token operator">=</span> <span class="token string">'10%'</span><span class="token punctuation">;</span>
+    buttonsContainer<span class="token punctuation">.</span>style<span class="token punctuation">.</span>width <span class="token operator">=</span> <span class="token string">'100%'</span><span class="token punctuation">;</span>
+    buttonsContainer<span class="token punctuation">.</span>style<span class="token punctuation">.</span>textAlign <span class="token operator">=</span> <span class="token string">'center'</span><span class="token punctuation">;</span>
+    buttonsContainer<span class="token punctuation">.</span>style<span class="token punctuation">.</span>zIndex <span class="token operator">=</span> <span class="token string">'999'</span><span class="token punctuation">;</span>
+    document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>buttonsContainer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">addEnterButtons</span><span class="token punctuation">(</span>displays<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  renderer<span class="token punctuation">.</span><span class="token function">animate</span><span class="token punctuation">(</span>render<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">sessionStarted</span><span class="token punctuation">(</span><span class="token parameter">data</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  activeRealityType <span class="token operator">=</span> data<span class="token punctuation">.</span>session<span class="token punctuation">.</span>realityType<span class="token punctuation">;</span>
+  <span class="token keyword">if</span><span class="token punctuation">(</span>data<span class="token punctuation">.</span>session<span class="token punctuation">.</span>realityType <span class="token operator">===</span> <span class="token string">'ar'</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    sky<span class="token punctuation">.</span>visible <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">sessionEnded</span><span class="token punctuation">(</span><span class="token parameter">data</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  activeRealityType <span class="token operator">=</span> <span class="token string">'magicWindow'</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span><span class="token punctuation">(</span>data<span class="token punctuation">.</span>session<span class="token punctuation">.</span>realityType <span class="token operator">===</span> <span class="token string">'ar'</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    sky<span class="token punctuation">.</span>visible <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">addEnterButtons</span><span class="token punctuation">(</span><span class="token parameter">displays</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> displays<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">var</span> display <span class="token operator">=</span> displays<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>display<span class="token punctuation">.</span>supportedRealities<span class="token punctuation">.</span>vr<span class="token punctuation">)</span><span class="token punctuation">{</span>
+      buttonsContainer<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span><span class="token function">getEnterButton</span><span class="token punctuation">(</span>display<span class="token punctuation">,</span> <span class="token string">'vr'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>display<span class="token punctuation">.</span>supportedRealities<span class="token punctuation">.</span>ar<span class="token punctuation">)</span><span class="token punctuation">{</span>
+      buttonsContainer<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span><span class="token function">getEnterButton</span><span class="token punctuation">(</span>display<span class="token punctuation">,</span> <span class="token string">'ar'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">getEnterButton</span><span class="token punctuation">(</span><span class="token parameter">display<span class="token punctuation">,</span> reality</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// HMDs require the call to start presenting to</span>
+  <span class="token comment">// occur due to a user input event, so make a</span>
+  <span class="token comment">// button to trigger that</span>
+  <span class="token keyword">var</span> button <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span> <span class="token string">'button'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>display <span class="token operator">=</span> <span class="token string">'inline-block'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>margin <span class="token operator">=</span> <span class="token string">'5px'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>width <span class="token operator">=</span> <span class="token string">'120px'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>border <span class="token operator">=</span> <span class="token string">'0'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>padding <span class="token operator">=</span> <span class="token string">'8px'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>cursor <span class="token operator">=</span> <span class="token string">'pointer'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>backgroundColor <span class="token operator">=</span> <span class="token string">'#000'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>color <span class="token operator">=</span> <span class="token string">'#fff'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>fontFamily <span class="token operator">=</span> <span class="token string">'sans-serif'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>fontSize <span class="token operator">=</span> <span class="token string">'13px'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>fontStyle <span class="token operator">=</span> <span class="token string">'normal'</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span>style<span class="token punctuation">.</span>textAlign <span class="token operator">=</span> <span class="token string">'center'</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span><span class="token punctuation">(</span>reality <span class="token operator">===</span> <span class="token string">'vr'</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    button<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">'ENTER VR'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token keyword">else</span><span class="token punctuation">{</span>
+    button<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">'ENTER AR'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  button<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token parameter">ev</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>reality <span class="token operator">===</span> <span class="token string">'ar'</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+      <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span>sessionActive<span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token comment">// Entering AR.</span>
+        button<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">'EXIT AR'</span><span class="token punctuation">;</span>
+        renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span><span class="token function">startSession</span><span class="token punctuation">(</span>display<span class="token punctuation">,</span> reality<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        <span class="token comment">// Exiting AR.</span>
+        button<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">'ENTER AR'</span><span class="token punctuation">;</span>
+        renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span><span class="token function">endSession</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        sky<span class="token punctuation">.</span>visible <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'buttonsContainer'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>style<span class="token punctuation">.</span>display <span class="token operator">=</span> <span class="token string">'none'</span><span class="token punctuation">;</span>
+      renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span><span class="token function">startPresenting</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span><span class="token punctuation">(</span>reality <span class="token operator">===</span> <span class="token string">'vr'</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'vrdisplaypresentchange'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token comment">// Polyfill places cameraActivateddisplay inside the detail property</span>
+      <span class="token keyword">var</span> display <span class="token operator">=</span> evt<span class="token punctuation">.</span>display <span class="token operator">||</span> evt<span class="token punctuation">.</span>detail<span class="token punctuation">.</span>display<span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>display<span class="token punctuation">.</span>isPresenting<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// Exiting VR.</span>
+        renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span><span class="token function">endSession</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'buttonsContainer'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>style<span class="token punctuation">.</span>display <span class="token operator">=</span> <span class="token string">'block'</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">return</span> button<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">onWindowResize</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  camera<span class="token punctuation">.</span>aspect <span class="token operator">=</span> window<span class="token punctuation">.</span>innerWidth <span class="token operator">/</span> window<span class="token punctuation">.</span>innerHeight<span class="token punctuation">;</span>
+  camera<span class="token punctuation">.</span><span class="token function">updateProjectionMatrix</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Called once per frame, before render, to give the app a chance to update this.scene</span>
+<span class="token keyword">function</span> <span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">frame</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">switch</span> <span class="token punctuation">(</span>activeRealityType<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">case</span> <span class="token string">'magicWindow'</span><span class="token operator">:</span>
+    <span class="token keyword">case</span> <span class="token string">'vr'</span><span class="token operator">:</span>
+      <span class="token keyword">var</span> delta <span class="token operator">=</span> clock<span class="token punctuation">.</span><span class="token function">getDelta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">;</span>
+      <span class="token comment">// cube.rotation.y += delta * 0.01;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>renderer<span class="token punctuation">.</span>xr<span class="token punctuation">.</span>sessionActive<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    renderer<span class="token punctuation">.</span><span class="token function">setSize</span><span class="token punctuation">(</span> window<span class="token punctuation">.</span>innerWidth<span class="token punctuation">,</span> window<span class="token punctuation">.</span>innerHeight <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    renderer<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span>scene<span class="token punctuation">,</span> camera<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="future-looking%3A-magic-window%2C-glipmses-of-vr-in-a-2d-context">Future Looking: Magic Window, glipmses of VR in a 2D context</h3>
+<p>One of the really cool things you can do with WebXR is to create “Magic Windows”, areas where we can view 3D content inside our regular web page.</p>
+<p>So far all the examples I’ve see of WebXR are either full screen 3D on-device experiences or experiences that require an AR-enabled device to work. That’s awesome but wouldn’t it be nice if we could launch the content from a regular web page?</p>
+<p>At Google I/O this year I saw such a demo.</p>
+<p>It included an AR object inserted as an image or iframe in a page that would only go into AR mode when viewed in an AR-capable device and the user actually clicked on the image to activate the the placement of the AR object in the physical space.</p>
+<p>I’m not 100% certain that this was WebXR or if it was more on the ARCore/ARKit side of the AR/VR experience. Since it was on a webpage I expect the earlier but there was a big push on AR for the Android and iOS  platforms so I’m not sure.</p>
+<p>I’ll continue researching and will post  more when I have configmration either way.</p>
+<h2 id="links-and-examples">Links and examples</h2>
+<ul>
+<li><a href="https://blog.mozvr.com/">Mozilla Mixed Reality Blog</a></li>
+<li><a href="https://immersive-web.github.io/webxr-samples/">webxr examples</a></li>
+<li><a href="https://github.com/mozilla/three.xr.js/">three.xr.js</a></li>
+<li><a href="https://blog.mozvr.com/progressive-webxr-ar-store/">Progressive WebXR</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

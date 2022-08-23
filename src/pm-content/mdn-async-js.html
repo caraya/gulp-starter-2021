@@ -1,0 +1,608 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="async-javascript">Async javascript</h1>
+<p>Writing this for MDN as a series of articles. Goal is to keep tone and audience throughout. That’s why I’m writing it as a single document.</p>
+<h1 id="introduction%3A-what-and-why%3F">Introduction: What and Why?</h1>
+<h2 id="synchronous-code-(baseline)">Synchronous code (baseline)</h2>
+<p>When we write Javascript we normally do it synchronously, every instruction is executed one at a time in the order they appear in the script. The script will finish once the last instruction is executed.</p>
+<p>In the example below we log three items to the console.</p>
+<pre class="language-javascript"><code class="language-javascript">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'1'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We will always get the same result: 1 2 3.</p>
+<p>This works great for small pieces of code or scripts that don’t produce output on the browser. But sooner rather than later you will want to work on larger scripts and you will find one of the first issues with Javascript: <strong>It blocks rendering</strong>.</p>
+<p>Let’s take the following HTML document.</p>
+<pre class="language-html"><code class="language-html"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>en<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>UTF-8<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>viewport<span class="token punctuation">'</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>width=device-width, initial-scale=1.0<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>Document<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>myscript.js<span class="token punctuation">'</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>And the following content in <code>myscript.js</code>:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Capture the body tag as the third child of the document (zero based)</span>
+<span class="token keyword">const</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span>childNodes<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token comment">// Create an h2 element and assign it to the header constiable</span>
+<span class="token keyword">const</span> header <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'h2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Add content to the header</span>
+header<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token string">'This was inserted'</span><span class="token punctuation">;</span>
+<span class="token comment">// Assign it as the first child of the body element</span>
+content<span class="token punctuation">.</span><span class="token function">insertAdjacentElement</span><span class="token punctuation">(</span><span class="token string">'afterbegin'</span><span class="token punctuation">,</span> header<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The browser will load the page and when it finds the script it will load it and process it. Because the browser can not know ahead of time if the script will insert, remove or change content on the page it will pause rendering until the script is fully parsed and any changes to the page like inserting or removing nodes are done. The script can have any number of functions and interact with databases and other resources on your page and application.</p>
+<p>This will happen for every script that you addd to the page; they will each load completely before moving onto the next. Working with smaller scripts may be fine but imagine if you’re loading jQuery from a Content Delivery Network and then loading our script. Our HTML will look like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>en<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>UTF-8<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>viewport<span class="token punctuation">'</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>width=device-width, initial-scale=1.0<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>Document<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+      <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>https://code.jquery.com/jquery-3.3.1.min.js<span class="token punctuation">'</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>myscript.js<span class="token punctuation">'</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- content goes here --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Even with no content, this page will take longer to load as it now has to download jQuery before it can continue processing the page and its content, which may include other scripts.</p>
+<p>Things will get slower when the code we write does heavy processing like database access or image manipulation.</p>
+<p>The figure below gives you an example of what the execution order or stack looks like for a synchronous blocking language like Javascript.</p>
+<p>Before we jump in to asynchronous (async) code we’ll look at two ways of writing synchronous code: Callbacks and try/catch blocks.</p>
+<h3 id="callbacks">Callbacks</h3>
+<p>Callbacks are functions that are passed as parameters to other functions.</p>
+<p>An example of a callback is the second parameter of an event listener. In the example below, clicking the button with id of <code>myButton</code> will trigger the function and produce the alert for the user.</p>
+<pre class="language-javascript"><code class="language-javascript">myButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'You Clicked THE Button'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Another example is when we use <code>forEach</code> to loop through the items in an Array. In this case <code>forEach</code> will loop through the array</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> gods <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'Apollo'</span><span class="token punctuation">,</span> <span class="token string">'Artemis'</span><span class="token punctuation">,</span> <span class="token string">'Ares'</span><span class="token punctuation">,</span> <span class="token string">'Zeus'</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+gods<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">eachName<span class="token punctuation">,</span> index</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>index <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">+</span> <span class="token string">'. '</span> <span class="token operator">+</span> eachName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The two examples work because Javascript allows functions as parameters in other functions.</p>
+<p>When we pass a callback function as an argument to another function, we are only passing the function definition. We are not executing the function in the parameter. The containing function can execute the callback anytime.</p>
+<p>Note that the callback function is not executed immediately. It is “called back” (hence the name) somewhere inside the containing function’s body synchronously.</p>
+<h4 id="working-with-%E2%80%98this%E2%80%99">Working with ‘this’</h4>
+<p>When the callback function uses the <code>this</code> object, we have to modify how we execute the callback function to preserve the this object context. Or else the this object will either point to the global window object (in the browser), if callback was passed to a global function. Or it will point to the object of the containing method.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> agentData <span class="token operator">=</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token number">007</span><span class="token punctuation">,</span>
+  fullName<span class="token operator">:</span> <span class="token string">'Not Set'</span><span class="token punctuation">,</span>
+  <span class="token comment">// setUserName is a method on the agentData object</span>
+  <span class="token function-variable function">setUserName</span><span class="token operator">:</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">firstName<span class="token punctuation">,</span> lastName</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>fullName <span class="token operator">=</span> firstName <span class="token operator">+</span> <span class="token string">' '</span> <span class="token operator">+</span> lastName<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">getUserInput</span><span class="token punctuation">(</span><span class="token parameter">firstName<span class="token punctuation">,</span> lastName<span class="token punctuation">,</span> callback</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>firstName<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>lastName<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">callback</span> <span class="token punctuation">(</span>firstName<span class="token punctuation">,</span> lastName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'data could not be saved.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>When we create a new agent something unexpected happens. <code>agentData.fullName</code> returns the default value of Not Set but when we check for fullName in the window object (<code>window.fullName</code>) we get the name we expected.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token function">getUserInput</span> <span class="token punctuation">(</span><span class="token string">'James'</span><span class="token punctuation">,</span> <span class="token string">'Bond'</span><span class="token punctuation">,</span> agentData<span class="token punctuation">.</span>setUserName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>agentData<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The problem has to do with <code>this</code>.</p>
+<p>In most cases, the value of this is determined by how a function is called. It can’t be set by assignment during execution, and it may be different each time the function is called.</p>
+<p>When we call a function directly, like we call getUserInput, the context is the root object (window in the case of the browser)</p>
+<p>When a function is called as a method of an object, its this is set to the object the method is called on.</p>
+<p>So how do we solve this problem?</p>
+<h4 id="call-and-apply">Call and Apply</h4>
+<p>We can fix the problem with this using <code>call</code> or <code>apply</code>. These methods (available to all functions) are used to set the <code>this</code> object inside the function and to pass arguments to the functions.</p>
+<p>Call takes the value to be used as the <code>this</code> object inside the function as the first parameter, and the remaining arguments to be passed to the function are passed as a comma separated list.</p>
+<p>For <code>call</code> and <code>apply</code> to work we add an extra parameter that designates what objecgt we want to use to represent <code>this</code>, in this case we call it <code>callbackObj</code>.</p>
+<p>The biggest difference is that, our new version of <code>getUserInput</code> uses the <code>call</code> method of the <code>callback</code> function with four parameters, including the new <code>callbackObj</code>.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> agentData <span class="token operator">=</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token number">007</span><span class="token punctuation">,</span>
+  fullName<span class="token operator">:</span> <span class="token string">'Not Set'</span><span class="token punctuation">,</span>
+  <span class="token comment">// setUserName is a method on the agentData object</span>
+  <span class="token function-variable function">setUserName</span><span class="token operator">:</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">firstName<span class="token punctuation">,</span> lastName</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>fullName <span class="token operator">=</span> firstName <span class="token operator">+</span> <span class="token string">' '</span> <span class="token operator">+</span> lastName<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">getUserInput</span><span class="token punctuation">(</span><span class="token parameter">firstName<span class="token punctuation">,</span> lastName<span class="token punctuation">,</span> callback<span class="token punctuation">,</span> callbackObj</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+   <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>firstName<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>lastName<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">callback</span><span class="token punctuation">.</span><span class="token function">call</span> <span class="token punctuation">(</span>callbackObj<span class="token punctuation">,</span> firstName<span class="token punctuation">,</span> lastName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'data could not be saved.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>To verify that it works we add a new agent with our <code>getUserInput</code> function and, here is the key, we tell it that we want to use <code>agentData</code> as the object to represent this.</p>
+<p>When we log the value of <code>agentData.fullName</code> we get the expected value. When we try to log the value of <code>window.fullName</code> we get undefined because <code>this</code> means <code>agentData</code> not the global window object.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token function">getUserInput</span> <span class="token punctuation">(</span><span class="token string">'James'</span><span class="token punctuation">,</span> <span class="token string">'Bond'</span><span class="token punctuation">,</span> agentData<span class="token punctuation">.</span>setUserName<span class="token punctuation">,</span> agentData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>agentData<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// James Bond</span>
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// undefined</span>
+</code></pre>
+<p>The Apply function’s first parameter is also the value to be used as the <code>this</code> object inside the function, while the last parameter is an array of values to pass to the function.</p>
+<p>The difference between <code>apply</code> and <code>call</code> is the signature of the method.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> agentData <span class="token operator">=</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token number">007</span><span class="token punctuation">,</span>
+  fullName<span class="token operator">:</span> <span class="token string">'Not Set'</span><span class="token punctuation">,</span>
+  <span class="token comment">// setUserName is a method on the agentData object</span>
+  <span class="token function-variable function">setUserName</span><span class="token operator">:</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">firstName<span class="token punctuation">,</span> lastName</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>fullName <span class="token operator">=</span> firstName <span class="token operator">+</span> <span class="token string">' '</span> <span class="token operator">+</span> lastName<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">getUserInput</span><span class="token punctuation">(</span><span class="token parameter">firstName<span class="token punctuation">,</span> lastName<span class="token punctuation">,</span> callback<span class="token punctuation">,</span> callbackObj</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>firstName<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>lastName<span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">callback</span><span class="token punctuation">.</span><span class="token function">apply</span> <span class="token punctuation">(</span>callbackObj<span class="token punctuation">,</span> <span class="token punctuation">[</span>firstName<span class="token punctuation">,</span> lastName<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'data could not be saved.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The signature for <code>getUserInput</code> doesn’t change when we use <code>apply</code> instead of <code>call</code>. The results are identical.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token function">getUserInput</span> <span class="token punctuation">(</span><span class="token string">'James'</span><span class="token punctuation">,</span> <span class="token string">'Bond'</span><span class="token punctuation">,</span> agentData<span class="token punctuation">.</span>setUserName<span class="token punctuation">,</span> agentData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>agentData<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// James Bond</span>
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>fullName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Undefined</span>
+</code></pre>
+<h3 id="try%2Fcatch-blocks">Try/Catch blocks</h3>
+<p>The second way to write synchronous code is to create <code>try/catch</code> blocks.</p>
+<p>The idea behind <code>try/catch</code> blocks is that we need to run instructions in sequence but we must also do something if any of the commands fail.</p>
+<p>We will use the following JSON for the example.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// data from the server</span>
+<span class="token keyword">let</span> json <span class="token operator">=</span> <span class="token string">'{"id":"007", "firstName":"James", "lastName": "Bond"}'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>In the try/catch block below, we want to make sure that the data parses and do something if ther is an error.</p>
+<p>In this example we just log a message and the error to console. In more complex examples the catch error may attempt connecting to the database again or ask the user to enter the data again if it wasn’t complete or well formed.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">try</span> <span class="token punctuation">{</span>
+  <span class="token comment">// convert the text representation to JS object</span>
+  <span class="token keyword">let</span> user <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>json<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Log the results to console</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>user<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 007</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>user<span class="token punctuation">.</span>firstName<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// James</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>user<span class="token punctuation">.</span>lastName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Bond</span>
+<span class="token punctuation">}</span> <span class="token keyword">catch</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'I\'m sorry Dave, I can\'t do that '</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>err<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>err<span class="token punctuation">.</span>message<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>There is a third optional parameter, <code>finally</code>. It will happen regardless of whether the <code>try</code> block succeeds or the <code>catch</code> block is called. This gives the option of doing cleanup, closing database connections and doing other cleanup tasks your code needs to complete.</p>
+<p>In the example below, the script will always log <code>All Done</code>, regardless if the JSON parsing was successful or not.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">try</span> <span class="token punctuation">{</span>
+  <span class="token comment">// convert the text representation to JS object</span>
+  <span class="token keyword">let</span> user <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>json<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Log the results to console</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>user<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 007</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>user<span class="token punctuation">.</span>firstName<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// James</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>user<span class="token punctuation">.</span>lastName<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Bond</span>
+<span class="token punctuation">}</span> <span class="token keyword">catch</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'I\'m sorry Dave, I can\'t do that '</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>err<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span>err<span class="token punctuation">.</span>message<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+  <span class="token comment">//This will always execute regardless</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'All Done'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="brief-introduction-to-async-code">Brief Introduction to Async Code</h2>
+<p>Async (short for asynchronous) code will execute without blocking rendering and returning a value when the code in the async block finishes.</p>
+<p>Contrast the definition of async with the synchronous code we’ve been working so far where all statements are executed in the order they appear.</p>
+<p>The example below uses both sync (synchronous) and async (asynchronous) code to illustrate the difference. The console log statements outside of fetch will execute in the order they appear in the document.</p>
+<pre class="language-javascript"><code class="language-javascript">console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'Starting'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'https://s3-us-west-2.amazonaws.com/s.cdpn.io/32795/coffee2.png'</span><span class="token punctuation">)</span> <span class="token comment">// 1</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>response<span class="token punctuation">.</span>ok<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'It worked :)'</span><span class="token punctuation">)</span>
+      <span class="token keyword">return</span> response<span class="token punctuation">.</span><span class="token function">blob</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'Network response was not ok.'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">myBlob</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> objectURL <span class="token operator">=</span> <span class="token constant">URL</span><span class="token punctuation">.</span><span class="token function">createObjectURL</span><span class="token punctuation">(</span>myBlob<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+    <span class="token keyword">let</span> myImage <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+    myImage<span class="token punctuation">.</span>src <span class="token operator">=</span> objectURL<span class="token punctuation">;</span> <span class="token comment">// 5</span>
+    document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>myImage<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 6</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>
+      <span class="token string">'There has been a problem with your fetch operation: '</span><span class="token punctuation">,</span>
+      error<span class="token punctuation">.</span>message
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span> <span class="token punctuation">(</span><span class="token string">'All done!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The fetch function and it’s associated chain uses the Promise API (discussed in more detail in a later document) to get a resource from the network and perform one or more tasks. It won’t make the script wait until it’s done but will continue working in the background until it completes.</p>
+<p>The async nature of the Fetch API produces unexpected results. The sequence of messages logged to console:</p>
+<ol>
+<li>Starting</li>
+<li>All done!</li>
+<li>It worked :)</li>
+</ol>
+<p>The messages from both console.log calls outside fetch appear in their document order but the message signaling success doesn’t appear until the chain started with fetch completes.</p>
+<p>Javascript is at its most basic a synchronous, blocking, single-threaded language; Only one operation can be in progress at a time.</p>
+<p>Whether we want to run code synchronously or asynchronously will depend on what we’re trying to do.</p>
+<p>There are times when we want things to load and happen right away. The callback for a click event handler is a good example.</p>
+<p>If we’re running an expensive operation like querying a database and using the results to populate templates then we want to push this off the main thread and complete the task asynchronously.</p>
+<h1 id="different-ways-of-writing-async-javascript">Different ways of writing async javascript</h1>
+<p>Now that we’ve looked at synchronous and asynchronous code we’ll look at different ways to write asynchronous code.</p>
+<h1 id="settimeout-and-setinterval">SetTimeout and SetInterval</h1>
+<p>SetTimeout and SetInterval provide ways to schedule tasks to run at a future point in time.</p>
+<p><code>setTimeout</code> allows you to schedule a task after a given interval.</p>
+<p><code>setInterval</code> lets you run a tasks periodically with a given interval between runs.</p>
+<h2 id="settimeout">SetTimeout</h2>
+<p>setTimeout takes two parameters:</p>
+<p>A string representing code to run and a number represting the time interval in miliseconds to wait before executing the code.</p>
+<p>In the following example, the browser will wait two seconds before executing the anonymous function and presenting the alert message.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> myGreeting <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Hello, Mr. Universe!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">)</span>
+</code></pre>
+<p>We’re not required to write anonymous functions. The second version of the example uses <code>sayHi</code> as the name of the function. The rest of the code remains unchanged.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> myGreeting <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token function">sayHi</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Hello, Mr. Universe!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">)</span>
+</code></pre>
+<p>The code is rather messy. We can clean up the <code>setTimeout</code> call by taking the function outside the <code>setTimeout</code> call. The next iteration of our code defines <code>sayHi</code> first and then references the function by calling <code>sayHi</code> without parenthesis as the first parameter of <code>setTimeout</code>.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">sayHi</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Hello Mr. Universe!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">let</span> myGreeting <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span>sayHi<span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The last step in the demo is to pass parameters to the function we want to use in setTimeout.</p>
+<p>This gets a little tricky.</p>
+<p>First we configure the function to add the parameter and use it in the body of the function.</p>
+<p>When we call <code>setTimeout</code> we pass the values for the function parameters as the third (and subsequent if there is more than one) parameters.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">sayHi</span><span class="token punctuation">(</span><span class="token parameter">who</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Hello '</span> <span class="token operator">+</span> who <span class="token operator">+</span> <span class="token string">'!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">let</span> myGreeting <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span>sayHi<span class="token punctuation">,</span> <span class="token number">2000</span><span class="token punctuation">,</span> <span class="token string">'Mr. Universe'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>All versions of the function will produce the same result… but they show different ways we can use setTimeout and the flexibility we have in writing the code.</p>
+<h2 id="setinterval">setInterval</h2>
+<p>setTimeout works perfectly when we need to run the code once after a set period of time. But what happens when we need to run the code every x miliseconds?</p>
+<p>That’s where setInterval comes in.  When we use this command, the code we attach to it will run every time the interval completes.</p>
+<p>The example below creates a new date object and logs it to console. We then attach it to setInterval and execute it once every second. This will create the effect of a running clock that updates once per second.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">countTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> date <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> time <span class="token operator">=</span> date<span class="token punctuation">.</span><span class="token function">toLocaleTimeString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'demo'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> time<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> createClock <span class="token operator">=</span> <span class="token function">setInterval</span><span class="token punctuation">(</span>countTime<span class="token punctuation">,</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="cleartimeout">ClearTimeout</h2>
+<p>This is less of an issue with <code>setTimeout</code> as it is with <code>setInterval</code> (discussed in later sections) but there may still be situations where you want to abort the execution of code inside a <code>setTimeout</code> call. For example, let’s say that we set the timeout of a very expensive task.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">runExpensiveTask</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Expensive Task has been completed!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">let</span> myTaskRunner <span class="token operator">=</span> <span class="token function">setTimeout</span><span class="token punctuation">(</span>runExpensiveTask<span class="token punctuation">,</span> <span class="token number">30000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>And we want to stop it because we want to do something else in the page. To do it we call <code>clearTimeout</code> with the id of we assigned to <code>setTimeout</code> when we created it.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> forgetIt <span class="token operator">=</span> <span class="token function">clearTimeout</span><span class="token punctuation">(</span>myTaskRunner<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="clearinterval">clearInterval</h2>
+<p>With repetitive tasks like our clock example, we definitely want a way to stop the activity… otherwise we may end up getting errors when the browser can’t complete any further versions of the task.</p>
+<p>The stopTime() function uses <code>clearInterval</code> to  clear the interval with the ID we created.</p>
+<p>The example creates a button and attaches the stopTime function to the button’s click event so when we click the button the interval will stop.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">stopTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">clearInterval</span><span class="token punctuation">(</span>createClock<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">let</span> myButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'stopButton'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+myButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> stopTime<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>clearTimeout() and clearInterval() use the same list of entries to clear from. This means that you can use either method to remove a setTimeout or setInterval. For consistency, I use clearTimeout to clear setTimeout() entries and clearInterval to clear setInterval() entries.</p>
+<h2 id="things-to-keep-in-mind">Things to keep in mind</h2>
+<p>There are a few things to keep in mind when working with setTimeout and setInterval.</p>
+<h3 id="recursive-timeout">Recursive Timeout</h3>
+<p>There is another way we can use setTimeout: Use it recursively to call the same code repeatedly instead of using setInterval.</p>
+<p>Compare the first example using a recursive setTimeout to run the code ever 1000 milliseonds.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+<span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">setTimeout</span><span class="token punctuation">(</span>run<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The second example uses setInterval to accomplish the same effect of running the code every 100 milliseconds.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+<span class="token function">setInterval</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The difference between the two versions of the code is a subtle one.</p>
+<p>Recursive setTimeout guarantees a delay between the executions; the code will run and then wait 100 milliseconds before it runs again. The 100 milliseconds will happen regardless of how long the code takes to run.</p>
+<figure>
+  <img src="https://javascript.info/article/settimeout-setinterval/settimeout-interval@2x.png">
+  <figcaption>Using recursive setTimeout guarantees the interval will be the same between executions. Taken from <a href="https://javascript.info/settimeout-setinterval/">Scheduling: setTimeout and setInterval</a></figcaption>
+</figure>
+<p>The example using setInterval does things differently. The interval we choose for setInterval includes the code we want to run in its execution. Let’s say that the code takes 40 milliseconds to run, then the interval ends up being only 60 milliseconds.</p>
+<figure>
+  <img src="https://javascript.info/article/settimeout-setinterval/setinterval-interval@2x.png">
+  <figcaption>The interval we set for setInterval includes our own code execution. Taken from <a href="https://javascript.info/settimeout-setinterval/">Scheduling: setTimeout and setInterval</a></figcaption>
+</figure>
+<h3 id="immediate-timeout">Immediate Timeout</h3>
+<p>Using 0 as the value for setTimeout schedules the execution of func as soon as possible but only after the current code is complete.</p>
+<p>For instance, the code below outputs “Hello”, then  “World” as soon as the user clicks the OK button on the first alert dialogue:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Mr. Universe'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'hello'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="when-would-you-use-them%3F">When would you use them?</h2>
+<p>setTimeout and setInterval are useful when you need to schedule code execution.</p>
+<p>Use setTimeout if you want to execute the code once after a given time elapses. Pay attention to the gotchas for using setTimeout and consider them additional alternatives</p>
+<p>Use setInterval if you need the code to execute repeatedly at given intervals.</p>
+<h1 id="request-animation-frame">Request Animation Frame</h1>
+<p>Request Animation Frame is a specialized timing function that is primarily used with animation code of any kind (DOM elements, CSS, canvas, WebGL, or any other).The method tells the browser that you wish to perform an animation and requests that the browser call a function to update the animation before the next repaint. The method takes a callback as an argument to be invoked before the repaint</p>
+<h2 id="before-request-animation-frame">Before Request Animation Frame</h2>
+<p>When working directly with animations you’ve probably seen either of the two animation models show below</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Drawing code goes here</span>
+<span class="token punctuation">}</span>
+<span class="token function">setInterval</span><span class="token punctuation">(</span>draw<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The first example calls the draw function once every 100ms until the clearInterval function is called. An alternative to this code is to use a setTimeout function inside the draw function:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">setTimeout</span><span class="token punctuation">(</span>draw<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// Drawing code goes here</span>
+<span class="token punctuation">}</span>
+<span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This technique uses a recursive setTimeout call from inside the function to draw until clearTimeout is used to stop it.</p>
+<p>You can also use the setInterval technique with a value to indicate how often the animation should run.</p>
+<p>We arrived at our final value of 17 by running the following formula <code>1000 / 60Hz</code>, rounded up.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Lights, camera…function!</span>
+<span class="token function">setInterval</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">animateEverything</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">17</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="running-raf">Running RAF</h2>
+<p>The Request Animation Frame signature has only one parameter which is the function that you want to run.</p>
+<p>Then we execute the function once to initiate the loop.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Drawing code goes here</span>
+    <span class="token function">requestAnimationFrame</span><span class="token punctuation">(</span>draw<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">draw</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The smoothness of your animation is directly dependent on your animation’s frame rate and it is measured in frames per second (fps). The higher this number is, the smoother your animation will look to a point.</p>
+<p>Since most screens have a refresh rate of 60Hz, the fastest frame rate you can aim for is 60fps (frames per second). However, more frames, means more processing, which can often cause stuttering and skipping. This is what is meant by the term dropping frames or jank.</p>
+<p>If we have a monitor that gives you 60Hz and you want to achieve 60 fps you have about 16.7 milliseconds to execute all your animation code. This is a reminder that we need to be mindful of the amount of code that we try to run for each animation loop.</p>
+<h2 id="polyfill">Polyfill</h2>
+<p>Paul Irish whote a <a href="https://www.paulirish.com/2011/requestanimationframe-for-smart-animating/">polyfill</a> for older browsers that don’t support Request Animation Frame natively.</p>
+<h2 id="when-would-you-use-it%3F">When would you use it?</h2>
+<p>Request Animation Frame will work with all kinds of animations, CSS, WebGL, DOM manipulation.</p>
+<h1 id="promises">Promises</h1>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> <span class="token constant">CACHE_NAME</span> <span class="token operator">=</span> <span class="token string">'my-site-cache-v1'</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> urlsToCache <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token string">'/'</span><span class="token punctuation">,</span>
+  <span class="token string">'/styles/main.css'</span><span class="token punctuation">,</span>
+  <span class="token string">'/script/main.js'</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'install'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span>
+    caches<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span><span class="token constant">CACHE_NAME</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">cache</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Opened cache'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> cache<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>urlsToCache<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<pre class="language-javascript"><code class="language-javascript"><span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'https://s3-us-west-2.amazonaws.com/s.cdpn.io/32795/coffee2.png'</span><span class="token punctuation">)</span> <span class="token comment">// 1</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>response<span class="token punctuation">.</span>ok<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'it worked :)'</span><span class="token punctuation">)</span>
+      <span class="token keyword">return</span> response<span class="token punctuation">.</span><span class="token function">blob</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'There was a problem with the network response.'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">myBlob</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> objectURL <span class="token operator">=</span> <span class="token constant">URL</span><span class="token punctuation">.</span><span class="token function">createObjectURL</span><span class="token punctuation">(</span>myBlob<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+    <span class="token keyword">let</span> myImage <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+    myImage<span class="token punctuation">.</span>src <span class="token operator">=</span> objectURL<span class="token punctuation">;</span> <span class="token comment">// 5</span>
+    document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>myImage<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 6</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>
+      <span class="token string">'There has been a problem with your fetch operation: '</span><span class="token punctuation">,</span>
+      error<span class="token punctuation">.</span>message
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>In this case it’ll perform the following tasks:</p>
+<ol>
+<li>Retrieve the image from Codepen</li>
+<li>Convert the response to an image <a href="https://developer.mozilla.org/en-US/docs/Web/API/Blob">blob</a></li>
+<li>Create a URL object for the image blob</li>
+<li>Create an image element</li>
+<li>Make the <code>src</code> of the image the URL we created in the step 3</li>
+<li>Attach the image to the document</li>
+</ol>
+<h1 id="async%2Fawait">Async/Await</h1>
+<p>New in ES2017 are <code>async</code> functions and the <code>await</code> keyword that will make writing async code easier to read, reason through and understand what caused any error that may get thrown. The hardest part, for me, of working with ES2016 and later is that I don’t always see the reasoning behind the new code, the older version of the code still work just as fine.</p>
+<p>Async / Await are different. They look a lot like the callback code that we used to work with in the ES5 days but they produce the same asynchronous result as if we were writing promises. It is very similar to how we’d write asynchronous code when using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_generators">generators</a> either natively or with a library like <a href="https://github.com/tj/co">co</a></p>
+<h2 id="async-code-running-sequentially">Async code running sequentially</h2>
+<p>Take the following code that represents sequential asynchronous calls</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">asyncFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> result1 <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">otherAsyncFunc1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> result2 <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">otherAsyncFunc2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>And compare it with the code that produces the same result using promises:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">asyncFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token function">otherAsyncFunc1</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">result1</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">otherAsyncFunc2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">result2</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>As you can see the main difference is that <code>await</code> takes place of the then block. The code is cleaner and it makes more sense to me (not that the promise code is hard to read, just not as clean).</p>
+<h2 id="async-code-running-in-parallel">Async code running in parallel</h2>
+<p>The code works and it’s cleaner but it’s sequential. The <code>await</code> statements run sequentially and will wait for one promise to return before executing the next. There are times when we want to run all our promises in parallel either because we want the code to run fast or because we have enough promises that running them sequentially would slow the code execution too much.</p>
+<p>To run promises in parallel we use <code>Promise.all</code>. Just like in promise based code we  build an array of promises that will fulfill if all promises succeed or fail if anyone of those promises fail.</p>
+<p>Here is the <code>async</code> / <code>await</code> code to log the result of two promises.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">asyncFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> <span class="token punctuation">[</span>result1<span class="token punctuation">,</span> result2<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">await</span> Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+        <span class="token function">otherAsyncFunc1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">otherAsyncFunc2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result1<span class="token punctuation">,</span> result2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>With the corresponding promise based code. See how similar the two are?</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">asyncFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+        <span class="token function">otherAsyncFunc1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">otherAsyncFunc2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">result1<span class="token punctuation">,</span> result2</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result1<span class="token punctuation">,</span> result2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="error-handling">Error handling</h2>
+<p>The final part of the equation is how to handle errors. To me this was the most surprising part of the exercise, going back to using <code>try</code> / <code>catch</code> blocks to handle errors just like the old synchronouse code we used to write, except that it’s running the code sequentially and waits for each task to complete before performing the next.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">fetchJson</span><span class="token punctuation">(</span><span class="token parameter">url</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> request <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> text <span class="token operator">=</span> <span class="token keyword">await</span> request<span class="token punctuation">.</span><span class="token function">text</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>text<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">ERROR: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>error<span class="token punctuation">.</span>stack<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="recreating-the-font-loader-script-with-async-and-await">Recreating the font loader script with async and await</h2>
+<p>A few weeks ago I wrote a script to use <a href="https://fontfaceobserver.com/">Font Face Observer</a> to make sure that readers got a consistent reading experience and that I could, as much as possible, control font behavior in my pages. The full script is shown below:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> mono <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notomono-regular'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> sans <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-regular'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> italic <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-italics'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> bold <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-bold'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> bolditalic <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-bolditalic'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> html <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
+
+html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+  mono<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  sans<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  italic<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  bolditalic<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">'fonts-loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-loaded'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'All fonts have loaded.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span><span class="token punctuation">{</span>
+  html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">'fonts-loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-failed'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'One or more fonts failed to load'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>A version of the script using <code>async</code> and <code>await</code> looks like this. Notice how we use try and catch blocks to control the process of our script.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> mono <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notomono-regular'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> sans <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-regular'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> italic <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-italics'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> bold <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-bold'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> bolditalic <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">'notosans-bolditalic'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> html <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
+
+html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">loadFonts</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> results <span class="token operator">=</span> <span class="token keyword">await</span> Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+      mono<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      sans<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      italic<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      bold<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      bolditalic<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">'fonts-loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-loaded'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'All fonts have loaded.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> results<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">'fonts-loading'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    html<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'fonts-failed'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'One or more fonts failed to load'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Another example is how would our fetch call look in a async / await, try / catch blocks.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">loadImage</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> response <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'https://s3-us-west-2.amazonaws.com/s.cdpn.io/32795/coffee2.png'</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">const</span> myBlob <span class="token operator">=</span> <span class="token keyword">await</span> response<span class="token punctuation">.</span><span class="token function">blob</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> objectURL <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token constant">URL</span><span class="token punctuation">.</span><span class="token function">createObjectURL</span><span class="token punctuation">(</span>myBlob<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> myImage <span class="token operator">=</span> <span class="token keyword">await</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    myImage<span class="token punctuation">.</span>src <span class="token operator">=</span> objectURL<span class="token punctuation">;</span>
+
+    document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>myImage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">catch</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>
+      <span class="token string">'There has been a problem with your fetch operation: '</span><span class="token punctuation">,</span> error<span class="token punctuation">.</span>message
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Async functions and the await keyword are fully supported in modern browsers but not in older versions. How to handle the difference between supported and non supported browsers? We can use feature detection to work the promise code and break early if the browser support promises.</p>
+<p>Detecting promise support is a matter of testing if ‘Promise’ is available in the window object, otherwise, we can run an API that is supported in the older browsers you’re targetting. This is one way you can do it:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">'Promise'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'promises are not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'promises are supported, yay!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Detecting async functions is harder.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

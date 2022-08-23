@@ -1,0 +1,265 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="lazy-loading-images-using-intersection-observers">Lazy loading images using intersection observers</h1>
+<p>Lazy loading allows you to delay loading images until the user actually scrolls the page to where the image or video is visible to the user. This post will describe why lazy loading is important, one way to lazy load images and videos and alternatives for browsers that don’t support intersection observers.</p>
+<blockquote>
+<p>This is a more polished version of <a href="https://publishing-project.rivendellweb.net/intersection-observers-making-it-easier-to-lazy-load-content/">Intersection Observers: Making it easier to lazy load content</a></p>
+</blockquote>
+<h2 id="why-is-lazyloading-important">Why is lazyloading important</h2>
+<p>Images are the largest part of a web page, whether site or app. The median number of image requested per page, according to the HTTP Archive is 32 request for desktop and 28 for mobile. The HTTP Archive defines an image request as:</p>
+<blockquote>
+<p>The number of external images requested by the page. An external image is identified as a resource with the <code>png</code>, <code>gif</code>, <code>jpg</code>, <code>jpeg</code>, <code>webp</code>, <code>ico</code>, or <code>svg</code> file extensions or a MIME type containing image.</p>
+<p>[HTTP Archive](<a href="https://HTTP">https://HTTP</a> <a href="http://Archive.org/reports/state-of-images#bytesImg">Archive.org/reports/state-of-images#bytesImg</a>)</p>
+</blockquote>
+<p>The timeseries below shows a timeseries for number of requests for the period between December, 2015 and December, 2018.</p>
+<figure>
+<img src="http://publishing-project.rivendellweb.net/wp-content/uploads/2019/01/number-of-images.png">
+<figcaption>HTTP Archive timeseries of the median numer of image requested for crawled domains</figcaption>
+</figure>
+<p>So things are getting better, right. We have fewer requests and that should make things better, right?</p>
+<p>Sadly it’s not the case. While we have fewer requests per page the median for these requests is still huge: 930K for desktop and 491K for mobile… and this is median, not average; we have an equal number of requests above and below this.  The HTTP Archive defines image bytes as:</p>
+<blockquote>
+<p>The sum of transfer size kilobytes of all external images requested by the page. An external image is identified as a resource with the <code>png</code>, <code>gif</code>, <code>jpg</code>, <code>jpeg</code>, <code>webp</code>, <code>ico</code>, or <code>svg</code> file extensions or a MIME type containing image.</p>
+<p><a href="https://httparchive.org/reports/state-of-images#reqImg">HTTP Archive</a></p>
+</blockquote>
+<figure>
+<img src="http://publishing-project.rivendellweb.net/wp-content/uploads/2019/01/image-weight.png">
+<figcaption>HTTP Archive timeseries of the median weight of image requested for crawled domains</figcaption>
+</figure>
+<p>Most of the time a web project is an exercise in compromises. Different stakeholders may have different and competing priorities that may impact the size of your images’ payload and your initial page load time.</p>
+<p>With these numbers (weight and requests) on hand, we can make the case for not loading images until they are needed; that way we only load the things we need when we need them and not before and we prevent waste:</p>
+<ul>
+<li>Wasted data. On limited data plans loading stuff the user never sees could effectively be a waste of their money</li>
+<li>Wasted system resources like CPU, and battery. After a media resource is downloaded, the browser must decode it and render its content in the viewport. Rendering stuff that the user may not see is unnecessarily wasteful</li>
+</ul>
+<h2 id="the-how">The how</h2>
+<p>The code below is adapted from Jeremy Wagner’s <a href="https://developers.google.com/web/fundamentals/performance/lazy-loading-guidance/images-and-video/">article</a> in Google Developers and it’s a develoment from the script that I used in <a href="https://publishing-project.rivendellweb.net/intersection-observers-making-it-easier-to-lazy-load-content/">Intersection Observers: Making it easier to lazy load content</a> as the technology is now better supported in browsers, but Safari (Desktop and iOS) and Edge lag behind in support. So we’ll have to come up with a polyfill strtegy or a way to undo the changes we made to our images to lazy load them.</p>
+<p>Both the native and polyfilled versions require some changes to the way you markup your images in HTML. If you’re using a single image:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>figure</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>placeholder.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image-to-lazy-load.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Alternative text to describe image.<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>figcaption</span><span class="token punctuation">></span></span>Image description<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>figcaption</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>figure</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>If you’re using <code>srcset</code> attributes in your images:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>figure</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>placeholder.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">data-srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image-to-lazy-load-2x.jpg 2x, image-to-lazy-load-1x.jpg 1x<span class="token punctuation">"</span></span> <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image-to-lazy-load-1x.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Alternative text to describe image.<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>figcaption</span><span class="token punctuation">></span></span>Image description<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>figcaption</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>figure</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>With the markup in place we can now look at the code. It does the following things</p>
+<ol>
+<li>It collects all the images with class lazy (<code>img.lazy</code>)</li>
+<li>It checks whether we support Intersection Observers. Because browsers may only partially support observers, we need to test for each individual item that we want to use</li>
+<li>Create a new Intersection Observer object</li>
+<li>For each of our lazy images</li>
+<li>If it’s intersecting, meaning that it’s in the observer’s range: change add the <code>src</code> and <code>srcset</code> attributes and give them the values of the <code>data.src</code> and <code>data.srcset</code> attributes respectively. Remove the <code>lazy</code> class and unobserve the image</li>
+<li>For each image with the <code>.lazy</code> class observe it</li>
+<li>If the browser doesn’t support Intersection Observers then change add the <code>src</code> and <code>srcset</code> attributes and give them the values of the <code>data.src</code> and <code>data.srcset</code> attributes respectively and remove the <code>lazy</code> class</li>
+</ol>
+<pre class="language-js"><code class="language-js">document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"DOMContentLoaded"</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> lazyImages <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token operator">...</span>document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">"img.lazy"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 1</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"IntersectionObserver"</span> <span class="token keyword">in</span> window <span class="token operator">&amp;&amp;</span> <span class="token string">"IntersectionObserverEntry"</span> <span class="token keyword">in</span> window <span class="token operator">&amp;&amp;</span> <span class="token string">"intersectionRatio"</span> <span class="token keyword">in</span> window<span class="token punctuation">.</span><span class="token class-name">IntersectionObserverEntry</span><span class="token punctuation">.</span>prototype<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//2</span>
+    <span class="token keyword">let</span> lazyImageObserver <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IntersectionObserver</span> <span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">entries<span class="token punctuation">,</span> observer</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 3</span>
+      entries<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">entry</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 4</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>entry<span class="token punctuation">.</span>isIntersecting<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 5</span>
+          <span class="token keyword">let</span> lazyImage <span class="token operator">=</span> entry<span class="token punctuation">.</span>target<span class="token punctuation">;</span>
+          lazyImage<span class="token punctuation">.</span>src <span class="token operator">=</span> lazyImage<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span>
+          lazyImage<span class="token punctuation">.</span>srcset <span class="token operator">=</span> lazyImage<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>srcset<span class="token punctuation">;</span>
+          lazyImage<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">"lazy"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          lazyImageObserver<span class="token punctuation">.</span><span class="token function">unobserve</span><span class="token punctuation">(</span>lazyImage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    lazyImages<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">lazyImage</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 6</span>
+      lazyImageObserver<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>lazyImage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span> <span class="token comment">// 7</span>
+    lazyImages<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">lazyImage</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      lazyImage<span class="token punctuation">.</span>src <span class="token operator">=</span> lazyImage<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span>
+      lazyImage<span class="token punctuation">.</span>srcset <span class="token operator">=</span> lazyImage<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>srcset<span class="token punctuation">;</span>
+      lazyImage<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">"lazy"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This is an all or nothing approach. Either we support Intersection observers and use them or don’t and provide  a hard fallback for browsers that don’t support them.</p>
+<h3 id="lazy-loading-images-in-css">Lazy loading images in CSS</h3>
+<p>One of the things I hadn’t seen before is how to lazy load images that are loaded from CSS. Take for example the code below that uses an image  for the element’s background</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.lazy-background</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* Placeholder image */</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"hero-placeholder.jpg"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+</code></pre>
+<p>We then add a second element with the <code>visible</code> class</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.lazy-background.visible</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* The final image */</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"hero.jpg"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>And finallyt we use JavaScript to manipulate the elements to add the visible class and make it visible. The script does the following:</p>
+<ol>
+<li>Create an array for all elements that have a CSS background</li>
+<li>Create a new Intersection Observer</li>
+<li>For every element in the array: Add the class <code>visible</code> and unobserve the element</li>
+<li>Observe all elements with the <code>.lazy-background</code> class</li>
+<li>If the browser doesn’t support Intersection observer then for each element in the <code>lazyBackground</code> array: Add the visible class</li>
+</ol>
+<pre class="language-js"><code class="language-js">document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"DOMContentLoaded"</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">var</span> lazyBackgrounds <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token operator">...</span>document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">".lazy-background"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 1</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"IntersectionObserver"</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 2</span>
+    <span class="token keyword">let</span> lazyBackgroundObserver <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IntersectionObserver</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">entries<span class="token punctuation">,</span> observer</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      entries<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">entry</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 3</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>entry<span class="token punctuation">.</span>isIntersecting<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          entry<span class="token punctuation">.</span>target<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">"visible"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          lazyBackgroundObserver<span class="token punctuation">.</span><span class="token function">unobserve</span><span class="token punctuation">(</span>entry<span class="token punctuation">.</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    lazyBackgrounds<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">lazyBackground</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 4</span>
+      lazyBackgroundObserver<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>lazyBackground<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    entries<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">entry</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 5</span>
+      entry<span class="token punctuation">.</span>target<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">"visible"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Again this is an all-or-nothing approach. Either we support observers and progressively enhance the application or we don’t and skuip the process altogether.</p>
+<h3 id="fallback">Fallback</h3>
+<p>While we have a working version of our lazy loader the all-or-othing approach may not be what we need, particularly in image heavy sites or sites with fewer, larger images.</p>
+<p>I’ve chosen <a href="https://github.com/malchata/yall.js/blob/master/README.md">yall.js</a> (Yet Another Lazy Loader) as my polyfill. It saves me from having to make changes to the markup I already changed to get Intersection Observers working.</p>
+<p>In order to use it at the most basic level you need to load and initialize the script like so:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>js/yall.min.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"DOMContentLoaded"</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">yall</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      observeChanges<span class="token operator">:</span> <span class="token boolean">true</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>When you initialize the library you can pass in an options object as the second parameter. The options currently available are:</p>
+<ul>
+<li><strong>lazyClass <em>(default: “lazy”)</em>:</strong> The element class used by yall.js to find elements to lazy load</li>
+<li><strong>lazyBackgroundClass <em>(default: “lazy-bg”)</em></strong>: The element class used by yall.js to find elements to lazy load CSS background images for</li>
+<li><strong>lazyBackgroundLoaded <em>(default: “lazy-bg-loaded”)</em></strong>: When yall.js finds elements using the class specified by lazyBackgroundClass, it will remove that class and put this one in its place. This will be the class you use in your CSS to bring in your background image when the affected element is in the viewport</li>
+<li><strong>throttleTime <em>(default: 200)</em></strong>: In cases where Intersection Observer throttleTime allows you to control how often the code standard event handlers used as replacement fire in milliseconds</li>
+<li><strong>idlyLoad <em>(default: false)</em></strong>: If set to true, requestIdleCallback is used to optimize use of browser idle time to limit monopolization of the main thread
+<ul>
+<li>This setting is ignored if set to true in a browser that doesn’t support requestIdleCallback</li>
+<li>Enabling this could cause lazy loading to be delayed significantly more than you might be okay with</li>
+<li>Test extensively, and consider increasing the threshold option if you set this option to true</li>
+</ul>
+</li>
+<li><strong>idleLoadTimeout <em>(default: 100)</em></strong>: This option sets a deadline in milliseconds for requestIdleCallback to kick off lazy loading for an element</li>
+<li><strong>threshold <em>(default: 200)</em></strong>: The threshold (in pixels) for how far elements need to be within the viewport to begin lazy loading.</li>
+<li><strong>observeChanges <em>(default: false)</em></strong>: Use a Mutation Observer to examine the DOM for changes.
+<ul>
+<li>This is useful if you want to lazy load resources for markup injected into the page after initial page render</li>
+<li>This option is ignored if set to true in a browser that doesn’t support Mutation Observer</li>
+</ul>
+</li>
+<li><strong>observeRootSelector <em>(default: “body”)</em></strong>: If observeChanges is set to true, the value of this string is fed into <code>document.querySelector</code> to limit the scope in which the Mutation Observer looks for DOM changes
+<ul>
+<li>The <code>&lt;body&gt;</code> element is used by default, but you can confine the observer to any valid CSS selector (e.g., <code>#main-wrapper</code>)</li>
+</ul>
+</li>
+<li><strong>mutationObserverOptions <em>(default: {childList: true})</em></strong>: Options to pass to the MutationObserver instance. Read this <a href="https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver#MutationObserverInit">MDN guide</a> for a list of options.</li>
+</ul>
+<p>Pay particular attention to the <code>lazyClass</code>, <code>lazyBackgroundClass</code>, and <code>lazyBackgroundLoaded</code> configuration parameters. These are the ones most likely to change.</p>
+<h2 id="things-to-be-careful-about">Things to be careful about</h2>
+<p>There are a few things to consider when lazy loading images and, depending on your images and your page, one or more may come back to bite you.</p>
+<h3 id="no-js">No JS</h3>
+<p>As unlikely as it is we may still find instances where JavaScript is not enabled. To deal with these use <code>&lt;noscript&gt;</code> to provide an alternative that will work without JavaScript</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!--
+  An image that eventually gets lazy loaded by JavaScript --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span>  <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span>
+      <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>placeholder-image.jpg<span class="token punctuation">"</span></span>
+      <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image-to-lazy-load.jpg<span class="token punctuation">"</span></span>
+      <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>I<span class="token punctuation">'</span>m an image!<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- An image that is shown if JavaScript is turned off --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>noscript</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image-to-lazy-load.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>I<span class="token punctuation">'</span>m an image!<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>noscript</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Another way to deal with No JavaScript is to manually add a <code>no-js</code> class to the root of the page.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+</code></pre>
+<p>And then use JavaScript to remove it when the page is loaded and we know JavaScript is working.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!--
+  Remove the no-js class on the &lt;html>
+  element if JavaScript is on
+--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span>classList<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token string">"no-js"</span><span class="token punctuation">)</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>this script will remove the no-js class from the <code>&lt;html&gt;</code> element as the page loads, but if JavaScript is turned off, this will never happen. From there, you can add some CSS that hides elements with a class of lazy when the no-js class is present on the <code>&lt;html&gt;</code> element:</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* Hide .lazy elements if JavaScript is off */</span>
+<span class="token selector">.no-js .lazy</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>It’s your decision as to which alternative to use. If you load the images with <code>&lt;noscript&gt;</code> then you lose the benefits of lazy loading but you don’t load assets that may delay the loading of the page. But if you hide them completely you lose content that may be important.</p>
+<h3 id="take-care-of-the-all-mighty-fold">Take care of the all-mighty fold</h3>
+<p>We may be tempted to lazy load everything in the page using JavaScript but we must resist the temptation. Assets that appear <a href="https://www.optimizely.com/optimization-glossary/above-the-fold/">above the fold</a> should not be lazy loaded as they should be considered critical and loaded normally.</p>
+<p>The reasoning behind loading critical assets normally is that we don’t want to delay their load. The lazy loading strategies that we’ve covered so far wait until the DOM content is loaded and scripts have finished executing. For the resources the users will see first this is not always acceptable as it is for below the fold content</p>
+<p>Loading content above the fold quickly becomes harder when the fold changes according the devices you use. One way to address this is to let your analytics tools help you figure out what kind of devices your users are accessing your site with. CrossBrowserTesting <a href="https://crossbrowsertesting.com/blog/development/use-google-analytics-find-devices-customers-use/">gives an example</a> of how this would work with Google Analytics.</p>
+<h3 id="softening-the-lazy-loading-boundaries">Softening the lazy loading boundaries</h3>
+<p>You may want to change the conditions that trigger lazy loading. It may work better if you build a buffer zone so that images begin loading before the user scrolls them into the viewport.</p>
+<p>The intersection observer API allows you to specify a <code>rootMargin</code> property in an options object when you create a new <code>IntersectionObserver</code>. This effectively gives elements a buffer, which triggers lazy loading behavior before the element is in the viewport:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> lazyImageObserver <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IntersectionObserver</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">entries<span class="token punctuation">,</span> observer</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Lazy loading image code goes here</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  rootMargin<span class="token operator">:</span> <span class="token string">"0px 0px 256px 0px"</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The value for rootMargin is similar to the values you’d specify for a CSS margin property. In this case, we’re broadening the bottom margin of the observing element by 256 pixels. This causes the callback function to execute when an image element is within 256 pixels of the viewport. The image will begin to load before the user actually sees it.</p>
+<h3 id="layout-shifting-and-placeholders">Layout shifting and placeholders</h3>
+<p>Lazy loading media can cause shifting in the layout if placeholders aren’t used. These changes can be disorienting for users and trigger expensive DOM layout operations that consume system resources and contribute to jank. At a minimum, consider using a solid color placeholder occupying the same dimensions as the target image, or techniques such as LQIP or SQIP that hint at the content of a media item before it loads.</p>
+<p>For <code>&lt;img&gt;</code> tags, src should initially point to a placeholder until that attribute is updated with the final image URL. Use the poster attribute in a <code>&lt;video&gt;</code> element to point to a placeholder image. Additionally, use width and height attributes on both <code>&lt;img&gt;</code> and <code>&lt;video&gt;</code> tags. This ensures that transitioning from placeholders to final images won’t change the rendered size of the element as media loads.</p>
+<h3 id="image-decoding-delays">Image decoding delays</h3>
+<p>Loading large images in JavaScript and dropping them into the DOM can tie up the main thread, causing the user interface to be unresponsive for a short period of time while decoding occurs. Asynchronously decoding images using the decode method prior to inserting them into the DOM can cut down on this sort of jank, but beware: It’s not available everywhere yet, and it adds complexity to lazy loading logic. If you want to use it, you’ll need to check for it. Below shows how you might use <code>Image.decode()</code> with a fallback:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> newImage <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Image</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+newImage<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">"my-awesome-image.jpg"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"decode"</span> <span class="token keyword">in</span> newImage<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Fancy decoding logic</span>
+  newImage<span class="token punctuation">.</span><span class="token function">decode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    imageContainer<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>newImage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Regular image load</span>
+  imageContainer<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>newImage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li><a href="https://jeremenichelli.github.io/2016/04/quick-introduction-to-the-intersection-observer-api/">Quick introduction to the Intersection Observer API</a></li>
+<li><a href="https://developers.google.com/web/updates/2016/04/intersectionobserver">IntersectionObserver’s Coming into View</a></li>
+<li><a href="https://github.com/WICG/IntersectionObserver/blob/gh-pages/explainer.md">IntersectionObserver Explainer</a> from WCIG</li>
+<li><a href="https://wicg.github.io/IntersectionObserver/">IntersectionObserver Spec Work</a></li>
+<li><a href="https://developers.google.com/web/updates/2016/04/intersectionobserver">Google Developers’ Article</a></li>
+<li><a href="http://developer.telerik.com/featured/lazy-loading-images-on-the-web/">Lazy Loading Images on the Web</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

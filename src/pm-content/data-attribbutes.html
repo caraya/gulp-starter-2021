@@ -1,0 +1,96 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="working-with-data-attributes">Working with data attributes</h1>
+<p>Until we got CSS variables (and now Custom Properties) there was one way of setting custom attributes in an HTML element or directly in Javascript (note the difference with CSS variables) that can be later used from Javascript to change the value of the page: <strong>custom data attributes</strong>.</p>
+<p>According to the HTML standard <a href="https://html.spec.whatwg.org/#embedding-custom-non-visible-data-with-the-data-*-attributes">data attributes specification</a></p>
+<blockquote>
+<p>Custom data attributes are intended to store custom data, state, annotations, and similar, private to the page or application, for which there are no more appropriate attributes or elements.</p>
+<p>These attributes are not intended for use by software that is not known to the administrators of the site that uses the attributes. For generic extensions that are to be used by multiple independent tools, either this specification should be extended to provide the feature explicitly, or a technology like microdata should be used (with a standardized vocabulary).</p>
+</blockquote>
+<p><em>Data attributes are not the same as CSS custom attributes (Houdini) and CSS variables. The first is defined in HTML and can be used in either CSS or Javascript.</em></p>
+<p><em>CSS variables and custom attributes are defined in Javascript but, primarily, used in CSS to add or modify behavior.</em></p>
+<p>In this post we’ll explore some uses for data attributes and how can we use them both in CSS and Javascript.</p>
+<h2 id="sample-use-cases">Sample Use Cases</h2>
+<p>We use data attributes in situations where a class or ID attribute would not be appropriate because it would add information that is not related to styling the content associated with it.</p>
+<p>Each attribute that we want to add to an element means another CSS class to add. More classes make it harder to parse the attribute using Javascript.</p>
+<p>If your class starts with a number you’ll have to do  more work in CSS to parse it (CSS selectors can only start with letters, dashes or underscores). According to the latest <a href="https://www.w3.org/TR/CSS22/syndata.html#characters">CSS 2 specification</a></p>
+<blockquote>
+<p>In CSS, identifiers (including element names, classes, and IDs in selectors) can contain only the characters [a-zA-Z0-9] and ISO 10646 characters U+0080 and higher, plus the hyphen (-) and the underscore (_); they cannot start with a digit, two hyphens, or a hyphen followed by a digit. Identifiers can also contain escaped characters and any ISO 10646 character as a numeric code</p>
+</blockquote>
+<p>For example, let’s say that we’re marking up an album of our favorite artists. We want to provide the title and duration for each song… The easiest way to do it would be to mark the data as an ordered list and tell the users what the time stands for or let them figure it out.</p>
+<p>The markup for the initial list looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ol</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Force Ten	4:31<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Time Stand Still	5:09<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Open Secrets	5:38<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Second Nature	4:36<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Prime Mover	5:19<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Lock and Key	5:09<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Mission	5:16<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Turn the Page	4:55<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>Tai Shan	4:17<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>High Water	5:33<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ol</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We can hide the song duration without removing it by adding it as a data attribute. I choose to do it with data attributes because there are no other valid attributes in HTML that CSS will accept as valid.</p>
+<p>So the second iteration of the list looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ol</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>4:31<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Force Ten<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5:09<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Time Stand Still<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5:38<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Open Secrets<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>4:36<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Second Nature<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5:19<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Prime Mover<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5:09<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Lock and Key<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5:16<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Mission<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>4:55<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Turn the Page<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>4:17<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Tai Shan<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">data-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5:33<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>High Water<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ol</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="using-data-attributes-from-css">Using data attributes from CSS</h2>
+<p>Using CSS we’ll add the duration of each song using the <code>after</code> pseudo attribute. This will add the string <code>Duration: </code> and the value of the <code>data-duration</code> attribute at the end of each item.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">li:after</span> <span class="token punctuation">{</span>
+  <span class="token property">content</span><span class="token punctuation">:</span> <span class="token string">' Duration: '</span> <span class="token function">attr</span><span class="token punctuation">(</span>data-duration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 700<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Example using CSS is in this <a href="https://codepen.io/caraya/pen/rZPEEx">Codepen</a></p>
+<h2 id="using-data-attributes-from-javascript">Using data attributes from Javascript</h2>
+<p>Javascript is a little more complex but gives us more chances to modify the data that we work with.</p>
+<p>We first capture all the <code>li</code> elements and, in a separate step, we convert the collection of items into an array using destructuring. We do this because <em>the HTML Collection of li items is not an array</em> and we can’t run array methods in it.</p>
+<p>Once we have the array we use <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach">.forEach</a> to execute a function for each member of the array. In this function we change the inner HTML content of the item to a string literal containing the existing text, a string, and the value of the item’s duration.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> items <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementsByTagName</span><span class="token punctuation">(</span><span class="token string">'li'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> itemsArray <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">...</span>items<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+itemsArray<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">item</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  item<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>item<span class="token punctuation">.</span>innerText<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">.
+  Duration: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>item<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>duration<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Example available in this <a href="https://codepen.io/caraya/pen/VGgoQG">Codepen</a></p>
+<h2 id="other-ideas">Other ideas</h2>
+<p>These are fairly contrived examples using multiple items and modifying the items at the same time.</p>
+<p>Other uses may include animation instructions for specific items, grouping of different items into categories and give them different colors or other attributes.</p>
+<p>The possibilities are endless.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li><a href="https://www.sitepoint.com/how-why-use-html5-custom-data-attributes/">How You Can Use HTML5 Custom Data Attributes and Why</a></li>
+<li><a href="https://html.spec.whatwg.org/#embedding-custom-non-visible-data-with-the-data-*-attributes">data attributes specification</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

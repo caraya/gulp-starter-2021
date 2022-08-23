@@ -1,0 +1,119 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="postcss-deep-dive%3A-building-a-postcss-workflow">PostCSS Deep Dive: Building a PostCSS workflow</h1>
+<p>For a while, SASS was all we needed. I was OK with it only being available as a Ruby Gem (the original implementation was written in Ruby), then I was happy when LibSASS came around (written in C) and might have even been OK with the Dart implementation becoming the reference implementation and the SASS team deprecating the Ruby and C implementations, eventually stopping work on them altogether.</p>
+<p>But one thing that SASS has never done is give you the possibility of testing new CSS features like Babel does for Javascript.</p>
+<p>I first head of <a href="https://postcss.org/">PostCSS</a> when Autoprefixer became a processor for PostCSS rather than a standalone tool and the tooling used PostCSS to run.</p>
+<p>I’ve always wanted to move my worflow to PostCSS and now think it’s time to do it. Other than the program-like functions (<code>@if</code>/<code>@else</code>, <code>for</code> and others) there is little that we can’t do with a different preprocessor and, eventually, with CSS alone.</p>
+<p>So in this post I will evaluate what it would take to move to PostCSS based on a given set of requirements.</p>
+<h2 id="feature-set">Feature set</h2>
+<p>Here’s the feature set I want to implement if possible</p>
+<ul>
+<li>A PostCSS equivalent to Babel’s <code>preset-env</code></li>
+<li>Color manipulation functions equivalent to SASS @lighten and @darken</li>
+<li>Nesting
+<ul>
+<li>Nested selectors</li>
+<li>Relationship notation</li>
+</ul>
+</li>
+<li>Variables
+<ul>
+<li>Houdini-style CSS Custom Properties using @property</li>
+</ul>
+</li>
+</ul>
+<p>There is also a nice to have set of features:</p>
+<ul>
+<li>function-like conditionals and iteraators, similar to what we can do in SASS</li>
+<li>Mixins</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>The first thing to do is decide what features we want to implement.</p>
+<p>I realized that, rather than implement every single feature from the start, it would be better to start with the most important ones and work my way down.
+Based on the feature lists that I want to implement the initial list of features looks like this:</p>
+<p><a href="https://github.com/postcss/autoprefixer">Autoprefixer</a>
+: Adds vendor prefixes to properties that require them based on a specified list of browsers and versions
+: The plugin uses browserslist to create and access the list, and caniuse to provide a list of browsers that support a given feature
+: Because <code>preset-env</code> also supports Autoprefixer, I don’t know if I want to leave it as a separate package</p>
+<p><a href="https://github.com/postcss/postcss-nested">postcss-nested</a>
+: nested rules and at-rules. It provides a close aproximation to what SASS does with nested selectors and relationship notation</p>
+<p><a href="https://github.com/hudochenkov/postcss-sorting">postcss-sorting</a>
+: Sorts the rules inside selectors for you so you don’t have to do it yourself manually</p>
+<p><a href="https://github.com/TrySound/postcss-easy-import">postcss-easy-import</a>
+: Inline the contents of imported files reducing the number of request and potentially improving performance</p>
+<h2 id="implementation%3A-gulp-task-v1">Implementation: Gulp task V1</h2>
+<p>The first pass of the Gulp-based workflow is to implement the basic set of features listed in the previous section.</p>
+<p>The code below assumes that all the plugins are installed.</p>
+<p>The first step, as usual, is to set up the modules that we want to use. Gulp and sourcemaps are at the top and then we import the PostCSS plugins.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> sourcemaps <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-sourcemaps'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> postcss <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-postcss'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> autoprefixer <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'autoprefixer'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> importer <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-easy-import'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> nesting <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-nesting'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> simpleVars <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-simple-vars'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> sorting <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'postcss-sorting'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The next step is to create the list of processors we will use and any necessary configuration.</p>
+<p>The importer plugin uses the <code>glob</code> attribute to indicate that we’re allowing globs to be used in import statements.</p>
+<p>The next plugin is Autoprefixer. We define the browserslist attribute in package.json to specify the browsers we want to support. Even though my primary usage is in CSS, I’m following the guidance from <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a> so that Javascript tools that use Browserslist will work properly.</p>
+<p>The next plugin is the sorting plugin. Here we have to be specific about the grouping of different rules, how we want the properties sorted and what to do with properties that are unspecified.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">const processors = [
+  importer(</span><span class="token punctuation">{</span>
+    <span class="token property">glob</span><span class="token punctuation">:</span> true
+  <span class="token punctuation">}</span><span class="token selector">),
+  simpleVars,
+  nesting,
+  autoprefixer,
+  sorting(</span><span class="token punctuation">{</span>
+    <span class="token property">order</span><span class="token punctuation">:</span> [
+      <span class="token string">'custom-properties'</span><span class="token punctuation">,</span>
+      <span class="token string">'dollar-variables'</span><span class="token punctuation">,</span>
+      <span class="token string">'declarations'</span><span class="token punctuation">,</span>
+      <span class="token string">'at-rules'</span><span class="token punctuation">,</span>
+      <span class="token string">'rules'</span><span class="token punctuation">,</span>
+    ]<span class="token punctuation">,</span>
+    <span class="token string">'properties-order'</span><span class="token punctuation">:</span> <span class="token string">'alphabetical'</span><span class="token punctuation">,</span>
+    <span class="token string">'unspecified-properties-position'</span><span class="token punctuation">:</span> <span class="token string">'bottom'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+]<span class="token punctuation">;</span>
+</code></pre>
+<p>That is the build of the work. The rest is just defining a Gulp task that uses PostCSS, the plugins we just specified and sourcemaps to build the production CSS.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">gulp.task('css', () =></span> <span class="token punctuation">{</span>
+  return gulp.<span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/css/main.css'</span><span class="token punctuation">)</span>
+    .<span class="token function">pipe</span><span class="token punctuation">(</span>sourcemaps.<span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    .<span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">postcss</span><span class="token punctuation">(</span>processors<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    .<span class="token function">pipe</span><span class="token punctuation">(</span>sourcemaps.<span class="token function">write</span><span class="token punctuation">(</span><span class="token string">'./'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    .<span class="token function">pipe</span><span class="token punctuation">(</span>gulp.<span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'build/static/css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="incorporating-into-a-fractal-design-system">Incorporating into a Fractal design system</h2>
+<p>To run this task in a Fractal-based design system, we need to complete the following steps:</p>
+<ol>
+<li>Make sure you have a Gulp-based build system, if not you need to se one up</li>
+<li>Copy the code we discussed earlier and modify it to suite your needs</li>
+<li>Install the required plugins</li>
+</ol>
+<p>Once these steps are completed you can run <code>gulp -T</code> to get a list of the tasks. Gulp parses the <code>gulpfile.js</code> file before rendering the list of tasks so it will report if there are any syntax errors.</p>
+<p>After testing for syntax, you can run <code>gulp css</code> to build the CSS. This is where the PostCSS plugin erros are likely to happen. Repeat as necessary until there are no errors and the task completes.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>Now that we have working code we can look at the next steps and get fancier with what we do with PostCSS.</p>
+<p>The next post will look at these additional features, how necessary they are and how to incorporate them into the existing PostCSS Workflow</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

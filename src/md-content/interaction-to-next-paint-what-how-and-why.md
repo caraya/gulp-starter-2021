@@ -1,3 +1,3 @@
-# Interaction to next pain, What, How and Why
+# Interaction to next paint: New performance metric
 
 <https://web.dev/inp/>
