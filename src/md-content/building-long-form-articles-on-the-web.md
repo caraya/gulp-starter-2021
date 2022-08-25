@@ -219,14 +219,13 @@ The default way to use `@font-face` looks like this:
 
 We specify the `font-family` name that we will use throughout the stylesheet.
 
-Then we specify a `src` attribute with one or more locations for the file. In this example I'm using a [url](https://developer.mozilla.org/en-US/docs/Web/CSS/url) function to specify the location of the font relative to the stylesheet.
+Then we specify a `src` attribute with one or more locations for the file. In this example I'm using a [url](https://developer.mozilla.org/en-US/docs/Web/CSS/url) function to specify the location of the font relative to the stylesheet. The format tells the browser the kind of font it represents.
 
 I specify the weight of the font so that the browser will know what file to associate with what weight declaration.
 
 Specifying the style for the font tells the browser if the font is italic or not.
 
 The final declaraction is [font-display](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display). This will control how the font will behave based on when the browser finished downloading the font. The `swap` value will cause the font to swap in with the system font once the web font is downloaded.
-
 
 You will have to load each font separately with its own `@font-face`. There should be at least four different `@font-face` declarations per font that you want to use.
 
@@ -238,7 +237,7 @@ You will have to load each font separately with its own `@font-face`. There shou
 
 This will prevent [faux bold](https://alistapart.com/article/say-no-to-faux-bold/) and italics. This is wher there is no font available in the weight or style you want. The browser will then fake the bold or italic in order to show what it thinks the designer wants.
 
-Another way to combat faux bold, italics and small caps is to ue the [font-synthesis](https://developer.mozilla.org/en-US/docs/Web/CSS/font-synthesis) that allows developers to control whether the browser synthesis algorithm applies to any/all of bold (weight), italics (style) or small caps.
+A way to combat faux bold, italics and small caps is to ue the [font-synthesis](https://developer.mozilla.org/en-US/docs/Web/CSS/font-synthesis) that allows developers to control whether the browser synthesis algorithm applies to any/all of bold (weight), italics (style) or small caps.
 
 ```css
 @font-face {
@@ -250,7 +249,11 @@ Another way to combat faux bold, italics and small caps is to ue the [font-synth
 }
 ```
 
-The `@font-face` declaration for []
+The `@font-face` declaration for [variable fonts](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide) is similar to the previous example with some differences.
+
+The values for `font-weight` and `font-stretch` take a range of two values for the respective property.
+
+Instead of multiples of 100, you can use any value in the range. In a variable font, `font-weight: 451` and `font-stretch: 75%` are valid values in a selector.
 
 ```css
 @font-face {
@@ -261,6 +264,8 @@ The `@font-face` declaration for []
     font-style: normal;
 }
 ```
+
+The value for `font-style` will depend on whether the font provides italics, slant
 
 You would then use the font like normal in your CSS with the addition of being able to use more granular values for `font-weight` and `font-stretch`
 
