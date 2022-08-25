@@ -2,15 +2,23 @@
 /* eslint-disable max-len */
 /* eslint-disable quotes */
 
-
 'use strict';
 // Require Gulp first
 const gulp = require('gulp');
-//  packageJson = require('./package.json'),
 // Load plugins
 const $ = require('gulp-load-plugins')({
   lazy: true,
 });
+
+// Utilities
+const del = require('del');
+// Act only on newer files
+const newer = require('gulp-newer');
+// Inserts into pipeline
+const tap = require('gulp-tap');
+// Replace extensions
+const replaceExt = require('replace-ext');
+
 // Static Web Server stuff
 const browsersync = require('browser-sync').create();
 // const reload = browsersync.reload;
@@ -19,6 +27,7 @@ const historyApiFallback = require('connect-history-api-fallback');
 // postcss
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
+
 // SASS
 const sassProc = require('gulp-sass')(require('sass'));
 
@@ -32,6 +41,7 @@ const path = require('path');
 // of this build file
 const squoosh = require('gulp-libsquoosh');
 
+<<<<<<< Updated upstream
 // Utilities
 const del = require('del');
 // Act only on newer files
@@ -43,17 +53,26 @@ const replaceExt = require('replace-ext');
 
 // MARKDOWN AND PLUGINS
 // Testing Markdown configuration and whether this will be enough
+=======
+// MARKDOWN AND PLUGINS
+>>>>>>> Stashed changes
 const markdownIt = require('markdown-it');
 
 // load the plugins
 const abbr = require("markdown-it-abbr");
+const admonition = require("markdown-it-admon");
 const alerts = require("markdown-it-alerts");
 const anc = require("markdown-it-anchor");
 const attrs = require("markdown-it-attrs");
 const embed = require("markdown-it-block-embed");
+const dl = require("markdown-it-deflist");
 const fn = require("markdown-it-footnote");
 const figs = require("markdown-it-implicit-figures");
 const kbd = require("markdown-it-kbd");
+<<<<<<< Updated upstream
+=======
+// const mermaid = require("markdown-it-mermaid");
+>>>>>>> Stashed changes
 const prism = require("markdown-it-prism");
 const toc = require("markdown-it-table-of-contents");
 const list = require("markdown-it-task-lists");
@@ -95,6 +114,58 @@ md.use(mermaid);
 /**
  * @name markdownToHtml
  * @description Converts markdown to HTML using gulp-markdown-it and a set of plugins.
+ * @param {*} file
+ * @return {void}
+ */
+function markdownToHtml(file) {
+  const result = md.render(file.contents.toString());
+  file.contents = new Buffer(result);
+  file.path = replaceExt(file.path, '.html');
+  return;
+}
+
+// Instantiate Markdown-it
+const mdConfig = {
+  options: {
+    preset: 'commonmark',
+    html: true,
+    xhtmlOut: true,
+    linkify: true,
+    typographer: true,
+  },
+};
+
+const md = markdownIt(mdConfig)
+    .use(abbr) // Doesn't require special configuration
+    .use(anc, {
+      permalink: true,
+    })
+    .use(alerts)
+    .use(attrs) // Doesn't require special configuration
+    .use(embed, {
+      containerClassName: 'video',
+    })
+    .use(fn) // Doesn't require special configuration
+    .use(figs, {
+      dataType: false,
+      figcaption: true,
+      tabindex: true,
+      link: false,
+    })
+    .use(kbd) // Doesn't require special configuration
+    // The mermaid plugin is currently not working
+    // .use(mermaid) // Doesn't require special configuration
+    .use(prism)
+    // Include h1, h2 and h3 elements in the TOC
+    .use(toc, {
+      includeLevel: [1, 2, 3],
+    })
+    .use(list)
+    .use(dl)
+    .use(admonition);
+/**
+ * @name markdownToHtml
+ *
  * @param {*} file
  * @return {void}
  */
@@ -433,7 +504,7 @@ function imageCompress() {
 // ------------
 
 /**
- * @name copyFonts
+  * @name copyFonts
  * @description Copies fonts into the distribution directory.
  * @return {void}
  *
