@@ -1,8 +1,8 @@
-<h1 id="automating-image-work" tabindex="-1">Automating image work</h1>
+<h1 id="automating-image-work">Automating image work</h1>
 <p>Since we are unlikely to compress images and less likely to create the individual images necessary to do a good work with responsive images, we have to leverage technologies to do it for us.</p>
 <p>I use Gulp to build sites so I’ve incorporated image processing into my development and production pipeline.</p>
 <p>There are two tasks for working with images in Gulp. I will cover them separately and explain the decisions I’ve made about them.</p>
-<h2 id="install-and-configure-the-plugins" tabindex="-1">Install and configure the plugins</h2>
+<h2 id="install-and-configure-the-plugins">Install and configure the plugins</h2>
 <p>All these plugins are installed with Node. Like we do in all Node projects we first initialize an empty <code>package.json</code>. The <code>--yes</code> flag will accept all default parameters.</p>
 <pre class="language-js"><code class="language-js">npm init <span class="token operator">--</span>yes
 </code></pre>
@@ -23,32 +23,32 @@ gulp<span class="token operator">-</span>responsive
 <span class="token keyword">const</span> webp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'imagemin-webp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> responsive <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-responsive'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="process-images" tabindex="-1">Process Images</h2>
+<h2 id="process-images">Process Images</h2>
 <p>The first function is to compress images using <a href="https://github.com/imagemin/imagemin">Imagemin</a> and the <a href="https://github.com/sindresorhus/gulp-imagemin">gulp-imagemin</a> plugin.</p>
 <p>This will handle SVG, GIF, PNG, JPG and WebP images.</p>
 <pre class="language-js"><code class="language-js">unction <span class="token function">processImages</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/images/originals/**'</span><span class="token punctuation">)</span>
   <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">imagemin</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
-    imagemin<span class="token punctuation">.</span><span class="token function">gifsicle</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">interlaced</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  	imagemin<span class="token punctuation">.</span><span class="token function">optipng</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">optimizationLevel</span><span class="token operator">:</span> <span class="token number">5</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    imagemin<span class="token punctuation">.</span><span class="token function">gifsicle</span><span class="token punctuation">(</span><span class="token punctuation">{</span>interlaced<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  	imagemin<span class="token punctuation">.</span><span class="token function">optipng</span><span class="token punctuation">(</span><span class="token punctuation">{</span>optimizationLevel<span class="token operator">:</span> <span class="token number">5</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
 	  imagemin<span class="token punctuation">.</span><span class="token function">svgo</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-		  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
-			  <span class="token punctuation">{</span><span class="token literal-property property">removeViewBox</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-			  <span class="token punctuation">{</span><span class="token literal-property property">cleanupIDs</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">}</span>
+		  plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
+			  <span class="token punctuation">{</span>removeViewBox<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+			  <span class="token punctuation">{</span>cleanupIDs<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">}</span>
       <span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">use</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    use<span class="token operator">:</span> <span class="token punctuation">[</span>
       <span class="token function">mozjpeg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-      <span class="token function">webp</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">quality</span><span class="token operator">:</span> <span class="token number">85</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token function">webp</span><span class="token punctuation">(</span><span class="token punctuation">{</span>quality<span class="token operator">:</span> <span class="token number">85</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
   <span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
   <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'src/images'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Although not strictly necessary, I chose to be explicit as to what plugins I’m using and what parameters each of hese plugins uses.</p>
 <p>Gifsicle, Optipng and SVGO are bundled with Imagemin so we can just use them as is. <a href="https://github.com/imagemin/imagemin-mozjpeg">Mozjpeg</a> and <a href="https://github.com/imagemin/imagemin-webp">WebP</a> are additional libraries that add functionality in addition to or instead of the default bundled libraries.</p>
-<h2 id="generate-responsive-images" tabindex="-1">Generate Responsive Images</h2>
+<h2 id="generate-responsive-images">Generate Responsive Images</h2>
 <p>The next step is to generate a set of responsive images.</p>
 <p>The idea is that for each JPG and PNG image we will generate a set of responsive images. I’ve reduced the code example below to a single size with 2 different resolutions.</p>
-<h3 id="device-pixel-versus-logical-pixel" tabindex="-1">Device Pixel versus Logical Pixel</h3>
+<h3 id="device-pixel-versus-logical-pixel">Device Pixel versus Logical Pixel</h3>
 <p>Before we jump into the code we need to look at the difference between logical pixels and device pixels since this will affect the way we generate our responsive images and what types of images we want to use for our originals.</p>
 <p>Let’s assume that we have an iPhone X with a resolution of 2436 x 1125 device pixels and Device Pixel Ratio (DPR) of 3.</p>
 <blockquote>
@@ -61,7 +61,7 @@ from <a href="https://freshman.tech/responsive-images/">A Guide to Responsive Im
 <span class="token punctuation">}</span>
 </code></pre>
 <p>We’re telling the CSS parser to use 400 logical pixels instead of 400 device pixels.</p>
-<h3 id="the-code" tabindex="-1">The code</h3>
+<h3 id="the-code">The code</h3>
 <p>The code follows standard Gulp practices.</p>
 <p>We first select the <code>src</code> for the task. In this case we’ve chosen all the JPG and PNG files under <code>src/images/hires</code>.</p>
 <p>We pipe the input through <code>gulp-responsive</code> to generate multiple versions of each image.</p>
@@ -72,67 +72,67 @@ from <a href="https://freshman.tech/responsive-images/">A Guide to Responsive Im
     <span class="token string">'src/images/hires/**/*.{jpg,png}'</span><span class="token punctuation">,</span>
   <span class="token punctuation">]</span><span class="token punctuation">)</span>
   <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">responsive</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    <span class="token string-property property">'*'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+    <span class="token string">'*'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
     <span class="token comment">// image-small.jpg is 200 pixels wide</span>
-      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">rename</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">suffix</span><span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
-        <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+      width<span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
+      rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+        suffix<span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
+        extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// image-small@2x.jpg is 400 pixels wide</span>
-      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">rename</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">suffix</span><span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
-        <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
+      width<span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+      rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+        suffix<span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
+        extname<span class="token operator">:</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// image-small.png is 200 pixels wide</span>
-      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">rename</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">suffix</span><span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
-        <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.png'</span><span class="token punctuation">,</span>
+      width<span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
+      rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+        suffix<span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
+        extname<span class="token operator">:</span> <span class="token string">'.png'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// image-small@2x.png is 400 pixels wide</span>
-      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">rename</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">suffix</span><span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
-        <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.png'</span><span class="token punctuation">,</span>
+      width<span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+      rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+        suffix<span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
+        extname<span class="token operator">:</span> <span class="token string">'.png'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// image-small.webp is 200 pixels wide</span>
-      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">rename</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">suffix</span><span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
-        <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+      width<span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span>
+      rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+        suffix<span class="token operator">:</span> <span class="token string">'-small'</span><span class="token punctuation">,</span>
+        extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// image-small@2x.webp is 400 pixels wide</span>
-      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">rename</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-        <span class="token literal-property property">suffix</span><span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
-        <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
+      width<span class="token operator">:</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span>
+      rename<span class="token operator">:</span> <span class="token punctuation">{</span>
+        suffix<span class="token operator">:</span> <span class="token string">'-small@2x'</span><span class="token punctuation">,</span>
+        extname<span class="token operator">:</span> <span class="token string">'.webp'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// Global configuration for all images</span>
     <span class="token comment">// The output quality for JPEG, WebP</span>
     <span class="token comment">// and TIFF output formats</span>
-      <span class="token literal-property property">quality</span><span class="token operator">:</span> <span class="token number">80</span><span class="token punctuation">,</span>
+      quality<span class="token operator">:</span> <span class="token number">80</span><span class="token punctuation">,</span>
       <span class="token comment">// Use progressive (interlace) scan</span>
       <span class="token comment">// for JPEG and PNG output</span>
-      <span class="token literal-property property">progressive</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      progressive<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
       <span class="token comment">// Skip enalrgement warnings</span>
-      <span class="token literal-property property">skipOnEnlargement</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      skipOnEnlargement<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
       <span class="token comment">// Strip all metadata</span>
-      <span class="token literal-property property">withMetadata</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      withMetadata<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist/images'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <p>We might not need all the images but it’s better to have them and no need them than need them and not have them.</p>
-<h2 id="export-the-functions" tabindex="-1">Export the functions</h2>
+<h2 id="export-the-functions">Export the functions</h2>
 <p>The final step is to export the functions soo that Gulp can see them. It’s no different thaan exporting functions in ES2015 modules.</p>
 <pre class="language-js"><code class="language-js">exports<span class="token punctuation">.</span>imagemin <span class="token operator">=</span> processImages<span class="token punctuation">;</span>
 exports<span class="token punctuation">.</span>responsive <span class="token operator">=</span> generateResponsive<span class="token punctuation">;</span>

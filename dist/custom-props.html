@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="houdini-properties-%26-values" tabindex="-1">Houdini Properties &amp; Values</h1>
+  <h1 id="houdini-properties-%26-values">Houdini Properties &amp; Values</h1>
 <p>If you haven’t read my prior articles about CSS Houdini, I’ll point you to the video below by Tab Atkins where he talk about Houdini as a (far) future combination of CSS and Javascript (he should know, he edits the Houdini specs and a whole bunch of other CSS specs for W3C).</p>
 <p>This is not CSS in JS but a way to use JS to hook into the browser’s rendering lifecycle to add your own bits and pieces. With this we don’t have to wait for browser vendors to implement a feature, we can create our version that will fail gracefully if the browser doesn’t understand Houdini, calc or CSS variables.</p>
 <div class="video">
@@ -48,15 +48,15 @@
 </li>
 </ul>
 <p>Now that we know why these custom properties are important let’s look at how they work.</p>
-<h2 id="registering-properties" tabindex="-1">Registering Properties</h2>
+<h2 id="registering-properties">Registering Properties</h2>
 <p>The firs step in using custom properties is to define them in JavaScript.</p>
 <p><code>CSS.registerProperty</code> (case sensitive) does this by taking</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'registerProperty'</span> <span class="token keyword">in</span> <span class="token constant">CSS</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--my-custom-prop'</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'black'</span><span class="token punctuation">,</span>
+    name<span class="token operator">:</span> <span class="token string">'--my-custom-prop'</span><span class="token punctuation">,</span>
+    syntax<span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+    inherits<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    initialValue<span class="token operator">:</span> <span class="token string">'black'</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
@@ -109,13 +109,13 @@
 <p><code>Inherit</code> tells the CSS parser if this custom rule should propagate down the cascade. Setting it to fallse gives us more power to style specific elements wituout being afraid to mess up elements further down the chain.</p>
 <p>The final value is an <code>initialValue</code>. Use this to provide a sensible default for the property. We’ll analyze why this is important later.</p>
 <p>That’s it… we now have a custom property.</p>
-<h2 id="using-custom-properties" tabindex="-1">Using custom properties</h2>
+<h2 id="using-custom-properties">Using custom properties</h2>
 <p>To demonstrate how to use Custom Properties we’ll reuse the <code>--bg-color</code> Javascript example and use it in several different elements.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--bg-color'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'red'</span><span class="token punctuation">,</span>
+  name<span class="token operator">:</span> <span class="token string">'--bg-color'</span><span class="token punctuation">,</span>
+  syntax<span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+  inherits<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  initialValue<span class="token operator">:</span> <span class="token string">'red'</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The CSS will not be any different than if we used variables. But the things it does for free are much more interresting.</p>
@@ -168,16 +168,16 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <p>You can see the full working demo in <a href="https://codepen.io/caraya/pen/KxZRKV">Codepen</a></p>
-<h2 id="why-is-this-important%3F" tabindex="-1">Why is this important?</h2>
+<h2 id="why-is-this-important%3F">Why is this important?</h2>
 <p>There are a couple reasons that make custom properties particularly useful.</p>
-<h3 id="validation" tabindex="-1">Validation</h3>
+<h3 id="validation">Validation</h3>
 <p>As we saw in the last section, custom properties allow for default initial values that give developers a way to avoid errors or unexpected behavior.</p>
 <p>If we define the following custom property:</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--bg-color'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'red'</span><span class="token punctuation">,</span>
+  name<span class="token operator">:</span> <span class="token string">'--bg-color'</span><span class="token punctuation">,</span>
+  syntax<span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+  inherits<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  initialValue<span class="token operator">:</span> <span class="token string">'red'</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>And mistakenly use the property with the following declaration below:</p>
@@ -193,12 +193,12 @@
 
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>themeColor<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// "red"</span>
 </code></pre>
-<h3 id="animations" tabindex="-1">Animations</h3>
+<h3 id="animations">Animations</h3>
 <p>CSS variables don’t provide good support for animation because the browser doesn’t know what type of value it has.</p>
 <p>Because we assign a value to the property now the parser knows what to do with the property when we ask to animate it.</p>
 <p>The <a href="https://codepen.io/caraya/pen/KxZRKV">Codepen Demo</a> shows how the animation works.</p>
 <p>We could do further modularization in the animation itself by creating properties for the animation parameters or the positioning of each individual content… but, for now, baby steps are OK.</p>
-<h2 id="links-and-resources" tabindex="-1">Links and Resources</h2>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://www.w3.org/TR/css-properties-values-api-1/">Spec</a></li>
 <li><a href="https://vitaliy-bobrov.github.io/blog/css-custom-properties-in-depth/">CSS Custom Properties In Depth</a></li>

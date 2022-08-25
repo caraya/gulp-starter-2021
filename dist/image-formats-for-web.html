@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="revisiting-images-formats-for-the-web" tabindex="-1">Revisiting images formats for the web</h1>
+  <h1 id="revisiting-images-formats-for-the-web">Revisiting images formats for the web</h1>
 <p>Every so often I see comparisons between image formats that say one format is better than others or that one format is better for a given task but I’ve always wondered where the numbers came from and what testing criteria was used. Rather than take things at face value, I want to make sure that whatever decision I make it is backed up with data.  I’ve put all the files and scripts on a <a href="https://github.com/caraya/testing-image-formats/">Github repository</a> for you to run the same tests and see if the results match mine. Beware that the TIFF images are very large and may take a large chunk of your data plan if you download them on mobile.</p>
 <p>This post does not cover HEIC/HEIF and AVIF image formats. To cover those two formats well, I need more time to compile and test the tools and want to make sure that I don’t mix tool research with image quality. I will post the results of any research on those two formats in a separate post.</p>
 <p>Before we jump into looking at the quality of compressed images, let’s take a look at what’s available and what’s coming down the pipeline as far as image formats for the web.</p>
@@ -72,7 +72,7 @@
     </tr>
   </tbody>
 </table>
-<h2 id="the-process" tabindex="-1">The process</h2>
+<h2 id="the-process">The process</h2>
 <p>As Kornel Lesinski writes in <a href="https://kornel.ski/en/faircomparison">How to compare images fairly</a>:</p>
 <blockquote>
 <p>Absolutely the worst way to compare images is to convert one lossy format to another and conclude you “can’t see the difference”.</p>
@@ -106,7 +106,7 @@
 <li>JPG: ImageMagick</li>
 <li>WebP: cwebp</li>
 </ul>
-<h2 id="first-test%3A-equal-quality-to-measure-file-size" tabindex="-1">First Test: Equal Quality to measure file size</h2>
+<h2 id="first-test%3A-equal-quality-to-measure-file-size">First Test: Equal Quality to measure file size</h2>
 <p>The first test I wanted to run is what happens if we encode a TIFF source image to all image formats that we can test with the same quality value, in this case, 80. It is important to note that a JPEG image encoded at 80 quality is not the same as a lossy WebP image encoded at the same quality.  We do it this way because it’s the easiest way to test and it’s what I would do in Photoshop of when running image compression with tools like imagemin</p>
 <p>The questions that I want to answer with this test:</p>
 <p><em><strong>Keeping quality constant, what loseless format provides the smaller file size?</strong></em></p>
@@ -181,7 +181,7 @@
 </table>
 <p>There is a lot of research and tweaking to obtain optimal results.</p>
 <p>So in the naïve, all quality is the same test, WebP wins by a lot. remember that image quality is not a straight equivalency across formats as explained earlier.</p>
-<h2 id="finding-the-optimal-quality" tabindex="-1">Finding the optimal quality</h2>
+<h2 id="finding-the-optimal-quality">Finding the optimal quality</h2>
 <p>I know that optimal quality depends on the type of image and the screens we’re working with, but an initial step on determining our optimal quality may be to establish what are the best compression settings for each format. We’re likely to be serving at least two with our sources or srcset images.
 To answer this question we’ll do a two-step process:</p>
 <ul>
@@ -189,7 +189,7 @@ To answer this question we’ll do a two-step process:</p>
 <li>We’ll use SSIM to provide an objective metric to use in comparing the images.</li>
 </ul>
 <p>We then analyze the SSIM results to decide which of the compressed images gives us the best combination of quality measured by SSIM against a 100 quality compressed PNG image (for some reason ImageMagick’s compare command will not work against a TIFF source image) and file size.</p>
-<h3 id="the-scripts" tabindex="-1">The Scripts</h3>
+<h3 id="the-scripts">The Scripts</h3>
 <p>Each step of the process uses its own script.</p>
 <p>The first scripts generates the multiple images. It is essentially the same script that we used for the previous evaluation, except that we have to pass the name of the image, without extension, as a parameter when we invoke the script.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token keyword">if</span> <span class="token builtin class-name">hash</span> <span class="token variable">${WEBP_ENCODER}</span> <span class="token operator"><span class="token file-descriptor important">2</span>></span>/dev/null<span class="token punctuation">;</span> <span class="token keyword">then</span>
@@ -236,7 +236,7 @@ To answer this question we’ll do a two-step process:</p>
   <span class="token builtin class-name">echo</span> can<span class="token punctuation">\</span>'t run the WebP comparison
 <span class="token keyword">fi</span>
 </code></pre>
-<h3 id="the-results" tabindex="-1">The Results</h3>
+<h3 id="the-results">The Results</h3>
 <p>The first table uses <a href="https://github.com/caraya/testing-image-formats/blob/master/test-two/STSCI-H-p2022a-f-4398x3982.tif">STSCI-H-p2022a-f-4398x3982</a> from the Nasa image library… The image is 14MB and may use a significant portion of your data plan in mobile.</p>
 <p>The file sizes are generally what I expected and the differences between the SSIM values is similar enough to make file size becomes the primary consideration.</p>
 <table>
@@ -407,12 +407,12 @@ To answer this question we’ll do a two-step process:</p>
 </tr>
 </tbody>
 </table>
-<h2 id="what%E2%80%99s-missing" tabindex="-1">What’s missing</h2>
+<h2 id="what%E2%80%99s-missing">What’s missing</h2>
 <p>There are two additional image formats that should be in the encoding tests but are not.</p>
 <p>HEIC is an image format based on the HEVC video code. The only encoder I found for the format produced significantly larger sizes than any other formats. I need to run additional tests to make sure I’m encoding it as it should be and that the larger sizes are not a result of my doing it wrong.</p>
 <p>AVIF is the image format based on the open-source AV1 video format. The same encoder that creates HEIC files (lib-heif) will, supposedly, create AVIF files when running with a flag. I have yet to get it to work.</p>
 <p>I was able to install the libavif reference implementation but I’ll take a little time to document the process and then set up another test to see how heic and avif compare to WebP, JPG, and PNG.</p>
-<h2 id="conclusions" tabindex="-1">Conclusions</h2>
+<h2 id="conclusions">Conclusions</h2>
 <p>There is additional work that needs to happen regarding format-specific configuration and encoding flags and test them to see if the formats are affected by the flags you use when doing the compression.</p>
 <p>Depending on the type of images you use on your site or project, evaluating the file sizes of a representative number of images is always a good idea.</p>
 

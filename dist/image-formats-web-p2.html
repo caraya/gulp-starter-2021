@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="image-formats-for-the-web%3A-heic-and-avif" tabindex="-1">Image formats for the web: HEIC and AVIF</h1>
+  <h1 id="image-formats-for-the-web%3A-heic-and-avif">Image formats for the web: HEIC and AVIF</h1>
 <p>There are two formats that I left out of the <a href="https://publishing-project.rivendellweb.net/revisiting-images-formats-for-the-web/">previous posts about image formats for the web</a>: HEIF and AVIF</p>
 <p>These two formats are based on video codecs and, depend on the parent video technology to compress images. This makes them different than existing formats like PNG, JPEG and GIF.</p>
 <p>In the table below, I’ve sumarized basic information about the two formats. If using open formats it’s important to your project you may want to take a closer look at these technologies; HEVC is known to have pattent encumbrances and AV1, even though AOM claims it’s patent free, has <a href="https://www.streamingmedia.com/Articles/ReadArticle.aspx?ArticleID=139636">a new patent pool</a> actively issuing licenses and this may render the freely available claim moot.</p>
@@ -49,20 +49,20 @@
 </tr>
 </tbody>
 </table>
-<h2 id="getting-started" tabindex="-1">Getting started</h2>
+<h2 id="getting-started">Getting started</h2>
 <p>Before we can start comparing images and sizes we need to do the following:</p>
 <ol>
 <li>Resize the image we want to use</li>
 <li>Compile libavif on my Mac. This is not always a trivial or self evident process and it’s not documented in</li>
 </ol>
-<h3 id="resizing-images" tabindex="-1">Resizing Images</h3>
+<h3 id="resizing-images">Resizing Images</h3>
 <p>I chose to resize the image before testing to make sure that the image size will not affect the results of the tests.</p>
 <p>To resize we’ll use ImageMagick. The command to scale the image to 2000px wide and corresponding height, would look something like this:</p>
 <pre class="language-bash"><code class="language-bash">convert emporium_hi_res.png -resize <span class="token number">2000</span> <span class="token punctuation">\</span>
 emporium-resized.png
 </code></pre>
 <p>This command will not distort the image. It will scale the height proportionately to meet the width requirements.</p>
-<h3 id="compiling-libheif" tabindex="-1">Compiling libheif</h3>
+<h3 id="compiling-libheif">Compiling libheif</h3>
 <p>I’ve had multiple issues trying to get AVIF images to encode using libheif on my system. To make sure it wasn’t a Homebrew issue (it appears to be) I commpiled libheif from scratch following the instructions on the <a href="https://github.com/strukturag/libheif/blob/master/README.md">README</a></p>
 <p>First we install the pre-requisites. Most of the time these will already be installed.</p>
 <pre class="language-bash"><code class="language-bash">brew <span class="token function">install</span> automake <span class="token punctuation">\</span>
@@ -77,7 +77,7 @@ libjpeg
 <span class="token function">make</span>
 </code></pre>
 <p>Because the Homebrew installed version is a dependency of ImageMagick and VIPS, Homebrew won’t let me remove it. So I’ve chosen to skip the <code>make install</code> step and run them from where they were compiled.</p>
-<h3 id="compiling-libavif" tabindex="-1">Compiling libavif</h3>
+<h3 id="compiling-libavif">Compiling libavif</h3>
 <p>In a Mac, Homebrew provides the dependencies we need to run libavif, but not libavif itself. So, to install libavif, we’ll install the dependencies first via Homebrew and then compile Libavif from scratch.</p>
 <p>The dependecies we need are:</p>
 <ul>
@@ -114,7 +114,7 @@ cmake <span class="token punctuation">..</span>  -DAVIF_CODEC_AOM<span class="to
 <span class="token function">make</span> <span class="token function">install</span>
 </code></pre>
 <p>Because I’m using Homebrew on a Macintosh, installing the binaries and associated files may cause warnings when running <code>brew doctor</code>. It is safe to ignore the warnings.</p>
-<h2 id="figuring-out-flags-and-settings" tabindex="-1">Figuring out flags and settings</h2>
+<h2 id="figuring-out-flags-and-settings">Figuring out flags and settings</h2>
 <p>Libheif presents some interesting challenges on figuring out what settings to use. It also takes parameters from the underlying x265 installation for encoding the images.</p>
 <p>We’ll start with the naive encoding and let it run with only libheif and libavif defaults. This is the simplest way to run the encoders and is what I would first use when compressing images, not worrying about lossless or lossy or specifying image quality.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token comment"># aviflib encoder</span>
@@ -144,7 +144,7 @@ heif-enc emporium-resized.png <span class="token punctuation">\</span>
 </tbody>
 </table>
 <p>Even the default values are decent. But we can do better.</p>
-<h3 id="looking-at-libheif-settings" tabindex="-1">Looking at libheif settings</h3>
+<h3 id="looking-at-libheif-settings">Looking at libheif settings</h3>
 <p>In addition to the flags that come with the encoder, <code>heif-enc</code> can also take parameters from the underlying HEVC encoder (in this caase x265).</p>
 <p>To get the available encoder parameters run the following command:</p>
 <pre class="language-bash"><code class="language-bash">heif-enc --params
@@ -367,7 +367,7 @@ heif-enc emporium-resized.png <span class="token punctuation">\</span>
 </tbody>
 </table>
 <p>So, for the most part, it’s OK to use the libheif default preset. We’ll do additional testing when comparing quality for both AVIF and LIBHEIF.</p>
-<h3 id="looking-at-avif-encoders" tabindex="-1">Looking at AVIF encoders</h3>
+<h3 id="looking-at-avif-encoders">Looking at AVIF encoders</h3>
 <p>AVIF presents different challenges. We begin by considering the three different encoders:</p>
 <ul>
 <li>Libheif (with a special flag)</li>
@@ -459,7 +459,7 @@ heif-enc emporium-resized.png <span class="token punctuation">\</span>
 </tbody>
 </table>
 <p>Considering the results of the three tests, it’s safe to assume that libheif is the best alternative for creating HEIF images.</p>
-<h2 id="evaluating-different-quality-values" tabindex="-1">Evaluating different quality values</h2>
+<h2 id="evaluating-different-quality-values">Evaluating different quality values</h2>
 <p>As with WebP, PNG and JPG, AVIF and HEIF have a quality setting that will allow finner level of control over the quality.</p>
 <p>AVIF doesn’t have a straight quality value like HEIF but it has the following elements that, as far as I know, produce the same effect as the quality setting in libheif</p>
 <pre><code>--min Q: Set min quantizer for color
@@ -636,7 +636,7 @@ heif-enc emporium-resized.png <span class="token punctuation">\</span>
 </tr>
 </tbody>
 </table>
-<h2 id="ssim-testing" tabindex="-1">SSIM testing</h2>
+<h2 id="ssim-testing">SSIM testing</h2>
 <p>Testing for structural similarity is harder with newer formats. As far as I know there is no current SSIM-like testing for AVIF images. I will write a separate post when the functionality becomes available so we can do a complete and fair comparison.</p>
 
 </article>

@@ -1,4 +1,4 @@
-<h1 id="improving-font-performance" tabindex="-1">Improving Font Performance</h1>
+<h1 id="improving-font-performance">Improving Font Performance</h1>
 <p>Talking about web font performance is more than just talking about adding the fonts to a page using <code>@font-face</code>. That’s just the beginning of our quest for performant fonts.</p>
 <p>Because of their size fonts tend to be some of the largest components of any web pages. According to the HTTP Archive, the median of requested fonts is 98KB for Desktop and 83.4KB for mobile.</p>
 <figure>
@@ -6,7 +6,7 @@
   <figcaption>Comparison of median font sizes from 2010 to today</figcaption>
 </figure>
 <p>Making our fonts performant is particularly important when working with large variable fonts; <a href="https://github.com/TypeNetwork/Roboto">Roboto VF</a> is 976KB when compressed with WOFF2 and, if not cached, can significantly impact the performance of the page.</p>
-<h2 id="background%3A-%40font-face-and-downloadble-fonts" tabindex="-1">Background: @font-face and downloadble fonts</h2>
+<h2 id="background%3A-%40font-face-and-downloadble-fonts">Background: @font-face and downloadble fonts</h2>
 <p>We tend to think of downloadable fonts as a new phenomenon but it isn’t. In 1998 browsers started shipping support for the <code>@font-face</code> CSS declaration… now developers could use digital fonts in their pages, right?</p>
 <p>Not quite. While browsers supported the syntax they supported different font formats: Netscape supported TrueDoc from Bitstream and Microsoft supported Embedded Open Type (EOT), which also provided a layer of encryption for their downloadable fonts.</p>
 <p>The other problem was that you didn’t have to own fonts in order to use them as downloadble assets. There was no way for foundries (the companies that created fonts) or developers to restrict access to the downloadble fonts.</p>
@@ -21,7 +21,7 @@
 <li><a href="http://sixrevisions.com/css/font-face-web-fonts-issues">How to Bulletproof @font-face Web Fonts (2011)</a></li>
 </ul>
 <p>The next section explores how much it has evolved and whether we still need the full syntax to work with Modern browsers.</p>
-<h2 id="the-evolution-of-the-bulleproof-syntax" tabindex="-1">The evolution of the bulleproof syntax</h2>
+<h2 id="the-evolution-of-the-bulleproof-syntax">The evolution of the bulleproof syntax</h2>
 <p>The original bulletproof @font-face syntax, first documented in Paul Irish’s <a href="https://www.paulirish.com/2009/bulletproof-font-face-implementation-syntax/">Bulletproof @font-face Syntax</a>, looked something like this:</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Open Sans<span class="token punctuation">;</span>
@@ -43,11 +43,11 @@
 <p>Browsers <code>src</code> attribute will use the first format that they support and, since most browsers that support WOFF2 will also support WOFF we want to place the smallest file first.</p>
 <p>This assumes that most of your target users are in modern browsers, we’re forcing older browsers to use system fonts:</p>
 <p>Make sure that you test your font stacks in your target browsers, particularly if you’re targeting emerging markets where users may be working with older versions of operating systems to avoid device upgrades and, potentially expensive, software updates.</p>
-<h2 id="compress-fonts" tabindex="-1">Compress fonts</h2>
+<h2 id="compress-fonts">Compress fonts</h2>
 <p>Now that we’ve figured out the formats that we’ll use we can start looking at the mechanics of preparing the fonts.</p>
 <p>Most font providers will give you fonts in either TTF or OTF and we need to compress them for use in our pages.</p>
 <p>WOFF and WOFF2 are font packaging formats and not font formats like TTF or OTF, they will shrink the size of the file and, possibly, add metadata to the resulting font, they will not change the font in any way.</p>
-<h3 id="woff-with-sfnt2woff-zopfli-(macintosh)" tabindex="-1">WOFF with <code>sfnt2woff-zopfli</code> (Macintosh)</h3>
+<h3 id="woff-with-sfnt2woff-zopfli-(macintosh)">WOFF with <code>sfnt2woff-zopfli</code> (Macintosh)</h3>
 <p><a href="https://www.w3.org/TR/2012/REC-WOFF-20121213/">WOFF File Format 1.0</a> is a font packaging specification created in 2012 by the W3C’s Web Fonts Working Group.</p>
 <p>To create the WOFF version of the fonts I want to use, I’ve chosen <code>sfnt2woff-zopfli</code>. It will create smaller fonts than other WOFF packagers by using the <a href="https://github.com/google/zopfli">Zopfli Compression Algorithm</a> to compress the data at the cost of slower compression speeds.</p>
 <p>To install sfnt2woff-zopfli in my Mac I used Homebrew and Bram Ramsteins <code>webfonttools</code> tap.</p>
@@ -58,12 +58,12 @@ brew <span class="token function">install</span> sfnt2woff-zopfli
 <p>Once the process is complete, go to the directory containing your fonts and, for each font that you want to compress run the following command:</p>
 <pre class="language-bash"><code class="language-bash">sfnt2woff-zopfli Roboto-min-VF.ttf
 </code></pre>
-<h3 id="woff-with-woff-tools-(linux-and-windows-runing-wsl)" tabindex="-1">WOFF with <code>woff-tools</code> (Linux and Windows runing WSL)</h3>
+<h3 id="woff-with-woff-tools-(linux-and-windows-runing-wsl)">WOFF with <code>woff-tools</code> (Linux and Windows runing WSL)</h3>
 <p>Ubuntu systems and Windows 10 using the <a href="https://docs.microsoft.com/en-us/windows/wsl/about">Window Subsystem for Linux</a> and an Ubuntu Image work the same way. Make sure that you’re in a terminal (for Windows users type <code>bash.exe</code> from Power Shell).</p>
 <p>To install run the following command from your bash shell.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> woff-tools
 </code></pre>
-<h3 id="woff2-with-woff2_compress-(all-systems)" tabindex="-1">WOFF2 with <code>woff2_compress</code> (all systems)</h3>
+<h3 id="woff2-with-woff2_compress-(all-systems)">WOFF2 with <code>woff2_compress</code> (all systems)</h3>
 <p><a href="https://www.w3.org/TR/WOFF2/">WOFF File Format 2.0</a> is an evolutionary development over WOFF 1.0 that provides better compression and smaller file sizes.</p>
 <p>For WOFF2 I’ve chosen to use Google’s <a href="https://github.com/google/woff2">WOFF2 Reference Implementation</a> installed via Homebrew. Run the following command to install the WOFF2 tools and their dependencies.</p>
 <pre class="language-bash"><code class="language-bash">brew <span class="token function">install</span> woff2
@@ -80,7 +80,7 @@ brew <span class="token function">install</span> sfnt2woff-zopfli
 <p>Once the repository is configured and the list updated, you can install the package using <code>apt-get install</code>.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> woff2
 </code></pre>
-<h2 id="subset-fonts-using-glyphhanger" tabindex="-1">Subset fonts using Glyphhanger</h2>
+<h2 id="subset-fonts-using-glyphhanger">Subset fonts using Glyphhanger</h2>
 <p><a href="https://github.com/filamentgroup/glyphhanger">Glyphhanger</a> is a Node application that will help you reduce the size of your fonts by subsetting them.</p>
 <p>There are times when we use just a few characters from a given font. For example if we use a font just for headings there are many characters that you will not use, a subset will get rid of these unnecessary characters making the fonts smaller and providing a faster download. Another example is when the font supports multiple languages that you know you won’t need for your project (like Cyrilic when you know you will be working with English, Spanish, and French)</p>
 <p>We will generate four different items from our font:</p>
@@ -90,14 +90,14 @@ brew <span class="token function">install</span> sfnt2woff-zopfli
 <li>A subset using only the characters in a given page</li>
 <li>A subset using the characters in all the local pages</li>
 </ul>
-<h3 id="generating-a-list-of-the-glyphs-to-use" tabindex="-1">Generating a list of the glyphs to use</h3>
+<h3 id="generating-a-list-of-the-glyphs-to-use">Generating a list of the glyphs to use</h3>
 <p>The first thing to look at is generating the list of glyphs you want to subset to. This is different than creating the subset fonts, it will ony list the glyphs.</p>
 <pre class="language-bash"><code class="language-bash">glyphhanger http://localhost:5000
 </code></pre>
 <p>You can also redirect the list to a file for later use</p>
 <pre class="language-bash"><code class="language-bash">glyphhanger http://localhost:5000 <span class="token operator">></span> site-glyphs.txt
 </code></pre>
-<h3 id="subseting-to-the-latin-character-set" tabindex="-1">Subseting to the Latin Character set</h3>
+<h3 id="subseting-to-the-latin-character-set">Subseting to the Latin Character set</h3>
 <p>The first experiment is to subset the font to use Latin characters only. Latin alphabets are used in the United States, Latin America and Western European countries</p>
 <pre class="language-bash"><code class="language-bash">glyphhanger --latin <span class="token punctuation">\</span>
 --subset<span class="token operator">=</span>Roboto-min-VF.ttf  <span class="token punctuation">\</span>
@@ -105,13 +105,13 @@ brew <span class="token function">install</span> sfnt2woff-zopfli
 </code></pre>
 <p>This command will generate larger but more flexible subsets that will work with all pages in your site or application. But they are larger files, we can probably do better.</p>
 <p>The next version will subset the font to use only the characters in the specified page, in this case the index page for the site.</p>
-<h3 id="subsetting-to-a-page" tabindex="-1">Subsetting to a page</h3>
+<h3 id="subsetting-to-a-page">Subsetting to a page</h3>
 <pre class="language-bash"><code class="language-bash">glyphhanger http://localhost:5000 <span class="token punctuation">\</span>
 --subset<span class="token operator">=</span>Roboto-min-VF.ttf  <span class="token punctuation">\</span>
 --formats<span class="token operator">=</span>woff-zopfli,woff2
 </code></pre>
 <p>This will create subset fonts in the specified formats (WOFF and WOFF2) along with the CSS @font-face declaration that you can drop in your stylesheet to use. The fonts and CSS will only have the characters used in that page.</p>
-<h3 id="subseting-with-the-spider" tabindex="-1">Subseting with the spider</h3>
+<h3 id="subseting-with-the-spider">Subseting with the spider</h3>
 <p>The previous subset is good for a single page application but breaks in multi-page sites as characters in the page we subset from may not be in the other pages in the site.</p>
 <p>We can handle multiple pages by using Glyphhanger’s spidering cpabilitiy by indicating that we want to use it (<code>--spider</code>) and the maximum number of URLs to capture (<code>--spider-limit</code>).</p>
 <pre class="language-bash"><code class="language-bash">glyphhanger --spider --spider-limits-30 <span class="token punctuation">\</span>
@@ -120,7 +120,7 @@ brew <span class="token function">install</span> sfnt2woff-zopfli
 http://localhost:5000
 </code></pre>
 <p>The result will be closer to the Latin subset but it will only contain the characters that exists in your site in the language it was written in. This becomes important when you use fonts like Roboto, Fira or other fonts designed to support multiple languages.</p>
-<h3 id="looking-at-the-sizes" tabindex="-1">Looking at the sizes</h3>
+<h3 id="looking-at-the-sizes">Looking at the sizes</h3>
 <p>Using Roboto Variable Font, <a href="https://github.com/TypeNetwork/Roboto">downloaded from Github</a>, as an example I got the following results when running the commands shown in prior sections.</p>
 <table>
   <thead>
@@ -179,20 +179,20 @@ http://localhost:5000
   </tbody>
 </table>
 <p>The sizes are larger than you may expect because this is a variable font. It has all different instances of Roboto built in a single file so it’s all you would add to handle all of Roboto’s instances and Open Type functionality.</p>
-<h2 id="serve-through-a-specialized-cdn" tabindex="-1">Serve through a Specialized CDN</h2>
+<h2 id="serve-through-a-specialized-cdn">Serve through a Specialized CDN</h2>
 <p>Serving content through a CDN has always been a key to improve performance. The edge servers are in diverse geographical locations and they will route users to the closest server to their location.</p>
 <p>Serving fonts through a CDN is no different. Sites like <a href="https://fonts.adobe.com/">Adobe Fonts</a> (formally known as Typekit) and <a href="https://fonts.google.com/">Google Fonts</a> provide a faster experience downloading the fonts to your devices.</p>
 <p>Combine the CDN service with preconnect or dns-fetch resource hints for an even faster experience.</p>
-<h2 id="cache-fonts-using-a-service-worker" tabindex="-1">Cache fonts using a service worker</h2>
+<h2 id="cache-fonts-using-a-service-worker">Cache fonts using a service worker</h2>
 <p>Most of the time when we hear about Service Workers we hear about them in the context of Progressive Web Applications (PWAs) but they can also be used to improve your site’s performance by caching assets in the browser.</p>
 <p>Fonts will be the largest assets we cache with the service worker so we want to keep a few locally hosted fonts around and keep them for a while so we don’t have to download them too often.</p>
 <p>Using <a href="https://developers.google.com/web/tools/workbox/">Workbox.js</a> we can simplify the process of creating a font cache or even multiple caches for local and external fonts.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> fontHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">"fonts-cache"</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+  cacheName<span class="token operator">:</span> <span class="token string">"fonts-cache"</span><span class="token punctuation">,</span>
+  plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
     <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>expiration<span class="token punctuation">.</span>Plugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
-      <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">10</span>
+      maxAgeSeconds<span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+      maxEntries<span class="token operator">:</span> <span class="token number">10</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
   <span class="token punctuation">]</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -205,15 +205,15 @@ http://localhost:5000
 </ul>
 <p>We do the last step because opaque responses are usually padded by browsers to prevent user information from leaking across domains and we want to make sure that browsers will handle full caches for the origin (your site) before the browser decides what to delete instead of asking yout.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> extFontHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">staleWhileRevalidate</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">"external-fonts"</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+  cacheName<span class="token operator">:</span> <span class="token string">"external-fonts"</span><span class="token punctuation">,</span>
+  plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
     <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>expiration<span class="token punctuation">.</span>Plugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span>
+      maxAgeSeconds<span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>cacheableResponse<span class="token punctuation">.</span>Plugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      <span class="token literal-property property">statuses</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      statuses<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
       <span class="token comment">// Automatically cleanup if quota is exceeded.</span>
-      <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span>
+      purgeOnQuotaError<span class="token operator">:</span> <span class="token boolean">true</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
   <span class="token punctuation">]</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -233,7 +233,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token keyword">return</span> fontHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="use-resource-hints" tabindex="-1">Use resource hints</h2>
+<h2 id="use-resource-hints">Use resource hints</h2>
 <p>If you’re using a third party font service like Google Fonts or Typekit you should work on mitigating potential latency. Say you have a typical Google Font embed code in your <code>&lt;head&gt;</code>. You could minimize the amount of time it takes to connect with that server using the <a href="https://w3c.github.io/resource-hints/#preconnect">preconnect</a> resource hint.</p>
 <p>These hints will not load the resource but will do a DNS lookup for the host, TCP handshake, and optional TLS negotiation, all before the resource is actually requested.</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.googleapis.com/<span class="token punctuation">"</span></span> <span class="token attr-name">crossorigin</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>anonymous<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
@@ -243,11 +243,11 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dns-prefetch<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.googleapis.com/<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dns-prefetch<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.gstatic.com/<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
 </code></pre>
-<h2 id="work-to-control-font-loading" tabindex="-1">Work to control font loading</h2>
+<h2 id="work-to-control-font-loading">Work to control font loading</h2>
 <p>Because of their size fonts tend to be some of the largest components of any web pages. According to the HTTP Archive, the sum of transfer size of all fonts (eot, ttf, woff, woff2, or otf requested by the page is 98KB for Desktop and 83.4KB for mobile.</p>
 <p>There are several CSS and Javascript techniques to help browsers control and speed up font display and how it swaps when the web font is loaded.</p>
 <p>The idea is to load the page as quickly as possible using fallback fonts and then swap the web font in when it’s ready.</p>
-<h3 id="use-font-dispay" tabindex="-1">Use font-dispay</h3>
+<h3 id="use-font-dispay">Use font-dispay</h3>
 <p>The <code>font-display</code> property of the <code>@font-face</code> rule allows the developer to better control how/when/if web fonts change the way the text looks. It is part of the <a href="https://www.w3.org/TR/css-fonts-4/#font-display-desc">CSS Fonts Module Level 4 specification</a> and currently supported in most major desktop browsers (except Edge) and in Chrome for Android (see <a href="https://caniuse.com/#feat=css-font-rendering-controls">caniuse entry</a> for more details).</p>
 <p>Using the proerty, <code>@font-face</code> declarations now look like this:</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
@@ -280,7 +280,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <dd>Gives the font face an extremely small block period and no swap period.</dd>
 </dl>
 <p>I normaly use <code>swap</code> as the value for <code>font-display</code> as it gives me a quick render of the page and the correct fonts once they have downloaded. As with many things in fonts, test it and make sure that it does what you want it to do, your mileage may vary.</p>
-<h3 id="use-font-face-observer" tabindex="-1">Use Font Face Observer</h3>
+<h3 id="use-font-face-observer">Use Font Face Observer</h3>
 <p><a href="https://fontfaceobserver.com/">Font Face Observer</a> is a font loader that allows you to work with fonts from multiple origins using a promise-based interface. It doesn’t matter where your fonts come from: host them yourself, or use a web font service such as Google Fonts, Typekit, <a href="http://Fonts.com">Fonts.com</a>, and Webtype.</p>
 <p>Font Face Observer doesn’t replace <code>@font-face</code> declarations. You stil need to declare your fonts in your CSS and use <code>font-display</code> like so:</p>
 <pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
@@ -329,7 +329,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 <span class="token keyword">const</span> NeueMontreal <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">"NeueMontreal"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> Fuji <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> FujiBold <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">weight</span><span class="token operator">:</span> <span class="token string">"700"</span>
+  weight<span class="token operator">:</span> <span class="token string">"700"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token keyword">let</span> html <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
@@ -356,7 +356,7 @@ Promise<span class="token punctuation">.</span><span class="token function">all<
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Each class (<code>fonts-loaded</code> and <code>fonts-failed</code>) should match classes in your CSS that use web fonts and fallbacks as appropriate.  Using different classes means that you don’t have to wait for web font download to timeout.</p>
-<h3 id="evaluate-using-the-css-font-loading-api" tabindex="-1">Evaluate using the CSS font loading API</h3>
+<h3 id="evaluate-using-the-css-font-loading-api">Evaluate using the CSS font loading API</h3>
 <p>The <a href="https://www.w3.org/TR/css-font-loading-3/">CSS Font Loading Module Level 3</a> provides a programmatic way to handle font loading and handling of related events.</p>
 <p>Even though the specification it’s at the candidate recommendation stage, it’s supported by most modern browsers (Edge is the exception) so I’m confident in suggesting you evaluate it.</p>
 <p>The script runs the following tasks</p>
@@ -393,16 +393,16 @@ NeueMontrealFontFace<span class="token punctuation">.</span>loaded<span class="t
 
 <span class="token keyword">const</span> fujiFontFace <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFace</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">,</span>
       <span class="token string">"url(/fonts/Fuji-Light.woff2)"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">weight</span><span class="token operator">:</span> <span class="token string">"400"</span>
+  style<span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
+  weight<span class="token operator">:</span> <span class="token string">"400"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 document<span class="token punctuation">.</span>fonts<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>fujiFontFace<span class="token punctuation">)</span><span class="token punctuation">;</span>
 fujiFontFace<span class="token punctuation">.</span>loaded<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span>logLoaded<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token keyword">const</span> fujiBoldFontFace <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFace</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">,</span>
       <span class="token string">"url(/fonts/Fuji-Bold.woff2)"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">weight</span><span class="token operator">:</span> <span class="token string">"700"</span>
+  style<span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
+  weight<span class="token operator">:</span> <span class="token string">"700"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 document<span class="token punctuation">.</span>fonts<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>fujiBoldFontFace<span class="token punctuation">)</span><span class="token punctuation">;</span>
 fujiBoldFontFace<span class="token punctuation">.</span>loaded<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span>logLoaded<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -413,7 +413,7 @@ document<span class="token punctuation">.</span>fonts<span class="token punctuat
   content<span class="token punctuation">.</span>style<span class="token punctuation">.</span>visibility <span class="token operator">=</span> <span class="token string">"visible"</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="use-variable-fonts-in-browsers-that-support-them" tabindex="-1">Use variable fonts in browsers that support them</h2>
+<h2 id="use-variable-fonts-in-browsers-that-support-them">Use variable fonts in browsers that support them</h2>
 <div class="message warning">
 <p>In order to use variable fonts on your operating system, you need to make sure that it is up to date. Linux OSes need the latest Freetype version, and macOS prior to 10.13 (High Sierra) will not work with variable fonts.</p>
 </div>

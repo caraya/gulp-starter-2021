@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="generating-slides-form-markdown" tabindex="-1">Generating Slides form Markdown</h1>
+  <h1 id="generating-slides-form-markdown">Generating Slides form Markdown</h1>
 <p>If you’ve seen some of my earliest posts about Markdown you know that I love the flexibility of writing Markdown and then generate other formats. Using my starter kit I can generate HTML and PDF from the same Markdown source.</p>
 <p>I found out a project to convert Markdown to <a href="https://www.google.com/slides/about/">Google Slides</a> using a modified Markdwon parser and the <a href="https://developers.google.com/slides/">Slides API</a> to generate complete presentations.</p>
 <p>In this essay I’ll look at tree aspects of this process:</p>
@@ -27,35 +27,35 @@
 <li>The code for some of the parser functionality to generate these types of content</li>
 </ul>
 <p>We could use code from Literate CSS to build both the narrative and the presentation for a given content. In the future we may want to use our own custom parser so we write less raw HTML in the Markdown files.</p>
-<h2 id="running-the-tool-inside-a-build-script" tabindex="-1">Running the tool inside a build script</h2>
+<h2 id="running-the-tool-inside-a-build-script">Running the tool inside a build script</h2>
 <p>I’ll use the same tools from the <a href="https://github.com/caraya/starter">starter</a> project to add the slide functionality. We don’t need to add any plugins for the code to work.</p>
 <p>The task is simple. It takes all the Markdown files from the <code>src/slides</code> directory and run the <code>md2gslides</code> utility to convert them to Google Slides.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Build Google Slides</span>
 gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-slides'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">let</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
     <span class="token comment">// default = false, true means don't emit error event</span>
-    <span class="token literal-property property">continueOnError</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
+    continueOnError<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
     <span class="token comment">// default = false, true means stdout is written to file.contents</span>
-    <span class="token literal-property property">pipeStdout</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
+    pipeStdout<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
   <span class="token keyword">let</span> reportOptions <span class="token operator">=</span> <span class="token punctuation">{</span>
     <span class="token comment">// default = true, false means don't write err</span>
-    <span class="token literal-property property">err</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
+    err<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
     <span class="token comment">// default = true, false means don't write stderr</span>
-    <span class="token literal-property property">stderr</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
+    stderr<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
     <span class="token comment">// default = true, false means don't write stdout</span>
-    <span class="token literal-property property">stdout</span><span class="token operator">:</span> <span class="token boolean">true</span> 
+    stdout<span class="token operator">:</span> <span class="token boolean">true</span> 
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/slides/*.md'</span><span class="token punctuation">)</span>
   <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">'md2gslides --style github &lt;%= file.path %> '</span><span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">)</span>
   <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span>exec<span class="token punctuation">.</span><span class="token function">reporter</span><span class="token punctuation">(</span>reportOptions<span class="token punctuation">)</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h2 id="slides" tabindex="-1">Slides</h2>
+<h2 id="slides">Slides</h2>
 <p>Each slide is typically represented by a header, followed by zero or more block elements. The tool uses a modified markdown parser to generate the content.</p>
 <p>Begin a new slide with a horizontal rule (<code>---</code>). The separator is optional on the first slide.</p>
 <p>The following examples show how to create slides of various layouts:</p>
-<h3 id="title-slide" tabindex="-1">Title slide</h3>
+<h3 id="title-slide">Title slide</h3>
 <pre>
     ---
 
@@ -66,7 +66,7 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 <img src="../images/title_slide.png" alt="">
 <figcaption>Title Slide</figcaption>
 </figure>
-<h3 id="section-title-slides" tabindex="-1">Section title slides</h3>
+<h3 id="section-title-slides">Section title slides</h3>
 <pre>
     ---
 
@@ -76,7 +76,7 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 <img src="../images/section_title_slide.png" alt="">
 <figcaption>Section title slide</figcaption>
 </figure>
-<h3 id="section-title-%26-body-slides" tabindex="-1">Section title &amp; body slides</h3>
+<h3 id="section-title-%26-body-slides">Section title &amp; body slides</h3>
 <pre>
     ---
 
@@ -90,7 +90,7 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 <img src="../images/section_title_body_slide.png" alt="">
 <figcaption>Section title &amp; body slide</figcaption>
 </figure>
-<h4 id="title-%26-body-slides" tabindex="-1">Title &amp; body slides</h4>
+<h4 id="title-%26-body-slides">Title &amp; body slides</h4>
 <pre>
     ---
 
@@ -102,7 +102,7 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 <img src="../images/title_body_slide.png" alt="">
 <figcaption>Title &amp; body slide</figcaption>
 </figure>
-<h4 id="main-point-slide" tabindex="-1">Main point slide</h4>
+<h4 id="main-point-slide">Main point slide</h4>
 <p>Add <code>{.big}</code> to the title to make a slide with one big point</p>
 <pre>
     ---
@@ -113,7 +113,7 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 <img src="../images/main_point_slide.png" alt="">
 <figcaption>Main point slide</figcaption>
 </figure>
-<h4 id="big-number-slide" tabindex="-1">Big number slide</h4>
+<h4 id="big-number-slide">Big number slide</h4>
 <p>Use <code>{.big}</code> on a header in combination with a body too.</p>
 <pre>
     ---
@@ -126,7 +126,7 @@ gulp<span class="token punctuation">.</span><span class="token function">task</s
 <img src="../images/big_number_slide.png" alt="">
 <figcaption>Big number slide</figcaption>
 </figure>
-<h4 id="two-column-slides" tabindex="-1">Two column slides</h4>
+<h4 id="two-column-slides">Two column slides</h4>
 <p>Separate columns with <code>{.column}</code>. The marker must appear
 on its own line with a blank both before and after.</p>
 <pre>
@@ -141,8 +141,8 @@ on its own line with a blank both before and after.</p>
     This is the right column
 </pre>
 <figure><img src="../images/two_column_slide.png" alt="Two column slide" /></figure>
-<h3 id="images" tabindex="-1">Images</h3>
-<h4 id="inline-images" tabindex="-1">Inline images</h4>
+<h3 id="images">Images</h3>
+<h4 id="inline-images">Inline images</h4>
 <p>Images can be placed on slides using image tags. Multiple images
 can be included. Mulitple images in a single paragraph are arranged in columns,
 mutiple paragraphs arranged as rows.</p>
@@ -156,7 +156,7 @@ slide template.</p>
     ![](https://placekitten.com/900/900)
 </pre>
 <figure><img src="../images/image_slide.png" alt="Slide with image" /></figure>
-<h4 id="background-images" tabindex="-1">Background images</h4>
+<h4 id="background-images">Background images</h4>
 <p>Set the background image of a slide by adding <code>{.background}</code> to
 the end of an image URL.</p>
 <pre>
@@ -167,7 +167,7 @@ the end of an image URL.</p>
     ![](https://placekitten.com/1600/900){.background}
 </pre>
 <figure><img src="../images/background_image_slide.png" alt="Slide with background image" /></figure>
-<h3 id="videos" tabindex="-1">Videos</h3>
+<h3 id="videos">Videos</h3>
 <p>Include YouTube videos with a modified image tag.</p>
 <pre>
     ---
@@ -177,7 +177,7 @@ the end of an image URL.</p>
     @[youtube](MG8KADiRbOU)
 </pre>
 <figure><img src="../images/video_slide.png" alt="Slide with video" /></figure>
-<h3 id="speaker-notes" tabindex="-1">Speaker notes</h3>
+<h3 id="speaker-notes">Speaker notes</h3>
 <p>Include speaker notes for a slide using HTML comments. Text inside
 the comments may include markdown for formatting, though only text
 formatting is allowed. Videos, images, and tables are ignored inside
@@ -193,7 +193,7 @@ speaker notes.</p>
     These are speaker notes.
     --&gt;
 </pre>
-<h3 id="formatting" tabindex="-1">Formatting</h3>
+<h3 id="formatting">Formatting</h3>
 <p>Basic formatting rules are allowed, including:</p>
 <ul>
 <li>Bold</li>
@@ -239,7 +239,7 @@ Unordered lists:
 <li><code>font-family</code></li>
 <li><code>font-variant: small-caps</code></li>
 </ul>
-<h3 id="emoji" tabindex="-1">Emoji</h3>
+<h3 id="emoji">Emoji</h3>
 <p>Use Github style <a href="http://www.webpagefx.com/tools/emoji-cheat-sheet/">emoji</a> in your text using
 the <code>:emoji:</code>.</p>
 <p>The following example inserts emoji in the header and body of the slide.</p>
@@ -248,7 +248,7 @@ the <code>:emoji:</code>.</p>
 
 :heart_eyes_cat:
 </pre>
-<h3 id="code-blocks" tabindex="-1">Code blocks</h3>
+<h3 id="code-blocks">Code blocks</h3>
 <p>Both indented and fenced code blocks are supported, with syntax highlighting.</p>
 <p>The following example renders highlighted code.</p>
 <pre>
@@ -263,7 +263,7 @@ command line. All <a href="https://github.com/isagalaev/highlight.js/tree/master
 are supported. For example, to use the github theme</p>
 <pre><code>$ md2gslides slides.md --style github
 </code></pre>
-<h3 id="tables" tabindex="-1">Tables</h3>
+<h3 id="tables">Tables</h3>
 <p>Tables are supported via
 <a href="https://guides.github.com/features/mastering-markdown/#GitHub-flavored-markdown">GFM</a> syntax.</p>
 <p>Note: Including tables and other block elements on the same slide may produce poor results with
@@ -279,7 +279,7 @@ Cats   | 88 million
 Dogs   | 75 million
 Birds  | 16 million
 </pre>
-<h2 id="more-information" tabindex="-1">More information</h2>
+<h2 id="more-information">More information</h2>
 <p>Is this the only way to automate creation of Google Slides? No, it isn’t. Google provides an <a href="https://developers.google.com/slides/how-tos/overview">API</a> that allows developers to programmatically create presentations, slides and slide content. The G Suite Dev Show provides tutorials in addition the tutorials and examples in the <a href="https://developers.google.com/slides/samples/">API website</a>.</p>
 <div class="video">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/8LSUbKZq4ZY?list=PLOU2XLYxmsIJJFx_MVCQJ7eWF3gDxklgJ" frameborder="0" allowfullscreen></iframe>

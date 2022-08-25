@@ -1,14 +1,14 @@
-<h1 id="archiving-and-storing-content" tabindex="-1">Archiving and Storing Content</h1>
+<h1 id="archiving-and-storing-content">Archiving and Storing Content</h1>
 <p>Journalism Now episode on <a href="https://itunes.apple.com/us/podcast/archive-issues/id380130877?i=1000084466768&amp;mt=2">archival issues</a> raised some interesting issues when it comes to archiving content and the longevity of the web.</p>
 <p>In this post I will cover some of the issues I think are important for archiving the web and provide some ideas (at least the beginning of some ideas) for automating the archival of content and applications.</p>
 <p>It is important to note that not all these techniques will allow you to view the content right away and, in some cases, may only provide the data you can use to restore the content to a viewable state in some way, shape, or form.</p>
 <p>I use Wordpress, which is why most of these techniques are geared towards that CMS. But there’s no reason some of them wouldn’t work with other CMS systems.</p>
-<h2 id="archiving-old-wordpress-pages-and-posts" tabindex="-1">Archiving old Wordpress pages and posts</h2>
+<h2 id="archiving-old-wordpress-pages-and-posts">Archiving old Wordpress pages and posts</h2>
 <p>Some techniques for archiving WordPress content.</p>
-<h3 id="archiving-the-site.-option-1%3A-generating-a-static-site-with-plugins" tabindex="-1">Archiving the site. Option 1: generating a static site with plugins</h3>
+<h3 id="archiving-the-site.-option-1%3A-generating-a-static-site-with-plugins">Archiving the site. Option 1: generating a static site with plugins</h3>
 <p>Since we’re not adding new content it may be a good idea to create a static site. The first option is to use a Wordpress plugin to generate a static version of the site, doing minor site tweaks, and then moving that to the archival location.</p>
 <p>Plugins like <a href="https://wordpress.org/plugins/simply-static/">simply static</a> by <a href="https://www.codeofconduct.co/">Code of Conduct</a> will generate a full configurable static version of your Wordpress site ready to upload to an archival or backup server.</p>
-<h3 id="archiving-the-site.-option-2%3A-generating-a-static-site-with-pupeteer" tabindex="-1">Archiving the site. Option 2: generating a static site with Pupeteer</h3>
+<h3 id="archiving-the-site.-option-2%3A-generating-a-static-site-with-pupeteer">Archiving the site. Option 2: generating a static site with Pupeteer</h3>
 <p>starting from the code in Stefan Baumgartner’s <a href="https://fettblog.eu/scraping-with-puppeteer/">Saving and scraping a website with Puppeteer</a> we can get a basic scrapping system in a few lines of Javascript.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> puppeteer <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'puppeteer'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> <span class="token punctuation">{</span><span class="token constant">URL</span><span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'url'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -32,7 +32,7 @@
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-  <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">goto</span><span class="token punctuation">(</span>urlToFetch<span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">waitUntil</span><span class="token operator">:</span> <span class="token string">'networkidle2'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">await</span> page<span class="token punctuation">.</span><span class="token function">goto</span><span class="token punctuation">(</span>urlToFetch<span class="token punctuation">,</span> <span class="token punctuation">{</span>waitUntil<span class="token operator">:</span> <span class="token string">'networkidle2'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
   <span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
     <span class="token keyword">await</span> browser<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -46,22 +46,22 @@
 <li><strong>Make it recursive</strong>: Right now it captures a single URL. For it to be really useful we need to make sure it captures all the local URLs in a page</li>
 <li><strong>Make it configurable</strong>: The base URL to crawl is hardcoded into the script. To add flexibility we may want to create a CLI around it</li>
 </ul>
-<h3 id="option-3%3A-generating-a-wrx-backup-file" tabindex="-1">Option 3: Generating a wrx backup file</h3>
+<h3 id="option-3%3A-generating-a-wrx-backup-file">Option 3: Generating a wrx backup file</h3>
 <p>One of the things I like a lot about Wordpress is how easy it is to create a full data backup that can then be imported. <strong>This will only work if you have access to the Wordpress administrator backend</strong>.</p>
 <p>If you’re accessing the exporter for the first time you will be prompted to download the exporter plugin. The following steps assume that you’ve already downloaded it.</p>
 <p>Under the <em>tools &gt; export</em> menu you can choose what parts of your site you want to backup. Unless the site is large, I usually pick <em>all content</em>.</p>
 <p>Once you’ve downloaded the export file you can go to your new installation and use the <em>tools &gt; import</em> menu and select Wordpress.</p>
 <p>If the site is too large we may hit an upload size limitation when uploading and we will have to come back to the exporter and create multiple, smaller, back up files and import them individually. <strong>This is a limitation of PHP and can be changed. How to increase the upload limit is beyond the scope of this post.</strong></p>
 <p>If there are no errors you will have equivalent content in both blogs. Now you have to worry about the presentation.</p>
-<h3 id="making-sure-the-content-matches-the-presentation" tabindex="-1">Making sure the content matches the presentation</h3>
+<h3 id="making-sure-the-content-matches-the-presentation">Making sure the content matches the presentation</h3>
 <p>Backing up the content is easy but how do you make sure your theme and plugins are the same in both instances? How do you decide if full parity is needed?</p>
 <p>For example, if you do comment moderation or allow comments in your site at all, you may not want to do so in the archive site to ensure that the content is not polluted by spam.</p>
 <p>Likewise you’ll have to de decide if each of the features in the original site need to be ported to the archived version.</p>
-<h2 id="archiving-interactive-content" tabindex="-1">Archiving interactive content</h2>
+<h2 id="archiving-interactive-content">Archiving interactive content</h2>
 <p>I hear many people talk about the SpaceJam website as a sign of the web’s resilience. What people don’t realize is that <a href="http://spacejam.com/">the original site</a> was modified when it was moved to the WB Archive site <a href="https://www.warnerbros.com/archive/spacejam/movie/jam.htm">www.warnerbros.com/archive/spacejam/movie/jam.htm</a>.</p>
 <p>Archiving older content means that the content must be playable as close to the original as possible.</p>
 <p>In the Space Jamm site this means having a properly configured Apache server that can handle <a href="https://httpd.apache.org/docs/2.4/howto/ssi.html">server side include</a> directives which may also require a virtual host or a VM configured with Apache.</p>
 <p>With Wordpress it becomes more complex as version of PHP and the number external modulesyou must configure is highly dependent on what plugins and functionality you want to enable. Not installing the appropriate PHP modules will, at best, render plugins unusable and, at worst, stop Wordpress from working altogether.</p>
-<h2 id="conclusion" tabindex="-1">Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>Creating high fidelity archives of web content is not a trivial undertaking and must be carefully thought out and planned.</p>
 <p>But, unless the site uses propietary features to a given web server (like IIS or the old Netscape web servers) it shouldn’t be too difficult to implement.</p>

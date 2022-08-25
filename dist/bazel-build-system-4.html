@@ -17,13 +17,13 @@
 
 <body>
 <article class="container">
-  <h1 id="backend-code%2C-even-more-choices" tabindex="-1">Backend code, even more choices</h1>
+  <h1 id="backend-code%2C-even-more-choices">Backend code, even more choices</h1>
 <p>Just like with the frontend, the backend gives you multiple choices of languages and feature sets for working with Bazel. C/C++, Go and Rust are the three languages that I <a href="https://publishing-project.rivendellweb.net/webassembly-a-new-swiss-army-knife/">tested generating WASM code</a> with so it may be interesting to see how well they work with Bazel and how they abstract WASM generation.</p>
 <p>We can keep all the code for our project in a single monorepo and let Bazel sort out what tools to use to compile wich part.</p>
 <p>I use C and C++ as the baseline for testing Bazel with backend languages. It also works slightly different from other languages as it is built into Bazel and doesn’t require the rules to be installed manually.</p>
 <p>As far as backend code goes, <a href="https://golang.org/">Go</a> is my favorite language. However, the Bazel toolchain’s way of compiling Go code to WASM is not intuitive.</p>
 <p>I’m also exploring <a href="https://www.rust-lang.org/">Rust</a> toolchains for Bazel because it provides better <a href="https://webassembly.org/">WebAssembly</a> tooling than Go, but it’s still a challenge to get it right every time.</p>
-<h2 id="backend-code%3A-go" tabindex="-1">Backend code: Go</h2>
+<h2 id="backend-code%3A-go">Backend code: Go</h2>
 <p>I’ve always been interested in Go as a backend language or something that will allow me to create WASM code to run on the web.</p>
 <p>The first step, as usual, is to load the rules in the <code>WORKSPACE</code>.</p>
 <pre class="language-python"><code class="language-python">http_archive<span class="token punctuation">(</span>
@@ -89,7 +89,7 @@ go_binary<span class="token punctuation">(</span>
 <span class="token punctuation">)</span>
 </code></pre>
 <p>These libraries will not generate an executable and are meant to be consumed by binaries or other libraries.</p>
-<h3 id="cross-compiling-to-wasm" tabindex="-1">Cross-compiling to WASM</h3>
+<h3 id="cross-compiling-to-wasm">Cross-compiling to WASM</h3>
 <p>While not as intuitive as Rust, Go also allows you to compile code into WASM.</p>
 <p><code>rules_go</code> can cross-compile Go projects to any platform the Go toolchain supports. The simplest way to do this is by setting the <code>--platforms</code> flag on the command line.</p>
 <pre class="language-bash"><code class="language-bash">bazel build --platforms<span class="token operator">=</span>@io_bazel_rules_go//go/toolchain:linux_amd64 //my/project
@@ -106,7 +106,7 @@ go_binary<span class="token punctuation">(</span>
 --platforms<span class="token operator">=</span>@io_bazel_rules_go//go/toolchain:darwin_amd64 <span class="token punctuation">\</span>
 //go:hello_go
 </code></pre>
-<h2 id="rust" tabindex="-1">Rust</h2>
+<h2 id="rust">Rust</h2>
 <p>Bazel also provides a set of rules to work with Rust and it’s ecosystem. The idea, as with Go and C/C++, is to be able to code backend software in the same repository as the frontend or be able to create WASM modules to address Javascript hot path bottlenecks in the frontend.</p>
 <p>To get started add the following block to the <code>WORKSPACE</code> file:</p>
 <pre class="language-python"><code class="language-python">http_archive<span class="token punctuation">(</span>
@@ -147,10 +147,10 @@ rust_binary<span class="token punctuation">(</span>
 <pre class="language-python"><code class="language-python">bazel build <span class="token operator">//</span>rust2<span class="token operator">/</span>hello_rust<span class="token punctuation">:</span><span class="token builtin">all</span>
 </code></pre>
 <p>Bazel has no concept of default build tasks so the <code>:all</code> component is important. Using a command like this means you can skip a <code>BUILD</code> file at the root of every package :)</p>
-<h3 id="using-rust-external-dependencies" tabindex="-1">Using Rust External Dependencies</h3>
+<h3 id="using-rust-external-dependencies">Using Rust External Dependencies</h3>
 <p>Currently the most common approach to managing external dependencies is using <a href="https://github.com/google/cargo-raze">cargo-raze</a> to generate BUILD files for Cargo crates.</p>
 <p>This sounds like the best way to bring an existing Rust project into Bazel.</p>
-<h3 id="webassembly" tabindex="-1">WebAssembly</h3>
+<h3 id="webassembly">WebAssembly</h3>
 <p>To build a rust_binary for <code>wasm32-unknown-unknown</code> target add the <code>--platforms=@io_bazel_rules_rust//rust/platform:wasm</code> flag to your <code>bazel build</code> command.</p>
 <pre class="language-bash"><code class="language-bash">bazel build @examples//hello_world_wasm /
 --platforms<span class="token operator">=</span>@io_bazel_rules_rust//rust/platform:wasm
@@ -160,7 +160,7 @@ rust_binary<span class="token punctuation">(</span>
 --platforms<span class="token operator">=</span>@io_bazel_rules_rust//rust/platform:wasi
 </code></pre>
 <p><code>rust_wasm_bindgen</code> will automatically transition to the wasm platform and can be used when building WebAssembly code for the host target.</p>
-<h2 id="c%2B%2B" tabindex="-1">C++</h2>
+<h2 id="c%2B%2B">C++</h2>
 <p>If you will work with C++ code on Bazel it’s slightly different than working with Go or Rust.</p>
 <p>Loading rules for C++ is not necessary. The rules are built into Bazel so we can safely skip loading them in the WORKSPACE we want to work on so we can concentrate on the code and the <code>BUILD</code> files.</p>
 <p>The first example builds a binary from a single file without dependencies.</p>

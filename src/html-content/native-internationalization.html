@@ -1,4 +1,4 @@
-<h1 id="native-internationalizaton" tabindex="-1">Native Internationalizaton</h1>
+<h1 id="native-internationalizaton">Native Internationalizaton</h1>
 <p>Making web content work across locales, each with it’s own way to display dates, time is a challenge. Most of the time, when I hear about internationalization or locale aware data manipulation I hear about <a href="https://momentjs.com/">Moment.js</a> or <a href="https://date-fns.org/">date-fns</a>.</p>
 <p>Both libraries are awesome, they allow you programmatically control how certain portions of text are presented to the user based on their locale (either a default or one they’ve provided).</p>
 <p>However, there is also a built-in way to do these presentations. The <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl">Intl</a> object is the namespace for the <a href="https://www.ecma-international.org/ecma-402/">ECMAScript Internationalization API</a>, which provides language sensitive string comparison, number formatting, and date, time formatting, and other language sensitive functions.</p>
@@ -14,13 +14,13 @@
 </ul>
 <p>A locale is not case sensitive; using Uppercase names is only a convention.</p>
 <p>The locale must be a string holding a <a href="https://tools.ietf.org/html/rfc5646x">BCP 47 language tag</a>, and all part are separated by hyphens</p>
-<h2 id="relative-time-format" tabindex="-1">Relative Time Format</h2>
+<h2 id="relative-time-format">Relative Time Format</h2>
 <p>I wrote about <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RelativeTimeFormat">Intl.RelativeTimeFormat</a> in an <a href="https://publishing-project.rivendellweb.net/relative-time-in-javascript/">earlier blog post</a> so I won’t cover it in detail here, just enough to give you an idea of what it does.</p>
 <p>The first step is to setup what one or more Relative Time Format Locales. In this case we set up a locale for English.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> rtf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>RelativeTimeFormat</span><span class="token punctuation">(</span><span class="token string">'en'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">localeMatcher</span><span class="token operator">:</span> <span class="token string">'best fit'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">numeric</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  localeMatcher<span class="token operator">:</span> <span class="token string">'best fit'</span><span class="token punctuation">,</span>
+  style<span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
+  numeric<span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>Once we have the locale object for relative times we use the <code>format</code> methods with two parameters: the value and the unit that we want to use. Positive values indicate values in the future, negative values represent the past.</p>
@@ -36,7 +36,7 @@ rtf<span class="token punctuation">.</span><span class="token function">format</
 rtf<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">'day'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// '2 days ago'</span>
 </code></pre>
-<h2 id="list-format" tabindex="-1">List format</h2>
+<h2 id="list-format">List format</h2>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ListFormat">Intl.ListFormat</a> enable language-sensitive list formatting.</p>
 <p>Different locales use different words to indicate separate the last character in a list and they use different words to indicate a conjunction (all objects together) or a disjunction (one object from the list).</p>
 <p>The example below defines a default locale and a list of objects to work with.</p>
@@ -45,43 +45,43 @@ rtf<span class="token punctuation">.</span><span class="token function">format</
 </code></pre>
 <p>Then we create new list format objects with different locales and types to show the difference in use and how the different locales (American English, Canadian Frnech and Chilean Spanish) handle the different use cases.</p>
 <pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>ListFormat</span><span class="token punctuation">(</span>defaultLocale<span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'conjunction'</span>
+  style<span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
+  type<span class="token operator">:</span> <span class="token string">'conjunction'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// > Motorcycle, Bus and Car</span>
 
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>ListFormat</span><span class="token punctuation">(</span>defaultLocale<span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'disjunction'</span>
+  style<span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
+  type<span class="token operator">:</span> <span class="token string">'disjunction'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// > Motorcycle, Bus or Car</span>
 
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>ListFormat</span><span class="token punctuation">(</span><span class="token string">'fr-CA'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'conjunction'</span>
+  style<span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
+  type<span class="token operator">:</span> <span class="token string">'conjunction'</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// > Motorcycle, Bus et Car</span>
 
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>ListFormat</span><span class="token punctuation">(</span><span class="token string">'fr-CA'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-   <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
-   <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'disjunction'</span>
+   style<span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
+   type<span class="token operator">:</span> <span class="token string">'disjunction'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// > Motorcycle, Bus ou Car</span>
 
 console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>ListFormat</span><span class="token punctuation">(</span><span class="token string">'es-CL'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
-  <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'conjunction'</span>
+  style<span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span>
+  type<span class="token operator">:</span> <span class="token string">'conjunction'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// > Motorcycle, Bus y Car</span>
 
  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>ListFormat</span><span class="token punctuation">(</span><span class="token string">'es-CL'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-   <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
-   <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'disjunction'</span>
+   style<span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
+   type<span class="token operator">:</span> <span class="token string">'disjunction'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>list<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// > Motorcycle, Bus o Car</span>
 
 </code></pre>
-<h2 id="datetime-format" tabindex="-1">DateTime Format</h2>
+<h2 id="datetime-format">DateTime Format</h2>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat">Intl.DateTimeFormat</a> enables language-sensitive date and time formatting.</p>
 <p>The example below creates a new date object.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> defaultLocale <span class="token operator">=</span> <span class="token string">'en-US'</span><span class="token punctuation">;</span>
@@ -100,7 +100,7 @@ console<span class="token punctuation">.</span><span class="token function">log<
   <span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// expected output: "17-12-1995"</span>
 </code></pre>
-<h2 id="format-range" tabindex="-1">Format Range</h2>
+<h2 id="format-range">Format Range</h2>
 <aside class="message danger">
   <p><code>formatRange</code> is only available on Chrome 76+. Chrome 76 hasn't hit the stable channel at the time of this post</p>
 </aside>
@@ -112,9 +112,9 @@ console<span class="token punctuation">.</span><span class="token function">log<
 </code></pre>
 <p>We then create a <code>DateTimeFormat</code> object. Because we’re using all three values (year, month, date) the results will also incorporate all three.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">let</span> fmt2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>DateTimeFormat</span><span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token string">'numeric'</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token string">'numeric'</span>
+    year<span class="token operator">:</span> <span class="token string">'numeric'</span><span class="token punctuation">,</span>
+    month<span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
+    day<span class="token operator">:</span> <span class="token string">'numeric'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>I test by logging to console. The results are in comments after each partiicular test.</p>
@@ -127,8 +127,8 @@ console<span class="token punctuation">.</span><span class="token function">log<
 </code></pre>
 <p>If we know that we’re working on a single year we can eliminate the year field. The new <code>DateTimeFormat</code> object looks like this.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">let</span> fmt3 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Intl<span class="token punctuation">.</span>DateTimeFormat</span><span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
-    <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token string">'numeric'</span>
+    month<span class="token operator">:</span> <span class="token string">'short'</span><span class="token punctuation">,</span>
+    day<span class="token operator">:</span> <span class="token string">'numeric'</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>And the results omit the year since we didn’t include it in the object we are using to format the ranges.</p>
