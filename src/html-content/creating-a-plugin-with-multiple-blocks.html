@@ -1,20 +1,51 @@
-<h1 id="creating-a-plugin-with-multiple-blocks" tabindex="-1">Creating a plugin with multiple blocks</h1>
+<h1 id="creating-a-plugin-with-multiple-blocks">Creating a plugin with multiple blocks</h1>
+<p>Most of the WordPress block plugins you see online and most of the examples showing you how to create a block pluging for WordPress show a single block per plugin.</p>
+<p>This may not always be what we want to do.</p>
+<p>When creating blocks for a client I would rather provide a single plugin with all necessary blocks rather than provide one plugin per block.</p>
+<p>I will follow Ryan Welcher’s method to add multiple blocks per plugins as shown in the video below:</p>
+<div class="video">
+  <iframe src="https://player.twitch.tv/?video=1175560252&parent=publishing-project.rivendellweb.net" frameborder="0" allowfullscreen="true" scrolling="no" height="378" width="620"></iframe>
+</div>
+<p>The idea is that running the <code>@wordpress/scripts</code> tool with a template Ryan created, we can prepare the plugin to handle multiple blocks</p>
+<pre class="language-treeview"><code class="language-treeview">./
+├── assets/
+│   ├── index.js
+│   └── templates/
+│       ├── block.json.mustache
+│       ├── edit.js.mustache
+│       ├── editor.scss.mustache
+│       ├── index.js.mustache
+│       ├── save.js.mustache
+│       └── style.scss.mustache
+├── block.json
+├── build/
+│   ├── example-plugin.asset.php
+│   ├── example-plugin.css
+│   ├── example-plugin.js
+│   └── style-example-plugin.css
+├── example-plugin.php
+├── includes/
+│   └── block-editor/
+│       └── blocks/
+│           └── example-plugin/
+│               ├── block.json
+│               ├── edit.js
+│               ├── editor.scss
+│               ├── index.js
+│               ├── save.js
+│               └── style.scss
+├── package-lock.json
+├── package.json
+└── webpack.config.js
+</code></pre>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> @wordpress/create-block <span class="token parameter variable">--template</span> @ryanwelcher/multiple-block-template
+</code></pre>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> defaultConfig <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span> <span class="token string">'@wordpress/scripts/config/webpack.config'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
-	<span class="token operator">...</span>defaultConfig<span class="token punctuation">,</span>
-	<span class="token literal-property property">module</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-		<span class="token operator">...</span>defaultConfig<span class="token punctuation">.</span>module<span class="token punctuation">,</span>
-		<span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">[</span>
-			<span class="token operator">...</span>defaultConfig<span class="token punctuation">.</span>module<span class="token punctuation">.</span>rules<span class="token punctuation">,</span>
-			<span class="token punctuation">{</span>
-				<span class="token literal-property property">test</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">.toml</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
-				<span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'json'</span><span class="token punctuation">,</span>
-				<span class="token literal-property property">parser</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-					<span class="token literal-property property">parse</span><span class="token operator">:</span> toml<span class="token punctuation">.</span>parse<span class="token punctuation">,</span>
-				<span class="token punctuation">}</span><span class="token punctuation">,</span>
-			<span class="token punctuation">}</span><span class="token punctuation">,</span>
-		<span class="token punctuation">]</span><span class="token punctuation">,</span>
-	<span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token operator">...</span>defaultConfig<span class="token punctuation">,</span>
+  <span class="token literal-property property">entry</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string-property property">'block-one'</span><span class="token operator">:</span> <span class="token string">'./includes/block-editor/blocks/block-one'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>

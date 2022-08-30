@@ -24,32 +24,32 @@
 <h2 id="adding-a-brand-new-package-to-a-tap">Adding A Brand New Package To A Tap</h2>
 <p>The easiest way to add a package is to start with an application that is not part of core and is available as a zip or tar ball and the custom tap that we want to add the formula to.</p>
 <p>The command is simple:</p>
-<pre class="language-bash"><code class="language-bash">brew create --tap caraya/rivendellweb <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">brew create <span class="token parameter variable">--tap</span> caraya/rivendellweb <span class="token punctuation">\</span>
 https://example.com/foo-0.1.tar.gz
 </code></pre>
 <p>This will download the tarball, extract it to a temporary directory and create a formula in the specified tap directory.</p>
 <p>You will get the skeleton of a Formula in the homebrew/core directory. This is important as you’ll have to move the formula to your tap’s directory.</p>
-<pre class="language-ruby"><code class="language-ruby"><span class="token keyword">class</span> <span class="token class-name">Foo</span> <span class="token operator">&lt;</span> <span class="token constant">Formula</span>
-  desc <span class="token string">""</span>
-  homepage <span class="token string">""</span>
-  url <span class="token string">"https://example.com/foo-0.1.tar.gz"</span>
-  sha256 <span class="token string">"85cc828a96735bdafcf29eb6291ca91bac846579bcef7308536e0c875d6c81d7"</span>
-  license <span class="token string">""</span>
+<pre class="language-ruby"><code class="language-ruby"><span class="token keyword">class</span> <span class="token class-name">Foo</span> <span class="token operator">&lt;</span> Formula
+  desc <span class="token string-literal"><span class="token string">""</span></span>
+  homepage <span class="token string-literal"><span class="token string">""</span></span>
+  url <span class="token string-literal"><span class="token string">"https://example.com/foo-0.1.tar.gz"</span></span>
+  sha256 <span class="token string-literal"><span class="token string">"85cc828a96735bdafcf29eb6291ca91bac846579bcef7308536e0c875d6c81d7"</span></span>
+  license <span class="token string-literal"><span class="token string">""</span></span>
 
   <span class="token comment"># depends_on "cmake" => :build</span>
 
   <span class="token keyword">def</span> <span class="token method-definition"><span class="token function">install</span></span>
     <span class="token comment"># ENV.deparallelize</span>
-    system <span class="token string">"./configure"</span><span class="token punctuation">,</span> <span class="token string">"--disable-debug"</span><span class="token punctuation">,</span>
-                          <span class="token string">"--disable-dependency-tracking"</span><span class="token punctuation">,</span>
-                          <span class="token string">"--disable-silent-rules"</span><span class="token punctuation">,</span>
-                          <span class="token string">"--prefix=<span class="token interpolation"><span class="token delimiter tag">#{</span>prefix<span class="token delimiter tag">}</span></span>"</span>
+    system <span class="token string-literal"><span class="token string">"./configure"</span></span><span class="token punctuation">,</span> <span class="token string-literal"><span class="token string">"--disable-debug"</span></span><span class="token punctuation">,</span>
+                          <span class="token string-literal"><span class="token string">"--disable-dependency-tracking"</span></span><span class="token punctuation">,</span>
+                          <span class="token string-literal"><span class="token string">"--disable-silent-rules"</span></span><span class="token punctuation">,</span>
+                          <span class="token string-literal"><span class="token string">"--prefix=</span><span class="token interpolation"><span class="token delimiter punctuation">#{</span><span class="token content">prefix</span><span class="token delimiter punctuation">}</span></span><span class="token string">"</span></span>
     <span class="token comment"># system "cmake", ".", *std_cmake_args</span>
-    system <span class="token string">"make"</span><span class="token punctuation">,</span> <span class="token string">"install"</span>
+    system <span class="token string-literal"><span class="token string">"make"</span></span><span class="token punctuation">,</span> <span class="token string-literal"><span class="token string">"install"</span></span>
   <span class="token keyword">end</span>
 
   test <span class="token keyword">do</span>
-    system <span class="token string">"false"</span>
+    system <span class="token string-literal"><span class="token string">"false"</span></span>
   <span class="token keyword">end</span>
 <span class="token keyword">end</span>
 </code></pre>
@@ -60,11 +60,11 @@ https://example.com/foo-0.1.tar.gz
 <p>The command to audit the formula is:</p>
 <pre class="language-bash"><code class="language-bash">brew audit --strict<span class="token punctuation">\</span>
   --new-formula <span class="token punctuation">\</span>
-  --online <span class="token operator">&lt;</span>formula<span class="token operator">></span>
+  <span class="token parameter variable">--online</span> <span class="token operator">&lt;</span>formula<span class="token operator">></span>
 </code></pre>
 <p>Once it is free of errors, you can push it to commit and push it to your Tap repository from a branch. The commands to do this are:</p>
-<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">cd</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>brew --repository repository/name<span class="token variable">)</span></span>"</span>
-<span class="token function">git</span> checkout -b <span class="token operator">&lt;</span>some-descriptive-name<span class="token operator">></span>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">cd</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>brew <span class="token parameter variable">--repository</span> repository/name<span class="token variable">)</span></span>"</span>
+<span class="token function">git</span> checkout <span class="token parameter variable">-b</span> <span class="token operator">&lt;</span>some-descriptive-name<span class="token operator">></span>
 <span class="token function">git</span> <span class="token function">add</span> Formula/foo.rb
 <span class="token function">git</span> commit
 </code></pre>
@@ -93,7 +93,7 @@ https://example.com/foo-0.1.tar.gz
 <p>So now onto the process.</p>
 <p>Because the formula must be unique across all taps, including homebrew/core, we need to create a new formula. For this example, I’ll pick <code>graphicsmagick-perl</code> since it indicates the name of the file and what I’m adding to it.</p>
 <p>To make sure that the formula gets created in the right tap, run the following command:</p>
-<pre class="language-bash"><code class="language-bash">brew create --tap caraya/rivendellweb <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">brew create <span class="token parameter variable">--tap</span> caraya/rivendellweb <span class="token punctuation">\</span>
 <span class="token operator">&lt;</span>url to the <span class="token builtin class-name">source</span> of the package<span class="token operator">></span>
 </code></pre>
 <p>You will get the skeleton of a Formula in the tap directory spcify.</p>
@@ -105,14 +105,14 @@ https://example.com/foo-0.1.tar.gz
 <p><a href="https://docs.brew.sh/Node-for-Formula-Authors">Node for forumula authors</a> provides a detailed guide to creating Node formulas for Homebrew.</p>
 <h3 id="running-npm-install">Running npm install</h3>
 <p>Homebrew provides two helper methods in a <code>Language::Node module</code>. Before you can use them you have to require the Node language module at the beginning of your formula file with:</p>
-<pre class="language-ruby"><code class="language-ruby"><span class="token keyword">require</span> <span class="token string">"language/node"</span>
+<pre class="language-ruby"><code class="language-ruby"><span class="token keyword">require</span> <span class="token string-literal"><span class="token string">"language/node"</span></span>
 </code></pre>
 <p>The two methods are:</p>
 <ul>
 <li><em><strong>std_npm_install_args</strong></em>  for formuls for compatible with npm’s global module format (like <a href="https://github.com/Homebrew/homebrew-core/blob/0f3b27d252b8112c744e0460d871cfe1def6b993/Formula/azure-cli.rb">azure-cli</a> or <a href="https://github.com/Homebrew/homebrew-core/blob/6282879973d569962e63da7c81ac4623e1a8336b/Formula/webpack.rb">webpack</a>)</li>
 <li><em><strong>local_npm_install_args</strong></em> for formulas where the npm install call is not the only required install step or need to also compile non-JavaScript sources (like <a href="https://github.com/Homebrew/homebrew-core/blob/4bb491b7b246830aed57b97348a17e9401374978/Formula/elixirscript.rb">elixirscript</a> or <a href="https://github.com/Homebrew/homebrew-core/blob/93be1840908adb2f9ee8c48c66586ee6327480e3/Formula/grunt-cli.rb">grunt-cli</a>)</li>
 </ul>
-<pre class="language-ruby"><code class="language-ruby">system <span class="token string">"npm"</span><span class="token punctuation">,</span> <span class="token string">"install"</span><span class="token punctuation">,</span> <span class="token operator">*</span><span class="token constant">Language</span><span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token constant">Node</span><span class="token punctuation">.</span>std_npm_install_args<span class="token punctuation">(</span>libexec<span class="token punctuation">)</span>
+<pre class="language-ruby"><code class="language-ruby">system <span class="token string-literal"><span class="token string">"npm"</span></span><span class="token punctuation">,</span> <span class="token string-literal"><span class="token string">"install"</span></span><span class="token punctuation">,</span> <span class="token operator">*</span>Language<span class="token double-colon punctuation">::</span>Node<span class="token punctuation">.</span>std_npm_install_args<span class="token punctuation">(</span>libexec<span class="token punctuation">)</span>
 </code></pre>
 <p>Node modules should be installed to libexec. This prevents the Node modules from contaminating the global node_modules, which is important so that npm doesn’t try to manage Homebrew-installed Node modules.</p>
 <h3 id="download-url">Download URL</h3>
@@ -122,14 +122,14 @@ https://example.com/foo-0.1.tar.gz
 </code></pre>
 <h3 id="dependencies">Dependencies</h3>
 <p>Node modules which are compatible with the latest Node version should declare a dependency on the node formula.</p>
-<pre class="language-ruby"><code class="language-ruby">depends_on <span class="token string">"node"</span>
+<pre class="language-ruby"><code class="language-ruby">depends_on <span class="token string-literal"><span class="token string">"node"</span></span>
 </code></pre>
 <p>If your formula requires being executed with an older Node version you should use one of the versioned node formulae (e.g. <code>node@12</code>).</p>
-<pre class="language-ruby"><code class="language-ruby">depends_on <span class="token string">"node@12"</span>
+<pre class="language-ruby"><code class="language-ruby">depends_on <span class="token string-literal"><span class="token string">"node@12"</span></span>
 </code></pre>
 <h3 id="special-requirements-for-native-addons">Special requirements for native addons</h3>
 <p>If your Node module or any of its dependencies is a native addon you have to declare an additional dependency. The compilation of the native addon results in an invocation of node-gyp so we need an additional build time dependency on “python” (because GYP depends on Python).</p>
-<pre class="language-ruby"><code class="language-ruby">depends_on <span class="token string">"python"</span> <span class="token operator">=</span><span class="token operator">></span> <span class="token symbol">:build</span>
+<pre class="language-ruby"><code class="language-ruby">depends_on <span class="token string-literal"><span class="token string">"python"</span></span> <span class="token operator">=></span> <span class="token symbol">:build</span>
 </code></pre>
 <p>Formulas with a native addon dependency will only work with the major version (12, 14, 16) it was compiled with. This means that you need to revision every formula with a Node native addon with every major version bump of the node formula. To help with this, write a meaningful test which would fail in such a case (invoked with an ABI-incompatible Node version).</p>
 <h2 id="adding-python-modules">Adding Python Modules</h2>
@@ -150,11 +150,11 @@ https://example.com/foo-0.1.tar.gz
 <p>If the brew native method doesn’t work, you can use <a href="https://pypi.python.org/pypi/homebrew-pypi-poet">homebrew-pypi-poet</a> to help writing resource stanzas. You can do it like this:</p>
 <pre class="language-bash"><code class="language-bash"><span class="token comment"># Use a temporary directory for </span>
 <span class="token comment"># the virtual environment</span>
-<span class="token builtin class-name">cd</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>mktemp -d<span class="token variable">)</span></span>"</span>
+<span class="token builtin class-name">cd</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>mktemp <span class="token parameter variable">-d</span><span class="token variable">)</span></span>"</span>
 
 <span class="token comment"># Create and source a new virtual</span>
 <span class="token comment"># environment in the venv/ directory</span>
-python3 -m venv venv
+python3 <span class="token parameter variable">-m</span> venv venv
 <span class="token builtin class-name">source</span> venv/bin/activate
 
 <span class="token comment"># Install the package of interest as</span>
@@ -164,10 +164,10 @@ poet some_package
 
 <span class="token comment"># Destroy the virtual environment</span>
 deactivate
-<span class="token function">rm</span> -rf venv
+<span class="token function">rm</span> <span class="token parameter variable">-rf</span> venv
 </code></pre>
 <p>Homebrew provides helper methods for instantiating and populating virtualenvs. You can use them by putting the following statement at the top of the formula definition:</p>
-<pre class="language-ruby"><code class="language-ruby"><span class="token keyword">include</span> <span class="token constant">Language</span><span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token constant">Python</span><span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token constant">Virtualenv</span>
+<pre class="language-ruby"><code class="language-ruby"><span class="token keyword">include</span> Language<span class="token double-colon punctuation">::</span>Python<span class="token double-colon punctuation">::</span>Virtualenv
 </code></pre>
 <p>For most applications, all you will need to write is:</p>
 <pre class="language-ruby"><code class="language-ruby"><span class="token keyword">def</span> <span class="token method-definition"><span class="token function">install</span></span>

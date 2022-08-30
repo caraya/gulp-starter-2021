@@ -118,24 +118,24 @@ brew <span class="token function">install</span> sfnt2woff-zopfli
 </code></pre>
 <h3 id="subseting-to-the-latin-character-set">Subseting to the Latin Character set</h3>
 <p>The first experiment is to subset the font to use Latin characters only. Latin alphabets are used in the United States, Latin America and Western European countries</p>
-<pre class="language-bash"><code class="language-bash">glyphhanger --latin <span class="token punctuation">\</span>
---subset<span class="token operator">=</span>Roboto-min-VF.ttf  <span class="token punctuation">\</span>
---formats<span class="token operator">=</span>woff-zopfli,woff2
+<pre class="language-bash"><code class="language-bash">glyphhanger <span class="token parameter variable">--latin</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--subset</span><span class="token operator">=</span>Roboto-min-VF.ttf  <span class="token punctuation">\</span>
+<span class="token parameter variable">--formats</span><span class="token operator">=</span>woff-zopfli,woff2
 </code></pre>
 <p>This command will generate larger but more flexible subsets that will work with all pages in your site or application. But they are larger files, we can probably do better.</p>
 <p>The next version will subset the font to use only the characters in the specified page, in this case the index page for the site.</p>
 <h3 id="subsetting-to-a-page">Subsetting to a page</h3>
 <pre class="language-bash"><code class="language-bash">glyphhanger http://localhost:5000 <span class="token punctuation">\</span>
---subset<span class="token operator">=</span>Roboto-min-VF.ttf  <span class="token punctuation">\</span>
---formats<span class="token operator">=</span>woff-zopfli,woff2
+<span class="token parameter variable">--subset</span><span class="token operator">=</span>Roboto-min-VF.ttf  <span class="token punctuation">\</span>
+<span class="token parameter variable">--formats</span><span class="token operator">=</span>woff-zopfli,woff2
 </code></pre>
 <p>This will create subset fonts in the specified formats (WOFF and WOFF2) along with the CSS @font-face declaration that you can drop in your stylesheet to use. The fonts and CSS will only have the characters used in that page.</p>
 <h3 id="subseting-with-the-spider">Subseting with the spider</h3>
 <p>The previous subset is good for a single page application but breaks in multi-page sites as characters in the page we subset from may not be in the other pages in the site.</p>
 <p>We can handle multiple pages by using Glyphhanger’s spidering cpabilitiy by indicating that we want to use it (<code>--spider</code>) and the maximum number of URLs to capture (<code>--spider-limit</code>).</p>
-<pre class="language-bash"><code class="language-bash">glyphhanger --spider --spider-limits-30 <span class="token punctuation">\</span>
---formats<span class="token operator">=</span>woff2,woff-zopfli <span class="token punctuation">\</span>
---subset<span class="token operator">=</span>*.ttf <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">glyphhanger <span class="token parameter variable">--spider</span> --spider-limits-30 <span class="token punctuation">\</span>
+<span class="token parameter variable">--formats</span><span class="token operator">=</span>woff2,woff-zopfli <span class="token punctuation">\</span>
+<span class="token parameter variable">--subset</span><span class="token operator">=</span>*.ttf <span class="token punctuation">\</span>
 http://localhost:5000
 </code></pre>
 <p>The result will be closer to the Latin subset but it will only contain the characters that exists in your site in the language it was written in. This becomes important when you use fonts like Roboto, Fira or other fonts designed to support multiple languages.</p>
@@ -207,11 +207,11 @@ http://localhost:5000
 <p>Fonts will be the largest assets we cache with the service worker so we want to keep a few locally hosted fonts around and keep them for a while so we don’t have to download them too often.</p>
 <p>Using <a href="https://developers.google.com/web/tools/workbox/">Workbox.js</a> we can simplify the process of creating a font cache or even multiple caches for local and external fonts.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> fontHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  cacheName<span class="token operator">:</span> <span class="token string">"fonts-cache"</span><span class="token punctuation">,</span>
-  plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
+  <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">"fonts-cache"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
     <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>expiration<span class="token punctuation">.</span>Plugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      maxAgeSeconds<span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
-      maxEntries<span class="token operator">:</span> <span class="token number">10</span>
+      <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">10</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
   <span class="token punctuation">]</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -224,15 +224,15 @@ http://localhost:5000
 </ul>
 <p>We do the last step because opaque responses are usually padded by browsers to prevent user information from leaking across domains and we want to make sure that browsers will handle full caches for the origin (your site) before the browser decides what to delete instead of asking yout.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> extFontHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">staleWhileRevalidate</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  cacheName<span class="token operator">:</span> <span class="token string">"external-fonts"</span><span class="token punctuation">,</span>
-  plugins<span class="token operator">:</span> <span class="token punctuation">[</span>
+  <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">"external-fonts"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
     <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>expiration<span class="token punctuation">.</span>Plugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      maxAgeSeconds<span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span>
+      <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     <span class="token keyword">new</span> <span class="token class-name">workbox<span class="token punctuation">.</span>cacheableResponse<span class="token punctuation">.</span>Plugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      statuses<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">statuses</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
       <span class="token comment">// Automatically cleanup if quota is exceeded.</span>
-      purgeOnQuotaError<span class="token operator">:</span> <span class="token boolean">true</span>
+      <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
   <span class="token punctuation">]</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -348,7 +348,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 <span class="token keyword">const</span> NeueMontreal <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">"NeueMontreal"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> Fuji <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> FujiBold <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFaceObserver</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  weight<span class="token operator">:</span> <span class="token string">"700"</span>
+  <span class="token literal-property property">weight</span><span class="token operator">:</span> <span class="token string">"700"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token keyword">let</span> html <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
@@ -412,16 +412,16 @@ NeueMontrealFontFace<span class="token punctuation">.</span>loaded<span class="t
 
 <span class="token keyword">const</span> fujiFontFace <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFace</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">,</span>
       <span class="token string">"url(/fonts/Fuji-Light.woff2)"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  style<span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
-  weight<span class="token operator">:</span> <span class="token string">"400"</span>
+  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">weight</span><span class="token operator">:</span> <span class="token string">"400"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 document<span class="token punctuation">.</span>fonts<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>fujiFontFace<span class="token punctuation">)</span><span class="token punctuation">;</span>
 fujiFontFace<span class="token punctuation">.</span>loaded<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span>logLoaded<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token keyword">const</span> fujiBoldFontFace <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FontFace</span><span class="token punctuation">(</span><span class="token string">"Fuji"</span><span class="token punctuation">,</span>
       <span class="token string">"url(/fonts/Fuji-Bold.woff2)"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-  style<span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
-  weight<span class="token operator">:</span> <span class="token string">"700"</span>
+  <span class="token literal-property property">style</span><span class="token operator">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">weight</span><span class="token operator">:</span> <span class="token string">"700"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 document<span class="token punctuation">.</span>fonts<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>fujiBoldFontFace<span class="token punctuation">)</span><span class="token punctuation">;</span>
 fujiBoldFontFace<span class="token punctuation">.</span>loaded<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span>logLoaded<span class="token punctuation">)</span><span class="token punctuation">;</span>

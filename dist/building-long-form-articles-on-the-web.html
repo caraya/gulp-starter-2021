@@ -17,18 +17,255 @@
 
 <body>
 <article class="container">
-  <h1 id="building-long-form-articles-on-the-web" tabindex="-1">Building long-form articles on the web</h1>
+  <h1 id="building-long-form-articles-on-the-web">Building long-form articles on the web</h1>
 <p>It’s been a while since I’ve researched and written about long-form content for the web.</p>
 <p>New technologies and APIs make it easier to create contet that is a far cry from <a href="https://craigmod.com/bibliotype/">Bibliotype</a>.</p>
-<p>This post will look at what we need to do to create <a href="https://alistapart.com/article/a-simpler-page/">A simpler page</a></p>
-<h2 id="use-space-wisely" tabindex="-1">Use space wisely</h2>
-<h3 id="content-width" tabindex="-1">Content width</h3>
-<h3 id="line-height" tabindex="-1">Line height</h3>
-<h2 id="typography-related" tabindex="-1">Typography related</h2>
-<h3 id="font-selection-and-multiple-fonts-availability" tabindex="-1">Font selection and multiple fonts availability</h3>
-<h3 id="font-size-and-reading-distance" tabindex="-1">Font size and reading distance</h3>
-<h3 id="drop-caps%3F" tabindex="-1">Drop caps?</h3>
-<h2 id="underlines" tabindex="-1">Underlines</h2>
+<p>This post will look at what we need to do to create long-form content that is comfortable to read from a screen.</p>
+<p>This post will not deal with <strong>how</strong> people read online. We will only address technical aspects that I consider necessary to provide good long-form reading experiences.</p>
+<h2 id="use-space-wisely">Use space wisely</h2>
+<p>The first area to consider is how we use the space in the page. Because we have different screen sizes and resolutions, we have to be mindfull how we organize the space.</p>
+<h3 id="content-width">Content width</h3>
+<p>One of the biggest issues with working with long-form content is how many characters wider should we go.</p>
+<p>According to the <a href="http://webtypography.net/">The Elements of Typographic Style Applied to the Web</a> the optimal measure (length of a line) is between 45 and 75 characters.</p>
+<p>We will have problems if the line is too long or too short. According to the <a href="https://baymard.com/blog/line-length-readability">Baymard Institute</a>:</p>
+<blockquote>
+<p>If a line of text is too long the reader’s eyes will have a hard time focusing on the text. This is because the line length makes it difficult to gauge where the line starts and ends.</p>
+<p>If a line is too short the eye will have to travel back too often, breaking the reader’s rhythm. Too-short lines also tend to stress readers, making them begin on the next line before finishing the current one (hence skipping potentially important words).</p>
+</blockquote>
+<p>Until recently it was impossible to create a measure based on character count. We couldn’t say the width of this paragraph is 75 characters. <a href="https://www.w3.org/TR/css-values-3/">CSS Values and Units Module Level 3</a> introduced the <code>ch</code> unit of measurement that addresses this issue. It is defined as:</p>
+<blockquote>
+<p>Equal to the used advance measure of the “0” (ZERO, U+0030) glyph found in the font used to render it. (The advance measure of a glyph is its advance width or height, whichever is in the inline axis of the element.)</p>
+</blockquote>
+<p>They go on to explain that:</p>
+<blockquote>
+<p>The advance measure of a glyph depends on writing-mode and text-orientation as well as font settings, text-transform, and any other properties that affect glyph selection or orientation.</p>
+</blockquote>
+<p>One important thing to consider is that the width of the “0” (ZERO, U+0030) glyph will be different based on the font you use and the direction of your text. This may mean you will have to adjust the line height and other typographical elements of the page.</p>
+<p>Using <code>ch</code> as the unit for our measure we can get consistent width for the content.</p>
+<p>Support is pretty good, with Opera Mini being the only browser that doesn’t support the unit.</p>
+<picture>
+<source type="image/webp" srcset="https://caniuse.bitsofco.de/static/v1/ch-unit-1661308329918.webp">
+<source type="image/png" srcset="https://caniuse.bitsofco.de/static/v1/ch-unit-1661308329918.png">
+<img src="https://caniuse.bitsofco.de/static/v1/ch-unit-1661308329918.jpg" alt="Data on support for the ch-unit feature across the major browsers from caniuse.com">
+</picture>
+<h3 id="line-height">Line height</h3>
+<blockquote>
+<p>“Vertical space is metered in a different way [to horizontal space]. You must choose not only the overall measure – the depth of the column or page – but also a basic rhythmical unit. This unit is the leading, which is the distance from one baseline to the next.”</p>
+<p>Source: <a href="http://webtypography.net/2.2.1">Choose a basic leading that suits the typeface, text and measure</a></p>
+</blockquote>
+<p>In addition to measuring the width of our content, we need to also account for vertical spacing between the lines of our text. This is called Leading (pronounced “ledding”), a byproduct of mechanical presses, where strips of lead are placed between lines of type to space the lines apart.</p>
+<p>Four web content, we control leading via the <code>line-height</code> property. The following example will produce a separation of 1.5 units between lines in paragraphs:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">p</span> <span class="token punctuation">{</span>
+  <span class="token property">line-height</span><span class="token punctuation">:</span> 1.5<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>However, there is a little trick that I have to constantly remind myself of. CSS adds half the value of the <code>line-height</code> attribute above and below the line it applies to. Otherwise we would get double our desired value.</p>
+<p>The preferred way to use line height is with unitless values (like 1.25 or 1.5). The used value is this unitless number multiplied by the element’s own font size. The computed value is the same as if we specify a length (like 15px or 2em).</p>
+<h2 id="typography">Typography</h2>
+<p>Typography has always been interesting to me.</p>
+<p>I’m not a type designer and I consider myself addequate as a font user on the web, I’ve been around for the full progression of fonts on the web.</p>
+<p>We will not review the full history of webfonts. If interested I’ll refer you to <a href="https://www.typotheque.com/articles/brief_history_of_webfonts">Brief History of Webfonts</a></p>
+<h3 id="font-selection">Font selection</h3>
+<p>I follow this list, taken from Google Font’s <a href="https://fonts.google.com/knowledge/choosing_type/a_checklist_for_choosing_type">A checklist for choosing type</a>. It provides a good overview of what’s necessary to choose a good font for the project.</p>
+<ul>
+<li>The typeface suits the purpose of the project
+<ul>
+<li>Its personality will prompt the appropriate emotional response(s) from our audience</li>
+<li>Its design fits the intended use</li>
+</ul>
+</li>
+<li>The typeface’s design is comprehensive
+<ul>
+<li>It has enough multi-language support</li>
+<li>It contains legible details</li>
+<li>It has at least the basic weights and styles
+<ul>
+<li>Even better: It has alternate glyphs</li>
+<li>Even better: It has additional weights and styles (or grades)</li>
+<li>Even better: It has multiple widths</li>
+<li>Even better: It has different optical sizes</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The font files are reliable
+<ul>
+<li>All of the design features checked above are actually included in the font files being used</li>
+<li>The fonts are properly spaced</li>
+</ul>
+</li>
+<li>The fonts are usable in the situation(s) required
+<ul>
+<li>If serving as a secondary typeface to a primary choice, there’s a suitable balance between distinction and harmony</li>
+<li>We have, or our client has, the appropriate font license(s)</li>
+</ul>
+</li>
+</ul>
+<h3 id="differe-places-to-pick-fonts-from">Differe places to pick fonts from</h3>
+<p>One of the first questions to ask if how do we choose the fonts that we want to use in our long-form content.</p>
+<p>To answer that question we need to dig a little deeper into the types of fonts that are available and where do they work best.</p>
+<p>We will also discuss how to load them.</p>
+<h4 id="generic-font-families">Generic font families</h4>
+<p>Generic font familities are designed as fallback fonts for web font stacks. The idea is that they will map to an existing font on the user’s computer so there will be a font to render the contet. It may not match exactly what the designer had in mind but at least it will work.</p>
+<p>The following table maps to the most common used generic font families</p>
+<table>
+<thead>
+<tr>
+<th>Font</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Serif</strong></td>
+<td>Serif fonts represent the formal text style for a script. This often means, but is not limited to, glyphs that have finishing strokes, flared or tapering ends, or have actual serifed endings (including slab serifs). Serif fonts are typically proportionately-spaced.</td>
+</tr>
+<tr>
+<td><strong>Sans-Serif</strong></td>
+<td>Glyphs in sans-serif fonts, as the term is used in CSS, are generally low contrast (vertical and horizontal stems have the close to the same thickness) and have stroke endings that are plain (without any flaring, cross stroke, or other ornamentation). Sans-serif fonts are typically proportionately-spaced. They often have little variation between thick and thin strokes, compared to fonts from the serif family.</td>
+</tr>
+<tr>
+<td><strong>Monospace</strong></td>
+<td>The sole criterion of a monospace font is that all glyphs have the same fixed width. This is often used to render samples of computer code.</td>
+</tr>
+<tr>
+<td>System UI</td>
+<td>This generic font family lets text render with the default user interface font on the platform on which the UA is running. A cross-platform UA should use different fonts on its different supported platforms. The purpose of system-ui is to allow web content to integrate with the look and feel of the native OS.</td>
+</tr>
+</tbody>
+</table>
+<p>There are other, less frequently used generic font families defined in the specification. See <a href="https://www.w3.org/TR/css-fonts-4/#generic-font-families">2.1.3. Generic font families</a> in the CSS Fonts Module Level 4 specification.</p>
+<p>Other than <code>system-ui</code> discussed later in System fonts, generic font families are used as a last resort to provide some level of uniformity to design in case other fonts are not available</p>
+<h4 id="microsoft-webfonts">Microsoft webfonts</h4>
+<p>The first set of fonts designed work on the web are the <a href="https://en.wikipedia.org/wiki/Core_fonts_for_the_Web">Core fonts for the Web</a> released by Microsoft under a a combination of their own license and licenses from the Monotype foundry.</p>
+<p>The included fonts are:</p>
+<ul>
+<li>Andalé Mono</li>
+<li>Arial</li>
+<li>Arial Black</li>
+<li>Comic Sans MS</li>
+<li>Courier New</li>
+<li>Georgia</li>
+<li>Impact</li>
+<li>Times New Roman</li>
+<li>Trebuchet MS</li>
+<li>Verdana</li>
+<li>Webdings</li>
+</ul>
+<p>The program released these fonts are freeware with some distribution restrictions until 2002.</p>
+<p>Versions of these fonts released after 2002 are not part of the core fonts project and are released under different terms and licenses.</p>
+<p>These fonts are still very likely to be in your computer either because you downloaded them or a product that bundles the fonts for you.</p>
+<p>Using the fonts would be as simple as using them in a <code>font-family</code> attribute.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Verdana<span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h4 id="typekit">Typekit</h4>
+<p>Web fonts were part of the CSS 2 specification but foundries were afraid that people would streal their fonts so they crafted their licenses in such developers could not use embedable fonts and comply with the license.</p>
+<p>Typekit, the first service to offer downloadble fonts, was released in 2009 and acquired by Adobe in 2011.</p>
+<p>Typekit provides many ways to load fonts on a site. There is a legcy code, what has been used for years:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://use.typekit.net/xxxxxxx.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"><span class="token keyword">try</span><span class="token punctuation">{</span>Typekit<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">async</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">}</span><span class="token keyword">catch</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token punctuation">}</span></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>And a newer asynchronous script that load both the script and the css necessary to run the font. This is the recommended way to add Typekit fonts to your site.</p>
+<pre class="language-js"><code class="language-js"><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">var</span> config <span class="token operator">=</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">kitId</span><span class="token operator">:</span> <span class="token string">'abc1def'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">var</span> d <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token keyword">var</span> tk <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'script'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    tk<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'//use.typekit.net/'</span> <span class="token operator">+</span> config<span class="token punctuation">.</span>kitId <span class="token operator">+</span> <span class="token string">'.js'</span><span class="token punctuation">;</span>
+    tk<span class="token punctuation">.</span>type <span class="token operator">=</span> <span class="token string">'text/javascript'</span><span class="token punctuation">;</span>
+    tk<span class="token punctuation">.</span>async <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">;</span>
+    tk<span class="token punctuation">.</span>onload <span class="token operator">=</span> tk<span class="token punctuation">.</span><span class="token function-variable function">onreadystatechange</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">var</span> rs <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>readyState<span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>d <span class="token operator">||</span> rs <span class="token operator">&amp;&amp;</span> rs <span class="token operator">!=</span> <span class="token string">'complete'</span> <span class="token operator">&amp;&amp;</span> rs <span class="token operator">!=</span> <span class="token string">'loaded'</span><span class="token punctuation">)</span> <span class="token keyword">return</span><span class="token punctuation">;</span>
+      d <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+      <span class="token keyword">try</span> <span class="token punctuation">{</span> Typekit<span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span>config<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">var</span> s <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementsByTagName</span><span class="token punctuation">(</span><span class="token string">'script'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    s<span class="token punctuation">.</span>parentNode<span class="token punctuation">.</span><span class="token function">insertBefore</span><span class="token punctuation">(</span>tk<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>In both cases you then reference the font you loaded from your CSS.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"chaparrall pro"</span><span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>I mention Typekit because it’s part of Adobe Creative Suite (as Adobe Fonts), making it easier to work through licenses and use on your web projects.</p>
+<h4 id="google-fonts">Google Fonts</h4>
+<p>Google fonts was first released in 2010 and currently provides over 1400 fonts, most of them open source under the <a href="https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&amp;id=OFL">SIL Open Font license</a>.</p>
+<p>To use a font just click <code>download family</code> and it will download all available styles for you. You can then pick which styles you want and load them using <code>@font-face</code>.</p>
+<h5 id="potential-legal-issues">Potential legal issues</h5>
+<p>Google fonts used to provide a means to load the fonts from Google servers but that has changed since a German court fined a website for using Google Fonts and passing their user’s IP address to Google without notifying the user and giving them a way to decline.</p>
+<p>See <a href="https://www.theregister.com/2022/01/31/website_fine_google_fonts_gdpr/">Website fined by German court for leaking visitor’s IP address via Google Fonts</a> and <a href="https://thehackernews.com/2022/01/german-court-rules-websites-embedding.html">German Court Rules Websites Embedding Google Fonts Violates GDPR</a>.</p>
+<p>How will this affect other font providers is unclear but I fail to see how this would affect only one provider and not others.</p>
+<h4 id="local-web-fonts">Local web fonts</h4>
+<p>Given the problems with Google Fonts and the likely problems with other providers the best, and likely only, way to use web fonts and remain compliant with laws like the GDPR is to host fonts locally and loading using the <code>@font-face</code> at-rule.</p>
+<p>The default way to use <code>@font-face</code> looks like this:</p>
+<p>We specify the <code>font-family</code> name that we will use throughout the stylesheet.</p>
+<p>Then we specify a <code>src</code> attribute with one or more locations for the file. In this example I’m using a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/url">url</a> function to specify the location of the font relative to the stylesheet. The format tells the browser the kind of font it represents.</p>
+<p>I specify the weight of the font so that the browser will know what file to associate with what weight declaration.</p>
+<p>Specifying the style for the font tells the browser if the font is italic or not.</p>
+<p>The final declaraction is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display">font-display</a>. This will control how the font will behave based on when the browser finished downloading the font. The <code>swap</code> value will cause the font to swap in with the system font once the web font is downloaded.</p>
+<p>You will have to load each font separately with its own <code>@font-face</code>. There should be at least four different <code>@font-face</code> declarations per font that you want to use.</p>
+<ul>
+<li>Regular font (regular weight, non italic)</li>
+<li>Italic (regular weight)</li>
+<li>Bold (non italic)</li>
+<li>Bold Italic</li>
+<li>Any additional weight that you’d want to use and associated italic and bold italic files</li>
+</ul>
+<p>This will prevent <a href="https://alistapart.com/article/say-no-to-faux-bold/">faux bold</a> and italics if there is no font available in the weight or style you want to use. The browser will then fake the bold or italic in order to show what it thinks the designer wants.</p>
+<p>A way to combat faux bold, italics and small caps is to ue the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-synthesis">font-synthesis</a> that allows developers to control whether the browser synthesis algorithm applies to any/all of bold (weight), italics (style) or small caps.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Roboto'</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'path/to/roboto.woff2'</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"wwoff2"</span><span class="token punctuation">)</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span>
+  <span class="token property">font-style</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token property">font-display</span><span class="token punctuation">:</span> swap<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>You would then use the font like normal in your CSS with the addition of being able to use more granular values for <code>font-weight</code> and <code>font-stretch</code></p>
+<h4 id="variable-font">Variable font</h4>
+<p>Variable fonts are an evolution of the OpenType font specification that enables many different variations of a typeface to be incorporated into a single file and a single <code>@font-face</code> declaration.</p>
+<p>Variable fonts contain most, if not all, the styles you will need to work with a given font, rather than downloading multiple files to handle the same requirements. This will reduce the number of HTTP requests for fonts with the downside being that the single font request will be for a larger file.</p>
+<p>The <code>@font-face</code> declaration for <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide">variable fonts</a> is similar to the previous example with some differences.</p>
+<p>The values for <code>font-weight</code> and <code>font-stretch</code> take a range of two values for the respective property.</p>
+<p>Instead of multiples of 100, you can use any value in the range. In a variable font, <code>font-weight: 451</code> and <code>font-stretch: 75%</code> are valid values in a selector.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+    <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Roboto Flex Regular"</span><span class="token punctuation">;</span>
+    <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"./fonts/RobotoFlex-VariableFont_GRAD,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.woff2"</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">'woff2-variations'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> 100 1000<span class="token punctuation">;</span>
+    <span class="token property">font-stretch</span><span class="token punctuation">:</span> 25% 151%<span class="token punctuation">;</span>
+    <span class="token property">font-style</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The value for <code>font-style</code> will depend on whether the font provides italics, slant or both of them.</p>
+<h5 id="variation-axis">Variation axis</h5>
+<p><a href="https://wakamaifondue.com">Wakamaifondue</a></p>
+<h4 id="system-fonts">System fonts</h4>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--system-ui</span><span class="token punctuation">:</span> 
+    system-ui<span class="token punctuation">,</span>
+    <span class="token string">"Segoe UI"</span><span class="token punctuation">,</span>
+    Roboto<span class="token punctuation">,</span>
+    Helvetica<span class="token punctuation">,</span>
+    Arial<span class="token punctuation">,</span>
+    sans-serif<span class="token punctuation">,</span>
+    <span class="token string">"Apple Color Emoji"</span><span class="token punctuation">,</span>
+    <span class="token string">"Segoe UI Emoji"</span><span class="token punctuation">,</span>
+    <span class="token string">"Segoe UI Symbol"</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.element</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--system-ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="font-size-and-reading-distance">Font size and reading distance</h3>
+<h3 id="to-justify-or-not%3F">To Justify or not?</h3>
+<h3 id="drop-caps%3F">Drop caps?</h3>
+<h3 id="underlines">Underlines</h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-line">text-decoration-line</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-color">text-decoration-color</a></li>
@@ -39,9 +276,262 @@
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-underline-offset">text-underline-offset</a></li>
 </ul>
-<h2 id="skip-to-content" tabindex="-1">Skip to content</h2>
+<h2 id="columns%3F">Columns?</h2>
+<p><a href="https://css-tricks.com/when-do-you-use-css-columns/">When Do You Use CSS Columns?</a></p>
+<h2 id="skip-to-content">Skip to content</h2>
 <p><a href="https://css-tricks.com/a-deep-dive-on-skipping-to-content/">A Deep Dive on Skipping to Content</a></p>
 <p><a href="https://css-tricks.com/how-to-create-a-skip-to-content-link/">How to Create a “Skip to Content” Link</a></p>
+<h2 id="giving-users-control">Giving users control</h2>
+<p>control panel idea.</p>
+<h2 id="making-it-work-on-mobile">Making it work on mobile</h2>
+<h2 id="further-technical-considerations">Further technical considerations</h2>
+<h3 id="the-web-is-not-apps">The web is not apps</h3>
+<h3 id="the-web-can-be-like-print">The web can be like print</h3>
+<h3 id="leverage-the-web-for-what-it%E2%80%99s-good-for">Leverage the web for what it’s good for</h3>
+<p>hi and artspacetokyo</p>
+<h3 id="updating-your-content">Updating your content</h3>
+<h3 id="variable-fonts-for-the-win">Variable fonts for the win</h3>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li>Frank Chimero
+<ul>
+<li><a href="https://frankchimero.com/blog/2015/the-webs-grain/">The Web’s Grain</a></li>
+<li><a href="https://frankchimero.com/blog/2013/what-screens-want/">What The Web Wants</a></li>
+</ul>
+</li>
+<li>Apps and publishing
+<ul>
+<li><a href="http://craigmod.com/journal/post_artifact/">Post artifact books and publishing</a>
+<ul>
+<li><a href="Newspapers%20and%20Thinking%20the%20Unthinkable%0A">Newspapers and Thinking the Unthinkable</a></li>
+<li><a href="http://booktwo.org/notebook/wikipedia-historiography/">On Wikipedia, Cultural Patrimony, and Historiography</a>
+<ul>
+<li>You own your content
+<ul>
+<li><a href="http://boingboing.net/2009/07/17/amazon-zaps-purchase.html">Amazon zaps purchased copies of Orwell’s 1984 and Animal Farm from Kindles</a></li>
+</ul>
+</li>
+<li><a href="https://aworkinglibrary.com/writing/forever">Forever</a> - Things never last forever on the web</li>
+<li><a href="http://bobulate.com/post/5013829096/the-social-life-of-marginalia">The social life of marginalia</a>
+<ul>
+<li>Bookmarking, annotations and sharing
+<ul>
+<li><a href="http://www.openbookmarks.org/">openbookmarks.org</a></li>
+<li><a href="https://hypothes.is/">Hypothes.is</a></li>
+<li><a href="https://github.com/NYTimes/Emphasis">emphasis</a> from the New York Times</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="https://craigmod.com/journal/subcompact_publishing/">Subcompact Publishing</a></li>
+<li><a href="http://kk.org/thetechnium/what-books-will/">What books will become</a>
+<ul>
+<li><a href="http://craigmod.com/sputnik/as_we_may_read/">As we may read</a> and <a href="https://aeon.co/essays/stagnant-and-dull-can-digital-books-ever-replace-print">Future Reading</a></li>
+</ul>
+</li>
+<li><a href="http://contentsmagazine.com/articles/our-new-shrines/">Our new shrines</a>
+<ul>
+<li><a href="http://contentsmagazine.com/articles/our-new-shrines/">How apps are made</a></li>
+</ul>
+</li>
+<li><a href="http://craigmod.com/sputnik/worldreader/">ebooks for all</a></li>
+<li><a href="https://medium.com/@craigmod/pull-back-17a9ebc060d3#.lv3ix13z9">Pull back</a></li>
+<li><a href="https://craigmod.com/essays/unbinding/">Unbinding and edges</a>
+<ul>
+<li><a href="http://www.thedailybeast.com/articles/2012/10/18/a-turn-of-the-page-for-newsweek.html">A Turn of the Page for Newsweek</a></li>
+<li><a href="http://craigmod.com/journal/digital_physical/">The digital - physical</a>
+<ul>
+<li><a href="http://www.artagogo.com/commentary/christo/christo.htm">Christo and Jeanne-Claude: Gentle Disturbances</a></li>
+<li><a href="http://christojeanneclaude.net/projects/the-umbrellas">The Umbrellas</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="http://craigmod.com/sputnik/publishing_startups/">Publishing Startups and the Great Fuzziness</a></li>
+<li><a href="http://craigmod.com/journal/platforming_books/">Platforming books</a>
+<ul>
+<li><a href="http://www.cultofmac.com/182864/amazon-kindle-ebooks-now-outsell-all-paper-books-combined/">Amazon: Kindle Ebooks Now Outsell All Paper Books Combined</a></li>
+</ul>
+</li>
+<li><a href="http://craigmod.com/journal/hack_the_cover/">Hack the cover</a>
+<ul>
+<li><a href="Has%20Kindle%20Killed%20the%20Book%20Cover?">Has Kindle Killed the Book Cover?</a></li>
+<li><a href="http://www.nytimes.com/2006/05/14/magazine/14publishing.html?pagewanted=all">Scan this book!</a></li>
+<li><a href="http://www.nytimes.com/2006/06/25/books/review/25updike.html?pagewanted=print&amp;pagewanted=all">The End of Authorship</a></li>
+<li><a href="http://bookcoverarchive.com/">The book cover archive</a></li>
+<li><a href="http://www.thedominoproject.com/2011/02/why-arent-there-words-on-the-cover-of-our-books.html">Why aren’t there words in the cover of our books?</a></li>
+</ul>
+</li>
+<li><a href="http://craigmod.com/sputnik/our_future_book/">The shape of our future book</a></li>
+<li><a href="http://booktwo.org/notebook/bookcubes/">Bookcubes: souvenirs of Digital Reading</a></li>
+<li><a href="http://craigmod.com/journal/subcompact_publishing/">Subcompact Publishing</a>
+<ul>
+<li><a href="http://www.niemanlab.org/2012/10/clay-christensen-on-the-news-industry-we-didnt-quite-understand-how-quickly-things-fall-off-the-cliff/">Clay Christensen on the news industry: “We didn’t quite understand…how quickly things fall off the cliff”</a></li>
+</ul>
+</li>
+<li><a href="http://craigmod.com/sputnik/subcompact_round_up/">Subcompact roundup and The Daily</a>
+<ul>
+<li><a href="https://signalvnoise.com/posts/3334-tablets-are-waiting-for-their-movable-type">Tablets are waiting for their Movable Type</a></li>
+<li><a href="https://medium.com/the-future-of-publishing/a-new-model-for-the-musician-to-listener-relationship-44e778827320#.u22ff8gs9">A new model for the musician-to-listener relationship</a></li>
+<li><a href="https://gigaom.com/2012/11/30/sub-compact-media-rethinking-the-way-we-publish-online/">Sub-compact media: Rethinking the way we publish online</a></li>
+<li><a href="https://pando.com/2012/12/03/get-ready-for-the-age-of-premium-micropublishing/">Get ready for the age of premium micropublishing</a></li>
+<li><a href="http://kottke.org/12/12/trend-alert-small-internet-publications">Trend alert: small internet publications</a></li>
+<li><a href="http://www.foliomag.com/2012/response-subcompact-publishing/#.UMET28pU7jL">A Response to ‘Subcompact Publishing’</a></li>
+<li><a href="https://www.technologyreview.com/s/508166/how-to-publish-a-minimum-viable-magazine-online/">How To Publish a “Minimum Viable Magazine” Online</a></li>
+<li><a href="http://www.niemanlab.org/2012/12/some-lessons-from-the-demise-of-the-daily-was-it-the-platform-the-content-the-structure-or-the-business-model/">Some lessons from the demise of The Daily: Was it the platform, the content, the structure, or the business model?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Technology
+<ul>
+<li>Progressive Web Appllications
+<ul>
+<li>Background
+<ul>
+<li><a href="https://infrequently.org/2015/06/progressive-apps-escaping-tabs-without-losing-our-soul/">Progressive Web Apps: Escaping Tabs Without Losing Our Soul</a></li>
+<li><a href="https://infrequently.org/2016/05/service-workers-and-pwas-its-about-reliable-performance-not-offline/">Service Workers and PWAs: It’s About Reliable Performance, Not “Offline”</a></li>
+</ul>
+</li>
+<li>How to
+<ul>
+<li><a href="https://developers.google.com/web/fundamentals/getting-started/your-first-progressive-web-app/?hl=en">Your First Progressive Web App</a></li>
+<li><a href="https://arc.applause.com/2015/11/30/application-shell-architecture/">Why Progressive Web Apps Are The Future Of Web Development</a></li>
+</ul>
+</li>
+<li>Forward thinking
+<ul>
+<li><a href="http://developer.telerik.com/featured/what-progressive-web-apps-mean-for-the-web/">What Progressive Web Apps Mean for the Web</a></li>
+<li><a href="http://developer.telerik.com/featured/are-progressive-web-apps-future/">Are Progressive Web Apps the Future?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Application Shell Architecture
+<ul>
+<li><a href="https://developers.google.com/web/updates/2015/11/app-shell">Instant Loading Web Apps with An Application Shell Architecture</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/getting-started/your-first-progressive-web-app/step-01?hl=en">Architect the App Shell</a></li>
+<li><a href="https://medium.com/google-developers/instant-loading-web-apps-with-an-application-shell-architecture-7c0c2f10c73#.w7icv2hw9">Instant Loading Web Apps With An Application Shell Architecture</a></li>
+<li>Examples
+<ul>
+<li><a href="https://ifixit-pwa.appspot.com/">iFixIt PWA</a></li>
+<li><a href="https://developers.google.com/web/showcase/case-study/service-workers-iowa">Service Workers in Production: Google I/O 2015 app</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Service Workers
+<ul>
+<li><a href="https://jakearchibald.github.io/isserviceworkerready/">Is ServiceWorker Ready</a></li>
+<li><a href="https://www.w3.org/TR/service-workers/">Service Workers Sepcification</a> at W3C</li>
+</ul>
+</li>
+<li>Examples and tutorials
+<ul>
+<li>Jake Archibald
+<ul>
+<li><a href="https://jakearchibald.com/2014/offline-cookbook/">Offline Cookbook</a></li>
+<li><a href="https://github.com/jakearchibald/simple-serviceworker-tutorial">Simple Service Worker tutorial</a></li>
+</ul>
+</li>
+<li>Making A Service Worker: A Case Study
+<ul>
+<li><a href="https://www.smashingmagazine.com/2016/02/making-a-service-worker/">Smashing Magazine Article</a></li>
+<li><a href="https://github.com/lyzadanger/serviceworker-example">Accompanying code</a></li>
+</ul>
+</li>
+<li>The Guardian
+<ul>
+<li><a href="https://www.theguardian.com/info/developer-blog/2015/nov/04/building-an-offline-page-for-theguardiancom">Building an offline page for Guardian.com</a></li>
+</ul>
+</li>
+<li>Jeremy Keith’s Example
+<ul>
+<li><a href="https://adactio.com/journal/9775">My first Service Worker</a></li>
+</ul>
+</li>
+<li>Nicolás Bevacqua
+<ul>
+<li><a href="https://ponyfoo.com/articles/serviceworker-revolution">ServiceWorker: Revolution of the Web Platform</a></li>
+</ul>
+</li>
+<li>Vendor Examples
+<ul>
+<li><a href="https://github.com/GoogleChrome/samples/tree/gh-pages/service-worker">Service Worker Samples</a> (Google)</li>
+<li><a href="https://serviceworke.rs/">The Service Workers Cookbook</a> (Mozilla)
+<ul>
+<li><a href="https://serviceworke.rs/cache-from-zip_worker_doc.html">Caching from a zip file</a> (mozilla)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Tools
+<ul>
+<li>From Google
+<ul>
+<li><a href="https://developers.google.com/web/tools/workbox">Workbox.js</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Things that sit on top of service workers
+<ul>
+<li><a href="https://github.com/slightlyoff/ServiceWorker/blob/master/explainer.md">Background Sync</a></li>
+<li>Push Notifications
+<ul>
+<li><a href="https://www.w3.org/TR/push-api/">Specification</a> at W3C</li>
+<li>Current Implementations
+<ul>
+<li><a href="https://developers.google.com/web/updates/2015/03/push-notifications-on-the-open-web?hl=en">Chrome</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="https://davidwalsh.name/background-sync">Background Sync with Service Workers</a></li>
+<li><a href="https://web.dev/periodic-background-sync/">Periodic Background Sync</a></li>
+<li><a href="https://web.dev/broadcast-updates-guide/">Update Broadcasts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Other digital reading experiences
+<ul>
+<li><a href="https://www.pelicanbooks.com">Pelican Books</a> → read online (Unreachable Host)
+<ul>
+<li><a href="http://www.fastcodesign.com/3038698/how-pelican-books-is-reimagining-the-cover-in-the-age-of-e-books">How Pelican Books is reimagining the cover in the digital age of eBooks</a></li>
+<li><a href="https://www.creativereview.co.uk/cr-blog/2014/november/pelican-books-an-unrivalled-online-reading-experience/">Pelican Books: an unrivalled online reading experience</a></li>
+</ul>
+</li>
+<li><a href="http://shapeofdesignbook.com">The Shape of Design</a> by Frank Chimero
+<ul>
+<li><a href="http://www.frankchimero.com/writing/designing-in-the-borderlands/">Designing in the borderlands</a></li>
+</ul>
+</li>
+<li>Butterick’s <a href="http://practicaltypography.com">Practical Typography</a>
+<ul>
+<li>The publishing system that powers the book: <a href="http://docs.racket-lang.org/pollen/">Pollen</a></li>
+</ul>
+</li>
+<li><a href="https://hi.co/">Hi</a> (No longer active)
+<ul>
+<li><a href="https://craigmod.com/essays/hitotoki_narrative_mapping/">Background</a></li>
+</ul>
+</li>
+<li><a href="http://read.artspacetokyo.com/">Art Space Tokyo</a>
+<ul>
+<li><a href="http://craigmod.com/journal/platforming_books/">Platforming Books</a></li>
+</ul>
+</li>
+<li><a href="https://www.pubpub.org/">Pubpub</a></li>
+</ul>
+</li>
+</ul>
 
 </article>
 <!--

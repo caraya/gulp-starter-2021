@@ -7,25 +7,25 @@
 <li>Create two working directories (<code>public</code> and <code>src</code>)</li>
 <li>Initialize <code>package.json</code></li>
 </ul>
-<pre class="language-bash"><code class="language-bash"><span class="token function">mkdir</span> -p static-gen/src
-<span class="token function">mkdir</span> -p static-gen/public
-<span class="token function">npm</span> init --yes
+<pre class="language-bash"><code class="language-bash"><span class="token function">mkdir</span> <span class="token parameter variable">-p</span> static-gen/src
+<span class="token function">mkdir</span> <span class="token parameter variable">-p</span> static-gen/public
+<span class="token function">npm</span> init <span class="token parameter variable">--yes</span>
 </code></pre>
 <p>The first version uses the wrap-around system that I use to generate content for my blog. I’ve described the process in detail in <a href="https://publishing-project.rivendellweb.net/generating-html-and-pdf-from-markdown/">Generating HTML and PDF from Markdown</a>.</p>
 <p>Install the packages we need to run the conversion tasks:</p>
-<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D  gulp@3.9.1 gulp-remarkable gulp-newer gulp-wrap
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i <span class="token parameter variable">-D</span>  gulp@3.9.1 gulp-remarkable gulp-newer gulp-wrap
 </code></pre>
 <p>The two tasks that run the conversion are shown below. The first task converts the Markdown into an HTML fragment using the Remarkable markdown parser.</p>
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'markdown'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/pages/*.md'</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">markdown</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-        preset<span class="token operator">:</span> <span class="token string">'commonmark'</span><span class="token punctuation">,</span>
-        html<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-        remarkableOptions<span class="token operator">:</span> <span class="token punctuation">{</span>
-          html<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-          typographer<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-          linkify<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-          breaks<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">preset</span><span class="token operator">:</span> <span class="token string">'commonmark'</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">html</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">remarkableOptions</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token literal-property property">html</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">typographer</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">linkify</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+          <span class="token literal-property property">breaks</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
         <span class="token punctuation">}</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'src/converted-md/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -35,7 +35,7 @@
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-template'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">'markdown'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/converted-md/*.md'</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">wrap</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-        src<span class="token operator">:</span> <span class="token string">'./src/templates/template.html'</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">src</span><span class="token operator">:</span> <span class="token string">'./src/templates/template.html'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">extReplace</span><span class="token punctuation">(</span><span class="token string">'.html'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -46,7 +46,7 @@
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-html-template'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/pages/*.html'</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">wrap</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-        src<span class="token operator">:</span> <span class="token string">'./src/templates/template.html'</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">src</span><span class="token operator">:</span> <span class="token string">'./src/templates/template.html'</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'docs/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -60,7 +60,7 @@
 <p>The idea of using a templating engine is to have options when creating content. We can create partial content blocks and define different layouts for our content.</p>
 <p>Granted, this moves away from our simple model when using templates but we gain more flexibility in what we can do with the templated content.</p>
 <p>We need to install the NPM packages that we need to make this work.</p>
-<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D nunjucks-markdown <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i <span class="token parameter variable">-D</span> nunjucks-markdown <span class="token punctuation">\</span>
 marked <span class="token punctuation">\</span>
 gulp-rename <span class="token punctuation">\</span>
 nunjucks<span class="token punctuation">\</span>
@@ -101,14 +101,14 @@ gulp-nunjucks
 <p>Once the configuration is complete we register the <code>marked</code> instance to work with <code>nunjucks-markdown</code>.</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Markdown options</span>
 marked<span class="token punctuation">.</span><span class="token function">setOptions</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  renderer<span class="token operator">:</span> <span class="token keyword">new</span> <span class="token class-name">marked<span class="token punctuation">.</span>Renderer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  gfm<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  tables<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  breaks<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  pedantic<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  sanitize<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
-  smartLists<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-  smartypants<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">renderer</span><span class="token operator">:</span> <span class="token keyword">new</span> <span class="token class-name">marked<span class="token punctuation">.</span>Renderer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">gfm</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">tables</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">breaks</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">pedantic</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">sanitize</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">smartLists</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">smartypants</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 markdown<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span>env<span class="token punctuation">,</span> marked<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -118,7 +118,7 @@ markdown<span class="token punctuation">.</span><span class="token function">reg
 <pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'pages'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token punctuation">[</span>templates <span class="token operator">+</span> <span class="token string">'/*.html'</span><span class="token punctuation">,</span> templates <span class="token operator">+</span> <span class="token string">'/**/*.html'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
       <span class="token comment">// Renders template with nunjucks and marked</span>
-      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulpnunjucks<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>env<span class="token operator">:</span> env<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulpnunjucks<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">env</span><span class="token operator">:</span> env<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
       <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span>dist<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>

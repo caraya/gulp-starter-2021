@@ -675,17 +675,17 @@ p, li</span> <span class="token punctuation">{</span>
 <p>We’ll customize the task to complete the second item on the list and change the template file and destination for the custom HTML content. We still make this task depend on the Markdown converter task to make sure we have the newest content to work. The new template looks like this:</p>
 <pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-pm-template'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">'markdown'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span><span class="token punctuation">{</span>
   gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/html-content/*.html'</span><span class="token punctuation">)</span>
-    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span><span class="token function">wrap</span><span class="token punctuation">(</span><span class="token punctuation">{</span>src<span class="token operator">:</span> <span class="token string">'./src/templates/template-pm.html'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span><span class="token function">wrap</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">src</span><span class="token operator">:</span> <span class="token string">'./src/templates/template-pm.html'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./src/pm-content'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>I originally thought about using <code>gulp-shell</code> to run the PrinceXML command that I run to  <a href="https://www.wikiwand.com/en/Eating_your_own_dog_food">dogfood</a> the code I present in these posts. The command is shown below:</p>
 <pre class="language-bash"><code class="language-bash">prince <span class="token punctuation">\</span>
---verbose <span class="token punctuation">\</span>
---input<span class="token operator">=</span>html <span class="token punctuation">\</span>
---javascript <span class="token punctuation">\</span>
---style css/article-styles.css <span class="token punctuation">\</span>
-paged-media-revisit.html -o doc-name.pdf
+<span class="token parameter variable">--verbose</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--input</span><span class="token operator">=</span>html <span class="token punctuation">\</span>
+<span class="token parameter variable">--javascript</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--style</span> css/article-styles.css <span class="token punctuation">\</span>
+paged-media-revisit.html <span class="token parameter variable">-o</span> doc-name.pdf
 </code></pre>
 <p>Where you see a backslash treat it as a continuation character, the command and all the parameters could be written in a single line. Also note that we run this command from inside the <code>src</code> directory. We’ll see how this is different when we run the Gulp task</p>
 <p><code>gulp-shell</code> presented too many unknowns. Since it’s blacklisted by Gulp so I’m not 100% sure how well it would work. So I chose to use <a href="https://www.npmjs.com/package/gulp-exec">gulp-exec</a> instead. I took the template from the plugin’s readme page and plugged in the data for the prince command.</p>
@@ -698,13 +698,13 @@ paged-media-revisit.html -o doc-name.pdf
 <p>The <code>build-pdf</code> task depends on <code>build-pm-template</code> to make sure we have the latest content to convert to PDF. We then run the same Prince command we used to test the content from the command line with one difference. The path to the style sheet needs to be modified because we are running Gulp from the root of the repository. The full path to the style sheet becomes <code>src/css/article-styles.css</code>.</p>
 <pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'build-pdf'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">'build-pm-template'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">let</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
-    continueOnError<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
-    pipeStdout<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
+    <span class="token literal-property property">continueOnError</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
+    <span class="token literal-property property">pipeStdout</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> 
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
   <span class="token keyword">let</span> reportOptions <span class="token operator">=</span> <span class="token punctuation">{</span>
-    err<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
-    stderr<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
-    stdout<span class="token operator">:</span> <span class="token boolean">true</span> 
+    <span class="token literal-property property">err</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
+    <span class="token literal-property property">stderr</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
+    <span class="token literal-property property">stdout</span><span class="token operator">:</span> <span class="token boolean">true</span> 
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/pm-content/*.html'</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">'prince --verbose --input=html --javascript --style ./src/css/article-styles.css &lt;%= file.path %>'</span><span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">)</span>
@@ -724,15 +724,15 @@ paged-media-revisit.html -o doc-name.pdf
 </code></pre>
 <p>Requiring the plugin is unusual, to me, because you attach the configuration to the require statement. I’ve left the credentials blank here but they are in the gulpfile, for now.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> s3 <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-s3-upload'</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-  accessKeyId<span class="token operator">:</span> <span class="token string">"enter yours"</span><span class="token punctuation">,</span>
-  secretAccessKey<span class="token operator">:</span> <span class="token string">"enter yours"</span>
+  <span class="token literal-property property">accessKeyId</span><span class="token operator">:</span> <span class="token string">"enter yours"</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">secretAccessKey</span><span class="token operator">:</span> <span class="token string">"enter yours"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
 <p>The task itself is fairly simple. we take all the PDF files located in <code>src/pm-content</code> and pipe them through S3 to upload them to the <code>blog-post-pdf</code> bucket with a public-read ACL. If I understood the settings correctly this would allow me to link to the files from external servers and not have to worry about CORS or any other types of restriction.</p>
 <pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'s3-upload'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">"./src/pm-content/*.pdf"</span><span class="token punctuation">)</span>
   <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">s3</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    Bucket<span class="token operator">:</span> <span class="token string">'blog-post-pdf'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">Bucket</span><span class="token operator">:</span> <span class="token string">'blog-post-pdf'</span><span class="token punctuation">,</span>
     <span class="token constant">ACL</span><span class="token operator">:</span> <span class="token string">'public-read'</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -747,10 +747,10 @@ paged-media-revisit.html -o doc-name.pdf
   <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/pdf/*.pdf'</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">gzip</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// optional</span>
     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">gcPub</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-      bucket<span class="token operator">:</span> <span class="token string">'use your own'</span><span class="token punctuation">,</span>
-      keyFilename<span class="token operator">:</span> <span class="token string">'use your own'</span><span class="token punctuation">,</span>
-      projectId<span class="token operator">:</span> <span class="token string">'use your own'</span><span class="token punctuation">,</span>
-      base<span class="token operator">:</span> <span class="token string">'/pdf'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">bucket</span><span class="token operator">:</span> <span class="token string">'use your own'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">keyFilename</span><span class="token operator">:</span> <span class="token string">'use your own'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">projectId</span><span class="token operator">:</span> <span class="token string">'use your own'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">base</span><span class="token operator">:</span> <span class="token string">'/pdf'</span><span class="token punctuation">,</span>
       <span class="token keyword">public</span><span class="token operator">:</span> <span class="token boolean">true</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>

@@ -1,298 +1,261 @@
-# Building long-form articles on the web
+# Building long-form content on the web
 
-It's been a while since I've researched and written about long-form content for the web.
+# Building long-form content on the web: OpenType features
 
-New technologies and APIs make it easier to create contet that is a far cry from [Bibliotype](https://craigmod.com/bibliotype/).
+OpenType fonts, both static and variable, make additional features available for developers to use.
 
-This post will look at what we need to do to create long-form content that is comfortable to read from a screen.
+CSS makes these features available via the `font-feature-settings` property.
 
-This post will not deal with **how** people read online. We will only address technical aspects that I consider necessary to provide good long-form reading experiences.
+Just like with font variations in variable fonts, we can use tools like [Wakamaifondue](https://wakamaifondue.com) to see what OpenType features are available (since they vary based on the font) and to download a stylesheet with all CSS necessary to use the features on your own project.
 
-## Use space wisely
-
-The first area to consider is how we use the space in the page. Because we have different screen sizes and resolutions, we have to be mindfull how we organize the space.
-
-### Content width
-
-One of the biggest issues with working with long-form content is how many characters wider should we go.
-
-According to the [The Elements of Typographic Style Applied to the Web](http://webtypography.net/) the optimal measure (length of a line) is between 45 and 75 characters.
-
-We will have problems if the line is too long or too short. According to the [Baymard Institute](https://baymard.com/blog/line-length-readability):
-
-> If a line of text is too long the reader’s eyes will have a hard time focusing on the text. This is because the line length makes it difficult to gauge where the line starts and ends.
->
-> If a line is too short the eye will have to travel back too often, breaking the reader’s rhythm. Too-short lines also tend to stress readers, making them begin on the next line before finishing the current one (hence skipping potentially important words).
-
-Until recently it was impossible to create a measure based on character count. We couldn't say the width of this paragraph is 75 characters. [CSS Values and Units Module Level 3](https://www.w3.org/TR/css-values-3/) introduced the `ch` unit of measurement that addresses this issue. It is defined as:
-
-> Equal to the used advance measure of the "0" (ZERO, U+0030) glyph found in the font used to render it. (The advance measure of a glyph is its advance width or height, whichever is in the inline axis of the element.)
-
-They go on to explain that:
-
-> The advance measure of a glyph depends on writing-mode and text-orientation as well as font settings, text-transform, and any other properties that affect glyph selection or orientation.
-
-One important thing to consider is that the width of the "0" (ZERO, U+0030) glyph will be different based on the font you use and the direction of your text. This may mean you will have to adjust the line height and other typographical elements of the page.
-
-Using `ch` as the unit for our measure we can get consistent width for the content.
-
-Support is pretty good, with Opera Mini being the only browser that doesn't support the unit.
-
-<picture>
-<source type="image/webp" srcset="https://caniuse.bitsofco.de/static/v1/ch-unit-1661308329918.webp">
-<source type="image/png" srcset="https://caniuse.bitsofco.de/static/v1/ch-unit-1661308329918.png">
-<img src="https://caniuse.bitsofco.de/static/v1/ch-unit-1661308329918.jpg" alt="Data on support for the ch-unit feature across the major browsers from caniuse.com">
-</picture>
-
-### Line height
-
-> “Vertical space is metered in a different way [to horizontal space]. You must choose not only the overall measure – the depth of the column or page – but also a basic rhythmical unit. This unit is the leading, which is the distance from one baseline to the next.”
->
-> Source: [Choose a basic leading that suits the typeface, text and measure](http://webtypography.net/2.2.1)
-
-In addition to measuring the width of our content, we need to also account for vertical spacing between the lines of our text. This is called Leading (pronounced “ledding”), a byproduct of mechanical presses, where strips of lead are placed between lines of type to space the lines apart.
-
-Four web content, we control leading via the `line-height` property. The following example will produce a separation of 1.5 units between lines in paragraphs:
-
-```css
-p {
-  line-height: 1.5;
-}
-```
-
-However, there is a little trick that I have to constantly remind myself of. CSS adds half the value of the `line-height` attribute above and below the line it applies to. Otherwise we would get double our desired value.
-
-The preferred way to use line height is with unitless values (like 1.25 or 1.5). The used value is this unitless number multiplied by the element's own font size. The computed value is the same as if we specify a length (like 15px or 2em).
-
-## Typography
-
-Typography has always been interesting to me.
-
-I'm not a type designer and I consider myself addequate as a font user on the web, I've been around for the full progression of fonts on the web.
-
-We will not review the full history of webfonts. If interested I'll refer you to [Brief History of Webfonts](https://www.typotheque.com/articles/brief_history_of_webfonts)
-
-### Font selection
-
-I follow this list, taken from Google Font's [A checklist for choosing type](https://fonts.google.com/knowledge/choosing_type/a_checklist_for_choosing_type). It provides a good overview of what's necessary to choose a good font for the project.
-
-* The typeface suits the purpose of the project
-  * Its personality will prompt the appropriate emotional response(s) from our audience
-  * Its design fits the intended use
-* The typeface’s design is comprehensive
-  * It has enough multi-language support
-  * It contains legible details
-  * It has at least the basic weights and styles
-    * Even better: It has alternate glyphs
-    * Even better: It has additional weights and styles (or grades)
-    * Even better: It has multiple widths
-    * Even better: It has different optical sizes
-* The font files are reliable
-  * All of the design features checked above are actually included in the font files being used
-  * The fonts are properly spaced
-* The fonts are usable in the situation(s) required
-  * If serving as a secondary typeface to a primary choice, there’s a suitable balance between distinction and harmony
-  * We have, or our client has, the appropriate font license(s)
-  
-### Differe places to pick fonts from
-
-One of the first questions to ask if how do we choose the fonts that we want to use in our long-form content.
-
-To answer that question we need to dig a little deeper into the types of fonts that are available and where do they work best.
-
-We will also discuss how to load them.
-
-#### Generic font families
-
-Generic font familities are designed as fallback fonts for web font stacks. The idea is that they will map to an existing font on the user's computer so there will be a font to render the contet. It may not match exactly what the designer had in mind but at least it will work.
-
-The following table maps to the most common used generic font families
-
-| Font | Description |
-| --- | --- |
-| **Serif** | Serif fonts represent the formal text style for a script. This often means, but is not limited to, glyphs that have finishing strokes, flared or tapering ends, or have actual serifed endings (including slab serifs). Serif fonts are typically proportionately-spaced.|
-| **Sans-Serif** | Glyphs in sans-serif fonts, as the term is used in CSS, are generally low contrast (vertical and horizontal stems have the close to the same thickness) and have stroke endings that are plain (without any flaring, cross stroke, or other ornamentation). Sans-serif fonts are typically proportionately-spaced. They often have little variation between thick and thin strokes, compared to fonts from the serif family. |
-| **Monospace** | The sole criterion of a monospace font is that all glyphs have the same fixed width. This is often used to render samples of computer code. |
-| System UI | This generic font family lets text render with the default user interface font on the platform on which the UA is running. A cross-platform UA should use different fonts on its different supported platforms. The purpose of system-ui is to allow web content to integrate with the look and feel of the native OS.|
-
-There are other, less frequently used generic font families defined in the specification. See [2.1.3. Generic font families](https://www.w3.org/TR/css-fonts-4/#generic-font-families) in the CSS Fonts Module Level 4 specification.
-
-Other than `system-ui` discussed later in System fonts, generic font families are used as a last resort to provide some level of uniformity to design in case other fonts are not available
-
-#### Microsoft webfonts
-
-The first set of fonts designed work on the web are the [Core fonts for the Web](https://en.wikipedia.org/wiki/Core_fonts_for_the_Web) released by Microsoft under a a combination of their own license and licenses from the Monotype foundry.
-
-The included fonts are:
-
-* Andalé Mono
-* Arial
-* Arial Black
-* Comic Sans MS
-* Courier New
-* Georgia
-* Impact
-* Times New Roman
-* Trebuchet MS
-* Verdana
-* Webdings
-
-The program released these fonts are freeware with some distribution restrictions until 2002.
-
-Versions of these fonts released after 2002 are not part of the core fonts project and are released under different terms and licenses.
-
-These fonts are still very likely to be in your computer either because you downloaded them or a product that bundles the fonts for you.
-
-Using the fonts would be as simple as using them in a `font-family` attribute.
-
-```css
-body {
-  font-family: Verdana, sans-serif;
-}
-```
-
-#### Typekit
-
-Web fonts were part of the CSS 2 specification but foundries were afraid that people would streal their fonts so they crafted their licenses in such developers could not use embedable fonts and comply with the license.
-
-Typekit, the first service to offer downloadble fonts, was released in 2009 and acquired by Adobe in 2011.
-
-Typekit provides many ways to load fonts on a site. There is a legcy code, what has been used for years:
-
-```html
-<script src="https://use.typekit.net/xxxxxxx.js"></script>
-<script>try{Typekit.load({ async: true });}catch(e){}</script>
-```
-
-And a newer asynchronous script that load both the script and the css necessary to run the font. This is the recommended way to add Typekit fonts to your site.
-
-```js
-(function() {
-    var config = {
-      kitId: 'abc1def'
-    };
-    var d = false;
-    var tk = document.createElement('script');
-    tk.src = '//use.typekit.net/' + config.kitId + '.js';
-    tk.type = 'text/javascript';
-    tk.async = 'true';
-    tk.onload = tk.onreadystatechange = function() {
-      var rs = this.readyState;
-      if (d || rs && rs != 'complete' && rs != 'loaded') return;
-      d = true;
-      try { Typekit.load(config); } catch (e) {}
-    };
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(tk, s);
-  })();
-```
-
-In both cases you then reference the font you loaded from your CSS.
-
-```css
-body {
-  font-family: "chaparrall pro", serif;
-}
-```
-
-I mention Typekit because it's part of Adobe Creative Suite (as Adobe Fonts), making it easier to work through licenses and use on your web projects.
-
-#### Google Fonts
-
-Google fonts was first released in 2010 and currently provides over 1400 fonts, most of them open source under the [SIL Open Font license](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
-
-To use a font just click `download family` and it will download all available styles for you. You can then pick which styles you want and load them using `@font-face`.
-
-##### Potential legal issues
-
-Google fonts used to provide a means to load the fonts from Google servers but that has changed since a German court fined a website for using Google Fonts and passing their user's IP address to Google without notifying the user.
-
-See [Website fined by German court for leaking visitor's IP address via Google Fonts](https://www.theregister.com/2022/01/31/website_fine_google_fonts_gdpr/) and [German Court Rules Websites Embedding Google Fonts Violates GDPR](https://thehackernews.com/2022/01/german-court-rules-websites-embedding.html).
-
-How will this affect other font providers is unclear but I fail to see how this would affect only one provider and not others.
-
-#### Local web fonts
-
-Given the problems with Google Fonts and the likely problems with other providers the best, and likely only, way to use web fonts and remain compliant with laws like the GDPR is to host fonts locally and loading using the `@font-face` at-rule.
-
-The default way to use `@font-face` looks like this:
-
-We specify the `font-family` name that we will use throughout the stylesheet.
-
-Then we specify a `src` attribute with one or more locations for the file. In this example I'm using a [url](https://developer.mozilla.org/en-US/docs/Web/CSS/url) function to specify the location of the font relative to the stylesheet. The format tells the browser the kind of font it represents.
-
-I specify the weight of the font so that the browser will know what file to associate with what weight declaration.
-
-Specifying the style for the font tells the browser if the font is italic or not.
-
-The final declaraction is [font-display](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display). This will control how the font will behave based on when the browser finished downloading the font. The `swap` value will cause the font to swap in with the system font once the web font is downloaded.
-
-You will have to load each font separately with its own `@font-face`. There should be at least four different `@font-face` declarations per font that you want to use.
-
-* Regular font (regular weight, non italic)
-* Italic (regular weight)
-* Bold (non italic)
-* Bold Italic
-* Any additional weight that you'd want to use and associated italic and bold italic files
-
-This will prevent [faux bold](https://alistapart.com/article/say-no-to-faux-bold/) and italics. This is wher there is no font available in the weight or style you want. The browser will then fake the bold or italic in order to show what it thinks the designer wants.
-
-A way to combat faux bold, italics and small caps is to ue the [font-synthesis](https://developer.mozilla.org/en-US/docs/Web/CSS/font-synthesis) that allows developers to control whether the browser synthesis algorithm applies to any/all of bold (weight), italics (style) or small caps.
-
-```css
-@font-face {
-  font-family: 'Roboto';
-  src: url('path/to/roboto.woff2') format("wwoff2")
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-```
-
-The `@font-face` declaration for [variable fonts](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide) is similar to the previous example with some differences.
-
-The values for `font-weight` and `font-stretch` take a range of two values for the respective property.
-
-Instead of multiples of 100, you can use any value in the range. In a variable font, `font-weight: 451` and `font-stretch: 75%` are valid values in a selector.
-
-```css
-@font-face {
-    font-family: "Roboto Flex Regular";
-    src: url("./fonts/RobotoFlex-VariableFont_GRAD,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.woff2") format('woff2-variations');
-    font-weight: 100 1000;
-    font-stretch: 25% 151%;
-    font-style: normal;
-}
-```
-
-The value for `font-style` will depend on whether the font provides italics, slant
-
-You would then use the font like normal in your CSS with the addition of being able to use more granular values for `font-weight` and `font-stretch`
-
-#### System fonts
+We first set custom properties for each of the available OpenType layout feature on the `:root` pseudo element. We set them disabled by default so we can enable them for specific elements and classes.
 
 ```css
 :root {
-  --system-ui: 
-    system-ui,
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol";
+  --recursive-aalt: "aalt" off;
+  --recursive-afrc: "afrc" off;
+  --recursive-case: "case" off;
+  --recursive-dlig: "dlig" off;
+  --recursive-dnom: "dnom" off;
+  --recursive-frac: "frac" off;
+  --recursive-numr: "numr" off;
+  --recursive-ordn: "ordn" off;
+  --recursive-pnum: "pnum" off;
+  --recursive-sinf: "sinf" off;
+  --recursive-ss01: "ss01" off;
+  --recursive-ss02: "ss02" off;
+  --recursive-ss03: "ss03" off;
+  --recursive-ss04: "ss04" off;
+  --recursive-ss05: "ss05" off;
+  --recursive-ss06: "ss06" off;
+  --recursive-ss07: "ss07" off;
+  --recursive-ss08: "ss08" off;
+  --recursive-ss09: "ss09" off;
+  --recursive-ss10: "ss10" off;
+  --recursive-ss11: "ss11" off;
+  --recursive-ss12: "ss12" off;
+  --recursive-ss20: "ss20" off;
+  --recursive-sups: "sups" off;
+  --recursive-titl: "titl" off;
+  --recursive-zero: "zero" off;
+}
+```
+
+We then define how we'll change and use these custom properties. Wakamaifondue uses a combination of [feature queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Conditional_Rules/Using_Feature_Queries) and classes to define where the properties will change and how to use the correct [font-variant-*](https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant) in browsers that support the properties.
+
+<div class="message info">
+  <p>The `font-variant-*` properties currently in the specification are:
+
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-position">font-variant-position</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps">font-variant-caps</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric">font-variant-numeric</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-alternates">font-variant-alternates</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-east-asian">font-variant-east-asian</a></li>
+  </ul>
+</div>
+
+```css
+.recursive-aalt {
+    --recursive-aalt: "aalt" on;
 }
 
-.element {
-  font-family: var(--system-ui);
+.recursive-afrc {
+    --recursive-afrc: "afrc" on;
+}
+
+@supports (font-variant-numeric: stacked-fractions) {
+    .recursive-afrc {
+        --recursive-afrc: "____";
+        font-variant-numeric: stacked-fractions;
+    }
+}
+
+.recursive-case {
+    --recursive-case: "case" on;
+}
+
+.recursive-dlig {
+    --recursive-dlig: "dlig" on;
+}
+
+@supports (font-variant-ligatures: discretionary-ligatures) {
+    .recursive-dlig {
+        --recursive-dlig: "____";
+        font-variant-ligatures: discretionary-ligatures;
+    }
+}
+
+.recursive-dnom {
+    --recursive-dnom: "dnom" on;
+}
+
+.recursive-frac {
+    --recursive-frac: "frac" on;
+}
+
+@supports (font-variant-numeric: diagonal-fractions) {
+    .recursive-frac {
+        --recursive-frac: "____";
+        font-variant-numeric: diagonal-fractions;
+    }
+}
+
+.recursive-numr {
+    --recursive-numr: "numr" on;
+}
+
+.recursive-ordn {
+    --recursive-ordn: "ordn" on;
+}
+
+@supports (font-variant-numeric: ordinal) {
+    .recursive-ordn {
+        --recursive-ordn: "____";
+        font-variant-numeric: ordinal;
+    }
+}
+
+.recursive-pnum {
+    --recursive-pnum: "pnum" on;
+}
+
+@supports (font-variant-numeric: proportional-nums) {
+    .recursive-pnum {
+        --recursive-pnum: "____";
+        font-variant-numeric: proportional-nums;
+    }
+}
+
+.recursive-sinf {
+    --recursive-sinf: "sinf" on;
+}
+
+.recursive-ss01 {
+    --recursive-ss01: "ss01" on;
+}
+
+.recursive-ss02 {
+    --recursive-ss02: "ss02" on;
+}
+
+.recursive-ss03 {
+    --recursive-ss03: "ss03" on;
+}
+
+.recursive-ss04 {
+    --recursive-ss04: "ss04" on;
+}
+
+.recursive-ss05 {
+    --recursive-ss05: "ss05" on;
+}
+
+.recursive-ss06 {
+    --recursive-ss06: "ss06" on;
+}
+
+.recursive-ss07 {
+    --recursive-ss07: "ss07" on;
+}
+
+.recursive-ss08 {
+    --recursive-ss08: "ss08" on;
+}
+
+.recursive-ss09 {
+    --recursive-ss09: "ss09" on;
+}
+
+.recursive-ss10 {
+    --recursive-ss10: "ss10" on;
+}
+
+.recursive-ss11 {
+    --recursive-ss11: "ss11" on;
+}
+
+.recursive-ss12 {
+    --recursive-ss12: "ss12" on;
+}
+
+.recursive-ss20 {
+    --recursive-ss20: "ss20" on;
+}
+
+.recursive-sups {
+    --recursive-sups: "sups" on;
+}
+
+@supports (font-variant-position: super) {
+    .recursive-sups {
+        --recursive-sups: "____";
+        font-variant-position: super;
+    }
+}
+
+.recursive-titl {
+    --recursive-titl: "titl" on;
+}
+
+@supports (font-variant-caps: titling-caps) {
+    .recursive-titl {
+        --recursive-titl: "____";
+        font-variant-caps: titling-caps;
+    }
+}
+
+.recursive-zero {
+    --recursive-zero: "zero" on;
+}
+
+@supports (font-variant-numeric: slashed-zero) {
+    .recursive-zero {
+        --recursive-zero: "____";
+        font-variant-numeric: slashed-zero;
+    }
+}
+```
+
+The final step is to apply the current state of all custom properties whenever a class is being used.
+
+Like with the `font-variation-settings`, we are using the low-level `font-feature-settings` property and can't just change one and expect it to work so whenever we change one custom property, we propagate the changes everywhere.
+
+```css
+.recursive-aalt,
+.recursive-afrc,
+.recursive-case,
+.recursive-dlig,
+.recursive-dnom,
+.recursive-frac,
+.recursive-numr,
+.recursive-ordn,
+.recursive-pnum,
+.recursive-sinf,
+.recursive-ss01,
+.recursive-ss02,
+.recursive-ss03,
+.recursive-ss04,
+.recursive-ss05,
+.recursive-ss06,
+.recursive-ss07,
+.recursive-ss08,
+.recursive-ss09,
+.recursive-ss10,
+.recursive-ss11,
+.recursive-ss12,
+.recursive-ss20,
+.recursive-sups,
+.recursive-titl,
+.recursive-zero {
+    font-feature-settings: var(--recursive-aalt), var(--recursive-afrc), var(--recursive-case), var(--recursive-dlig), var(--recursive-dnom), var(--recursive-frac), var(--recursive-numr), var(--recursive-ordn), var(--recursive-pnum), var(--recursive-sinf), var(--recursive-ss01), var(--recursive-ss02), var(--recursive-ss03), var(--recursive-ss04), var(--recursive-ss05), var(--recursive-ss06), var(--recursive-ss07), var(--recursive-ss08), var(--recursive-ss09), var(--recursive-ss10), var(--recursive-ss11), var(--recursive-ss12), var(--recursive-ss20), var(--recursive-sups), var(--recursive-titl), var(--recursive-zero);
 }
 ```
 
 ### Font size and reading distance
 
-### To Justify or not?
+### Justification and hyphenation
 
 ### Drop caps?
 
@@ -307,6 +270,10 @@ You would then use the font like normal in your CSS with the addition of being a
 
 * [text-underline-offset](https://developer.mozilla.org/en-US/docs/Web/CSS/text-underline-offset)
 
+## Columns?
+
+[When Do You Use CSS Columns?](https://css-tricks.com/when-do-you-use-css-columns/)
+
 ## Skip to content
 
 [A Deep Dive on Skipping to Content](https://css-tricks.com/a-deep-dive-on-skipping-to-content/)
@@ -319,21 +286,27 @@ control panel idea.
 
 ## Making it work on mobile
 
-## Further technical considerations
+## Further thoughts
 
 ### The web is not apps
 
 ### The web can be like print
 
-### Leverage the web for what it's good for
+## The webby part of long-form content
 
-hi and artspacetokyo
+### Use the web to enhance the text
 
-### Updating your content
+[hi](https://hi.co) (there is an archive available at [hitotoki.org](https://hitotoki.org/)
 
-### Variable fonts for the win
+Art Space Tokyo (the [essay about it](https://craigmod.com/journal/platforming_books/) and the [online version](https://read.artspacetokyo.com/) of the book)
 
-## Links and Resources
+[the shape of design](https://shapeofdesignbook.com/)
+
+### Working offline and updating your content
+
+### Handling images
+
+### Links and Resources
 
 * Frank Chimero
   * [The Web's Grain](https://frankchimero.com/blog/2015/the-webs-grain/)

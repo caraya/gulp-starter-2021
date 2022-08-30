@@ -971,9 +971,9 @@ window<span class="token punctuation">.</span><span class="token function">addEv
 <figcaption>Using Handbrake to re-arrange the video atoms</figcaption>
 </figure>
 <p>If you’re working with multiple files or are more comfortable you can use <a href="https://ffmpeg.org/">ffmpeg</a> to encode the file or add the appropriate flag to fast start playback. In the example below we add the <code>faststart</code> flag and use the same audio and video codecs as t he original file.</p>
-<pre class="language-bash"><code class="language-bash">ffmpeg -i input.mp4 -movflags faststart <span class="token punctuation">\</span>
--acodec copy <span class="token punctuation">\</span>
--vcodec copy <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-i</span> input.mp4 <span class="token parameter variable">-movflags</span> faststart <span class="token punctuation">\</span>
+<span class="token parameter variable">-acodec</span> copy <span class="token punctuation">\</span>
+<span class="token parameter variable">-vcodec</span> copy <span class="token punctuation">\</span>
 output.mp4
 </code></pre>
 <p>You can do something similar with WebM videos. The format is based around the <a href="https://matroska.org/">Matroska container</a>, either VP8 or VP9 video codecs and either Opus or Vorbis audio codecs.  Matroska files, usually just called MKV files, use a kind of binary XML called <a href="https://www.wikiwand.com/en/Extensible_Binary_Meta_Language">EBML</a> to store different things like video tracks, audio tracks, subtitles, and other data. These data chunks are called elements and they are similar in concept to the atoms in an MP4 file.</p>
@@ -982,9 +982,9 @@ output.mp4
 <p>When playing a WebM video locally we don’t need to worry about the file structure since we have all the content available for playback. When streaming a video over HTTP the order of elements does matter because the browser doesn’t have the complete file yet. If the browser doesn’t get certain elements at the beginning of the file it has to send range HTTP requests until it finds the data it needs. This can have impact on how quickly the file starts playing and overall page performance. The discussion below is all about rearranging the elements in the container.</p>
 <p>Another aspect of WebM streaming performance is to optimize for seeking inside a video. This is another element, <code>Cues</code>. For the same reasons we are optimizing for fast start we want the <code>Cues</code> element downloaded as early as possible so that, if a user fast forwards the video, they will get a few HTTP downloads as possible.</p>
 <p>To accomplish both goals, fast playback and fast seeking we’ll use a single tool, <a href="https://www.matroska.org/downloads/mkclean.html">mkclean</a>, a tool specifically designed to address both the fast start and the fast seek problems. Using <code>original.webm</code> we run the following command to create the resulting <code>optimized.web</code> ready for the web</p>
-<pre class="language-bash"><code class="language-bash">mkclean --doctype <span class="token number">4</span> <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">mkclean <span class="token parameter variable">--doctype</span> <span class="token number">4</span> <span class="token punctuation">\</span>
 --keep-cues <span class="token punctuation">\</span>
---optimize <span class="token punctuation">\</span>
+<span class="token parameter variable">--optimize</span> <span class="token punctuation">\</span>
 original.webm optimized.webm
 </code></pre>
 <h1 id="revisting-video-encoding%3A-dash">Revisting Video Encoding: DASH</h1>
@@ -1031,7 +1031,7 @@ original.webm optimized.webm
 <span class="token assign-left variable">input</span><span class="token operator">=</span>media/SavingLight-baseline.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>video-baseline.mp4 <span class="token punctuation">\</span>
 <span class="token assign-left variable">input</span><span class="token operator">=</span>media/SavingLight-high.mp4,stream<span class="token operator">=</span>audio,output<span class="token operator">=</span>audio-high.mp4 <span class="token punctuation">\</span>
 <span class="token assign-left variable">input</span><span class="token operator">=</span>media/SavingLight-high.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>video-high.mp4 <span class="token punctuation">\</span>
---mpd_output example.mpd
+<span class="token parameter variable">--mpd_output</span> example.mpd
 </code></pre>
 <p>If you’re comfortable compiling tools manually you can clone the Shaka Packager <a href="https://github.com/google/shaka-packager">Github Repository</a> and compile the tools following the instructions in the README file.</p>
 <h3 id="manifest">The DASH Manifest</h3>
@@ -1130,7 +1130,7 @@ original.webm optimized.webm
   <span class="token assign-left variable">input</span><span class="token operator">=</span>sintel.mp4,stream<span class="token operator">=</span>audio,output<span class="token operator">=</span>sintel_audio.mp4 <span class="token punctuation">\</span>
   <span class="token assign-left variable">input</span><span class="token operator">=</span>sintel.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>sintel_video.mp4 <span class="token punctuation">\</span>
   <span class="token assign-left variable">input</span><span class="token operator">=</span>sintel_english_input.vtt,stream<span class="token operator">=</span>text,output<span class="token operator">=</span>sintel_english.vtt <span class="token punctuation">\</span>
---mpd_output sintel_vod.mpd
+<span class="token parameter variable">--mpd_output</span> sintel_vod.mpd
 </code></pre>
 <h2 id="player-shaka">Playing content: Shaka Player</h2>
 <figure>
@@ -1345,9 +1345,9 @@ document<span class="token punctuation">.</span><span class="token function">add
 <p>Response objects are single use.  This means we need to call clone() so we can both store the ArrayBuffer and give the response to the page.</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">cacheResponse</span><span class="token punctuation">(</span><span class="token parameter">cache<span class="token punctuation">,</span> request<span class="token punctuation">,</span> response</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">var</span> init <span class="token operator">=</span> <span class="token punctuation">{</span>
-    status<span class="token operator">:</span> response<span class="token punctuation">.</span>status<span class="token punctuation">,</span>
-    statusText<span class="token operator">:</span> response<span class="token punctuation">.</span>statusText<span class="token punctuation">,</span>
-    headers<span class="token operator">:</span> <span class="token punctuation">{</span><span class="token string">'X-Shaka-From-Cache'</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span>
+    <span class="token literal-property property">status</span><span class="token operator">:</span> response<span class="token punctuation">.</span>status<span class="token punctuation">,</span>
+    <span class="token literal-property property">statusText</span><span class="token operator">:</span> response<span class="token punctuation">.</span>statusText<span class="token punctuation">,</span>
+    <span class="token literal-property property">headers</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token string-property property">'X-Shaka-From-Cache'</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
   response<span class="token punctuation">.</span>headers<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">value<span class="token punctuation">,</span> key</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
