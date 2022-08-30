@@ -17,13 +17,13 @@
 
 <body>
 <article class="container">
-  <h1 id="building-gutenberg-blocks-(part-1)" tabindex="-1">Building Gutenberg Blocks (Part 1)</h1>
+  <h1 id="building-gutenberg-blocks-(part-1)">Building Gutenberg Blocks (Part 1)</h1>
 <p>Whether we like it or use it, the Gutenberg editor is here to stay. While I don’t use it for my own content and have developed themes that rely on the classic editor plugins, I realize that any WordPress shop moving forward needs to at least be aware of how to build blocks.</p>
 <p>It’s unlikely that the Classic Editor plugin or other means to disable Gutenberg will remain available past 2022 (when the Classic Editor plugins is supposed to stop being fully supported).</p>
 <p>So this post will cover the creation of Gutenberg blocks and some basic setup in both PHP and Javascript</p>
-<h2 id="creating-the-build-system" tabindex="-1">Creating the build system</h2>
+<h2 id="creating-the-build-system">Creating the build system</h2>
 <p>The following block examples are meant to be built inside a plugin. They won’t work if installed inside a theme, which is also not recommended and will result on your theme being rejected for inclusion in the plugin directory.</p>
-<h3 id="php-setup" tabindex="-1">PHP setup</h3>
+<h3 id="php-setup">PHP setup</h3>
 <p>On the root of the plugin folder we’ll add a main PHP file to be the driver for all the blocks that we will create.</p>
 <p>The first part is the plugin metadata. The information here will allow WordPress to use the plugin.</p>
 <p>The name is required, everything else is optional.</p>
@@ -48,10 +48,10 @@ Author URI: https://example.org
 
 <span class="token keyword">include</span> <span class="token string single-quoted-string">'rivendellweb-static/index.php'</span><span class="token punctuation">;</span>
 </span></code></pre>
-<h2 id="setting-up-the-build-environment" tabindex="-1">Setting up the build environment</h2>
+<h2 id="setting-up-the-build-environment">Setting up the build environment</h2>
 <p>Because I’ve chosen to write my blocks in ESNext I have to setup a Node-based build system.</p>
 <p>The first thing to do is to create a <code>package.json</code> file to store the plugins.</p>
-<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> init --yes
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> init <span class="token parameter variable">--yes</span>
 </code></pre>
 <p>This will create the package file and populate it automatically with all my configured pereferences.</p>
 <p>Next, we need to create a <code>.gitignore</code> file so that we won’t push unnecessay files and folders to git. To do this we run the following command</p>
@@ -59,7 +59,7 @@ Author URI: https://example.org
 </code></pre>
 <p>This will run <code>npx</code>, part of Node as of 5.2, and run the <a href="https://www.npmjs.com/package/gitignore">gitignore package</a> for Node projects.</p>
 <p>Instead of configuring WebPack to build and bundle the code directly, I will use <code>@wordpress/scripts</code> as the tooling for the project.</p>
-<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i -D @wordpress/scripts
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i <span class="token parameter variable">-D</span> @wordpress/scripts
 </code></pre>
 <p>Once we have the package installed, we need to replace the scripts block with one configured to use the scripts in the package. Modify the <code>scripts</code> portion of package.json to use the following scripts:</p>
 <pre class="language-js"><code class="language-js"><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">"scripts": {
@@ -78,15 +78,15 @@ Author URI: https://example.org
   "test:unit": "wp-scripts test-unit-js"
 }</span><span class="token template-punctuation string">`</span></span>
 </code></pre>
-<h2 id="building-blocks" tabindex="-1">Building Blocks</h2>
+<h2 id="building-blocks">Building Blocks</h2>
 <p>With the basic building tools in place we’ll concentrate on building the blocks themselves inside a plugin.</p>
 <p>We’ll build a base block and then enhance it with additional functionality.</p>
 <p>Each block has two main files: <code>index.php</code> that manages the communication with WordPress core and <code>index.js</code> that runs the react code we need to make the block display in Gutenberg and render on the page.</p>
 <p>All the block examples require you to build them using the process outlined in the previous section. They will not work otherwise.</p>
 <p>You can check a finished version of the blocks in the Github repository at <a href="https://github.com/caraya/rivendellweb-blocks">https://github.com/caraya/rivendellweb-blocks</a></p>
-<h3 id="base" tabindex="-1">Base</h3>
+<h3 id="base">Base</h3>
 <p>The first block will display static content like we might do for a call to action or other static content.</p>
-<h3 id="php" tabindex="-1">PHP</h3>
+<h3 id="php">PHP</h3>
 <p>In the PHP side, the first part makes sure that we’re not trying to access the script directly by checking if the constant <code>ABSPATH</code> is defined. If not, we exit and do nothing.</p>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token operator">!</span> <span class="token function">defined</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'ABSPATH'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -136,7 +136,7 @@ Author URI: https://example.org
 <span class="token punctuation">}</span>
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_blocks_example_01_register_block'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="javascript-%2F-react" tabindex="-1">Javascript / React</h3>
+<h3 id="javascript-%2F-react">Javascript / React</h3>
 <p>The Javascript portion of the block uses the <code>i18n</code> and <code>blocks</code> packages from WordPress to build the block.</p>
 <p>If you’ve done work with internationalization you may recognize the <code>__()</code> command as command you use to internationalize strings.</p>
 <p>We first import the components that we want to use.</p>
@@ -178,7 +178,7 @@ Author URI: https://example.org
 <span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>We could create different constants holding different styles and then use them to produce different results for the editor block versus what appears in the front end.</p>
-<h3 id="external-styles" tabindex="-1">External Styles</h3>
+<h3 id="external-styles">External Styles</h3>
 <p>SO far all the styles have been hardcoded to the block. In this example we’ll make the block use an external stylesheet for styling the block.</p>
 <p>To use external style sheets we first have to remove the constant containing the styles for the element.</p>
 <p>We then add one or more calls to <code>wp_register_style</code> to add the stylesheets.</p>
@@ -210,10 +210,10 @@ Author URI: https://example.org
   <span class="token string single-quoted-string">'editor_script'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'rivendellweb-blocks-example-02'</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
-<h1 id="building-gutenberg-blocks-(part-2)" tabindex="-1">Building Gutenberg Blocks (Part 2)</h1>
+<h1 id="building-gutenberg-blocks-(part-2)">Building Gutenberg Blocks (Part 2)</h1>
 <p>We’ve only worked with static content so far. But the idea behind Gutenberg is to let you work with your own content.</p>
 <p>This section will also introduce the <code>RichText</code> block components as opposed to the plain text elements we’ve been working with.</p>
-<h3 id="editable-blocks" tabindex="-1">Editable Blocks</h3>
+<h3 id="editable-blocks">Editable Blocks</h3>
 <p>The first part of this process is to create an editable block where we can enter arbitrary data that will be saved when we save or publish the post.</p>
 <p>IN addition to i18n and blocks imports we import the RichText component from the block-editor package. This will do the heavy load in the code below.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> __ <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/i18n'</span><span class="token punctuation">;</span>
@@ -274,7 +274,7 @@ Author URI: https://example.org
 	<span class="token punctuation">}</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="inner-blocks" tabindex="-1">Inner blocks</h3>
+<h3 id="inner-blocks">Inner blocks</h3>
 <p>The next idea is to see if we have any way to automate the content of the block. Right now our block is limited to whatever tag we use as the value of <code>tagName</code>.</p>
 <p>We can create a single block with a list of default blocks using inner blocks.</p>
 <p>We import <code>InnerBlocks</code> from <code>@wordpress/block-editor</code> and then use it as the child of our content div.</p>
@@ -303,7 +303,7 @@ Author URI: https://example.org
 <span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The idea is that using Inner Blocks we get a set of blocks available without any additional code.</p>
-<h3 id="blocks-with-customized-content-content" tabindex="-1">Blocks with customized content content</h3>
+<h3 id="blocks-with-customized-content-content">Blocks with customized content content</h3>
 <p>Inner blocks give us a set of sensible default set of blocks to use but it may or may not be enough to suit our needs. Fortunately we don’t have to stick with the defaults if we need specific blocks to accomplish our goals.</p>
 <p>First we run all our imports as usual, <code>__</code> for i18n, <code>registerBlockType</code> and <code>InnerBlocks</code></p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> __ <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/i18n'</span><span class="token punctuation">;</span>
@@ -342,7 +342,7 @@ Author URI: https://example.org
 <span class="token punctuation">}</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>The idea is that we restrict the content of the InnerBlock element to whatever elements we want to use. This way we can be sure that users don’t modify the content in ways we don’t expect.</p>
-<h3 id="block-templates" tabindex="-1">Block Templates</h3>
+<h3 id="block-templates">Block Templates</h3>
 <p>We can go even further and define a complete template for the block, not only limiting the blocks but providing a ready-to-complete template</p>
 <p>The import elements don’t change. We import <code>__</code>, <code>registerBlockType</code> and <code>InnerBlocks</code> as before.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> __ <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@wordpress/i18n'</span><span class="token punctuation">;</span>
@@ -401,8 +401,8 @@ Author URI: https://example.org
 <span class="token punctuation">]</span><span class="token punctuation">;</span>
 </code></pre>
 <p>So now we have the flexibility of building composite blocks with pre-defined structure and content flow.</p>
-<h1 id="building-gutenberg-blocks-(part-3)" tabindex="-1">Building Gutenberg Blocks (Part 3)</h1>
-<h2 id="internationalization" tabindex="-1">Internationalization</h2>
+<h1 id="building-gutenberg-blocks-(part-3)">Building Gutenberg Blocks (Part 3)</h1>
+<h2 id="internationalization">Internationalization</h2>
 <p>We’ll take a break from building actual blocks and talk about internationalization or i18n. Taking good care of i18n when you build your plugin will allow you or someone else to translate the text of your plugin so it’s easier to use in languages other than the one it was written on</p>
 <p>It works very close to how the PHP i18n functions work (and I believe this is deliberate), just differently enough to take the Javascript needs into account.</p>
 <p>First we import the necessarty functions. Most of the time it’ll just be <code>__</code> but there are others.</p>
@@ -435,9 +435,9 @@ Author URI: https://example.org
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_blocks_example_07_load_textdomain'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>So now we’ve made our plugins fully translatable and if we add new functionality or update the wording of the plugin text shown to the user we just need to update the template and the translations.</p>
-<h1 id="building-gutenberg-blocks-(part-4)" tabindex="-1">Building Gutenberg Blocks (Part 4)</h1>
+<h1 id="building-gutenberg-blocks-(part-4)">Building Gutenberg Blocks (Part 4)</h1>
 <p>There are many other things we can do with blocks and things to explore. But for right now we’ll move into enhacing the blocks we’ve built and add some flare to them.</p>
-<h2 id="making-the-editor-match-the-front-end" tabindex="-1">Making the editor match the front end</h2>
+<h2 id="making-the-editor-match-the-front-end">Making the editor match the front end</h2>
 <p>Before we look at some enhancements for the blocks, let’s make sure that the editor matches the front end content.</p>
 <p>The match will not be 100%; The way I’ve set up my theme is different than the way blocks are styled in Gutenberg, but it’s close enough to make it not look very disimilar.</p>
 <p>The following commands are included in an init function and then attached to the <code>after_setup_theme</code> action.</p>
@@ -486,7 +486,7 @@ Author URI: https://example.org
 <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>The idea is that the theme defines the colors we use and then Gutenberg picks them up automatically and uses them as if they were part of the default.</p>
-<h2 id="adding-custom-block-categories" tabindex="-1">Adding Custom Block Categories</h2>
+<h2 id="adding-custom-block-categories">Adding Custom Block Categories</h2>
 <p>In addition to preset categories for blocks, we can also create our own categories to hold blocks.</p>
 <p>We had the block class in PHP using the <code>block-categories</code> filter.</p>
 <p>The blocks are meant for posts only so we first make sure that we are working with posts before we proceed, if we’re not then we return the existing categories</p>
@@ -510,9 +510,9 @@ Author URI: https://example.org
 <span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'block_categories'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_blocks_block_category'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>See <a href="https://loomo.ca/gutenberg-creating-custom-block-categories/">Gutenberg: Creating Custom Block Categories</a> for more information</p>
-<h1 id="building-gutenberg-blocks-(part-5)" tabindex="-1">Building Gutenberg Blocks (Part 5)</h1>
+<h1 id="building-gutenberg-blocks-(part-5)">Building Gutenberg Blocks (Part 5)</h1>
 <p>While we can do some basic formatting with the blocks, we can also add settings to the block and give users a more direct means of customization</p>
-<h2 id="block-toolbars-and-inspectors" tabindex="-1">Block Toolbars and Inspectors</h2>
+<h2 id="block-toolbars-and-inspectors">Block Toolbars and Inspectors</h2>
 <p>Gutenberg blocks have 2 different configurations: toolbars and inspectors.</p>
 <figure>
   <img src="https://publishing-project.rivendellweb.net/wp-content/uploads/2020/04/gutenberg-toolbar.png" alt="guttenberg toolbar">
@@ -568,7 +568,7 @@ Author URI: https://example.org
 </span></code></pre>
 <pre class="language-js"><code class="language-js">
 </code></pre>
-<h2 id="links-and-resources" tabindex="-1">Links and Resources</h2>
+<h2 id="links-and-resources">Links and Resources</h2>
 <ul>
 <li><a href="https://gutenberghub.com/gutenberg-developer-guide/">Get Started With Gutenberg Development</a></li>
 <li><a href="https://www.codeinwp.com/blog/build-for-gutenberg-how-others-do-it/">Build for Gutenberg: How Plugin and Theme Authors Are Addressing the Transition to Gutenberg</a></li>

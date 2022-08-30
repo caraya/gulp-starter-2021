@@ -17,10 +17,10 @@
 
 <body>
 <article class="container">
-  <h1 id="creating-hls-vod-content" tabindex="-1">Creating HLS VOD Content</h1>
+  <h1 id="creating-hls-vod-content">Creating HLS VOD Content</h1>
 <p>MPEG-DASH is one way to create adaptive bitstream playback; but it’s not the only one. In this post we’ll explore Apple’s <a href="https://www.wikiwand.com/en/HTTP_Live_Streaming">HLS (HTML Live Streaming)</a> a direct competitor for MPEG-DASH and see how to build a package ready for Video On Demand.</p>
 <p>I will use FFMPEG to encode the video as required in the HLS specification. This is the same tool that I’ve used to create videos with other codecs.</p>
-<h2 id="hls-creation%3A-single-rendition" tabindex="-1">HLS Creation: Single Rendition</h2>
+<h2 id="hls-creation%3A-single-rendition">HLS Creation: Single Rendition</h2>
 <div class="message info">
   <p>At WWDC 2017, Apple anounced support for HEVC (H265), letting you work with both types of stream in the same play list.</p>
   <p>The technologies to implement HEVC in HLS is significantly different than what we discuss here so I'll probably do a separate post on it rather than confuse matters. I'm also banking on the fact that H264 has better support in both Apple and non-Apple devices.</p>
@@ -31,18 +31,18 @@
 <pre class="language-bash"><code class="language-bash"><span class="token comment"># Create the directory to store the files</span>
 <span class="token function">mkdir</span> serenity
 <span class="token comment"># run the command</span>
-ffmpeg -i serenity.mp4 <span class="token punctuation">\</span>
--vf <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">640</span>:h<span class="token operator">=</span><span class="token number">360</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
--c:a aac -ar <span class="token number">48000</span> -b:a 96k <span class="token punctuation">\</span>
--c:v h264 <span class="token punctuation">\</span>
--profile:v main <span class="token punctuation">\</span>
--crf <span class="token number">20</span> <span class="token punctuation">\</span>
--g <span class="token number">48</span> -keyint_min <span class="token number">48</span> <span class="token punctuation">\</span>
--sc_threshold <span class="token number">0</span> <span class="token punctuation">\</span>
--b:v 800k -maxrate 856k -bufsize 1200k <span class="token punctuation">\</span>
--hls_time <span class="token number">4</span> <span class="token punctuation">\</span>
--hls_playlist_type vod <span class="token punctuation">\</span>
--hls_segment_filename serenity/360p_%03d.ts <span class="token punctuation">\</span>
+ffmpeg <span class="token parameter variable">-i</span> serenity.mp4 <span class="token punctuation">\</span>
+<span class="token parameter variable">-vf</span> <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">640</span>:h<span class="token operator">=</span><span class="token number">360</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
+<span class="token parameter variable">-c:a</span> aac <span class="token parameter variable">-ar</span> <span class="token number">48000</span> <span class="token parameter variable">-b:a</span> 96k <span class="token punctuation">\</span>
+<span class="token parameter variable">-c:v</span> h264 <span class="token punctuation">\</span>
+<span class="token parameter variable">-profile:v</span> main <span class="token punctuation">\</span>
+<span class="token parameter variable">-crf</span> <span class="token number">20</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-g</span> <span class="token number">48</span> <span class="token parameter variable">-keyint_min</span> <span class="token number">48</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-sc_threshold</span> <span class="token number">0</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-b:v</span> 800k <span class="token parameter variable">-maxrate</span> 856k <span class="token parameter variable">-bufsize</span> 1200k <span class="token punctuation">\</span>
+<span class="token parameter variable">-hls_time</span> <span class="token number">4</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-hls_playlist_type</span> vod <span class="token punctuation">\</span>
+<span class="token parameter variable">-hls_segment_filename</span> serenity/360p_%03d.ts <span class="token punctuation">\</span>
 serenity/360p.m3u8
 </code></pre>
 <p>The explanation for each of the parameters in the example are described in the following list:</p>
@@ -144,7 +144,7 @@ serenity/360p.m3u8
 360p_034.ts
 <span class="token comment">#EXT-X-ENDLIST</span>
 </code></pre>
-<h2 id="hls-creation%3A-multiple-renditions-and-master-playlist" tabindex="-1">HLS Creation: Multiple Renditions And Master Playlist</h2>
+<h2 id="hls-creation%3A-multiple-renditions-and-master-playlist">HLS Creation: Multiple Renditions And Master Playlist</h2>
 <p>All the work we did in the previous section was for one rendition. You will definitely want more than one to acomoadte both your low-end, low-bandwidth users as well as those who are watching in the latest 4k iMac on fiber connections. We can create multiple renditions and let the player decide what’s the best one to play at any given time of the playback.</p>
 <p>This command will create 4 versions of the video along with a playlist for each:</p>
 <ul>
@@ -153,24 +153,24 @@ serenity/360p.m3u8
 <li>720p</li>
 <li>1080p</li>
 </ul>
-<pre class="language-bash"><code class="language-bash">ffmpeg -hide_banner -y -i serenity.mp4 <span class="token punctuation">\</span>
-  -vf <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">640</span>:h<span class="token operator">=</span><span class="token number">360</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
-  -c:a aac -ar <span class="token number">48000</span> -c:v h264 -profile:v main <span class="token punctuation">\</span>
-  -crf <span class="token number">20</span> -sc_threshold <span class="token number">0</span> -g <span class="token number">48</span> -keyint_min <span class="token number">48</span> -hls_time <span class="token number">4</span> -hls_playlist_type vod  -b:v 800k -maxrate 856k <span class="token punctuation">\</span>
-  -bufsize 1200k -b:a 96k -hls_segment_filename serenity/360p_%03d.ts serenity/360p.m3u8 <span class="token punctuation">\</span>
-  -vf <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">842</span>:h<span class="token operator">=</span><span class="token number">480</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
-  -c:a aac -ar <span class="token number">48000</span> -c:v h264 -profile:v main <span class="token punctuation">\</span>
-  -crf <span class="token number">20</span> -sc_threshold <span class="token number">0</span> -g <span class="token number">48</span> -keyint_min <span class="token number">48</span> -hls_time <span class="token number">4</span> -hls_playlist_type vod -b:v 1400k -maxrate 1498k <span class="token punctuation">\</span>
-  -bufsize 2100k -b:a 128k -hls_segment_filename serenity/480p_%03d.ts serenity/480p.m3u8 <span class="token punctuation">\</span>
-  -vf <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">1280</span>:h<span class="token operator">=</span><span class="token number">720</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
-  -c:a aac -ar <span class="token number">48000</span> -c:v h264 -profile:v main <span class="token punctuation">\</span>
-  -crf <span class="token number">20</span> -sc_threshold <span class="token number">0</span> -g <span class="token number">48</span> -keyint_min <span class="token number">48</span> -hls_time <span class="token number">4</span> -hls_playlist_type vod -b:v 2800k -maxrate 2996k <span class="token punctuation">\</span>
-  -bufsize 4200k -b:a 128k -hls_segment_filename serenity/720p_%03d.ts serenity/720p.m3u8 <span class="token punctuation">\</span>
-  -vf <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">1920</span>:h<span class="token operator">=</span><span class="token number">1080</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
-  -c:a aac -ar <span class="token number">48000</span> -c:v h264 -profile:v main <span class="token punctuation">\</span>
-  -crf <span class="token number">20</span> -sc_threshold <span class="token number">0</span> -g <span class="token number">48</span> -keyint_min <span class="token number">48</span> -hls_time <span class="token number">4</span> <span class="token punctuation">\</span>
-   -hls_playlist_type vod -b:v 5000k -maxrate 5350k <span class="token punctuation">\</span>
-  -bufsize 7500k -b:a 192k -hls_segment_filename serenity/1080p_%03d.ts serenity/1080p.m3u8
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-hide_banner</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">-i</span> serenity.mp4 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-vf</span> <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">640</span>:h<span class="token operator">=</span><span class="token number">360</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
+  <span class="token parameter variable">-c:a</span> aac <span class="token parameter variable">-ar</span> <span class="token number">48000</span> <span class="token parameter variable">-c:v</span> h264 <span class="token parameter variable">-profile:v</span> main <span class="token punctuation">\</span>
+  <span class="token parameter variable">-crf</span> <span class="token number">20</span> <span class="token parameter variable">-sc_threshold</span> <span class="token number">0</span> <span class="token parameter variable">-g</span> <span class="token number">48</span> <span class="token parameter variable">-keyint_min</span> <span class="token number">48</span> <span class="token parameter variable">-hls_time</span> <span class="token number">4</span> <span class="token parameter variable">-hls_playlist_type</span> vod  <span class="token parameter variable">-b:v</span> 800k <span class="token parameter variable">-maxrate</span> 856k <span class="token punctuation">\</span>
+  <span class="token parameter variable">-bufsize</span> 1200k <span class="token parameter variable">-b:a</span> 96k <span class="token parameter variable">-hls_segment_filename</span> serenity/360p_%03d.ts serenity/360p.m3u8 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-vf</span> <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">842</span>:h<span class="token operator">=</span><span class="token number">480</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
+  <span class="token parameter variable">-c:a</span> aac <span class="token parameter variable">-ar</span> <span class="token number">48000</span> <span class="token parameter variable">-c:v</span> h264 <span class="token parameter variable">-profile:v</span> main <span class="token punctuation">\</span>
+  <span class="token parameter variable">-crf</span> <span class="token number">20</span> <span class="token parameter variable">-sc_threshold</span> <span class="token number">0</span> <span class="token parameter variable">-g</span> <span class="token number">48</span> <span class="token parameter variable">-keyint_min</span> <span class="token number">48</span> <span class="token parameter variable">-hls_time</span> <span class="token number">4</span> <span class="token parameter variable">-hls_playlist_type</span> vod <span class="token parameter variable">-b:v</span> 1400k <span class="token parameter variable">-maxrate</span> 1498k <span class="token punctuation">\</span>
+  <span class="token parameter variable">-bufsize</span> 2100k <span class="token parameter variable">-b:a</span> 128k <span class="token parameter variable">-hls_segment_filename</span> serenity/480p_%03d.ts serenity/480p.m3u8 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-vf</span> <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">1280</span>:h<span class="token operator">=</span><span class="token number">720</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
+  <span class="token parameter variable">-c:a</span> aac <span class="token parameter variable">-ar</span> <span class="token number">48000</span> <span class="token parameter variable">-c:v</span> h264 <span class="token parameter variable">-profile:v</span> main <span class="token punctuation">\</span>
+  <span class="token parameter variable">-crf</span> <span class="token number">20</span> <span class="token parameter variable">-sc_threshold</span> <span class="token number">0</span> <span class="token parameter variable">-g</span> <span class="token number">48</span> <span class="token parameter variable">-keyint_min</span> <span class="token number">48</span> <span class="token parameter variable">-hls_time</span> <span class="token number">4</span> <span class="token parameter variable">-hls_playlist_type</span> vod <span class="token parameter variable">-b:v</span> 2800k <span class="token parameter variable">-maxrate</span> 2996k <span class="token punctuation">\</span>
+  <span class="token parameter variable">-bufsize</span> 4200k <span class="token parameter variable">-b:a</span> 128k <span class="token parameter variable">-hls_segment_filename</span> serenity/720p_%03d.ts serenity/720p.m3u8 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-vf</span> <span class="token assign-left variable">scale</span><span class="token operator">=</span>w<span class="token operator">=</span><span class="token number">1920</span>:h<span class="token operator">=</span><span class="token number">1080</span>:force_original_aspect_ratio<span class="token operator">=</span>decrease <span class="token punctuation">\</span>
+  <span class="token parameter variable">-c:a</span> aac <span class="token parameter variable">-ar</span> <span class="token number">48000</span> <span class="token parameter variable">-c:v</span> h264 <span class="token parameter variable">-profile:v</span> main <span class="token punctuation">\</span>
+  <span class="token parameter variable">-crf</span> <span class="token number">20</span> <span class="token parameter variable">-sc_threshold</span> <span class="token number">0</span> <span class="token parameter variable">-g</span> <span class="token number">48</span> <span class="token parameter variable">-keyint_min</span> <span class="token number">48</span> <span class="token parameter variable">-hls_time</span> <span class="token number">4</span> <span class="token punctuation">\</span>
+   <span class="token parameter variable">-hls_playlist_type</span> vod <span class="token parameter variable">-b:v</span> 5000k <span class="token parameter variable">-maxrate</span> 5350k <span class="token punctuation">\</span>
+  <span class="token parameter variable">-bufsize</span> 7500k <span class="token parameter variable">-b:a</span> 192k <span class="token parameter variable">-hls_segment_filename</span> serenity/1080p_%03d.ts serenity/1080p.m3u8
 </code></pre>
 <p>This created the media but there’s no way for the player to know what’s available. To fix this we create a master playlist that tells the player what renditions are available for the video.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token comment">#EXTM3U</span>
@@ -195,8 +195,8 @@ serenity/360p.m3u8
   <span class="token assign-left variable">in</span><span class="token operator">=</span>h264_main_480p_1000.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>h264_480p.mp4,playlist_name<span class="token operator">=</span>h264_480p.m3u8,iframe_playlist_name<span class="token operator">=</span>h264_480p_iframe.m3u8 <span class="token punctuation">\</span>
   <span class="token assign-left variable">in</span><span class="token operator">=</span>h264_main_720p_3000.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>h264_720p.mp4,playlist_name<span class="token operator">=</span>h264_720p.m3u8,iframe_playlist_name<span class="token operator">=</span>h264_720p_iframe.m3u8 <span class="token punctuation">\</span>
   <span class="token assign-left variable">in</span><span class="token operator">=</span>h264_main_1080p_6000.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>h264_1080p.mp4,playlist_name<span class="token operator">=</span>h264_1080p.m3u8,iframe_playlist_name<span class="token operator">=</span>h264_1080p_iframe.m3u8 <span class="token punctuation">\</span>
-  --hls_master_playlist_output h264_master.m3u8 <span class="token punctuation">\</span>
-  --mpd_output h264.mpd
+  <span class="token parameter variable">--hls_master_playlist_output</span> h264_master.m3u8 <span class="token punctuation">\</span>
+  <span class="token parameter variable">--mpd_output</span> h264.mpd
 </code></pre>
 <p>The result produces the following files:</p>
 <pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">.</span>
@@ -222,7 +222,7 @@ serenity/360p.m3u8
 └── h264_master.m3u8
 </code></pre>
 <p>And these can be used to play either DASH or HLS video. We’ll tackle playback next.</p>
-<h2 id="playback" tabindex="-1">Playback</h2>
+<h2 id="playback">Playback</h2>
 <p>I know how to use <a href="https://shaka-player-demo.appspot.com/">Shaka Player</a> to play DASH content. It should be possible to use the same player to play both DASH and HLS content although it shouldn’t be necessary to play both, the player scripts should take care of cross platform issues.</p>
 <p>Another option is to use <a href="https://videojs.com/">Video.js</a> with the <a href="https://www.npmjs.com/package/videojs-contrib-hls">HSL</a> plugin and the <a href="https://www.npmjs.com/package/videojs-contrib-dash-s1">DASH</a> if you need to serve both formats on the same page.</p>
 <p>The basic functionality looks like this:</p>
@@ -248,7 +248,7 @@ player<span class="token punctuation">.</span><span class="token function">play<
 </code></pre>
 <p>I’m tracking <a href="https://github.com/videojs/videojs-contrib-hls/issues/1365">issue 1365</a> in the <a href="https://github.com/videojs/videojs-contrib-hls/">Video.js HSL Plugin Repository</a> to track the issue of content not playing in Chrome.</p>
 <p>I’m also researching if I can combine DASH and HLS in a single player for either Shaka Player or Video.js.</p>
-<h2 id="encoding-suggestions" tabindex="-1">Encoding Suggestions</h2>
+<h2 id="encoding-suggestions">Encoding Suggestions</h2>
 <p>Like DASH, HLS allows for multiple renditions of cotnebt at different resolutions. What these resolutions are will depend on your content and your target audience.</p>
 <p>Each row presents to bitrate values, one for low motion content like conference presentations and other activities where there is little motion. The other is for the opposite type of video like sports and other high motion activities. The adio bitrate remains constat for both low and high motion videos.</p>
 <p>The table is taken from Peer 5’s <a href="https://docs.peer5.com/guides/production-ready-hls-vod/">Creating A Production Ready Multi Bitrate HLS VOD stream</a></p>
@@ -328,7 +328,7 @@ player<span class="token punctuation">.</span><span class="token function">play<
     </tr>
   </tbody>
 </table>
-<h2 id="references" tabindex="-1">References</h2>
+<h2 id="references">References</h2>
 <ul>
 <li>Docs
 <ul>

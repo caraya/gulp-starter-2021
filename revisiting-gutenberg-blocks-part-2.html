@@ -17,10 +17,10 @@
 
 <body>
 <article class="container">
-  <h1 id="revisiting-gutenber-blocks-part-2%3A-further-thoughts-and-ideas" tabindex="-1">Revisiting Gutenber blocks part 2: Further thoughts and ideas</h1>
+  <h1 id="revisiting-gutenber-blocks-part-2%3A-further-thoughts-and-ideas">Revisiting Gutenber blocks part 2: Further thoughts and ideas</h1>
 <p>The previous post (<a href="https://publishing-project.rivendellweb.net/revisiting-guten%E2%80%A6yling-the-blocks/">Revisiting Gutenberg blocks part 1: Building and Styling the blocks</a>) discussed how to build a block and reviewed both old and new techniques for creating Gutenberg blocks.</p>
 <p>This post will revisit related areas of block development in more detail.</p>
-<h2 id="block-variations" tabindex="-1">Block variations</h2>
+<h2 id="block-variations">Block variations</h2>
 <p>Some times it may be easier to create additional styles for an existing core element than create your own. Gutenberg calls this block variations.</p>
 <p>Authors can also choose whether they want to incorporate core blocks. It is highly likely that you will need to customize the block styles to match the core blocks with the theme but that will alwaays be easier than creating. Gutenberg calls this <a href="https://developer.wordpress.org/block-editor/developers/filters/block-filters/#block-style-variations">block style variations</a>.</p>
 <p>The following core blocks are available:</p>
@@ -149,12 +149,12 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 </code></pre>
 <p>Block style variations provide a way to customize blocks without changing the blocks themselves; variations are also clean, they don’t require a build process since they use PHP to enqueue assets.</p>
 <p>One thing that tripped me when writing this, is that variations appear once you’ve inserted the block on the post or page.</p>
-<h2 id="block-patterns" tabindex="-1">Block patterns</h2>
+<h2 id="block-patterns">Block patterns</h2>
 <p>The idea behind block patterns is that we can group blocks that we use together into a single layout that we can reuse where needed.</p>
 <p>The steps to create a Block Pattern are as follows:</p>
-<h3 id="1.-create-the-pattern-and-copy-the-content" tabindex="-1">1. Create the pattern and copy the content</h3>
+<h3 id="1.-create-the-pattern-and-copy-the-content">1. Create the pattern and copy the content</h3>
 <p>We create the pattern by setting up the blocks we want as part of the pattern in Gutenberg. This will create the markup that we need to paste into the pattern definition by copying it from the editor and escaping it, like we’ll do in the next step.</p>
-<h3 id="2.-escape-the-block-content" tabindex="-1">2. Escape the block content</h3>
+<h3 id="2.-escape-the-block-content">2. Escape the block content</h3>
 <p>Until we can create a built-in conversion tool, we’ll have to use an online tool like <a href="https://onlinestringtools.com/escape-string">escape string</a>, or the native PHP <a href="https://www.php.net/manual/en/function.json-encode.php">json_encode</a> function to convert the code into a string suitable to add to the pattern.</p>
 <p>One incomplete solution is to create a <a href="https://www.php.net/manual/en/language.types.string.php#language.types.string.syntax.heredoc">heredoc</a> to contain the full Gutenberg template.</p>
 <p>We then encode the template to a string using <a href="https://www.php.net/manual/en/function.json-encode.php">json_encode()</a> to create the string.</p>
@@ -169,7 +169,7 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 <span class="token variable">$template_string</span> <span class="token operator">=</span> <span class="token function">preg_replace</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'(\\\/)'</span><span class="token punctuation">,</span><span class="token string single-quoted-string">'/'</span><span class="token punctuation">,</span><span class="token variable">$converted_json</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>We can run this as an external script in the command line or, if we choose to, we can incorporate it into our block pattern definitions or maybe add it to a WordPress utility library to be created at a later time.</p>
-<h3 id="3.-register-the-pattern" tabindex="-1">3. Register the pattern</h3>
+<h3 id="3.-register-the-pattern">3. Register the pattern</h3>
 <p>The pattern registration is fairly simple. We first check if the <a href="https://developer.wordpress.org/reference/classes/wp_block_patterns_registry/">WP_Block_Patterns_Registry</a> an only add the pattern if it does (it doesn’t make sense to register the pattern if it doesn’t).</p>
 <p><a href="https://developer.wordpress.org/reference/functions/register_block_pattern/">register_block_pattern()</a> tells WordPress that we’re creating a new block pattern. It takes two parameters: a pattern name and an array of pattern properties.</p>
 <p>The possible pattern properties are:</p>
@@ -199,7 +199,7 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_register_block_patterns'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>The function can register multiple patterns at the same time.</p>
-<h3 id="4.-(optional)-create-custom-categories-for-the-pattern" tabindex="-1">4. (Optional) Create custom categories for the pattern</h3>
+<h3 id="4.-(optional)-create-custom-categories-for-the-pattern">4. (Optional) Create custom categories for the pattern</h3>
 <p>Rather than put our custom patterns in the default categories, we can create one or more custom categories for our patterns that will share space with the default ones (although not in alphabetical order).</p>
 <p>The callback function, <code>rivendellwebr_register_pattern_categories()</code> allows us to register one or more pattern categories using <a href="https://developer.wordpress.org/reference/functions/register_block_pattern_category/">register_block_pattern_category()</a></p>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
@@ -216,9 +216,9 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_register_pattern_categories'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
 <p>So now we have as many custom patterns in as many custom pattern categories as our project needs.</p>
-<h3 id="additional-resources" tabindex="-1">Additional resources</h3>
+<h3 id="additional-resources">Additional resources</h3>
 <p>Rich Tabor’s <a href="https://richtabor.com/build-block-patterns/">How to Build Block Patterns for the WordPress Block Editor</a> provides an indepth look at building patterns.</p>
-<h2 id="getting-custom-post-types-to-talk-to-gutenberg" tabindex="-1">Getting Custom Post Types to Talk to Gutenberg</h2>
+<h2 id="getting-custom-post-types-to-talk-to-gutenberg">Getting Custom Post Types to Talk to Gutenberg</h2>
 <p>I’ve created several custom post types that worked in the classic editor. When I brought them to my Gutenberg playground they would not work or they would not work as I expected them to.</p>
 <p>It took me a while to realize that you must be really picky on how you configure the Custom Post Type (CPT) to work as Gutenberg is far less forgiving than the classic editor when using <a href="https://developer.wordpress.org/reference/functions/register_post_type/">register_post_type()</a></p>
 <p>I want my CPT to do three things</p>
@@ -271,9 +271,9 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 <span class="token punctuation">}</span>
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_custom_book_type'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </span></code></pre>
-<h2 id="further-tweaks-to-block-styles" tabindex="-1">Further tweaks to block styles</h2>
+<h2 id="further-tweaks-to-block-styles">Further tweaks to block styles</h2>
 <p>There are a few things that I would still want to customize for the blocks and the theme using them.</p>
-<h3 id="custom-color-palettes" tabindex="-1">Custom color palettes</h3>
+<h3 id="custom-color-palettes">Custom color palettes</h3>
 <pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
 <span class="token function">add_theme_support</span><span class="token punctuation">(</span>
 <span class="token string single-quoted-string">'editor-font-sizes'</span><span class="token punctuation">,</span>
@@ -326,10 +326,10 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 <span class="token punctuation">}</span>
 <span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'after_setup_theme'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_setup'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="fonts-and-typography" tabindex="-1">Fonts and typography</h3>
-<h3 id="templates" tabindex="-1">Templates</h3>
+<h3 id="fonts-and-typography">Fonts and typography</h3>
+<h3 id="templates">Templates</h3>
 <p>External <a href="https://developer.wordpress.org/block-editor/developers/block-api/block-templates/">block templates</a></p>
-<h3 id="external-metdata-declaration" tabindex="-1">External metdata declaration</h3>
+<h3 id="external-metdata-declaration">External metdata declaration</h3>
 <p><a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">The block type metadata</a> provides an external means to declare our block API. It is stored in a <code>block.json</code> file. An example, taken from the <a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">Block metadata developer docs</a> looks like this:</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
   <span class="token property">"apiVersion"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
@@ -371,8 +371,8 @@ wp<span class="token punctuation">.</span>blocks<span class="token punctuation">
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Look at the <a href="https://developer.wordpress.org/block-editor/developers/block-api/block-metadata/">Block metadata developer docs</a> for more information about the content of the file and how it works.</p>
-<h2 id="full-page-designs" tabindex="-1">Full page designs</h2>
-<h2 id="block-design%3A-journal" tabindex="-1">Block design: Journal</h2>
+<h2 id="full-page-designs">Full page designs</h2>
+<h2 id="block-design%3A-journal">Block design: Journal</h2>
 
 </article>
 <!--

@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="webassembly%3A-a-new-swiss-army-knife" tabindex="-1">WebAssembly: A new Swiss Army Knife</h1>
+  <h1 id="webassembly%3A-a-new-swiss-army-knife">WebAssembly: A new Swiss Army Knife</h1>
 <p><a href="https://webassembly.org/">WebAssembly</a> and its predecessor asm.js provide a portable target for compilation of high-level languages like C, C++, Go, and Rust among others, enabling deployment on the web for client and server applications.</p>
 <p>See the <a href="https://github.com/appcypher/awesome-wasm-langs">Awesome WebAssembly Languages</a> for a curated list of languages that can be compiled to WASM.</p>
 <p>It is very important to point out that WASM is not trying to replace Javascript on the web.</p>
@@ -29,7 +29,7 @@
 <div class='video'>
   <iframe width="560" height="315" src="https://www.youtube.com/embed/njt-Qzw0mVY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
-<h2 id="emscripten" tabindex="-1">Emscripten</h2>
+<h2 id="emscripten">Emscripten</h2>
 <p>Both C/C++ and Rust use the Emcscripten compiler toolchain, a drop in replacement for regular compilers in C/C++ and Windows.</p>
 <p>The pprocess is broken in three</p>
 <ul>
@@ -73,7 +73,7 @@
 <span class="token builtin class-name">source</span> ./emsdk_env.sh
 </code></pre>
 <p>Once we have done this we have the toolchain we’ll need for C/C++ and Rust.</p>
-<h2 id="c-and-c%2B%2B" tabindex="-1">C and C++</h2>
+<h2 id="c-and-c%2B%2B">C and C++</h2>
 <p>WebAssembly, and <code>asm.js</code> before it, was first created to port C and C++ code to LLVM bit code that could then be converted to Javascript.</p>
 <p>If we take this program that will print <code>Hello, World</code> to the screen.  save it as <code>hello.c</code>.</p>
 <pre class="language-c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
@@ -82,7 +82,7 @@
 <span class="token punctuation">}</span>
 </code></pre>
 <p>To convert the <code>hello.c</code> to a WebAssembly file that will play on your web browser run the following command</p>
-<pre class="language-bash"><code class="language-bash">emcc hello.c -s <span class="token assign-left variable">WASM</span><span class="token operator">=</span><span class="token number">1</span> -o hello.html
+<pre class="language-bash"><code class="language-bash">emcc hello.c <span class="token parameter variable">-s</span> <span class="token assign-left variable">WASM</span><span class="token operator">=</span><span class="token number">1</span> <span class="token parameter variable">-o</span> hello.html
 </code></pre>
 <p>For those of you familiar with the GCC compiler toolchain, the differences between traditional C/C++ compilation and our WebAssembly compilation are:</p>
 <ul>
@@ -102,7 +102,7 @@
   <img src="https://publishing-project.rivendellweb.net/wp-content/uploads/2019/05/emscripten-result.png" alt="Emscripten HTML page show results of the code">
   <figcaption>Emscripten HTML page show results of the code</figcaption>
 </figure>
-<h3 id="a-more-complex-example" tabindex="-1">A more complex example</h3>
+<h3 id="a-more-complex-example">A more complex example</h3>
 <p>As far as examples go, Hello, World is as basic as it gets. While it’s good to work out any possible kinks in the system there has to be more we can do with it.</p>
 <p>We’ll create a function that generates a <a href="https://www.mathsisfun.com/numbers/fibonacci-sequence.html">Fibonacci Sequeence</a> for the number we pass as a parameter.</p>
 <pre class="language-c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;emscripten.h></span></span>
@@ -120,9 +120,9 @@ EMSCRIPTEN_KEEPALIVE
 </code></pre>
 <p>The compilation is a little different too, we do heavy optimizations to the generated code and we pass <code>cwrap</code> as the value of the <code>EXTRA_EXPORTED_RUNTIME_METHODS</code> flag.</p>
 <p><code>cwrap</code> is one of the ways <a href="https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#calling-compiled-c-functions-from-javascript-using-ccall-cwrap">we can call C/C++ from Javascript</a></p>
-<pre class="language-bash"><code class="language-bash">emcc -O3 <span class="token punctuation">\</span>
--s <span class="token assign-left variable">WASM</span><span class="token operator">=</span><span class="token number">1</span> <span class="token punctuation">\</span>
--s <span class="token assign-left variable">EXTRA_EXPORTED_RUNTIME_METHODS</span><span class="token operator">=</span><span class="token string">'["cwrap"]'</span> <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">emcc <span class="token parameter variable">-O3</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-s</span> <span class="token assign-left variable">WASM</span><span class="token operator">=</span><span class="token number">1</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-s</span> <span class="token assign-left variable">EXTRA_EXPORTED_RUNTIME_METHODS</span><span class="token operator">=</span><span class="token string">'["cwrap"]'</span> <span class="token punctuation">\</span>
 fib.c
 </code></pre>
 <p>Instead of letting Emscripten generate the HTML file we take that into our own hands. The resulting files from the compilation are listed below</p>
@@ -152,7 +152,7 @@ fib.c
   <figcaption>Chrome console showing warning and the results of the code</figcaption>
 </figure>
 <p>The warning happens because the web server I used (Python 3’s built-in HTTP module) doesn’t assign the correct mime type for the wasm module. I imagine in production this won’t be a problem but during development you need to take this into account.</p>
-<h2 id="go" tabindex="-1">Go</h2>
+<h2 id="go">Go</h2>
 <p>Go is Google’s open source language that makes it easy to build simple, reliable, and efficient software.</p>
 <p>I’m torn between taking Go or Rust as my second backend language after C++ and it’s not an easy decision to make as they both have their advantages and disadvantages</p>
 <p>That said, this is the code that we’ll use to tests Go’s WASM support.</p>
@@ -167,7 +167,7 @@ fib.c
 <span class="token punctuation">}</span>
 </code></pre>
 <p>Unlike C and Rust, support for WASM is baked into the core language runtime. To compile the code into WASM we need to run the following command.</p>
-<pre class="language-bash"><code class="language-bash"><span class="token assign-left variable">GOOS</span><span class="token operator">=</span>js <span class="token assign-left variable">GOARCH</span><span class="token operator">=</span>wasm go build -o test.wasm test.go
+<pre class="language-bash"><code class="language-bash"><span class="token assign-left variable">GOOS</span><span class="token operator">=</span>js <span class="token assign-left variable">GOARCH</span><span class="token operator">=</span>wasm go build <span class="token parameter variable">-o</span> test.wasm test.go
 </code></pre>
 <p>The <code>GOOS</code> and <code>GOARCH</code> flags tell the compiler what we want to do, we want to compile the file using js as the operating system and wasm as the architecture. This is similar to how we’d compile Go for architectures other than the one we’re working on (and, saddly, you have to compile Go for each platform you want to use it for).</p>
 <p>In order to run the code we need to copy files from our Go root directory into our current working directory and, if desired, rename the HTML file we copied</p>
@@ -177,11 +177,11 @@ fib.c
 <span class="token function">mv</span> wasm_exec.html index.html
 </code></pre>
 <p>Go is more strict than Emscripten when it comes to mimetype. It refuses to run the wasm file because the mime type is incorrect.</p>
-<h2 id="rust" tabindex="-1">Rust</h2>
+<h2 id="rust">Rust</h2>
 <p><a href="https://www.rust-lang.org/">Rust</a> is a Mozilla project that seeks to create reliable and efficient software.</p>
 <p>There are two ways to get Rust ready to go. The first one is to install <code>rustup</code>, the Rust package manager directly using the following commands</p>
 <pre class="language-bash"><code class="language-bash"><span class="token comment"># 1. Download and install rustup</span>
-<span class="token function">curl</span> https://sh.rustup.rs -sSf <span class="token operator">|</span> <span class="token function">sh</span>
+<span class="token function">curl</span> https://sh.rustup.rs <span class="token parameter variable">-sSf</span> <span class="token operator">|</span> <span class="token function">sh</span>
 
 <span class="token comment"># 2. Install the default version of Rust</span>
 rustup <span class="token function">install</span> stable
@@ -206,7 +206,7 @@ rustup target <span class="token function">add</span> wasm32-unknown-emscripten
 </code></pre>
 <p>We have our Rust toolchain installed and ready to go. Next step is to set up our package.</p>
 <pre class="language-bash"><code class="language-bash"><span class="token comment"># Create a new binary package</span>
-cargo new hello-world --bin
+<span class="token function">cargo</span> new hello-world <span class="token parameter variable">--bin</span>
 <span class="token comment"># Switch to the directory you just created</span>
 <span class="token builtin class-name">cd</span> hello-world
 </code></pre>
@@ -222,7 +222,7 @@ cargo new hello-world --bin
 <span class="token punctuation">}</span>
 </code></pre>
 <p>We compile this file using the command below:</p>
-<pre class="language-bash"><code class="language-bash">rustc --target<span class="token operator">=</span>wasm32-unknown-emscripten src/main.rs -o hello.html
+<pre class="language-bash"><code class="language-bash">rustc <span class="token parameter variable">--target</span><span class="token operator">=</span>wasm32-unknown-emscripten src/main.rs <span class="token parameter variable">-o</span> hello.html
 </code></pre>
 <p>First surprise, the command work when invoked directly from Node but fails when run from a web browser.  I discovered that you need special configurations</p>
 <p>We have to configure the type of library and dependencies in our <code>Cargo.toml</code> file. It now looks like this:</p>
@@ -249,17 +249,17 @@ cargo new hello-world --bin
 <span class="token punctuation">]</span>
 </code></pre>
 <p>Next, we install <code>wasm-pack</code> as our compiler rather than using <code>rustc</code> like we did in the previous iteration.</p>
-<pre class="language-bash"><code class="language-bash">cargo <span class="token function">install</span> wasm-pack
+<pre class="language-bash"><code class="language-bash"><span class="token function">cargo</span> <span class="token function">install</span> wasm-pack
 </code></pre>
 <p>The final step is to use <code>wasm-pack</code> to build the package for the web</p>
-<pre class="language-bash"><code class="language-bash">wasm-pack build --target web
+<pre class="language-bash"><code class="language-bash">wasm-pack build <span class="token parameter variable">--target</span> web
 </code></pre>
-<h2 id="conclusion" tabindex="-1">Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>We now have WebAssembly-ready toolchains for fours languages: C, C++, Go and Rust. So what’s next?</p>
 <p>The code examples in this post barely scratch the surface of what you can do. Explore the tools, libraries and modules/packages and how they interact when used in WASM code. There is much still to learn.</p>
 <p>Don’t feel like everything you do on the web now has to be coded in C, Rust or Go and then transpiled to WebAssembly to be used on the web. Like Surma says in his presentation, use WASM to enhance what’s already there.</p>
 <p><strong>By the way, I got all the code working by uploading it to Github and using Github Pages to run the code from. GH Pages has already taken care of the WebAssembly mime type for me</strong> :)</p>
-<h2 id="links" tabindex="-1">Links</h2>
+<h2 id="links">Links</h2>
 <ul>
 <li><a href="https://webassembly.org/">WebAssembly.org</a></li>
 <li><a href="https://zendev.com/2018/06/26/webassembly-accelerating-future-web-development.html">How WebAssembly is Accelerating the Future of Web Development</a></li>

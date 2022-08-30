@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="creating-an-ecoder-ladder" tabindex="-1">Creating an Ecoder Ladder</h1>
+  <h1 id="creating-an-ecoder-ladder">Creating an Ecoder Ladder</h1>
 <p>I’ve always thought about the concept of an encoding ladder without really knowing what it was and why it was important.  I came accross the concept again a few weeks ago when researching the AV1 codec.</p>
 <p>Before jumping into details, let’s define what an encoding ladder is:</p>
 <blockquote>
@@ -33,7 +33,7 @@
 <p>We don’t have to use all or any of the encodings.</p>
 <p>In my research I came across <a href="https://www.linkedin.com/pulse/five-views-your-encoding-ladder-jan-ozer/">Five Views of your Encoding Ladder</a> by Jan Ozer where he discusses encoding ladders and how to set them up.</p>
 <p>We will discuss both an ideal ladder and a more practical ladder for web content that we want to publish.</p>
-<h2 id="the-ideal-ladder" tabindex="-1">The Ideal Ladder</h2>
+<h2 id="the-ideal-ladder">The Ideal Ladder</h2>
 <p>For this ideal ladder we’ll skip pricing concerns. In an ideal world we’d take that into consideration as well.</p>
 <p>The table below, taken from Ozer’s Linked In article, uses Apple’s Technical Note 2244 as the basis for the encoding ladder.</p>
 <figure>
@@ -43,7 +43,7 @@
 <p>I’ve always wondered how much we can cut off the bottom end for our American users. I’m  thinking about removing either 234p, 270p or both depending our target audience.</p>
 <p>I’m also questioning whether we need data rates over 4500. Unless we can derive actual differences between the 4500 and higer data rates I don’t think we need to encode to the highter rates.</p>
 <p>This is a good starting point but you’ll have to do a lot of testing with your content and with potential delivery channels before you can pronounce it good and use it to deploy content.</p>
-<h2 id="an-optimized-ladder-for-web-delivery" tabindex="-1">An Optimized Ladder for Web Delivery</h2>
+<h2 id="an-optimized-ladder-for-web-delivery">An Optimized Ladder for Web Delivery</h2>
 <p>Working with video for web delivery can be done either of two ways, we can use a video delivery network or we can upload our content to different providers for delivery.</p>
 <p>I’ve chosen to work with these providers:</p>
 <ul>
@@ -180,28 +180,28 @@
 <li><a href="https://stream.twitch.tv/encoding/">Twitch</a></li>
 </ul>
 <p>We can see the commonalities. For the most part we should be able to create one file to push to Youtube and Vimeo and one additional stream, if needed or wanted, for Twitch.</p>
-<h3 id="creating-files-with-ffmpeg" tabindex="-1">Creating files with FFMPEG</h3>
+<h3 id="creating-files-with-ffmpeg">Creating files with FFMPEG</h3>
 <p>Using the FFMPEG command line utility we’ll do several passes at converting the video to the format we want.</p>
 <p>In the first pass we’ll worry about bitrate and framerate for a 360p version of the video. FFMPEG’s default frame rate is 25 so we can leave it out to make the code simpler or add it to make sure we account for it if/when the default changes.</p>
 <p>The initial command to create a 360p version of the video at 25fps looks like this:</p>
-<pre class="language-bash"><code class="language-bash">ffmpeg -i Agent_327_Operation_Barbershop.mkv -b:v 2m -r <span class="token number">25</span> agent_327_360p.mp4
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-i</span> Agent_327_Operation_Barbershop.mkv <span class="token parameter variable">-b:v</span> 2m <span class="token parameter variable">-r</span> <span class="token number">25</span> agent_327_360p.mp4
 </code></pre>
 <p>Next we’ll make sure that the video size is correct. for this we’ll use FFMPEG’s <code>-s</code> attribute along with the size that we want to use, in this case the full attribute will be <code>-s 640x360</code>. The modified command looks like this:</p>
-<pre class="language-bash"><code class="language-bash">ffmpeg -i Agent_327_Operation_Barbershop.mkv -b:v 2m -r <span class="token number">25</span> -s 640x360 agent_327_360p_sized.mp4
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-i</span> Agent_327_Operation_Barbershop.mkv <span class="token parameter variable">-b:v</span> 2m <span class="token parameter variable">-r</span> <span class="token number">25</span> <span class="token parameter variable">-s</span> 640x360 agent_327_360p_sized.mp4
 </code></pre>
 <p>The following step is to make sure the resulting video clip keeps a 16:9 <a href="https://www.wikiwand.com/en/Aspect_ratio_(image)">aspect ratio</a>. For this we use the <code>-aspect</code> parameter with the value we want the resulting video to have. The full parameter is <code>-aspect 16x9</code>.</p>
-<pre class="language-bash"><code class="language-bash">ffmpeg -i Agent_327_Operation_Barbershop.mkv -b:v 2m -r <span class="token number">25</span> -s 640x360 -aspect <span class="token number">16</span>:9 <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-i</span> Agent_327_Operation_Barbershop.mkv <span class="token parameter variable">-b:v</span> 2m <span class="token parameter variable">-r</span> <span class="token number">25</span> <span class="token parameter variable">-s</span> 640x360 <span class="token parameter variable">-aspect</span> <span class="token number">16</span>:9 <span class="token punctuation">\</span>
 agent_327_360p_sized_ratio.mp4
 </code></pre>
 <p>Youtube doesn’t like <a href="https://www.videouniversity.com/articles/what-is-interlaced-video/">interlaced video</a> so we’ll deinterlace it ourselves rather than leave it in the vendor’s hands with unpredictable results.</p>
-<pre class="language-bash"><code class="language-bash">ffmpeg -i Agent_327_Operation_Barbershop.mkv -b:v 2m -r <span class="token number">25</span> -s 640x360 -aspect <span class="token number">16</span>:9 -deinterlace <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-i</span> Agent_327_Operation_Barbershop.mkv <span class="token parameter variable">-b:v</span> 2m <span class="token parameter variable">-r</span> <span class="token number">25</span> <span class="token parameter variable">-s</span> 640x360 <span class="token parameter variable">-aspect</span> <span class="token number">16</span>:9 <span class="token parameter variable">-deinterlace</span> <span class="token punctuation">\</span>
 agent_327_360p_sized_ratio_deinterlace.mp4
 </code></pre>
 <p>I think that covers the basic work with video, now let’s look at the audio portion of the clip. The two attributes that we want to work with for audio are <code>-ar</code> and <code>-ab</code>.</p>
 <p>The <code>-ar</code> attribute controls the audio sampling frequency. Both Youtube and Vimeo want you to leave it at 48khz so we set the value to <code>48000</code>. Note that for any audio uploaded with a sampling rate over 48kHz, Vimeo will resample your audio to 48 kHz or below.</p>
 <p>With <code>-ab</code> we get control of the audio bit rate (expressed in bits per second). Here, again, we let Vimeo drive the process as they require a constant rate of 320 kbits per second so we set it to <code>320k</code>.  However, depending on the type of source material you’re working with it may be possible to lower this value without losing quality.</p>
-<pre class="language-bash"><code class="language-bash">ffmpeg -i Agent_327_Operation_Barbershop.mkv -b:v 2m -r <span class="token number">25</span> -s 640x360 -aspect <span class="token number">16</span>:9 -deinterlace <span class="token punctuation">\</span>
--ar <span class="token number">48000</span> -ab 320k <span class="token punctuation">\</span>
+<pre class="language-bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-i</span> Agent_327_Operation_Barbershop.mkv <span class="token parameter variable">-b:v</span> 2m <span class="token parameter variable">-r</span> <span class="token number">25</span> <span class="token parameter variable">-s</span> 640x360 <span class="token parameter variable">-aspect</span> <span class="token number">16</span>:9 <span class="token parameter variable">-deinterlace</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">-ar</span> <span class="token number">48000</span> <span class="token parameter variable">-ab</span> 320k <span class="token punctuation">\</span>
 agent_327_360p_sized_ratio_deinterlace_audio.mp4
 </code></pre>
 <p>Using the 360p video as a reference we can work the other versions (1080p and 720p) using the command as a reference. The parameters we need to change for each version are:</p>
@@ -210,9 +210,9 @@ agent_327_360p_sized_ratio_deinterlace_audio.mp4
 <li><code>-s 640x360</code> to change the video dimensions</li>
 </ul>
 <p>We can go even further and create a script in either Python or Ruby that will automate the changes. We only need one command for each version that we want to create</p>
-<h2 id="dash" tabindex="-1">DASH</h2>
+<h2 id="dash">DASH</h2>
 <p>If you have the storage and the bandwidth you may also want to play with converting your videos into DASH content and serve them directly through your web server. In  <a href="https://publishing-project.rivendellweb.net/revisiting-video-encoding-dash/">Revisitng Video Encoding: DASH</a> we did this using Google’s <a href="https://google.github.io/shaka-packager/html/">Shaka Packager</a> for creating the DASH streams  and the companion <a href="https://shaka-player-demo.appspot.com/docs/api/tutorial-welcome.html">Shaka Player</a> to play the content.</p>
-<h3 id="creating-the-manifest" tabindex="-1">Creating the manifest</h3>
+<h3 id="creating-the-manifest">Creating the manifest</h3>
 <p>For this portion we’ll assume that we’ve created 3 files:, one for each of 360p, 720p and 1080p resolutions. For each of the resolutions we’ll create both an audio and a video stream and write all those streams to a manifest file, in this case <code>agent327.mpd</code>.</p>
 <p>Note that I’m working on MacOS and the packager is installed on my path, that’s why I can get away with just running <code>packager</code> for the command, otherwise I would have to specify the full path to the application.</p>
 <p>The full command looks like this:</p>
@@ -223,10 +223,10 @@ agent_327_360p_sized_ratio_deinterlace_audio.mp4
 <span class="token assign-left variable">input</span><span class="token operator">=</span>agent_327_720p.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>720p_video.mp4 <span class="token punctuation">\</span>
 <span class="token assign-left variable">input</span><span class="token operator">=</span>agent_327_1080p.mp4,stream<span class="token operator">=</span>audio,output<span class="token operator">=</span>1080p_audio.mp4 <span class="token punctuation">\</span>
 <span class="token assign-left variable">input</span><span class="token operator">=</span>agent_327_1080p.mp4,stream<span class="token operator">=</span>video,output<span class="token operator">=</span>1080p_video.mp4 <span class="token punctuation">\</span>
---mpd_output agent327.mpd
+<span class="token parameter variable">--mpd_output</span> agent327.mpd
 </code></pre>
 <p>We will use the manifest as the source of the video we want to play.  We will use the Shaka Player to play the video on the web page.</p>
-<h3 id="playing-dash-content" tabindex="-1">Playing DASH content</h3>
+<h3 id="playing-dash-content">Playing DASH content</h3>
 <p>Shaka Player is the playback component of the Shaka ecosystem. Also developed by Google and open sourced on Github.</p>
 <p>If you’re used to HTML5 the way you add DASH video is a little more complicated than you’re used to.</p>
 <p>First we create a simple HTML page with a video element. In this page we make sure that we add thescripts we need:</p>

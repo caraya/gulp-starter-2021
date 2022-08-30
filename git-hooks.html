@@ -17,7 +17,7 @@
 
 <body>
 <article class="container">
-  <h1 id="pre-commit-hooks%3A-combating-laziness" tabindex="-1">Pre Commit Hooks: Combating Laziness</h1>
+  <h1 id="pre-commit-hooks%3A-combating-laziness">Pre Commit Hooks: Combating Laziness</h1>
 <p>I have to admit that I’m absolutely lazy when it comes to actually testing and linting my Javascript code. I make sure it works but not to run unit tests or make sure that the code I write follows the coding style I always say I do.</p>
 <p>Git to the rescue!</p>
 <p>Git creates hooks when you initialize the repository and you can customize the hooks to perform taks during the life time of the request. There are hooks that we run during the commit process but before the files are actually pushed to the server.</p>
@@ -60,14 +60,14 @@
 <p>We activate a hook by switching to the <code>.git/hooks</code> directory, removing the .sample suffix and replacing the content of the file with the actions that you want to perform. In this case the pre-commit script is a bash script that will run Eslint in the modified files before commiting them to the repository</p>
 <pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/usr/bin/env bash</span>
 
-<span class="token assign-left variable">STAGED_FILES</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">git</span> <span class="token function">diff</span> --cached --name-only --diff-filter<span class="token operator">=</span>ACM <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">'\.js\?$'</span><span class="token variable">)</span></span>
+<span class="token assign-left variable">STAGED_FILES</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">git</span> <span class="token function">diff</span> <span class="token parameter variable">--cached</span> --name-only --diff-filter<span class="token operator">=</span>ACM <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">'\.js\?$'</span><span class="token variable">)</span></span>
 <span class="token assign-left variable">BIN_PATH</span><span class="token operator">=</span><span class="token string">"<span class="token variable"><span class="token variable">$(</span><span class="token function">git</span> rev-parse --show-toplevel<span class="token variable">)</span></span>/node_modules/.bin"</span>
 
 <span class="token function-name function">eslint</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token assign-left variable">ESLINT</span><span class="token operator">=</span><span class="token string">"<span class="token variable">$BIN_PATH</span>/eslint"</span>
 
   <span class="token comment"># Check for eslint</span>
-  <span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token operator">!</span> -x <span class="token string">"<span class="token variable">$ESLINT</span>"</span> <span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token operator">!</span> <span class="token parameter variable">-x</span> <span class="token string">"<span class="token variable">$ESLINT</span>"</span> <span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
     <span class="token builtin class-name">printf</span> <span class="token string">"<span class="token entity" title="\t">\t</span><span class="token entity" title="\033">\033</span>[41mPlease install ESLint<span class="token entity" title="\033">\033</span>[0m<span class="token entity" title="\n">\n</span>"</span>
     <span class="token builtin class-name">exit</span> <span class="token number">1</span>
   <span class="token keyword">fi</span>

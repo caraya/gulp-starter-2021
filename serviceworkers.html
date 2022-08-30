@@ -17,12 +17,12 @@
 
 <body>
 <article class="container">
-  <h1 id="service-workers%3A-the-easy-and-the-hard-way" tabindex="-1">Service Workers: The easy and the hard way</h1>
+  <h1 id="service-workers%3A-the-easy-and-the-hard-way">Service Workers: The easy and the hard way</h1>
 <p>Service Workers are awesome. They give you a performance boost and the capability of limited offline work without having to create apps for each platfomt that we want to use our app in.</p>
 <p>Service workers are the core of PWAs (Progressive Web Applications) where we take advantage of a set of web technologies to make apps that work closer to how native apps would.</p>
 <p>We’ll concentrate on the service worker and in using Workbox.js and vanilla Javascript to create the service worker. I’ve chosen to go with Workbox first because the abbstraction makes it easier to create the type of abstractions I need.</p>
 <p>Once I have a working service worker I will try to duplicate the functionality without libraries to compare how easy/hard it is.</p>
-<h2 id="registering-the-service-worker" tabindex="-1">Registering the service worker</h2>
+<h2 id="registering-the-service-worker">Registering the service worker</h2>
 <p>We register the worker on page load to improve performance. This will work the same whether we’re using a vanilla Javascript service worker or if we implement it using Workbox.</p>
 <p>Place the following script tag in the main page of your site or application.</p>
 <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
@@ -34,10 +34,10 @@
   <span class="token punctuation">}</span>
 </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
 </code></pre>
-<h2 id="workbox.js" tabindex="-1">Workbox.js</h2>
+<h2 id="workbox.js">Workbox.js</h2>
 <p>Workbox is a libbrbary from Google that automates the creation of a service worker and hides a lot of the complexities inherent in the service worker creation.</p>
 <p>This particular service worker is optimized for performance. We want to cache all the resource and either serve them from the catch falling back to the network or serving cached content while, at the same time, fetching the asset from the network and placing it in the cache for future use.</p>
-<h3 id="defining-items-to-precache" tabindex="-1">Defining Items to Precache</h3>
+<h3 id="defining-items-to-precache">Defining Items to Precache</h3>
 <p>We have an external configuration file to run Workbox precaching. We’ll talk about the command at the end of the section.</p>
 <p>The config file (<code>workbox.config.js</code>) tells us the following things:</p>
 <ul>
@@ -60,7 +60,7 @@
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="workbox-handlers" tabindex="-1">Workbox Handlers</h3>
+<h3 id="workbox-handlers">Workbox Handlers</h3>
 <p>I’ve chosen to decouple the routing and the strategies for each type of content that I want to cache.</p>
 <p>The first type of content creates the <code>content-cache</code> cache where we will later store cached HTML content</p>
 <pre class="language-js"><code class="language-js"><span class="token comment">// Cache strategies definitions</span>
@@ -164,7 +164,7 @@
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="defining-routes" tabindex="-1">Defining routes</h3>
+<h3 id="defining-routes">Defining routes</h3>
 <p>The next step is to create routes that will use the strategies we just defined to cache the content and, where appropriate, provide fallback options.</p>
 <p>These routes use Workbox routing and its <code>registerRoute</code> method to associate a file or extension, a handler (defined above) and zero or more additional conditions for each route.</p>
 <p>I’ve broken he routes based on content and, where appropriate, on referring source.</p>
@@ -233,17 +233,17 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token keyword">return</span> imageHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="injecting-the-pre-cache-items" tabindex="-1">Injecting the pre-cache items</h3>
+<h3 id="injecting-the-pre-cache-items">Injecting the pre-cache items</h3>
 <p>The final step is to incorporate the precache files that we defined in <code>workbox-config.js</code> into the service worker file.</p>
 <p>The command requires you to install the workbox node module globally</p>
-<pre class="language-sh"><code class="language-sh">npm install workbox-cli --global
+<pre class="language-sh"><code class="language-sh"><span class="token function">npm</span> <span class="token function">install</span> workbox-cli <span class="token parameter variable">--global</span>
 </code></pre>
 <p>The module makes the <code>workbox</code>  command available on the terminal. Once installed, run the following command to inject the files we want to precache into the service worker.</p>
 <pre class="language-sh"><code class="language-sh">workbox injectManifest workbox-config.js
 </code></pre>
-<h3 id="additional-enhancements" tabindex="-1">Additional Enhancements</h3>
+<h3 id="additional-enhancements">Additional Enhancements</h3>
 <p>There are a few things that I’m working on beyond the service worker that we described in the previous sections.</p>
-<h4 id="local-videos" tabindex="-1">Local Videos</h4>
+<h4 id="local-videos">Local Videos</h4>
 <p>We are still using animated GIFs to create animations and demos. We may be able to <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/replace-animated-gifs-with-video/">create smaller animations using MP4 video instead of GIF</a> but until we do the GIF images stay in this cache. We’ll use the video cache to store any other videos that we download locally, not from Youtube or Vimeo.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> videoHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
   <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">'videos-cache'</span><span class="token punctuation">,</span>
@@ -260,7 +260,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token keyword">return</span> videoHandler<span class="token punctuation">.</span><span class="token function">handle</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h4 id="third-party-videos" tabindex="-1">Third Party Videos</h4>
+<h4 id="third-party-videos">Third Party Videos</h4>
 <p>The previous route handles video loaded using the <code>video</code> tag hosted locally and using one of the formats that are common for HTML video.</p>
 <p>The problem is that this may be too quick to fill out the storage quota for the domain. I’m still torn between using this strategy that will load from cache and then fall back to the network and using a netowrk only strategy to save bandwidth and disk space.</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> extVideoHandler <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">.</span><span class="token function">cacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
@@ -293,7 +293,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </ul>
 </li>
 <li>2nd Capturing Group <code>(player\.vimeo.com|vimeo\.com|www\.youtube\.com)</code></li>
-<li>1st Alternative player.vimeo.com
+<li>1st Alternative <a href="http://player.vimeo.com">player.vimeo.com</a>
 <ul>
 <li><code>player</code> matches the characters player literally (case sensitive)</li>
 <li><code>\.</code> matches the character . literally (case sensitive)</li>
@@ -337,9 +337,9 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
 </ul>
 </li>
 </ul>
-<h2 id="%E2%80%9Cvanilla%E2%80%9D-javascript%2C-no-libraries" tabindex="-1">“Vanilla” Javascript, no libraries</h2>
+<h2 id="%E2%80%9Cvanilla%E2%80%9D-javascript%2C-no-libraries">“Vanilla” Javascript, no libraries</h2>
 <p>The idea is to create the service worker using only native APIs and seeing how much of the Workbox functionality I can duplicate without having to use a library.</p>
-<h3 id="constants-and-common-items" tabindex="-1">Constants and common items</h3>
+<h3 id="constants-and-common-items">Constants and common items</h3>
 <p>Individual constants for each of the caches. We store them separately so we can change the names to make cleanup easier without having to change the array we define later.</p>
 <pre class="language-js"><code class="language-js">
 <span class="token keyword">const</span> <span class="token constant">PRECACHE</span> <span class="token operator">=</span> <span class="token string">'precache-v1'</span><span class="token punctuation">;</span>
@@ -369,7 +369,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token string">'/offline.html'</span><span class="token punctuation">,</span>
 <span class="token punctuation">]</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="install-event" tabindex="-1">Install Event</h3>
+<h3 id="install-event">Install Event</h3>
 <p>The install event will take all the URLs in the <code>urlsToPrecache</code> array</p>
 <pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'install'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   self<span class="token punctuation">.</span><span class="token function">skipWaiting</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -379,7 +379,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// ends wait until</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// ends install event</span>
 </code></pre>
-<h3 id="activate-event" tabindex="-1">Activate Event</h3>
+<h3 id="activate-event">Activate Event</h3>
 <p>Activate will perform cleanup on the caches.</p>
 <p>If there is a cache that doesn’t exist in the Array that we pass to the event then it’s deleted This is the reason why we went through such a convoluted way to define the caches. We can change the names individually and then they’ll get deleted the next time the user visits the site.</p>
 <pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'activate'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
@@ -399,7 +399,7 @@ workbox<span class="token punctuation">.</span>routing<span class="token punctua
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-<h3 id="fetch-event" tabindex="-1">Fetch Event</h3>
+<h3 id="fetch-event">Fetch Event</h3>
 <p>The fetch event is where most of the work will happen. Unlike the work in Workbox service worker we don’t break the routes into different blocks in the vanilla service worker.</p>
 <p>There are some aspects where the vanilla service worker still doesn’t match the Workbox implementation.</p>
 <p>All the following sections are inside the fetch event listener. I’ve broken them down for ease of reading.</p>
