@@ -82,11 +82,11 @@ The registed axes (with their equivalent CSS properties) are:
 
 | Axis Tag | Equivalent CSS Property |
 | --- | --- |
-| "wght" | <code>[font-weight](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight)</code> |
-| "wdth" | <code>[font-stretch](https://developer.mozilla.org/en-US/docs/Web/CSS/font-stretch")</code>|
-| "slnt" (slant) | <code>[font-style](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style)</code>: <code>oblique + angle</code> |
+| "wght" | <code><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight">font-weight</a></code> |
+| "wdth" | <code><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-stretch">font-stretch</a></code>|
+| "slnt" (slant) | <code><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-style">font-style</a></code>: <code>oblique + angle</code> |
 | "ital" | <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-style"><code>font-style</code></a>: <code>italic</code> |
-| "opsz" | <code>[font-optical-sizing](https://developer.mozilla.org/en-US/docs/Web/CSS/font-optical-sizing)</code> |
+| "opsz" | <code><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-optical-sizing">font-optical-sizing</a></code> |
 
 **Notes:**
 
@@ -108,7 +108,7 @@ Roboto Flex defines the following custom axes (information taken from [Roboto â€
 
 **Parametric Lowercase Height** (`YTLC` in CSS)
 
-The Parametric Lowercase Height axis alters the volume of all space within the lowercase's vertical alignment zone: the vertical space inside counters of glyphs and the space in their sidebearings. (This adds more space vertically instead of changing the side bearings like tracking does).
+: The Parametric Lowercase Height axis alters the volume of all space within the lowercase's vertical alignment zone: the vertical space inside counters of glyphs and the space in their sidebearings. (This adds more space vertically instead of changing the side bearings like tracking does).
 : This is not truly an â€œx-height axis," since it only adjusts space vertically, and x-height proportions are formed by the relationships of uppercase, lowercase, ascenders and descenders, as well as horizontal forms. There are parametric axes for all of these.
 
 **Parametric Uppercase Height** (`YTUC` in CSS)
@@ -123,7 +123,7 @@ The Parametric Lowercase Height axis alters the volume of all space within the l
 **Parametric Figure Height** (`YTFI` in CSS)
 : The Parametric Figure Height axis alters the vertical space of figures. It can be used for aligning figures to other vertical zones.
 
-##### Using variation axes in CSS
+## Using variation axes in CSS
 
 Using the registered axes is fairly straightfoward. You can use the associated CSS properties.
 
