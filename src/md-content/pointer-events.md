@@ -84,7 +84,6 @@ This barely scratches the surface of what you can do with Pointer Events. Until 
 
 Until Safari implements Pointer Events we have to polyfill the API to make sure that it works consistently in all our target browsers.
 
-
 There are many polyfills for Pointer Events like [PEP](https://github.com/jquery/PEP) from the jQuery Foundation, [Points](http://rich-harris.github.io/Points/) from Rich Harris, and others.
 
 I've chosen to work with PEP.
@@ -132,6 +131,7 @@ myButton.addEventListener( "pointerdown", (e) => {
 You can see the code in action in [this pen](https://codepen.io/caraya/full/xeLeEb)
 
 ## Links and Resources
+
 * [Pointer Events Level 2 Spec](https://www.w3.org/TR/pointerevents/)
 * [Pointing the Way Forward](https://developers.google.com/web/updates/2016/10/pointer-events)
 * [Using Pointer Events](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events/Using_Pointer_Events)
