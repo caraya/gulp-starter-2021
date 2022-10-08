@@ -17,277 +17,14 @@
 
 <body>
 <article class="container">
-  <h1 id="building-long-form-content-on-the-web">Building long-form content on the web</h1>
-<h1 id="building-long-form-content-on-the-web%3A-opentype-features">Building long-form content on the web: OpenType features</h1>
-<p>OpenType fonts, both static and variable, make additional features available for developers to use.</p>
-<p>CSS makes these features available via the <code>font-feature-settings</code> property.</p>
-<p>Just like with font variations in variable fonts, we can use tools like <a href="https://wakamaifondue.com">Wakamaifondue</a> to see what OpenType features are available (since they vary based on the font) and to download a stylesheet with all CSS necessary to use the features on your own project.</p>
-<p>We first set custom properties for each of the available OpenType layout feature on the <code>:root</code> pseudo element. We set them disabled by default so we can enable them for specific elements and classes.</p>
-<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
-  <span class="token property">--recursive-aalt</span><span class="token punctuation">:</span> <span class="token string">"aalt"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-afrc</span><span class="token punctuation">:</span> <span class="token string">"afrc"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-case</span><span class="token punctuation">:</span> <span class="token string">"case"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-dlig</span><span class="token punctuation">:</span> <span class="token string">"dlig"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-dnom</span><span class="token punctuation">:</span> <span class="token string">"dnom"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-frac</span><span class="token punctuation">:</span> <span class="token string">"frac"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-numr</span><span class="token punctuation">:</span> <span class="token string">"numr"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ordn</span><span class="token punctuation">:</span> <span class="token string">"ordn"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-pnum</span><span class="token punctuation">:</span> <span class="token string">"pnum"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-sinf</span><span class="token punctuation">:</span> <span class="token string">"sinf"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss01</span><span class="token punctuation">:</span> <span class="token string">"ss01"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss02</span><span class="token punctuation">:</span> <span class="token string">"ss02"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss03</span><span class="token punctuation">:</span> <span class="token string">"ss03"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss04</span><span class="token punctuation">:</span> <span class="token string">"ss04"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss05</span><span class="token punctuation">:</span> <span class="token string">"ss05"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss06</span><span class="token punctuation">:</span> <span class="token string">"ss06"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss07</span><span class="token punctuation">:</span> <span class="token string">"ss07"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss08</span><span class="token punctuation">:</span> <span class="token string">"ss08"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss09</span><span class="token punctuation">:</span> <span class="token string">"ss09"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss10</span><span class="token punctuation">:</span> <span class="token string">"ss10"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss11</span><span class="token punctuation">:</span> <span class="token string">"ss11"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss12</span><span class="token punctuation">:</span> <span class="token string">"ss12"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-ss20</span><span class="token punctuation">:</span> <span class="token string">"ss20"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-sups</span><span class="token punctuation">:</span> <span class="token string">"sups"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-titl</span><span class="token punctuation">:</span> <span class="token string">"titl"</span> off<span class="token punctuation">;</span>
-  <span class="token property">--recursive-zero</span><span class="token punctuation">:</span> <span class="token string">"zero"</span> off<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-<p>We then define how we’ll change and use these custom properties. Wakamaifondue uses a combination of <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Conditional_Rules/Using_Feature_Queries">feature queries</a> and classes to define where the properties will change and how to use the correct <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant">font-variant-*</a> in browsers that support the properties.</p>
-<div class="message info">
-  <p>The `font-variant-*` properties currently in the specification are:
-  <ul>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a></li>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-position">font-variant-position</a></li>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps">font-variant-caps</a></li>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric">font-variant-numeric</a></li>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-alternates">font-variant-alternates</a></li>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-east-asian">font-variant-east-asian</a></li>
-  </ul>
-</div>
-<pre class="language-css"><code class="language-css"><span class="token selector">.recursive-aalt</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-aalt</span><span class="token punctuation">:</span> <span class="token string">"aalt"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-afrc</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-afrc</span><span class="token punctuation">:</span> <span class="token string">"afrc"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> stacked-fractions<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-afrc</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-afrc</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> stacked-fractions<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-case</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-case</span><span class="token punctuation">:</span> <span class="token string">"case"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-dlig</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-dlig</span><span class="token punctuation">:</span> <span class="token string">"dlig"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> discretionary-ligatures<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-dlig</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-dlig</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> discretionary-ligatures<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-dnom</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-dnom</span><span class="token punctuation">:</span> <span class="token string">"dnom"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-frac</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-frac</span><span class="token punctuation">:</span> <span class="token string">"frac"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> diagonal-fractions<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-frac</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-frac</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> diagonal-fractions<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-numr</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-numr</span><span class="token punctuation">:</span> <span class="token string">"numr"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ordn</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ordn</span><span class="token punctuation">:</span> <span class="token string">"ordn"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> ordinal<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-ordn</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-ordn</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> ordinal<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-pnum</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-pnum</span><span class="token punctuation">:</span> <span class="token string">"pnum"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> proportional-nums<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-pnum</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-pnum</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> proportional-nums<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-sinf</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-sinf</span><span class="token punctuation">:</span> <span class="token string">"sinf"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss01</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss01</span><span class="token punctuation">:</span> <span class="token string">"ss01"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss02</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss02</span><span class="token punctuation">:</span> <span class="token string">"ss02"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss03</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss03</span><span class="token punctuation">:</span> <span class="token string">"ss03"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss04</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss04</span><span class="token punctuation">:</span> <span class="token string">"ss04"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss05</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss05</span><span class="token punctuation">:</span> <span class="token string">"ss05"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss06</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss06</span><span class="token punctuation">:</span> <span class="token string">"ss06"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss07</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss07</span><span class="token punctuation">:</span> <span class="token string">"ss07"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss08</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss08</span><span class="token punctuation">:</span> <span class="token string">"ss08"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss09</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss09</span><span class="token punctuation">:</span> <span class="token string">"ss09"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss10</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss10</span><span class="token punctuation">:</span> <span class="token string">"ss10"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss11</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss11</span><span class="token punctuation">:</span> <span class="token string">"ss11"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss12</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss12</span><span class="token punctuation">:</span> <span class="token string">"ss12"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-ss20</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-ss20</span><span class="token punctuation">:</span> <span class="token string">"ss20"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-sups</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-sups</span><span class="token punctuation">:</span> <span class="token string">"sups"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-position</span><span class="token punctuation">:</span> super<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-sups</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-sups</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-position</span><span class="token punctuation">:</span> super<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-titl</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-titl</span><span class="token punctuation">:</span> <span class="token string">"titl"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-caps</span><span class="token punctuation">:</span> titling-caps<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-titl</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-titl</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-caps</span><span class="token punctuation">:</span> titling-caps<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token selector">.recursive-zero</span> <span class="token punctuation">{</span>
-    <span class="token property">--recursive-zero</span><span class="token punctuation">:</span> <span class="token string">"zero"</span> on<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> slashed-zero<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
-    <span class="token selector">.recursive-zero</span> <span class="token punctuation">{</span>
-        <span class="token property">--recursive-zero</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
-        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> slashed-zero<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-</code></pre>
-<p>The final step is to apply the current state of all custom properties whenever a class is being used.</p>
-<p>Like with the <code>font-variation-settings</code>, we are using the low-level <code>font-feature-settings</code> property and can’t just change one and expect it to work so whenever we change one custom property, we propagate the changes everywhere.</p>
-<pre class="language-css"><code class="language-css"><span class="token selector">.recursive-aalt,
-.recursive-afrc,
-.recursive-case,
-.recursive-dlig,
-.recursive-dnom,
-.recursive-frac,
-.recursive-numr,
-.recursive-ordn,
-.recursive-pnum,
-.recursive-sinf,
-.recursive-ss01,
-.recursive-ss02,
-.recursive-ss03,
-.recursive-ss04,
-.recursive-ss05,
-.recursive-ss06,
-.recursive-ss07,
-.recursive-ss08,
-.recursive-ss09,
-.recursive-ss10,
-.recursive-ss11,
-.recursive-ss12,
-.recursive-ss20,
-.recursive-sups,
-.recursive-titl,
-.recursive-zero</span> <span class="token punctuation">{</span>
-    <span class="token property">font-feature-settings</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-aalt<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-afrc<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-case<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-dlig<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-dnom<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-frac<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-numr<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ordn<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-pnum<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-sinf<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss01<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss02<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss03<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss04<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss05<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss06<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss07<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss08<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss09<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss10<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss11<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss12<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-ss20<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-sups<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-titl<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--recursive-zero<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-<h3 id="font-size-and-reading-distance">Font size and reading distance</h3>
-<h3 id="justification-and-hyphenation">Justification and hyphenation</h3>
-<h3 id="drop-caps%3F">Drop caps?</h3>
-<h3 id="underlines">Underlines</h3>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-line">text-decoration-line</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-color">text-decoration-color</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-style">text-decoration-style</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration-thickness">text-decoration-thickness</a></li>
-</ul>
-<p>.</p>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-underline-offset">text-underline-offset</a></li>
-</ul>
-<h2 id="columns%3F">Columns?</h2>
-<p><a href="https://css-tricks.com/when-do-you-use-css-columns/">When Do You Use CSS Columns?</a></p>
-<h2 id="skip-to-content">Skip to content</h2>
-<p><a href="https://css-tricks.com/a-deep-dive-on-skipping-to-content/">A Deep Dive on Skipping to Content</a></p>
-<p><a href="https://css-tricks.com/how-to-create-a-skip-to-content-link/">How to Create a “Skip to Content” Link</a></p>
-<h2 id="giving-users-control">Giving users control</h2>
-<p>control panel idea.</p>
-<h2 id="making-it-work-on-mobile">Making it work on mobile</h2>
-<h2 id="further-thoughts">Further thoughts</h2>
-<h3 id="the-web-is-not-apps">The web is not apps</h3>
-<h3 id="the-web-can-be-like-print">The web can be like print</h3>
-<h2 id="the-webby-part-of-long-form-content">The webby part of long-form content</h2>
-<h3 id="use-the-web-to-enhance-the-text">Use the web to enhance the text</h3>
+  <h1 id="building-long-form-content-on-the-web%3A-the-web-is-not-apps">Building long-form content on the web: The web is not apps</h1>
+<h2 id="drm%2C-the-500lb-elephant-on-the-web">DRM, the 500lb elephant on the web</h2>
+<h1 id="building-long-form-content-on-the-web%3A-the-web-can-be-like-print">Building long-form content on the web: The web can be like print</h1>
+<h2 id="use-the-web-to-enhance-the-text">Use the web to enhance the text</h2>
 <p><a href="https://hi.co">hi</a> (there is an archive available at <a href="https://hitotoki.org/">hitotoki.org</a></p>
 <p>Art Space Tokyo (the <a href="https://craigmod.com/journal/platforming_books/">essay about it</a> and the <a href="https://read.artspacetokyo.com/">online version</a> of the book)</p>
-<p><a href="https://shapeofdesignbook.com/">the shape of design</a></p>
-<h3 id="working-offline-and-updating-your-content">Working offline and updating your content</h3>
-<h3 id="handling-images">Handling images</h3>
-<h3 id="links-and-resources">Links and Resources</h3>
+<p><a href="https://shapeofdesignbook.com/">the shape of design</a> and <a href="https://resilientwebdesign.com/">Resilient web design</a></p>
+<h1 id="links-and-resources">Links and Resources</h1>
 <ul>
 <li>Frank Chimero
 <ul>
@@ -299,7 +36,7 @@
 <ul>
 <li><a href="http://craigmod.com/journal/post_artifact/">Post artifact books and publishing</a>
 <ul>
-<li><a href="Newspapers%20and%20Thinking%20the%20Unthinkable%0A">Newspapers and Thinking the Unthinkable</a></li>
+<li><a href="https://www.edge.org/conversation/clay_shirky-newspapers-and-thinking-the-unthinkable">Newspapers and Thinking the Unthinkable</a></li>
 <li><a href="http://booktwo.org/notebook/wikipedia-historiography/">On Wikipedia, Cultural Patrimony, and Historiography</a>
 <ul>
 <li>You own your content
@@ -385,29 +122,14 @@
 </li>
 <li>Technology
 <ul>
-<li>Progressive Web Appllications
+<li>
+<p>Progressive Web Appllications</p>
 <ul>
-<li>Background
-<ul>
-<li><a href="https://infrequently.org/2015/06/progressive-apps-escaping-tabs-without-losing-our-soul/">Progressive Web Apps: Escaping Tabs Without Losing Our Soul</a></li>
-<li><a href="https://infrequently.org/2016/05/service-workers-and-pwas-its-about-reliable-performance-not-offline/">Service Workers and PWAs: It’s About Reliable Performance, Not “Offline”</a></li>
+<li>Background</li>
 </ul>
 </li>
-<li>How to
-<ul>
-<li><a href="https://developers.google.com/web/fundamentals/getting-started/your-first-progressive-web-app/?hl=en">Your First Progressive Web App</a></li>
-<li><a href="https://arc.applause.com/2015/11/30/application-shell-architecture/">Why Progressive Web Apps Are The Future Of Web Development</a></li>
-</ul>
-</li>
-<li>Forward thinking
-<ul>
-<li><a href="http://developer.telerik.com/featured/what-progressive-web-apps-mean-for-the-web/">What Progressive Web Apps Mean for the Web</a></li>
-<li><a href="http://developer.telerik.com/featured/are-progressive-web-apps-future/">Are Progressive Web Apps the Future?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Application Shell Architecture
+<li>
+<p>Application Shell Architecture</p>
 <ul>
 <li><a href="https://developers.google.com/web/updates/2015/11/app-shell">Instant Loading Web Apps with An Application Shell Architecture</a></li>
 <li><a href="https://developers.google.com/web/fundamentals/getting-started/your-first-progressive-web-app/step-01?hl=en">Architect the App Shell</a></li>
@@ -420,13 +142,15 @@
 </li>
 </ul>
 </li>
-<li>Service Workers
+<li>
+<p>Service Workers</p>
 <ul>
 <li><a href="https://jakearchibald.github.io/isserviceworkerready/">Is ServiceWorker Ready</a></li>
 <li><a href="https://www.w3.org/TR/service-workers/">Service Workers Sepcification</a> at W3C</li>
 </ul>
 </li>
-<li>Examples and tutorials
+<li>
+<p>Examples and tutorials</p>
 <ul>
 <li>Jake Archibald
 <ul>
@@ -467,7 +191,8 @@
 </li>
 </ul>
 </li>
-<li>Tools
+<li>
+<p>Tools</p>
 <ul>
 <li>From Google
 <ul>
@@ -476,7 +201,8 @@
 </li>
 </ul>
 </li>
-<li>Things that sit on top of service workers
+<li>
+<p>Things that sit on top of service workers</p>
 <ul>
 <li><a href="https://github.com/slightlyoff/ServiceWorker/blob/master/explainer.md">Background Sync</a></li>
 <li>Push Notifications

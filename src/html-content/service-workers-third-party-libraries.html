@@ -1,0 +1,239 @@
+<h1 id="service-workers%3A-third-party-libraries">Service Workers:  Third-party libraries</h1>
+<p>Libraries like <a href="https://developer.chrome.com/docs/workbox/">Workbox</a> and <a href="https://www.talater.com/upup/">Upup</a> seek to abstract the service worker code to make it easier for people to use and to create production-ready service workers.</p>
+<p>These examples will use the <code>Workbox</code> libraries to illustrate how it works and how to make it easier to configure and run service workers.</p>
+<h2 id="installing-the-necessary-node-packages">Installing the necessary Node packages</h2>
+<p>Workbox is a Node-based application so we need to install the corresponding packages.</p>
+<p>We install the CLI first and then we install the other Workbox packages.</p>
+<p>We first install the Workbox CLI as a development dependency.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i <span class="token parameter variable">-D</span> workbox-cli
+</code></pre>
+<p>We install the remaining Workbox packages as dependencies.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i precacheAndRoute <span class="token punctuation">\</span>
+registerRoute <span class="token punctuation">\</span>
+setDefaultHandler <span class="token punctuation">\</span>
+setCatchHandler <span class="token punctuation">\</span>
+StaleWhileRevalidate <span class="token punctuation">\</span>
+CacheFirst <span class="token punctuation">\</span>
+CacheableResponsePlugin <span class="token punctuation">\</span>
+ExpirationPlugin
+</code></pre>
+<h2 id="the-script">The script</h2>
+<p>The first block consist of cosntants hollding information about the worker.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">importScripts</span><span class="token punctuation">(</span><span class="token string">'https://storage.googleapis.com/workbox-cdn/releases/6.0.2/workbox-sw.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  precacheAndRoute
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>precaching<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  registerRoute<span class="token punctuation">,</span> 
+  setDefaultHandler<span class="token punctuation">,</span> 
+  setCatchHandler
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>routing<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  StaleWhileRevalidate<span class="token punctuation">,</span> 
+  CacheFirst
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  CacheableResponsePlugin
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>cacheableResponse<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  ExpirationPlugin
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>expiration<span class="token punctuation">;</span>
+</code></pre>
+<p>I’ve broken the Workbox service worker into different sections to better explain them as we go</p>
+<p>The first block deals with importing all the packages we will use in the service worker.</p>
+<p>We first use <a href="https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/importScripts">importScripts</a> to load the Workbox script synchronously to make sure that it is loaded before we move forward.</p>
+<p>We then require the specific Workbox modules that we will use in the document.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">importScripts</span><span class="token punctuation">(</span><span class="token string">'https://storage.googleapis.com/workbox-cdn/releases/6.0.2/workbox-sw.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  precacheAndRoute
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>precaching<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  registerRoute<span class="token punctuation">,</span>
+  setDefaultHandler<span class="token punctuation">,</span>
+  setCatchHandler
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>routing<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  StaleWhileRevalidate<span class="token punctuation">,</span>
+  CacheFirst
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>strategies<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  CacheableResponsePlugin
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>cacheableResponse<span class="token punctuation">;</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span>
+  ExpirationPlugin
+<span class="token punctuation">}</span> <span class="token operator">=</span> workbox<span class="token punctuation">.</span>expiration<span class="token punctuation">;</span>
+</code></pre>
+<p>The first item is to use <a href="https://developer.chrome.com/docs/workbox/reference/workbox-precaching/#method-precacheAndRoute">precacheAndRoute</a> that will list the items that we want to precache.</p>
+<p>The <code>self.__WB_MANIFEST</code> will be replaced with a list of files to precache. We’ll build this list in the command line.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">precacheAndRoute</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>__WB_MANIFEST<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>For each of the caches that we want to create there are three things that we need to do:</p>
+<p>List the strategy that we want to use.</p>
+<p>Provide a name for the cache and list all the plugins that we want to use.</p>
+<p>The first route will handle documents with <code>htm</code>, <code>html</code> and <code>php</code> extensions.</p>
+<p>We will use the <a href="https://developer.chrome.com/docs/workbox/modules/workbox-expiration/">expiration</a> plugin to restrict the maximum age in seconds for the content in this cache, to restrict the maximum number of items in the cache and to signal that it’s ok to purge the cache if we get a quota error.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>url<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> url<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'html'</span><span class="token punctuation">,</span> <span class="token string">'htm'</span><span class="token punctuation">,</span> <span class="token string">'php'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">CacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">'Content'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token keyword">new</span> <span class="token class-name">ExpirationPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">30</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The cache for CSS stylesheets is very similar to the content cache and uses the same plugin to control the data in the cache.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>url<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> url<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span><span class="token string">'css'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">StaleWhileRevalidate</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">'CSS Styles'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token keyword">new</span> <span class="token class-name">ExpirationPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">magAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">30</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The cache for Javascript files introduces a few changes.</p>
+<p>We can’t control whether an external resource will be served with <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a> headers.  If it’s not served with <code>CORS</code> headers, the response code will be <code>0</code> and you won’t be able to ssee into the response object at all.</p>
+<p>By default, Workbox will not cache these <a href="https://web.dev/introduction-to-fetch/#:~:text=An%20opaque%20response%20is%20for,request%20was%20successful%20or%20not.">opaque responses</a> unless you use the <a href="https://developer.chrome.com/docs/workbox/modules/workbox-cacheable-response/">cacheableResponse</a> plugin to force  caching.</p>
+<p>We use the <code>expiration</code> plugin to restrict the age of the documents in the cache, the number of entries we’ll cache and whether the cache will be purged if we go over quota.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>url<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> url<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span><span class="token string">'js'</span><span class="token punctuation">)</span> <span class="token operator">||</span> 
+url<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span><span class="token string">'mjs'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">CacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">'scripts'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token keyword">new</span> <span class="token class-name">CacheableResponsePlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">statuses</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token keyword">new</span> <span class="token class-name">ExpirationPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">30</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The Google Fonts and images caches use the same techniques as the previous route:</p>
+<ul>
+<li>Both use the <a href="https://developer.chrome.com/docs/workbox/modules/workbox-strategies/#cache-first-cache-falling-back-to-network">CacheFirst</a> strategy</li>
+<li>They cache opaque responses</li>
+<li>They have an expiration time</li>
+<li>They have a maximum number of entries</li>
+<li>They purges the cache on quota error.</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>url<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    url<span class="token punctuation">.</span>origin <span class="token operator">===</span> <span class="token string">'https://fonts.googleapis.com/'</span> <span class="token operator">||</span>
+    url<span class="token punctuation">.</span>origin <span class="token operator">===</span> <span class="token string">'https://fonts.gstatic.com'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">CacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">'Google Fonts'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token keyword">new</span> <span class="token class-name">CacheableResponsePlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">statuses</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token keyword">new</span> <span class="token class-name">ExpirationPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">120</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">50</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">registerRoute</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>url<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> url<span class="token punctuation">.</span><span class="token function">endsWith</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+  <span class="token string">'png'</span><span class="token punctuation">,</span>
+  <span class="token string">'jpg'</span><span class="token punctuation">,</span>
+  <span class="token string">'webp'</span><span class="token punctuation">,</span>
+  <span class="token string">'avif'</span><span class="token punctuation">,</span>
+  <span class="token string">'heic'</span><span class="token punctuation">,</span>
+  <span class="token string">'svg'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token keyword">new</span> <span class="token class-name">CacheFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">cacheName</span><span class="token operator">:</span> <span class="token string">'images'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token keyword">new</span> <span class="token class-name">CacheableResponsePlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">statuses</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token keyword">new</span> <span class="token class-name">ExpirationPlugin</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">maxAgeSeconds</span><span class="token operator">:</span> <span class="token number">30</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">maxEntries</span><span class="token operator">:</span> <span class="token number">30</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">purgeOnQuotaError</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The default handler will use the <a href="https://developer.chrome.com/docs/workbox/modules/workbox-strategies/#stale-while-revalidate">StaleWhileRevalidate</a> strategy. Meaning that the content will be pulled from the cache while available and, at the same time, will be fetched from the network and put in a cache.</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// Set default caching strategy for everything else.</span>
+<span class="token function">setDefaultHandler</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">StaleWhileRevalidate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p><code>setCatchHandler</code> will handle any elements that are not in the cache and the network is not available.</p>
+<p>We test the type of document returned by the request using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Request/destination">request.destination</a> and provide different responses based on the type of document.</p>
+<p><code>document</code>
+: Use <a href="https://developer.chrome.com/docs/workbox/reference/workbox-precaching/#method-matchPrecache">matchPrecache</a> to find an load the default offline page.</p>
+<p><code>image</code>
+: Return an new response containing a 400x300 SVG image</p>
+<p>For any other content we just generate an error as the response</p>
+<pre class="language-js"><code class="language-js"><span class="token function">setCatchHandler</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>event<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">switch</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">.</span>destination<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">case</span> <span class="token string">'document'</span><span class="token operator">:</span>
+      <span class="token keyword">return</span> <span class="token function">matchPrecache</span><span class="token punctuation">(</span><span class="token string">'pages/offline.html'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">case</span> <span class="token string">'image'</span><span class="token operator">:</span>
+      <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Response</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">&lt;svg role="img"
+        aria-labelledby="offline-title"
+        viewBox="0 0 400 300"
+        xmlns="http://www.w3.org/2000/svg">
+        &lt;title id="offline-title">Offline&lt;/title>
+        &lt;g fill="none" fill-rule="evenodd">
+        &lt;path fill="#D8D8D8" d="M0 0h400v300H0z">&lt;/path>
+        &lt;text fill="#9B9B9B"
+            font-family="Helvetica Neue,Arial,Helvetica,sans-serif"
+            font-size="72" font-weight="bold">
+        &lt;tspan x="93" y="172">offline&lt;/tspan>&lt;/text>&lt;/g>
+      &lt;/svg></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token literal-property property">headers</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token string-property property">'Content-Type'</span><span class="token operator">:</span> <span class="token string">'image/svg+xml'</span><span class="token punctuation">,</span>
+        <span class="token string-property property">'Cache-Control'</span><span class="token operator">:</span> <span class="token string">'no-store'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">default</span><span class="token operator">:</span>
+      <span class="token keyword">return</span> Response<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>SO far we’ve written the service worker but we’re not done. When we set up  the worker we used a place holder (<code>self.__WB_MANIFEST</code>) where we want to insert the list of files we want to precache but, before we can use it, we have to tell Workbox what files we want to insert.</p>
+<p>To do this we’ll use the <a href="https://developer.chrome.com/docs/workbox/precaching-with-workbox/#precaching-with-injectmanifest">injectManifest</a> command.</p>
+<p>To do this, we create a precache manifest file (<code>workbox-config.js</code>) where we’ll store the settings for compiling our service worker, including the list of files we want to precache.</p>
+<p>Because we’re inserting the precache patterns and not building the service worker, we need a source (<code>swSrc</code>) for the service worker and a destination (<code>swDest</code>) for the completed service worker.</p>
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token string-property property">'globDirectory'</span><span class="token operator">:</span> <span class="token string">'docs'</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'globPatterns'</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">'/'</span><span class="token punctuation">,</span>
+    <span class="token string">'index.html'</span><span class="token punctuation">,</span>
+    <span class="token string">'css/index.css'</span><span class="token punctuation">,</span>
+    <span class="token string">'js/zenscroll.min.js'</span><span class="token punctuation">,</span>
+    <span class="token string">'pages/404.html'</span><span class="token punctuation">,</span>
+    <span class="token string">'pages/offline.html'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'swSrc'</span><span class="token operator">:</span> <span class="token string">'js/sw2.js'</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'swDest'</span><span class="token operator">:</span> <span class="token string">'sw.js'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Once we write the configuration file, we need to make sure the you installed Workbox CLI from NPM</p>
+<p>Once the package is installed, we can run the following</p>
+<h2 id="additional-resources">Additional Resources</h2>
+<p>Jeremy Keith — <a href="https://abookapart.com/products/going-offline">Going Offline</a></p>
+<p>Jason Grigsby — <a href="https://abookapart.com/products/progressive-web-apps">Progressive Web Apps</a></p>
