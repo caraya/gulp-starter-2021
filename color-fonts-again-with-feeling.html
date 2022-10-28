@@ -1,0 +1,106 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="color-fonts-(again%2C-with-feeling)">Color Fonts (again, with feeling)</h1>
+<p>I first saw information about color fonts in 2013 in <a href="https://www.fontlab.com/news/color-font-format-proposals/">Color fonts. Overview of the proposals for color extensions of the OpenType font format.</a> but they haven’t taken off despite Safari supporting one type of color fonts (SVG in OT). It’s only been in the last couple of years (since 2021) when browsers other than Safari started implementing color fonts (COLRV1) and it’s only in 2022 that browsers have implemented the CSS necessary to make color fonts really useful, as documented in <a href="https://css-tricks.com/colrv1-and-css-font-palette-web-typography/">COLRv1 and CSS font-palette: Web Typography Gets Colorful</a></p>
+<p>This post will discuss the COLRV1 color font format and the currelntly suported  CSS to work with these fonts.</p>
+<h2 id="figuring-out-what-a-font-can-do">Figuring out what a font can do</h2>
+<p>The beta version of <a href="https://wakamaifondue.com/beta/">Wakamaifondue</a> gives you a list of the available color palettes for the font we’re working with. This will become important when it comes to figure out if we want to use the built-in palettes or we want to change the colors individually.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1666019906/publishing-project.rivendellweb.net/wakamaifondue-color-font-palettes/wakamaifondue-color-font-palettes.png?_i=AA' alt='Wakamaifondue color font palette selection' width='800' >
+  <figcaption>Wakamaifondue color font palette selection</figcaption>
+</figure>
+<h2 id="the-new-features">The new features</h2>
+<p>There are a few new CSS elements that we need to work with COLRv1 fonts.</p>
+<h2 id="%40font-palette-values"><code>@font-palette-values</code></h2>
+<p><a href="https://drafts.csswg.org/css-fonts-4/#font-palette-values">@font-palette-values</a>
+: The <code>@font-palette-values</code> rule defines a color palette and associates that color palette with a specific font.
+: This is the base for all other COLRV1 CSS that we’ll discuss later
+: We can have more than one palette assigned per font and we can assign the same palette to multiple fonts
+: it defines the name of the palette using CSS Custom Property syntax (<code>--GraysRemix</code>)</p>
+<h2 id="base-palette">base-palette</h2>
+<p><a href="https://drafts.csswg.org/css-fonts-4/#base-palette-desc">base-palette</a> descriptor indicate the color palette we want to use.
+: It can take one of three possible values: <a href="https://drafts.csswg.org/css-fonts-4/#valdef-base-palette-light">light</a>, <a href="https://drafts.csswg.org/css-fonts-4/#valdef-base-palette-light">dark</a> or an integer numerical palette index within the font
+: If this descriptor is not present in the <code>@font-palette-values</code>, or if the font does not contain a palette at the index of the value of base-palette, it behaves as if 0 were specified</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Bungee"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/fonts/BungeeColor-Regular-colrv1.woff2"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@font-palette-values</span> --PinkAndGray</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> bungee<span class="token punctuation">;</span>
+  <span class="token property">override-colors</span><span class="token punctuation">:</span> 1 #c1cbed<span class="token punctuation">,</span> 2 #ff3a92<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.bungee1</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Bungee"</span><span class="token punctuation">;</span>
+  <span class="token property">font-palette</span><span class="token punctuation">:</span> --PinkAndGray<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="override-colors">Override-colors</h2>
+<p>The <a href="https://drafts.csswg.org/css-fonts-4/#override-color">override-colors</a> descriptor overrides individual colors in a given <code>font-palette</code>
+:The override-colors descriptor takes a comma-separated list of palette index entries and colors
+: Each item in the comma-separated list represents a tuple of an entry into the palette and a color to replace it with
+: Integer values are zero-indexed.
+: The default palette is at index 0
+: Colors provided from CSS may use any supported colorspace</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Rocher"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/fonts/RocherColorGX.woff2"</span><span class="token punctuation">)</span></span>
+    <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"woff2"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@font-palette-values</span> --GraysRemix</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Rocher<span class="token punctuation">;</span>
+  <span class="token property">base-palette</span><span class="token punctuation">:</span> 9<span class="token punctuation">;</span>
+  <span class="token property">override-colors</span><span class="token punctuation">:</span> 2 <span class="token function">rgb</span><span class="token punctuation">(</span>102<span class="token punctuation">,</span> 51<span class="token punctuation">,</span> 153<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.rocher</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Rocher"</span><span class="token punctuation">;</span>
+  <span class="token property">font-palette</span><span class="token punctuation">:</span> --GraysRemix<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="color-fonts-as-progressive-enhancement">Color fonts as progressive enhancement</h2>
+<p>Some issues to consider when deciding if you want to use color fonts in your projects.</p>
+<p>From an accesibility standpoint you shouldn’t use color alone to convey your message so you should provide alternatives that don’t rely in color to convey your message.</p>
+<p>Another consideration is what color space. Since the descriptors can use any CSS color spaces you need to be mindful about browser support for the color spaces/formats that you choose to use.</p>
+<p>The final consideration is browser support.</p>
+<figure>
+  <img src="https://caniuse.bitsofco.de/static/v1/colr-v1-1665630575572.webp" alt="Data on support for the colr-v1 feature across the major browsers from caniuse.com">
+  <figcaption>Data on support for the colr-v1 feature across the major browsers from caniuse.com</figcaption>
+</figure>
+<p>Just like with audio and video codecs, different browsers support different color font formats.</p>
+<p>Safari has, so far, declined to implement COLRv1 in both desktop and mobile, so developers need to address fallbacks. These fallbacks may include:</p>
+<ul>
+<li>Using color fonts supported on Safari(SVG-OT) as fallback</li>
+<li>Side stepping the issue altogether and letting the font display without colors.</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
