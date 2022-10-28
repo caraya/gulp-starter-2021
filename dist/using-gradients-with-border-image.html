@@ -1,0 +1,106 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="using-gradients-with-border-image">Using Gradients with border-image</h1>
+<p>Thanks to Kevin Powell and his <a href="https://www.youtube.com/watch?v=ypstT5UfCsk">video</a> for showing me how to do a trick that has always intrigued me.</p>
+<div class="video">
+<iframe loading="lazy" width="560" height="315" src="https://www.youtube.com/embed/ypstT5UfCsk?t=725" title="YouTube video player" frameborder="0" allow="autoplay; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>The idea is that we have a border color that fades to transparent or invisible.</p>
+<p>This will take two items:</p>
+<ul>
+<li>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/border-image">border image</a> property</li>
+<li>The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/linear-gradient">linear gradient</a> function</li>
+</ul>
+<h2 id="setup">Setup</h2>
+<p>the HTML we will use looks like this</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>container<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>row<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>item<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Item Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+      
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>item content<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>item<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Item Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+      
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Item content<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>item<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Item Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+      
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>item content<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We will also add some CSS to make make the row-based flex layout:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.row</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+  <span class="token property">gap</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span>
+  <span class="token property">justify-content</span><span class="token punctuation">:</span> space-evenly<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="creating-the-effect">Creating the effect</h2>
+<p>With all the setup we did, creating the effect is fairly straightforward.</p>
+<p>We want the top and left border to start with a solid color and become invisible before the end of the border.
+The code does the following:</p>
+<ol>
+<li>Defines the borders we want to work with using logical properties
+<ul>
+<li>In English and other Western languages, <code>block-start</code> is top and <code>inline-start</code> is right</li>
+</ul>
+</li>
+<li>Use the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/border-image-source">border image</a> property to set the image to a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/linear-gradient">linear gradient</a>
+<ul>
+<li>gradients can be used everywhere an image can</li>
+</ul>
+</li>
+<li>Use the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/border-image-slice">border-image-slice</a> method to make sure the image will appear in full. Otherwise, the image will only appear in the corners</li>
+</ol>
+<pre class="language-css"><code class="language-css"><span class="token selector">.item</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* 1 */</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+  <span class="token property">border-block-start</span><span class="token punctuation">:</span> 5px solid<span class="token punctuation">;</span>
+  <span class="token property">border-inline-start</span><span class="token punctuation">:</span> 5px solid<span class="token punctuation">;</span>
+  
+  <span class="token comment">/* 2 */</span>
+  <span class="token property">border-image-source</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>45deg<span class="token punctuation">,</span> rebeccapurple<span class="token punctuation">,</span> transparent 75%<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/* 3 */</span>
+  <span class="token property">border-image-slice</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The code produces the following result:</p>
+<iframe height="531.346435546875" style="width: 100%;" scrolling="no" title="gradients in background-image" src="https://codepen.io/caraya/embed/LYmqZqQ?default-tab=result" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/caraya/pen/LYmqZqQ">
+  gradients in background-image</a> by Carlos Araya (<a href="https://codepen.io/caraya">@caraya</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
