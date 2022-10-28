@@ -1,5 +1,7 @@
 # Exploring GRPC
 
+Why would we want to use gRPC
+
 * gRPC
   * <https://grpc.io/>
   * <https://grpc.io/docs/>

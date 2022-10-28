@@ -168,7 +168,7 @@ The following code will use the translation for `Hello World` available in the t
 ); ?></p>
 ```
 
-###  Variables
+### Variables
 
 What if you have a string like the following:
 
@@ -276,10 +276,6 @@ add_action(
   'rivendellweb_load_theme_textdomain'
 );
 ```
-
-https://developer.wordpress.org/themes/functionality/internationalization/
-
-
 
 ## Internationalizing Javascript
 

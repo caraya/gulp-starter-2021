@@ -9,4 +9,6 @@ But even in that post we made a few notes for future enhancements:
 
 ## Controlling the number of posts shown
 
+(how to control the per_page value)
+
 ## Controlling what page to show

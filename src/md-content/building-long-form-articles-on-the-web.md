@@ -1,5 +1,7 @@
 # Building long-form content on the web: The web is not apps
 
+A lot of the modern debate
+
 ## DRM, the 500lb elephant on the web
 
 # Building long-form content on the web: The web can be like print
