@@ -1,0 +1,178 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="templating-the-web">Templating the web</h1>
+<p>There are times when writing the same thing oveer and over again gets to be really tedious. Think of populating large bulleted lists, select statements and other repetitive elements.</p>
+<p>We’ve been able to do this for a while using libraries… We’ll look at it handlebars.js and then we’ll look at using the <code>template</code> tag built into the HTML specification.</p>
+<p>We’ll also look at why we might want to keep working with libraries to support older browsers and browsers with incomplete support.</p>
+<h2 id="the-current-way%3A-template-libraries">The current way: Template Libraries</h2>
+<p>When I first looked at Handlebars it appeared to be too much work for the result I was looking for. As I started working with WordPress, particularly when they released their REST API, I ralized that templating would be key to build custom interfaces.</p>
+<p>The most basic example shows how to use Handlebars to populate a template with information stored in the same script. The HTML contains both the placeholder element where we’ll store the content and the script containing the actual template.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>entries<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>entry-template<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text/x-handlebars-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token operator">&lt;</span>div <span class="token keyword">class</span><span class="token operator">=</span><span class="token string">"entry"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>h1<span class="token operator">></span><span class="token punctuation">{</span><span class="token punctuation">{</span>title<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token operator">&lt;</span><span class="token operator">/</span>h1<span class="token operator">></span>
+    <span class="token operator">&lt;</span>div <span class="token keyword">class</span><span class="token operator">=</span><span class="token string">"body"</span><span class="token operator">></span>
+      <span class="token punctuation">{</span><span class="token punctuation">{</span>body<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+  <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The script element captures the content of the templae in the <code>source</code> variable and defines a shorthand for template compilation on <code>renderEntry</code>.</p>
+<p>We then define the content we want to insert. In this case it’s a variable holding an array of data we want to populate the content with.</p>
+<p>Finally we use <code>renderEntry</code> to rendeer the template, populated with the data, into HTML and insert it into our placeholder element.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> source <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'entry-template'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML<span class="token punctuation">;</span>
+<span class="token keyword">let</span> renderEntry <span class="token operator">=</span> Handlebars<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span>source<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> blogEntry <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">title</span><span class="token operator">:</span> <span class="token string">'My New Post'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">body</span><span class="token operator">:</span> <span class="token string">'This is my first post!'</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'entries'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token function">renderEntry</span><span class="token punctuation">(</span>blogEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>A next iteration could be used to pull from an array of values stored locally. For this we use a helper method, <code>#each</code> to loop through the values on the array and provide the data to populate the template.</p>
+<p>The HTML is almost identical except that we wrap the content we’ll iterate over with an #each helper (<code>{{#each cats}}</code> and <code>{{/each}}</code>. cats is a reference to the data we will pass on Javascript.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cat-list<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cat-list-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  {{#each cats}}
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cat<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>{{name}}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Age: {{age}}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  {{/each}}
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The Javascript is also similar to the prior example. The differences are:</p>
+<ul>
+<li>The data we’re passing is now an array</li>
+<li>When we instantiate the template we wrap the data we pass in an array to make sure the helper works as intended</li>
+</ul>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> myCats <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span> <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'Fiona'</span><span class="token punctuation">,</span> <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token number">4</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span> <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'Spot'</span><span class="token punctuation">,</span> <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token number">12</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span> <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'Chestnut'</span><span class="token punctuation">,</span> <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token number">4</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span> <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'Frisky'</span><span class="token punctuation">,</span> <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span> <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'Biscuit'</span><span class="token punctuation">,</span> <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token number">4</span> <span class="token punctuation">}</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> template <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'cat-list-template'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML<span class="token punctuation">;</span>
+<span class="token keyword">var</span> renderCats <span class="token operator">=</span> Handlebars<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span>template<span class="token punctuation">)</span><span class="token punctuation">;</span>
+document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'cat-list'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token function">renderCats</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">cats</span><span class="token operator">:</span> myCats
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The last bit of Handlebars magic we’ll look at is how to use it to render templates with external data from a REST API; in this case Wordpress.</p>
+<p>The template is pretty similar to the cat example. The main difference is the use of nested values (<code>title.rendered</code> and <code>content.rendered</code>) and the use of the triple mustache around <code>content.rendered</code> to tell Handlebars that we don’t want to escape HTML values for this variable.</p>
+<p>If you don’t own the content then please <strong>don’t do this!</strong> In this case, since it’s my blog and I’m pretty sure I don’t write malware (bad code, maybe but definitely not malware) I’ve accepted the risk.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>myContent<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>post-list-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+    {{#each posts}}
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>post<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>{{title.rendered}}<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span>
+        {{{content.rendered}}}
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    {{/each}}
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The Javascript is different. I’ve chosen to use fetch and promises to make the code look nicer. We could go with async and await but that would limit the code to newer browsers (yes, I know they are evergreen but I also know of IT departments that block updates or choose to use LTS/ESR versions that lag behind in features), even more so than promises do.</p>
+<p>The code starts with a <a href="https://developers.google.com/web/fundamentals/primers/promises">fetch request</a> to the <a href="https://developer.wordpress.org/rest-api/">Wordpress REST API</a> requesting the 4 more recent posts of my blog. You can change the value by changing the value of the <code>per_page</code> parameter. This will generate a promise that <strong>resolves</strong> when the fetch request completes and the data download is finished and <strong>rejects</strong> otherwise.</p>
+<p>Once the promise resolves we move to the next step and convert it to JSON data using the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">response</a> object’s <a href="https://developer.mozilla.org/en-US/docs/Web/API/Body/json">json</a> method.</p>
+<p>Once the promise of <code>response.json()</code> fulfills we move to the next, and final, step. We compile the template and render it using the data we just fetched. These are the same command that were at the bottom of the cat example. Since we are working with promises we must move them into the promise chain; otherwise the fetch request will complete before we reach the part of the script where we compile and render the template.</p>
+<p>If any of the promises rejects the code will jump to the catch statement. In this case we’re only logging the error to console. we might also want to display something to the user to indicate the failure. No blank pages, please.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> myPosts <span class="token operator">=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>
+  <span class="token string">'https://publishing-project.rivendellweb.net/wp-json/wp/v2/posts?per_page=4'</span>
+<span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">response</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> response<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">myJson</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> template <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'post-list-template'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML<span class="token punctuation">;</span>
+    <span class="token keyword">let</span> renderPosts <span class="token operator">=</span> Handlebars<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span>template<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'myContent'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> <span class="token function">renderPosts</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">posts</span><span class="token operator">:</span> myJson
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">err</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"There's been an error getting the data"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This was meant as a proof of concept and is in now way, shape or form production code. Some areas of further work:</p>
+<ul>
+<li>Caching the fetch results to improve load times after first visit</li>
+<li>Pagination</li>
+</ul>
+<h2 id="the-template-element">The template element</h2>
+<p>Rather than use a library, wouldn’t it be nice if we could use native HTML to create templates and then insantiate them with Javaascript without having to add libraries and additional HTTP request.</p>
+<p>We can!</p>
+<p>HTML templates were first proposed as part of the web components family of specifications. They have since moved to the <a href="https://html.spec.whatwg.org/multipage/scripting.html#the-template-element">HTML Specification</a> itself.</p>
+<p>The idea behind the template element is that it holds content on the page without the content being active… we can activate the template at any time using Javascript.</p>
+<p>Again it’s worth repeating some of the characteristics of natie HTML templates:</p>
+<ol>
+<li>Its content is effectively inert until activated. Essentially, your markup is hidden DOM and does not render. This means that script won’t run, images won’t load, audio won’t play until the template is used</li>
+<li>Content is considered not to be in the document. Using document.getElementById() or querySelector() in the main page won’t return child nodes of a template</li>
+<li>Templates can be placed anywhere inside of <code>&lt;head&gt;</code>, <code>&lt;body&gt;</code>, or <code>&lt;frameset&gt;</code> and can contain any type of content which is allowed in those elements
+<ul>
+<li>Note that “anywhere” means that <code>&lt;template&gt;</code> can safely be used in places that the HTML parser disallows…all but content model children. It can also be placed as a child of <code>&lt;table&gt;</code> or <code>&lt;select&gt;</code></li>
+</ul>
+</li>
+</ol>
+<p>The following template can be anywhere on the page but, for consistency sake, let’s put it at the bottom of the page. Notice that we’re ok with having an empty <code>src</code> attribute for the image element</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mytemplate<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>great image<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>comment<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>In your application script use the following script to stamp the template into the live DOM.</p>
+<p>We first create a function to make feature detection for templates easier.</p>
+<p>We then use the function in an if statement. Inside the if block we do the following:</p>
+<ul>
+<li>Select the template element and store the result in a variable</li>
+<li>Insert the path to the image inside the source attribute. We use the template’s <code>content</code> method to traverse inside the inert template</li>
+<li>We create a cloned compy of the template content using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/importNode">document.importNode</a></li>
+<li>We append the cloned node into the document.</li>
+</ul>
+<p>If the user agent doesn’t support templates we can fallback to using a library like Handlebars.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">supportsTemplate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token string">'content'</span> <span class="token keyword">in</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'template'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">supportsTemplate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">var</span> t <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#mytemplate'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Populate the src at runtime.</span>
+  t<span class="token punctuation">.</span>content<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'img'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'logo.png'</span><span class="token punctuation">;</span>
+  <span class="token keyword">var</span> clone <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">importNode</span><span class="token punctuation">(</span>t<span class="token punctuation">.</span>content<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>clone<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Use old templating techniques or libraries.</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The one thing I’m still working on figuring out is how you can create multiple copies of the same template and populate it with different data, like the Wordpress/Handlebars example we discussed earlier. I will update the post once I mfigure it out :)</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template">Template Element Description</a> at MDN</li>
+<li>Older <a href="https://www.html5rocks.com/en/tutorials/webcomponents/template/">Template Tutorial</a> from HTML5 Rocks</li>
+<li><a href="https://handlebarsjs.com/">Handlebars.js</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

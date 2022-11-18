@@ -1,0 +1,68 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="keyboard-events">Keyboard events</h1>
+<p>In addition to pointer events we should also provide a way for keyboard-only users or those users who prefer keyboard navigation to access content.  This is particularly important when using custom items like video players and others.</p>
+<p>We’ll look at how to use UI events and Keyboard Event Codes to work with our content.</p>
+<h2 id="keyboard-shortcuts">keyboard shortcuts</h2>
+<p>We can use keyboard events and the keyboard event code values to create shortcuts for our apps. In this example, also from the custom video player, we set up a <code>keydown</code> event in the window object to listen for key presses.</p>
+<p>When the key matches one the choices in the switch statement, we do something with it depending on the key that was pressed.</p>
+<p>If either the <code>space</code> or <code>enter</code> keys were pressed we check if the video is paused. If it is we play the video and change the pause icon to the pause one. If the video is not paused then we pause it and change the video to the play icon.</p>
+<p>If the user pressed the left arrow key then we rewind the video 30 seconds.</p>
+<p>If the user pressed the right arrow key then we fast forward the video 30 seconds.</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// Event handler for keyboard navigation</span>
+window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keydown'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">switch</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>code<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">case</span> <span class="token string">'Enter'</span><span class="token operator">:</span> <span class="token comment">// Enter</span>
+    <span class="token keyword">case</span> <span class="token string">'Space'</span><span class="token operator">:</span> <span class="token comment">// Space</span>
+      e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>video<span class="token punctuation">.</span>paused<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        video<span class="token punctuation">.</span><span class="token function">play</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/pause.svg'</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        video<span class="token punctuation">.</span><span class="token function">pause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        playIcon<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'images/icons/play-button.svg'</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">case</span> <span class="token string">'ArrowLeft'</span><span class="token operator">:</span> <span class="token comment">// Left arrow</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">back 30</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token function">skip</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">30</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">case</span> <span class="token string">'ArrowRight'</span><span class="token operator">:</span> <span class="token comment">// Right arrow</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">forward 30</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+      <span class="token function">skip</span><span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>So, in addition to having pointer event support for the player controls, we can also control the video playback using the keyboard.</p>
+<p>Two things to keep in mind:</p>
+<ul>
+<li>We use the <code>keydown</code> event because it’s one of the two event defined in the spec and the first event of a chain described in <a href="https://w3c.github.io/uievents/#events-keyboard-event-order">Keyboard Event Order</a></li>
+<li>We can get away with attaching the event to the window because the example has one large video on the page an no other elements that will interaact with the elements where we listen</li>
+</ul>
+<h2 id="what-else-can-we-do%3F">What else can we do?</h2>
+<p>As with many other web items we just scratched the surface of what we can do with keyboard events. In a full-fledged app we can add keyboard shortcuts that use different keyboard combinations, just like desktop apps.</p>
+<p>There are more ways to use the keyboard. Still thinking about it.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li><a href="https://w3c.github.io/uievents/#interface-keyboardevent">UI Events</a></li>
+<li><a href="https://www.w3.org/TR/uievents-code/">UI Events KeyboardEvent code Values</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

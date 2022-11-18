@@ -1,0 +1,343 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="getting-into-a-performance-mindset">Getting into a performance mindset</h1>
+<p>Web performance is hard. There is no one size fits all solution and the amount of work we do to make our content performant is more than what we may want to do. This post will explore the process of creating and enforcing a performance budget, why it’s important and how will this improve the bottom line.</p>
+<p>The following figures show how much stuff measured by median number of requests and size in kilobytes have grown in a 3-year period from 2016 to March, 2019 (data taken from the HTTP Archive’s <a href="https://httparchive.org/reports/state-of-the-web">state of the web</a> report).</p>
+<figure>
+  <img src='http://publishing-project.rivendellweb.net/wp-content/uploads/2019/04/3-year-requests.png' alt='Timeseries of median total requests over a 3 year period'>
+  <figcaption>Timeseries of median total requests over a 3 year period</figcaption>
+</figure>
+<figure>
+  <img src='http://publishing-project.rivendellweb.net/wp-content/uploads/2019/04/3-year-total-kilobytes.png' alt='Timeseries of median total kilobytes over a 3 year period'>
+  <figcaption>Timeseries of total kilobytes over a 3 year period</figcaption>
+</figure>
+<p>The technical aspects are not the only things that matter. We need to get buy-in from management and prepare for a large round of researching the competition and what makes sense for your company and your team.</p>
+<p>Perhaps the best way to convince non-technical people that performance is important and it matters is by reminding them that we leave money on the table if our site is slow or if the competitors sites are faster.</p>
+<p>You can improve conversion by improving performance and, conversely, you can lose users with a poor performing site:</p>
+<ul>
+<li><a href="https://www.creativebloq.com/features/how-the-bbc-builds-websites-that-scale">The BBC found they lost an additional 10% of users</a> for every additional second their site took to load.</li>
+<li><a href="https://www.thinkwithgoogle.com/intl/en-154/insights-inspiration/research-data/need-mobile-speed-how-mobile-latency-impacts-publisher-revenue/">DoubleClick by Google found 53% of mobile site visits were abandoned</a> if a page took longer than 3 seconds to load.</li>
+</ul>
+<h2 id="building-the-budget">Building the budget</h2>
+<p>We have a rationale as to why we want to work on a performance now we’ll get serious about creating the performance budget and enforcing it during development. Some of the sources I’m using to write this post include</p>
+<ul>
+<li><a href="https://medium.com/@addyosmani/start-performance-budgeting-dabde04cf6a3">Addy Osmani</a> and</li>
+<li><a href="http://designingforperformance.com/weighing-aesthetics-and-performance/#approach-new-designs-with-a-performance-budget">Lara Hogan</a></li>
+<li>Smashing Magazine’s <a href="https://www.smashingmagazine.com/2019/01/front-end-performance-checklist-2019-pdf-pages/">Front-End Performance Checklist 2019</a></li>
+</ul>
+<p>Tools like <a href="http://www.performancebudget.io/">Performance Budget Calculator</a>, <a href="https://codepen.io/bradfrost/full/EPQVBp/">Performance Budget Builder</a> and <a href="https://browserdiet.com/calories/">Browser Calories</a> can help in building the budget once we figure out what a budget is and decide that we want to use one for our project.</p>
+<h3 id="understanding-your-users">Understanding your users</h3>
+<p>The first thing to do is figure out who your users are and how they are accessing your content, and that of your competitors to get an idea of what will it take to become faster and have a performant site.</p>
+<h3 id="decide-what-you%E2%80%99re-measuring">Decide what you’re measuring</h3>
+<p>Pick what it is that you want to measure based on your research then get to it. Items you test may include results from specific tools (WPT or Lighthouse) or how long does it take for a step of the process to complete (time to first byte or time to interactive).</p>
+<p>Some of the things you may want to measure:</p>
+<ul>
+<li>Loading speeds for different parts of the site on desktop and mobile
+<ul>
+<li>first versus second and third visits</li>
+</ul>
+</li>
+<li>Additional measurements you can get from Webpage Test
+<ul>
+<li>Time to first byte on mobile versus desktop</li>
+<li>Load Time</li>
+<li>First Byte</li>
+<li>Start Render</li>
+<li>Visually Complete</li>
+<li>Speed Index</li>
+</ul>
+</li>
+<li>Additional metrics from lighthouse runs
+<ul>
+<li>First Contentful Paint</li>
+<li>Time to Interactive</li>
+<li>First Meaningful Paint</li>
+<li>First CPU Idle</li>
+</ul>
+</li>
+</ul>
+<p>Make sure that when you run the tests on both mobile and desktop and document the settings so you can repeat the tests as you change things. Ideally, also save the archive file (<code>.har</code> extension) that the tools provide so you can compare before and after any changes.</p>
+<p>Always test on a device either locally or through testing labs that provide real devices. No matter how good a mobile simulator is there are things it can’t do… All desktop machines use symetrical multiprocessors as opposed to the asymetrical setup of mobile devices, among other things.</p>
+<p>Use analytics to determine what devices and browsers are visiting your site. When testing, set up a clean browser profile in addition to a typical user profile with the most common browser extensions.</p>
+<p>Also make sure that you test the competition’s sites in terms of performance. Use the same metrics that you test your site with on your competitors’.</p>
+<p>Once you have the performance data for your site and those of your competitors you can set up your budget. The common wisdom about performance budgets is to <strong>be 20% faster than your competitors</strong>.</p>
+<aside class="message info">
+  <h3>Note: Differences between mobile and desktop</h3>
+  <p>It's not just the network time that'll kill your app's startup performance, but the time spent parsing and evaluating your script, during which time the browser becomes completely unresponsive.</p>
+  <p>On mobile, delays get compounded by additional tasks the device has to perform before it gets your data to the browser for it to render. Those milliseconds rack up very quickly.</p>
+  <p>See this presentation from Alex Rusell to get a better understanding of the cllanges of the mobile web. It's from 2016 but the underlying principles have not changed.</p>
+  <div class="video">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/4bZvq3nodf4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+</aside>
+<h3 id="a-(theoretical)-set-of-budgets">A (theoretical) set of budgets</h3>
+<p>The first set of budgets we get from running the pages on the site through webpagetest.</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Maximum</th>
+<th>Tool</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total page load time</td>
+<td>3 seconds</td>
+<td>WebPagetest, median from five runs on 3G</td>
+<td>All pages</td>
+</tr>
+<tr>
+<td>Total page load time</td>
+<td>3 seconds</td>
+<td>Real user monitoring tool, median across geographies</td>
+<td>All pages</td>
+</tr>
+<tr>
+<td>Total page weight</td>
+<td>800 KB</td>
+<td>WebPagetest</td>
+<td>All pages</td>
+</tr>
+<tr>
+<td>Speed Index</td>
+<td>1,000</td>
+<td>WebPagetest using Dulles location in Chrome on 3G</td>
+<td>All pages except home page</td>
+</tr>
+<tr>
+<td>Speed Index</td>
+<td>600</td>
+<td>WebPagetest using Dulles location in Chrome on 3G</td>
+<td>Home page</td>
+</tr>
+</tbody>
+</table>
+<p>We can get additional information from running Lighthouse from Chrome’s developer tools (Audit menu)</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Minimum</th>
+<th>Tool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Performance</td>
+<td>95</td>
+<td>Lighthouse, desktop, no throttle, running in browser with user profile</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>80</td>
+<td>Lighthouse, mobile, slow 3G throttle, running in browser with user profile. Score different accounts for additional costs of mobile web browsing</td>
+</tr>
+</tbody>
+</table>
+<p>We can set up a final set of budgets based on Webpackk bundles</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Maximum</th>
+<th>Tool</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bundle size</td>
+<td>170KB</td>
+<td>Webpack</td>
+<td>Main Bundle</td>
+</tr>
+</tbody>
+</table>
+<p>It’s important to remember: <strong>these are example metrics</strong> based on imaginary results from reseaching my company and the competition. Your research will almost certainly yield different results and produce different budget needs.</p>
+<p>When we build the content it’s easy to just build all aspects of the site and assume that, because we’ve minimized and bundled the code, everything will be fine… but that’s not necessarily the case.</p>
+<p>The first step in figuring out how to build a performant application is to inventory all assets (Javascript, images, fonts, third-party scripts and any other type of content for your site or app), and break them in groups:</p>
+<ul>
+<li><strong>Basic core experience</strong>: fully accessible content that works for all your target users regardless of browsers and versions</li>
+<li><strong>Enhanced experience</strong> an enhanced experience for browsers that support them</li>
+<li><strong>Extras</strong>: “Nice to have assets” that aren’t absolutely required and that can be lazy-loaded.</li>
+</ul>
+<p>Defining the browsers that will get the enchanced experience can be a little tricky as <a href="https://justmarkup.com/log/2015/02/cut-the-mustard-revisited/">cutting the mustard</a> for new features can be more complicated that it looks. While all the browsers that support ES2015+ modules suport other features in the newer ECMA Script specifications, the reverse is not true. We might find ourselves trying to use modules and fetch in browsers that only support fetch.</p>
+<p>If you can get away with it use ES2015+ <code>&lt;script type=&quot;module&quot;&gt;</code> for loading JavaScript:</p>
+<ul>
+<li>Modern browsers will interpret the script as a JavaScript module and run it as expected.</li>
+<li>Legacy browsers will ignore the module script because it won’t recognize the type attribute</li>
+</ul>
+<div class="message warning">
+  <p>Caveat: Android phones cut the mustard despite their limited memory and CPU capabilities. One way to work around this is to feature detect the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Navigator/deviceMemory">Device Memory API</a> first and fall back to cutting the mustard.</p>
+</div>
+<h2 id="keeping-ourselves-honest">Keeping ourselves honest</h2>
+<p>Once we have the budget we need to enforce it.</p>
+<p>We’ll discuss some techniques to keep ourselves honest when working with our code to make sure that our code stays within the assigned budget.</p>
+<p>How we address these performance requirements and how seriously we enforce them is up to us. But I see no other way to really to get out of this bloated mess we’ve turned our web applications into.</p>
+<p>None of these tools and suggestions are “the one” true solution to performance improvement but, using them together, they can provide measurements and warnings for when we’re running away from our budgets.</p>
+<h3 id="detecting-performance-issues-at-build-time">Detecting performance issues at build time</h3>
+<p>There are several ways to monitor your code’s performance during the build phase of your project</p>
+<p>We will not discuss how to setup a Webpack build system. If you haven’t done so already there are several guides that will walk you through the process. This assumes you’re either building your Webpack configuration from scratch or modifying an existing one.</p>
+<p>Webpack’s builtin [performance options](webpack Performance Budgets) give you a first line of defense by warning (or failing the build) if an asset or entry point goes over a specified size in bites.</p>
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token comment">//...</span>
+  <span class="token literal-property property">performance</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">maxAssetSize</span><span class="token operator">:</span> <span class="token number">100000</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">maxEntrypointSize</span><span class="token operator">:</span> <span class="token number">100000</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">hints</span><span class="token operator">:</span> <span class="token string">"warning"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The values for the attributes are explained in the table below:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default in bytes</th>
+<th>Value in example in bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>maxAssetSize</td>
+<td>250000</td>
+<td>100000</td>
+<td>Maximum Value for individual assets</td>
+</tr>
+<tr>
+<td>maxEntrypointSize</td>
+<td>250000</td>
+<td>100000</td>
+<td>Maximum Value for individual <a href="https://webpack.js.org/concepts/entry-points/">entry points</a></td>
+</tr>
+<tr>
+<td>hints</td>
+<td>warning</td>
+<td>warning</td>
+<td>Values discused below</td>
+</tr>
+</tbody>
+</table>
+<p>In this case, there’s only one bundle which also acts as the entry point.</p>
+<p>Possible values for hints are:</p>
+<ol>
+<li><strong>warning (default)</strong>: Displays a yellow warning message, but the build passes. It’s best to use this in development environments.</li>
+<li><strong>error</strong>: Displays a red error message, but the build still passes. This setting is recommended for production builds.</li>
+<li><strong>false</strong>: No warnings or errors are shown.</li>
+</ol>
+<p>As a second warning/error stage, Webpack’s <a href="https://www.npmjs.com/package/size-plugin">size-plugin</a> reports on each bundle size and whether the size as changed since the last time the command was run.</p>
+<figure>
+  <img src='https://i.imgur.com/3bWBrJm.png' alt='Webpack size plugin in action'>
+  <figcaption>Webpack size plugin in action</figcaption>
+</figure>
+<p>TO use the plugin, first install it using NPM:</p>
+<pre class="language-js"><code class="language-js">npm i <span class="token operator">-</span><span class="token constant">D</span> size<span class="token operator">-</span>plugin
+</code></pre>
+<p>Then add it to your configuration file in two steps. First import the plugin</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// load the size plugin</span>
+<span class="token keyword">const</span> SizePlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'size-plugin'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token keyword">new</span> <span class="token class-name">SizePlugin</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Despite our best effors in reducing bundle sizes and trimming our Javascript fat we may still find out that our bundles are too large and we can’t figure out where the extra size comes from.</p>
+<p>One possibility is that we’re loading too many dependencies that we don’t need. Libraries like <a href="https://lodash.com/">Lodash</a> and <a href="https://momentjs.com/">Moment</a> are the most often cited culprits because developers don’t realize that they don’t have to import the whole library but only the portions we need.</p>
+<p><a href="https://www.npmjs.com/package/webpack-bundle-analyzer">Webpack Bundler Analyzer</a> produces a graphical visualization of the modules you app uses.</p>
+<figure>
+  <img src='https://cloud.githubusercontent.com/assets/302213/20628702/93f72404-b338-11e6-92d4-9a365550a701.gif' alt='Webpack Analyzer Output'>
+  <figcaption>Webpack Analyzer Output</figcaption>
+</figure>
+<p>Bundle analyzer also gives you results for your compressed and minimized bundles. It presents three value for your bundles:</p>
+<dl>
+<dt>stat</dt>
+<dd>This is the "input" size of your files, before any tansformations like minification.</dd>
+<dd>It is called "stat size" because it's obtained from Webpack's stats object.</dd>
+<dt>parsed</dt>
+<dd>This is the "output" size of your files. If you're using a Webpack plugin such as Uglify, then this value will reflect the minified size of your code.</dd>
+<dt>gzip</dt>
+<dd>This is the size of running the parsed bundles/modules through gzip compression.</dd>
+</dl>
+<h3 id="babel-and-babel-preset-env">Babel and babel-preset-env</h3>
+<p>Transpiling ES2015+ to ES5 so it’ll run on older browsers can create bloated bundles for browsers that don’t need it.  This is one of the reason why the Babel team replaced the yearly plugins (ES2015, ES2016, ES2017) with a single plugin called <code>babel-preset-env</code></p>
+<p>Using the same lists as <code>autoprefixer</code> and other tools in the Javascript ecosystem <code>babel-preset-env</code> allows Webpack to only transpile those areas where the target browsers don’t support modern Javascript.</p>
+<p>This will reduce the size of your bundles but limit them to the browsers you choose in one of the following ways:</p>
+<ol>
+<li><code>browserslist</code> key in <code>package.json</code> file in current or parent directories. We recommend this way</li>
+<li>Tool options. For example browsers option in Autoprefixer</li>
+<li><code>BROWSERSLIST</code> environment variable</li>
+<li><code>browserslist</code> config file in current or parent directories.</li>
+<li><code>.browserslistrc</code> config file in current or parent directories.</li>
+<li>If none of the above methodsproduce a valid result Browserslist will use these defaults:<code> &gt; 0.5%, last 2 versions, Firefox ESR, not dead</code>.</li>
+</ol>
+<p>To run the plugin first install them. The example assumes that you’ve already installed Webpack for your project.</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">-D</span> babel-loader <span class="token punctuation">\</span>
+@babel/core <span class="token punctuation">\</span>
+@babel/runtime <span class="token punctuation">\</span>
+@babel/preset-env <span class="token punctuation">\</span>
+@babel/plugin-transform-runtime <span class="token punctuation">\</span>
+</code></pre>
+<p>Using Webpack’s <a href="https://webpack.js.org/loaders/babel-loader/">bable-loader</a> we can specify directories to exclude (we don’t want to transpile all the files in <code>node_modules</code> and <code>bower_components</code>), and the plugins that we want to use: in this case <code>preset_env</code> and <code>plugin-transform-runtime</code>.</p>
+<p>The <code>transform-runtime</code> plugin tells Babel to require the runtime instead of inlining it, reducing the amount of duplicate code in our bundles</p>
+<p>The last thing to note is that the test for babel loader includes both <code>.js</code> and <code>.mjs</code> used by Node to identify Ecmascript modules and difference them from Common JS modules that are the default modules for the Node ecosystem.</p>
+<pre class="language-js"><code class="language-js"><span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token literal-property property">test</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\.m?js$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+    <span class="token literal-property property">exclude</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">(node_modules|bower_components)</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">,</span>
+    <span class="token literal-property property">use</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">loader</span><span class="token operator">:</span> <span class="token string">'babel-loader'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">options</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token literal-property property">presets</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'@babel/preset-env'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'@babel/plugin-transform-runtime'</span><span class="token punctuation">]</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre>
+<p>This gives you a lot of control over what you transpile for which browsers and helps reduce bundle sizes by eliminating unnecessary transpilation. However it also makes you responsible for ensuring your audience can use the code and doesn’t have to rely on polyfills or graceful degradation if possible.</p>
+<h2 id="measuring-performance.">Measuring performance.</h2>
+<p>Just like we ran tests to establish our budgets we have to continue running them to make sure we stay within that budget and we don’t introduce any performance regressions.</p>
+<p>The first idea when it comes to keeping ourselves honest is to make sure that we run the performance tests that we want every time we build our project or whenever we accept a new PR for it.</p>
+<p><a href="http://webpagetest.org/">Webpage Test</a> using the <a href="https://github.com/marcelduran/webpagetest-api">webpagetest-api</a> wrapper automates Webpage tests. You can run it from the command line, through a build script, or as part of your CI process</p>
+<p><a href="https://github.com/GoogleChromeLabs/lighthousebot">Lighthouse</a> makes Lightouse reporting part of a Travis CI process and also gives you an integration with Github PRs so they can be evaluated for performance.</p>
+<figure>
+  <img src='https://user-images.githubusercontent.com/238208/46586467-e93c8300-ca33-11e8-83ac-401b23227eb0.png' alt='Result of WPT and Lighthouse running for a PR'>
+  <figcaption>Result of WPT and Lighthouse running for a PR</figcaption>
+</figure>
+<p>Both of these tools give you performance visibility during the build process. If these either of these tools fail the results will be reflected in the PR and they can reject the PR automatically or let project owners take manual action on the request.</p>
+<h2 id="dashboards-and-reporting">Dashboards and reporting</h2>
+<p>Tools like <a href="https://calibreapp.com/">caliber</a> and <a href="https://speedcurve.com/">Speedcurve</a> allow you to create dashboards to show the results of performance testing.</p>
+<p>The idea is to first surface performance for the whole team to see and to have a clear way to communicate to interested parties when a performance regression happens so you can take appropriate action.</p>
+<div class="video">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/0X19cD4Iaik?re&autoplay=1&loop=1&mute=1" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<p>One thing that I found particularly interesting is how Speed Curve and Calibre allow you to create <a href="https://support.speedcurve.com/get-the-most-out-of-speedcurve/benchmark-yourself-against-your-competitors">competitive dashboards</a> of your company against the competition you select.</p>
+<figure>
+  <img src='https://downloads.intercomcdn.com/i/o/43393314/966d2ac9d79c58c2abe84983/image.png' alt='Comprative performance dashboard'>
+  <figcaption>Comparative performance dashboard from Speedcurve</figcaption>
+</figure>
+<figure>
+  <img src='https://downloads.intercomcdn.com/i/o/43393518/cf6e242e1b4f82bde996cd80/image.png' alt='Comparative performance filmstrip view'>
+  <figcaption>Comparative performance filmstrip view from Speedcurve</figcaption>
+</figure>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

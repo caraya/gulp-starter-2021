@@ -1,0 +1,49 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="media-capabilities-api">Media Capabilities API</h1>
+<p>We can use this API to query the device if this is an appropriate format to play in it. It returns whether the media type (audio or video):</p>
+<ul>
+<li>Is supported</li>
+<li>Will play smoothly</li>
+<li>Is power efficient</li>
+</ul>
+<p>Based on the answers you can decide if you will show the video to the user, provide a smaller alternative or provide a fallbackk right away.</p>
+<p>This is an alternative to adaptive video playback where the player decides what resolution to play (of those available) based on the user device’s characteristics.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> configuration <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">type</span> <span class="token operator">:</span> <span class="token string">'file'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">video</span> <span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">contentType</span> <span class="token operator">:</span> <span class="token string">'video/mp4; codecs=avc1.64001E'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">width</span> <span class="token operator">:</span> <span class="token number">640</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">height</span> <span class="token operator">:</span> <span class="token number">480</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">bitrate</span> <span class="token operator">:</span> <span class="token number">10000</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">framerate</span> <span class="token operator">:</span> <span class="token string">'30'</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+navigator<span class="token punctuation">.</span>mediaCapabilities<span class="token punctuation">.</span><span class="token function">decodingInfo</span><span class="token punctuation">(</span>configuration<span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">result</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>contentType <span class="token operator">+</span> <span class="token string">' is:'</span>
+    <span class="token operator">+</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>supported <span class="token operator">?</span> <span class="token string">''</span> <span class="token operator">:</span> <span class="token string">' NOT'</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">' supported,'</span>
+    <span class="token operator">+</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>smooth <span class="token operator">?</span> <span class="token string">''</span> <span class="token operator">:</span> <span class="token string">' NOT'</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">' smooth and'</span>
+    <span class="token operator">+</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>powerEfficient <span class="token operator">?</span> <span class="token string">''</span> <span class="token operator">:</span> <span class="token string">' NOT'</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">' power efficient'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'encodingInfo to threw an error '</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>There is another section of the spec, currently under development that will query display capabilities such as luminance, color depth, and color gamut but those sections are not complete and, to be honest, are less interesting than learning how to handle video without doing DASH or HLS or providing an optimized viewing experience if you choose to use Adaptive Streaming anyways.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

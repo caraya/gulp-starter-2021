@@ -1,0 +1,232 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="understanding-aria">Understanding ARIA</h1>
+<p>ARIA (Accessible Rich Internet Applications) and the associated accessibility standards (WCAG) have always been hard to for me to parse from a standpoint of when to use as well as how do you use when you need to.</p>
+<p>This post is my first step in understanding ARIA, WCAG, How it works and why it is important.</p>
+<h2 id="definitions">Definitions</h2>
+<p>The first step in understanding something is to work towardsd defining the terms we will use.</p>
+<h3 id="what-is-aria">What is ARIA</h3>
+<p>ARIA (Accessible Rich Internet Applications), or more formally WAI-ARIA, is a set of specifications that aim to make web applications more accessible.</p>
+<p>According to the <a href="https://www.w3.org/WAI/standards-guidelines/aria/#introduction">WAI-ARIA Overview</a></p>
+<blockquote>
+<p>WAI-ARIA, the Accessible Rich Internet Applications Suite, defines a way to make Web content and Web applications more accessible to people with disabilities. It especially helps with dynamic content and advanced user interface controls developed with HTML, JavaScript, and related technologies.</p>
+</blockquote>
+<h3 id="what-is-wcag%3F">What is WCAG?</h3>
+<p>The Web Content Accessibility Guidelines cover techniques to make content more accessible to users with disabilities</p>
+<p>According to the <a href="https://www.w3.org/TR/WCAG21/">Web Content Accessibility Guidelines (WCAG) 2.1</a> recommendation:</p>
+<blockquote>
+<p>Web Content Accessibility Guidelines (WCAG) 2.1 covers a wide range of recommendations for making Web content more accessible. Following these guidelines will make content more accessible to a wider range of people with disabilities, including accommodations for blindness and low vision, deafness and hearing loss, limited movement, speech disabilities, photosensitivity, and combinations of these, and some accommodation for learning disabilities and cognitive limitations; but will not address every user need for people with these disabilities.</p>
+</blockquote>
+<p>As I understand it, ARIA itself provides roles, states, properties and focus management that interact with assistive technologies tools and APIs. This will result in more accessible web applications.</p>
+<p>WCAG provides guidelines, techniques and best practices for making content more accessible. This may include using ARIA roles, states and technologies where appropriate.</p>
+<h2 id="what-is-semantic-markup-and-why-it%E2%80%99s-important">What is semantic markup and why it’s important</h2>
+<p>A lot of times we’ll hear about semantic markup and its importance on one hand and how you can create really odd or broken markup and it being valid HTML.</p>
+<p>The example that still catches my attention. People say that this is valid HTML:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>demo page<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Demo Page Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Content goes here<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>It is not valid HTML. It relies on the backwards compatibility requirements of modern browsers regarding broken HTML content.</p>
+<p>Chrome, for example, will insert the missing elements to make the page render correctly. This is how Chrome will show the page in DevTools:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>demo page<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Demo Page Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Content goes here<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>So this is the first reason why semantic important. Browsers will do the they can to fully render the page so it would work best if we were to write the full code for the elements we want without taking shortcuts.</p>
+<p>A second, and related, issue with semantic HTML is to use the correct element for a given situation.</p>
+<p>When you create semantic elements in your document the browser gives you affordances like:</p>
+<ul>
+<li>Search engines will consider its contents as important keywords to influence the page’s search rankings (see SEO)</li>
+<li>Screen readers can use it as a signpost to help visually impaired users navigate a page</li>
+<li>Finding blocks of meaningful code is significantly easier than searching through endless divs with or without semantic or namespaced classes</li>
+<li>Suggests to the developer the type of data that will be populated</li>
+<li>Semantic naming mirrors proper custom element/component naming</li>
+</ul>
+<p>Just by looking at the element below we know what it is and what it purpose on the page is.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Page title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>You could also create your own element that will look like an <code>h1</code> element but you loose all the advantages that the premade buttons get.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">font-size</span><span class="token punctuation">:</span> 32px<span class="token punctuation">;</span> <span class="token property">margin</span><span class="token punctuation">:</span> 21px 0<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>Not a top-level heading!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+
+<span class="token comment">&lt;!-- Or --></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>h1-heading<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Not a top-level heading!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>You should always use a predefined element where one is available. The <code>div</code> and <code>span</code> elements should only be used when there is no predefined element available.</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article">&lt;article&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/aside">&lt;aside&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details">&lt;details&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure">&lt;figure&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption">&lt;figcaption&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/footer">&lt;footer&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header">&lt;header&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/main">&lt;main&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/mark">&lt;mark&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav">&lt;nav&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section">&lt;section&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/summary">&lt;summary&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time">&lt;time&gt;</a></li>
+</ul>
+<p>Whenever you’re looking at the structure of a page you should always look at where semantic elements would be the most appropriate.</p>
+<p>For more information see <a href="https://www.freecodecamp.org/news/semantic-html5-elements/">Semantic HTML5 Elements Explained</a></p>
+<h2 id="when-is-a-button-not-a-button">When is a button not a button</h2>
+<p>Most of the time we will see buttons coded like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">></span></span>Save<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>But we also see people coding buttons like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> 
+  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>saveChanges<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Save
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>This could be used as a button but, as it is, lacks a lot of affordances that we’d get from a standard <code>button</code> element.</p>
+<p>Some of the things you’d have to fix to make this “button” more accessible.</p>
+<h3 id="roles">Roles</h3>
+<p><code>div</code> elements are neutral, they don’t represent anything in particular so, if we want to assign a given role to a <code>div</code> element you need to be explicit about it.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> 
+  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>saveChanges<span class="token punctuation">"</span></span>
+  <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Save
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>This role is dependent on the functionality that you want to emulate. There is a full <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles">list of ARIA roles</a> in MDN.</p>
+<h3 id="keyboard-navigation-and-focus-management">Keyboard navigation and Focus Management</h3>
+<p>The <code>button</code> element can be tabbed into and can be activated by pressing the <kbd>enter</kbd> or <kbd>space</kbd> keys.</p>
+<p>Since our div “button” is not an actual button then it’s up to use to make sure that the <code>div</code> works the same as a native button.</p>
+<h4 id="tabindex">tabindex</h4>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex">tabindex</a> attribute controls whether a user can tab through the element. It has three possible values:</p>
+<ul>
+<li><code>-1</code>: prevents navigation through the element using the keyboard. The element can still be accessed programmatically</li>
+<li><code>0</code>: Allows the element to be navigated via the keyboard in document</li>
+<li><code>&gt; 1</code>: The element will be navigated after all elements with <code>0</code> value and those with lower positive values.
+<ul>
+<li>tabindex=“4” is focused before tabindex=“5” and tabindex=“0”, but after tabindex=“3”. If multiple elements share the same positive tabindex value, they are focused in document order</li>
+<li>Do not use values greater than <code>0</code> in <code>tabindex</code>. They will make it harder for people using assistive technologies to navigate your documents</li>
+</ul>
+</li>
+</ul>
+<p>The button now looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> 
+  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>saveChanges<span class="token punctuation">"</span></span>
+  <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span>
+  <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Save
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<h3 id="event-handling">event handling</h3>
+<p>Using <code>tabindex</code> allows users to tab into the document but that’s not enough.</p>
+<p>We can usually click on a button with a pointer device and activate it with either the <kbd>space</kbd> or <kbd>enter</kbd> keys. Since we’re not using the native button element we need to handle both clicks and keyboard navigation events.</p>
+<p>We are also futureproofing the code by handling as many buttons as there are on the page.</p>
+<p>We capture a reference to the buttons using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll">querySelectorAll</a></p>
+<p>We use the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">spread syntax</a> to create an array of our buttons and then feed it to the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach">forEach</a> method in which we add the necessary events to each button.</p>
+<p>The <code>doSomething</code> function is where the code we want to execute will run. There function will get updated when we look at ARIA attributes.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> buttons <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">".button"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">[</span><span class="token operator">...</span>buttons<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">button</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  button<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerdown"</span><span class="token punctuation">,</span> doSomething<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  button<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"keydown"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>key <span class="token operator">==</span> <span class="token string">"Enter"</span> <span class="token operator">||</span> event<span class="token punctuation">.</span>key <span class="token operator">==</span> <span class="token string">" "</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token function">doSomething</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">doSomething</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">"Button activation event, do something"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="aria-states-and-properties">Aria States and Properties</h3>
+<p>In addition to the <code>aria-role</code> attribute we added earlier, there are other that we may want to add to our custom button.</p>
+<p>If the button is a <a href="https://inclusive-components.design/toggle-button/">toggle button</a>, the <code>aria-pressed</code> attribute tells assistive technology whether a button is pressed or not. Since we created a custom button, we need to explicitly set the attribute in the HTML element.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> 
+  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>saveChanges<span class="token punctuation">"</span></span>
+  <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span>
+  <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span>
+  <span class="token attr-name">aria-pressed</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>false<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Save
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We then modify the <code>doSomething</code> function to toggle the value of the property on interaction (pointer or keyboard-bassed).</p>
+<ol>
+<li>set the default for the <code>aria-pressed</code> attribute to false.</li>
+<li>We  the attribute we created in an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else">if/else</a> statement
+<ol>
+<li>If the <code>aria-pressed</code> is true we set it to false using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute">setAttribute</a>; otherwise we set it to true.</li>
+</ol>
+</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">doSomething</span><span class="token punctuation">(</span><span class="token parameter">button</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> pressed <span class="token operator">=</span> button<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-pressed'</span><span class="token punctuation">)</span> <span class="token operator">===</span> <span class="token string">'false'</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>pressed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    button<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-pressed'</span><span class="token punctuation">,</span> <span class="token string">'true'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    button<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">'aria-pressed'</span><span class="token punctuation">,</span> <span class="token string">'false'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="styling">Styling</h3>
+<p>Because a <code>div</code> element has no style of its own and we want to make it look like a button, we have to do it explicitly.</p>
+<p>The button has two selectors. The <code>.button</code> selector handles the default state for all elements with the class</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.button</span> <span class="token punctuation">{</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 3px solid limegreen<span class="token punctuation">;</span>
+  <span class="token property">border-radius</span><span class="token punctuation">:</span> 15px<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 5em<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 0.25em<span class="token punctuation">;</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><code>.button:focus</code> handles when a specific element with the class <code>.button</code> gets focus.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.button:focus</span> <span class="token punctuation">{</span>
+  <span class="token property">outline</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+  <span class="token property">box-shadow</span><span class="token punctuation">:</span> 0 0 0 2px #006ae3<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="final-result">Final result</h2>
+<p>The final, working code, can be seen in this Codepen:</p>
+<iframe height="300" style="width: 100%;" scrolling="no" title="Non-button button" src="https://codepen.io/caraya/embed/NWMMKjd?default-tab=html" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/caraya/pen/NWMMKjd">
+  Non-button button</a> by Carlos Araya (<a href="https://codepen.io/caraya">@caraya</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+<p>This is one example of what we can do with one type of buttons. Other elements may have other accessibility requirements that need to be implemented in Javascript and CSS.</p>
+<p>The <a href="https://www.w3.org/WAI/ARIA/apg/">ARIA Authoring Practices</a> provides tools to create accessible widgets. The <a href="https://www.w3.org/WAI/ARIA/apg/patterns/">patterns</a> section is particularly important when trying to figure out how to code our own widgets.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<p><a href="https://www.w3.org/WAI/ARIA/apg/practices/read-me-first/">No ARIA is better than bad ARIA</a> : The article discusses discusses why not using ARIA is better than using ARIA incorrectly and how it can degrade the way assistive technology works on your pages.</p>
+<p><a href="https://www.w3.org/TR/wai-aria/">Accessible Rich Internet Applications (WAI-ARIA) 1.1</a>
+: Describes the technical aspect of building Accessible Rich Internet Applications
+: Provides definitions of ARIA roles, states and properties, and focus management</p>
+<p><a href="https://www.w3.org/WAI/standards-guidelines/wcag/">WCAG 2 Overview</a>
+: Introduces the <a href="https://www.w3.org/TR/WCAG21/">Web Content Accessibility Guidelines (WCAG) 2.1</a> as the current version of accepted practices to create accessible content. : This is different from ARIA in that it doesn’t directly define the structure of a document but it handles content, broadly defined as:
+: : Natural information such as text, images, and sounds
+: : code or markup that defines structure, presentation, etc.
+: There is a <a href="https://www.w3.org/TR/WCAG22/">WCAG 2.2 Candidate Recommendation</a> that is expected to become a recommendation in December 2022</p>
+<p><a href="https://www.w3.org/WAI/standards-guidelines/wcag/wcag3-intro/">WCAG 3 Introduction
+</a>
+: WCAG 3 is the next generation of the W3C accessibility guidelines
+: The release date is uncertain</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

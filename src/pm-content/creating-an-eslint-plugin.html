@@ -1,0 +1,123 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="creating-an-eslint-plugin">Creating an ESLint plugin</h1>
+<p>Creating a plugin is a bit more complicated than creating a shareable configuration because you need to not only create the rules, but you also need to learn about the AST syntax too accomplish the task you want.</p>
+<p>Even with the added difficulty, custom plugins widen the possibilities of what you can do with ESLint and it makes it possible to test for things outside Javascript.</p>
+<p>I’ve always wanted to use ESLint to detect issues with my HTML files similar to some of the rules AMP enforces. Did I forget an alt attribute for images? Did I forget to set up width and height for videos and Images?</p>
+<p><a href="https://yeonjuan.github.io/html-eslint/">HTML ESLint</a>, an HTML plugin for ESLint provides a basic set of rules to lint your HTML. These rules are additions to HTML ESLint that cover specific things I’m interested in. Some of these rules are based in code from HTML ESLint and some are completely new.</p>
+<h2 id="checking-if-an-image-has-a-width-attribute">Checking if an image has a width attribute</h2>
+<p>I like to check if an image has an explicit width attribute. If it doesn’t then it’s a problem because it may contribute to layout shifts as the image is loaded.</p>
+<p>The first part of the plugin is the metadata. It contains information about the plugin and the rule it defines.</p>
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">meta</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+
+    <span class="token literal-property property">docs</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">description</span><span class="token operator">:</span> <span class="token string">"Require `width` attribute at `&lt;img>` tag"</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">recommended</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+    <span class="token literal-property property">fixable</span><span class="token operator">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">messages</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token punctuation">[</span><span class="token constant">MESSAGE_IDS</span><span class="token punctuation">.</span><span class="token constant">MISSING_WIDTH</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token string">"Missing `width` attribute at `&lt;img>` tag"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The second, and most important, part is the rule itself. We create the rule with the context as an attribute. If the node we’re linting doesn’t pass the test defined in the <code>hasWidthAttrAndValue</code> function then we emit the error message using the <code>report</code> method of the context.</p>
+<pre class="language-js"><code class="language-js">  <span class="token function">create</span><span class="token punctuation">(</span><span class="token parameter">context</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+      <span class="token function">Img</span><span class="token punctuation">(</span><span class="token parameter">node</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">hasWidthAttrAndValue</span><span class="token punctuation">(</span>node<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          context<span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+            <span class="token literal-property property">node</span><span class="token operator">:</span> node<span class="token punctuation">.</span>startTag<span class="token punctuation">,</span>
+            <span class="token literal-property property">messageId</span><span class="token operator">:</span> <span class="token constant">MESSAGE_IDS</span><span class="token punctuation">.</span><span class="token constant">MISSING_WIDTH</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The final piece of the rule is the testing function, <code>hasWidthAttrAndValue</code>. It takes a node as the argument and returns a boolean indicating whether the node has a width attribute and the value is a number.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">hasWidthAttrAndValue</span><span class="token punctuation">(</span><span class="token parameter">node</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>node<span class="token punctuation">.</span>attrs <span class="token operator">||</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">some</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">attr</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> attr<span class="token punctuation">.</span>name <span class="token operator">===</span> <span class="token string">"width"</span> <span class="token operator">&amp;&amp;</span> attr<span class="token punctuation">.</span>value<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>length <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We could use the same technique to test for the <code>height</code> attribute and its value or the presence of an <code>alt</code> attribute (which can have a value or not depending on the use case).</p>
+<h2 id="disallow-duplicate-attributes">Disallow duplicate attributes</h2>
+<p>As I’m typing HTML I don’t always pay attention to the attributes I’ve added. This is doubly true for my automated HTML generration tools.</p>
+<p>I want ESLint to flag this mistake so that I can fix it.</p>
+<p>First we create the metadata block for the rule.</p>
+<pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">meta</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+
+    <span class="token literal-property property">docs</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">description</span><span class="token operator">:</span> <span class="token string">"Disallow to use duplicate attributes"</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">category</span><span class="token operator">:</span> <span class="token constant">RULE_CATEGORY</span><span class="token punctuation">.</span><span class="token constant">BEST_PRACTICE</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">recommended</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+    <span class="token literal-property property">fixable</span><span class="token operator">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">messages</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token punctuation">[</span><span class="token constant">MESSAGE_IDS</span><span class="token punctuation">.</span><span class="token constant">DUPLICATE_ATTRS</span><span class="token punctuation">]</span><span class="token operator">:</span>
+        <span class="token string">"The attribute '{{attrName}}' is duplicated."</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>The rule function is different. We want to use the rules in all the nodes that match the context.</p>
+<p>For each node we we want to do the following:</p>
+<ol>
+<li>Check if the node has any attributes</li>
+<li>Look through the attributes and see if the name is already in the array
+<ul>
+<li>if the name is already in the array report an error, the attribute is duplicated</li>
+<li>If not, add the name to the array</li>
+</ul>
+</li>
+</ol>
+<pre class="language-js"><code class="language-js">  <span class="token function">create</span><span class="token punctuation">(</span><span class="token parameter">context</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+      <span class="token string">"*"</span><span class="token punctuation">(</span>node<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>Array<span class="token punctuation">.</span><span class="token function">isArray</span><span class="token punctuation">(</span>node<span class="token punctuation">.</span>attrs<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token keyword">const</span> attrsSet <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Set</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          node<span class="token punctuation">.</span>attrs<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">attr</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>attrsSet<span class="token punctuation">.</span><span class="token function">has</span><span class="token punctuation">(</span>attr<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+              context<span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token literal-property property">node</span><span class="token operator">:</span> node<span class="token punctuation">.</span>startTag<span class="token punctuation">,</span>
+                <span class="token literal-property property">data</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+                  <span class="token literal-property property">attrName</span><span class="token operator">:</span> attr<span class="token punctuation">.</span>name<span class="token punctuation">,</span>
+                <span class="token punctuation">}</span><span class="token punctuation">,</span>
+                <span class="token literal-property property">messageId</span><span class="token operator">:</span> <span class="token constant">MESSAGE_IDS</span><span class="token punctuation">.</span><span class="token constant">DUPLICATE_ATTRS</span><span class="token punctuation">,</span>
+              <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+              attrsSet<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>attr<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+          <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>These two examples show two ways of writing ESLint rules. There are a lot more ideas to explore when writing rules. That will be an exercise for another post.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

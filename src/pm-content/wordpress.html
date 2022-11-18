@@ -1,0 +1,398 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="what-does-it-take-to-develop-a-wordpress-site.">What does it take to develop a Wordpress site.</h1>
+<p>I had a very interesting conversation at my coffee shop the other day. It revolved around Wordpress and how easy it is (or isn’t) to modify and customize. In the 10+ years I’ve been using it things have gotte to the point where you don’t really need to know PHP as much as you used to.</p>
+<p>In this post we’ll cover the following aspects of customizing a Wordpress theme and associated tools and functionality:</p>
+<ul>
+<li>CSS customizations</li>
+<li>Local changes using filters and actions</li>
+<li>Creating child themes</li>
+<li>Customizing templates</li>
+<li>Using Wordpress REST API to create a completely different front end</li>
+<li>When it’s best to create a theme from scratch</li>
+</ul>
+<p>We’ll also talk about the minimal skillset necessary for creating a Wordpress theme with the understanding that it will depend on the changes you want to make.</p>
+<p><strong>My personal biases against Wordpress business model</strong></p>
+<p>I make no secret of the issues I have against Wordpress and their business model. In <a href="https://publishing-project.rivendellweb.net/gpl-and-wordpress-developer-beware/">GPL and why I don’t develop for WordPress</a> I’ve documented my opposition against the heavy handed approach Matt Mullenweg and Automattic took against an independent theme developer.</p>
+<p>In short, because I release all my code under MIT, I would not be able to offer my code, plugins or themes in <a href="http://Wordpress.org">Wordpress.org</a>. They will not host code released under licenses other than GPL even if they are more permissive.</p>
+<p>I am philosophically opposed to GPL/LGPL and Affero general public licenses. I should be the one deciding the license I release my code under, not the Free Software Foundation or Automattic.</p>
+<p>That said, <em>not wanting</em> to develop for Wordpress doesn’t equal <em>not knowing</em> how to develop for Wordpress. Sharing this post doesn’t equal endorsing their policies.</p>
+<h2 id="css-cutomizations">CSS cutomizations</h2>
+<p>The easiest way to change the looks of a Wordpress app is to change the theme’s CSS. Dev Tools comes in very handy when you’re trying to figure out the specific elements to style. For this section I’m presenting 3 different cases</p>
+<p>Changing the fonts for a theme could be done with something like this. Note that we import the fonts in the CSS rather than enqueuing the fonts in <code>functions.php</code> like we’ll do later in the post. These styles will apply to the entire content.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@import</span>  <span class="token string">"https://fonts.googleapis.com/css?family=Handlee"</span><span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@import</span>  <span class="token string">"https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic,300,300italic"</span><span class="token punctuation">;</span></span>
+<span class="token atrule"><span class="token rule">@import</span>  <span class="token string">"https://fonts.googleapis.com/css?family=Source+Code+Pro:400,300"</span><span class="token punctuation">;</span></span>
+
+<span class="token selector">body</span> <span class="token punctuation">{</span>
+	<span class="token property">font-family</span><span class="token punctuation">:</span> Lato<span class="token punctuation">,</span> Verdana<span class="token punctuation">,</span> Helvetica<span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+	<span class="token property">font-size</span><span class="token punctuation">:</span> 16px<span class="token punctuation">;</span>
+<span class="token comment">/* 1rem = 16px */</span>
+	<span class="token property">font-weight</span><span class="token punctuation">:</span> 300<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">h1,
+h2,
+h3</span> <span class="token punctuation">{</span>
+	<span class="token property">clear</span><span class="token punctuation">:</span> both<span class="token punctuation">;</span>
+	<span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Handlee'</span><span class="token punctuation">,</span> cursive <span class="token important">!important</span><span class="token punctuation">;</span>
+	<span class="token property">margin-bottom</span><span class="token punctuation">:</span> .25em<span class="token punctuation">;</span>
+	<span class="token property">text-rendering</span><span class="token punctuation">:</span> optimizeLegibility<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>When changing the font for h1 tags only when they appears in single post pages we need to figure out the class associated with the content that you want to change. To change the h1 tag in the title we need to change the <code>.entry-title</code> class.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h1.entry-title</span> <span class="token punctuation">{</span>
+  <span class="token property">clear</span><span class="token punctuation">:</span> both<span class="token punctuation">;</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Handlee'</span><span class="token punctuation">,</span> cursive <span class="token important">!important</span><span class="token punctuation">;</span>
+  <span class="token property">margin-bottom</span><span class="token punctuation">:</span> .25em<span class="token punctuation">;</span>
+  <span class="token property">text-rendering</span><span class="token punctuation">:</span> optimizeLegibility<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Adding styles for manually entered CSS is simple. I write embeds for Youtube and Vimeo videos using a syntax like the one below</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span> 
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.youtube.com/embed/FaOSCASqLsE?rel=0<span class="token punctuation">"</span></span> 
+  <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">allowfullscreen</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>And use the following CSS to make sure the videos take the full available screen width.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.video iframe</span> <span class="token punctuation">{</span>
+  <span class="token property">clear</span><span class="token punctuation">:</span> both<span class="token punctuation">;</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 1em auto<span class="token punctuation">;</span>
+  <span class="token property">max-width</span><span class="token punctuation">:</span> inherit<span class="token punctuation">;</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> center
+<span class="token punctuation">}</span>
+</code></pre>
+<p>When working with these types of customization we need to be very, very careful when dealing with specificity issues. Check Estelle Weyl’s post on <a href="http://www.standardista.com/css3/css-specificity/">CSS specificity</a> for more information on how to work specificity.</p>
+<h2 id="local-changes-using-hooks-and-filters">Local changes using hooks and filters</h2>
+<p><code>functions.php</code> is a theme specific customization file set aside for local customizations. Rather than updating entire templates we can update with <a href="https://codex.wordpress.org/Glossary#Action">actions</a> and <a href="https://codex.wordpress.org/Plugin_API#Filters">filters</a> to customize and change the way</p>
+<p>The idea is to build a function that does what we want and then use the <a href="https://developer.wordpress.org/reference/functions/add_filter/">add_filter</a> function and pass the following parameters:</p>
+<ul>
+<li>The name of the filter</li>
+<li>The code to execute then the filter is triggered</li>
+<li>An integer for priority</li>
+<li>An integer for the number of argument</li>
+</ul>
+<p>What does this mean in the real world? We’ll look at two examples of how to customize Wordpress. We’ll use a filter to change the way WP inserts images into a post using more semantically rich HTML5 that is easier to style later on.</p>
+<pre class="language-php5"><code class="language-php5">function html5_insert_image($html, $id, $caption, $title, $align, $url) {
+  $html5 = &quot;&lt;figure id='post-$id media-$id' class='align-$align'&gt;&quot;;
+  $html5 .= &quot;&lt;img src='$url' alt='$title' /&gt;&quot;;
+  if ($caption) {
+    $html5 .= &quot;&lt;figcaption&gt;$caption&lt;/figcaption&gt;&quot;;
+  }
+  $html5 .= &quot;&lt;/figure&gt;&quot;;
+  return $html5;
+}
+add_filter( 'image_send_to_editor', 'html5_insert_image', 10, 9 );
+</code></pre>
+<p>The second example uses an action to add the parent’s theme CSS to save ourselves from copying the CSS to a child theme. Actions</p>
+<ul>
+<li>Create a PHP function that should execute when a specific WordPress event occurs, in your plugin file.</li>
+<li>Hook this function to the event by using the add_action() function.</li>
+</ul>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">enqueue_parent_styles</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'parent-style'</span><span class="token punctuation">,</span> <span class="token function">get_template_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">.</span><span class="token string single-quoted-string">'/style.css'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'enqueue_parent_styles'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
+</code></pre>
+<p>Rather than make the article way longer than it needs to be by giving you a full list of the hooks available for <code>add_action</code> and <code>add_filter</code> I’ll refer you to the Wordpress Code <a href="https://developer.wordpress.org/reference/hooks/">Reference for Hooks</a>.</p>
+<p>Also make sure you use some way to namespace your functions to avoid conflict with functions already in Wordpress core or other plugins. Nothing sucks more than your action calling someone else’s code (speaking from experience).</p>
+<h3 id="difference-between-filters%2C-actions-and-plugins%3F">Difference between filters, actions and plugins?</h3>
+<p>Taken from: <a href="http://wordpress.stackexchange.com/questions/1007/difference-between-filter-and-action-hooks">http://wordpress.stackexchange.com/questions/1007/difference-between-filter-and-action-hooks</a></p>
+<h4 id="action-hooks">Action Hooks</h4>
+<p><em>Actions Hooks</em> are intended for use when WordPress core or some plugin or theme is giving you the opportunity to insert your code at a certain point and do one or more of the following:</p>
+<ul>
+<li>Use echo to <strong>inject some HTML</strong> or other content into the response buffer,</li>
+<li><strong>Modify global variable state</strong> for one or more variables, and/or</li>
+<li><strong>Modify the parameters</strong> passed to your hook function (assuming the hook was called by do_action_ref_array() instead of do_action() since the latter does not support passing variables by-reference.)</li>
+</ul>
+<h4 id="filter-hooks">Filter Hooks</h4>
+<p><em>Filter Hooks</em> behave very similar to Action Hooks but their intended use is to receive a value and potentially return a modified version of the value. A filter hook could also be used just like an Action Hook i.e. to modify a global variable or generate some HTML, assuming that’s what you need to do when the hook is called. One thing that is very important about Filter Hooks that you don’t need to worry about with Action Hooks is that the person using a Filter Hook must return (a modified version of) the first parameter it was passed. A common newbie mistake is to forget to return that value!</p>
+<h4 id="so-what%E2%80%99s-the-real-difference%3F">So what’s the Real Difference?</h4>
+<p>In reality Filter Hooks are pretty much a superset of Action Hooks. The former can do anything the latter can do and a bit more albeit the developer doesn’t have the responsibility to return a value with the Action Hook that he or she does with the Filter Hook.</p>
+<h4 id="giving-guidance-and-telegraphing-intent">Giving Guidance and Telegraphing Intent</h4>
+<p>But that’s probably not what is important. I think what is important is that by a developer choosing to use an Action Hook vs. a Filter Hook or vice versa they are telegraphing their intent and thus giving guidance to the themer or plugin developer who might be using the hook. In essence they are saying either “I’m going to call you, do whatever you need to do” OR “I’ve going to pass you this value to modify but be sure that you pass it back.”</p>
+<p>We can use both filters and actions both in <code>functions.php</code> or a plugin. I usually wait until I’ve accumulated enough related filters or actions (usually 5) to move them to a plugin. There shouldn’t be a difference in how the filters or actions work in either implementation.</p>
+<h2 id="creating-child-themes">Creating Child Themes</h2>
+<p>Before we start customizing our theme’s template we’ll take a little detour and talk about child themes. Every Wordpress theme can be used as the source of a child theme (also known as the parent theme) but there are frameworks like the <a href="https://www.sitepoint.com/basetheme/">Sitepoint Base theme</a> or the <a href="http://my.studiopress.com/themes/genesis/">Genesis</a> Framework by Studio Press that are specifically made to be used as parent themes.</p>
+<p>Child themes completely depend on their parents to work. The parent theme has to be installed in your Wordpress installation for the child to work at all. The child theme will modify and overwrite the parent with the changes you make without changing the parent at all. If you decide to start over all you have to do is remove and recreate the child theme.</p>
+<p>There are numerous advantages to using a child theme:</p>
+<ul>
+<li>You don’t have to start from scratch. The bulk of the work is already done for you so you can concentrate on the modifications that will work best for your site and content</li>
+<li>Upgrading the parent theme will not affect the child theme or its customizations</li>
+<li>You can use as much or as little of the parent as you want and can make as many or as few changes as you need or want to</li>
+<li>At a minimum  a child theme needs three things:
+<ul>
+<li>A folder</li>
+<li>A style sheet</li>
+<li>A local <code>functions.php</code> file</li>
+</ul>
+</li>
+</ul>
+<h3 id="the-creation-process">The Creation Process</h3>
+<blockquote>
+<p>I normally do this directly on the server using Unix shell tools and programs. If you’re not comfortable doing this then it’s a good idea to setup a local development environment and then zip the content of your child theme and install it using the theme installer.</p>
+<p>If you choose to go the local route Google <code>creating child theme wordpress</code> for general instructions.</p>
+<p>Your choice</p>
+</blockquote>
+<p>Connect to your host and create your child theme’s folder in <code>wp-content/themes</code>. I normally ssh to my host to make these changes so, once i’ve logged in and changed to <code>path/to/my/blog/wp-content/themes</code> I run the following commands:</p>
+<pre class="language-bash"><code class="language-bash">-bash-3.2$ <span class="token function">mkdir</span> twentyseventeen-child
+-bash-3.2$ <span class="token builtin class-name">cd</span> twentyseventeen-child/
+</code></pre>
+<p>Next we’ll create our style. In the child theme directory (<code>twentyseventeen-child</code>) run the following commands to create the <code>style.css</code> file and open it for editing:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">touch</span> style.css
+<span class="token function">vi</span> style.css
+</code></pre>
+<p>press the <code>i</code> key to go into interactive mode and copy the content below.</p>
+<pre class="language-php"><code class="language-php"><span class="token comment">/*
+ Theme Name:   Twenty Seventeen Child
+ Theme URI:    http://example.com/twenty-seventeen-child/
+ Description:  Twenty Seventeen Child Theme
+ Author:       John Doe
+ Author URI:   http://example.com
+ Template:     twentyseventeen
+ Version:      1.0.0
+ License:      MIT
+ License URI:  https://caraya.mit-license.org/
+ Tags:         light, dark, two-columns, right-sidebar, responsive-layout, accessibility-ready
+ Text Domain:  twenty-seventeen-child
+*/</span>
+</code></pre>
+<ul>
+<li><strong>Theme name</strong> This is the name that will show up for your theme in the WordPress back end</li>
+<li><strong>Theme URI</strong> This points to the website or demonstration page of the theme at hand. This or the author’s URI must be present in order for the theme to be accepted into the WordPress directory</li>
+<li><strong>Description</strong> This description of your theme will show up in the theme menu when you click on “Theme Details”</li>
+<li><strong>Author</strong> This is the author’s name</li>
+<li><strong>Author URI</strong> You can put your website’s address here if you want.</li>
+<li><strong>Template</strong> This part is crucial. Here goes the name of the parent theme, meaning its folder name. Be aware that it is case-sensitive, and if you don’t put in the right information, you will receive an error message!</li>
+<li><strong>Version</strong> This displays the version of your child theme. Usually, you would start with 1.0.</li>
+<li><strong>License</strong>  This is the license of your child theme. WordPress themes in the directory are usually released under a GPL license. This is only important if you will add your theme to the Wordpress directory.</li>
+<li><strong>License URI</strong> This is the address where your theme’s license is explained</li>
+<li><strong>Tags</strong> The tags help others find your theme in the WordPress directory. Thus, if you include some, make sure they are relevant.</li>
+<li><strong>Text domain</strong> This part is used for internationalization and to make themes translatable. This should fit the “slug” of your theme.</li>
+</ul>
+<p>Most of this information is only relevant if you choose to publish your child theme. If you will not publish it, either because it’s a personal project or because it’s for a client then the minial stylesheet header looks like this:</p>
+<pre class="language-php"><code class="language-php"><span class="token comment">/*
+ Theme Name:   Twenty Seventeen Child Theme
+ Description:  A child theme of the Twenty Seventeen WordPress theme
+ Author:       Carlos Araya
+ Template:     twentyseventeen
+ Version:      1.0.0
+*/</span>
+</code></pre>
+<p>Once it has been copied press escape and then <code>wq</code> to save your work and quit the editor.</p>
+<p>The next step is to create <code>functions.php</code> and add a function to enqueue the parent theme’s styles and the child styles.</p>
+<p>To create the file run these commands.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">touch</span> functions.php
+<span class="token function">vi</span> functions.php
+</code></pre>
+<p>Copy the content below to the <code>functions.php</code> file.  Press <code>i</code> to enter interactive mode and then paste the script below. This will use Wordpress’ system to import the parent theme and the child theme’s stylesheets in the correct order to make the cascade work for you.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token comment">// function taken from: </span>
+<span class="token comment">// http://justintadlock.com/archives/2014/11/03/loading-parent-styles-for-child-themes</span>
+<span class="token keyword">function</span> <span class="token function-definition function">my_enqueue_styles</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* If using a child theme, auto-load the parent theme style. */</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">is_child_theme</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'parent-style'</span><span class="token punctuation">,</span> <span class="token function">trailingslashit</span><span class="token punctuation">(</span> <span class="token function">get_template_directory_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'style.css'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">/* Always load active theme's style.css. */</span>
+  <span class="token function">wp_enqueue_style</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'style'</span><span class="token punctuation">,</span> <span class="token function">get_stylesheet_uri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'my_enqueue_styles'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+
+<span class="token keyword">function</span> <span class="token function-definition function">html5_insert_image</span><span class="token punctuation">(</span><span class="token variable">$html</span><span class="token punctuation">,</span> <span class="token variable">$id</span><span class="token punctuation">,</span> <span class="token variable">$caption</span><span class="token punctuation">,</span> <span class="token variable">$title</span><span class="token punctuation">,</span> <span class="token variable">$align</span><span class="token punctuation">,</span> <span class="token variable">$url</span><span class="token punctuation">,</span> <span class="token variable">$size</span><span class="token punctuation">,</span> <span class="token variable">$alt</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token variable">$src</span>  <span class="token operator">=</span> <span class="token function">wp_get_attachment_image_src</span><span class="token punctuation">(</span> <span class="token variable">$id</span><span class="token punctuation">,</span> <span class="token variable">$size</span><span class="token punctuation">,</span> <span class="token constant boolean">false</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token variable">$url</span> <span class="token operator">=</span> <span class="token function">str_replace</span><span class="token punctuation">(</span><span class="token keyword">array</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'http://'</span><span class="token punctuation">,</span><span class="token string single-quoted-string">'https://'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'//'</span><span class="token punctuation">,</span> <span class="token variable">$src</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token variable">$html</span> <span class="token operator">=</span> <span class="token function">get_image_tag</span><span class="token punctuation">(</span><span class="token variable">$id</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">''</span><span class="token punctuation">,</span> <span class="token variable">$title</span><span class="token punctuation">,</span> <span class="token variable">$align</span><span class="token punctuation">,</span> <span class="token variable">$size</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token variable">$html5</span> <span class="token operator">=</span> <span class="token string double-quoted-string">"&lt;figure>"</span><span class="token punctuation">;</span>
+  <span class="token variable">$html5</span> <span class="token operator">.=</span> <span class="token string double-quoted-string">"&lt;img src='<span class="token interpolation"><span class="token variable">$url</span></span>' alt='<span class="token interpolation"><span class="token variable">$alt</span></span>' class='size-<span class="token interpolation"><span class="token variable">$size</span></span>' />"</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$caption</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token variable">$html5</span> <span class="token operator">.=</span> <span class="token string double-quoted-string">"&lt;figcaption class='wp-caption-text'><span class="token interpolation"><span class="token variable">$caption</span></span>&lt;/figcaption>"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token variable">$html5</span> <span class="token operator">.=</span> <span class="token string double-quoted-string">"&lt;/figure>"</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token variable">$html5</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'image_send_to_editor'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'html5_insert_image'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">9</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
+</code></pre>
+<p>Once it has been copied press escape and then <code>wq</code> to save your work and quit the editor.</p>
+<p>If you want to change templates from the parent theme in your child you will have to copy the structure from the parent to the child. Because we’ll make changes to a template, we’ll copy it now. To do so run the following commands from the root of the child theme:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">mkdir</span> <span class="token parameter variable">-p</span> template-parts/post
+<span class="token builtin class-name">cd</span> template-parts/post
+<span class="token comment"># copies content from parent</span>
+<span class="token function">cp</span> <span class="token punctuation">..</span>/<span class="token punctuation">..</span>/<span class="token punctuation">..</span>/twentyseventeen/template-parts/post/*.php <span class="token builtin class-name">.</span> 
+</code></pre>
+<p>This will make all the post specific templates available to edit in the child theme.</p>
+<h3 id="good-reads">Good reads</h3>
+<ul>
+<li><a href="https://developer.wordpress.org/themes/">Wordpress Theme Handbook</a></li>
+<li><a href="https://developer.wordpress.org/themes/advanced-topics/child-themes/">Child themes</a></li>
+</ul>
+<h2 id="customizing-templates">Customizing Templates</h2>
+<p>The next step in customizing a Wordpress implementation is to edit a template. Unless you’re working in a one-off theme for a client I strongly suggest you work on a child theme like we did above… this will save you from a lot of headaches during development.</p>
+<p>In this section we’ll assume you created a</p>
+<p>dding a link to the <a href="https://www.ampproject.org/">accelerated mobile pages</a> (AMP) version of a post when you’re viewing individual posts.</p>
+<p>You have to edit the specific template. In the case of the theme I’m using (twentyseventeen) the template to edit is <code>template-parts/post/content-single.php</code>. What I want to do is add the link to the header either next to or below the post title. I’ve taken the full template for this demo.</p>
+<pre class="language-php"><code class="language-php"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>article</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>post-<span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">the_ID</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span><span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">post_class</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span></span><span class="token punctuation">></span></span>
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">is_sticky</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">is_home</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">:</span>
+    <span class="token keyword">echo</span> <span class="token function">twentyseventeen_get_svg</span><span class="token punctuation">(</span> <span class="token keyword">array</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'icon'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'thumb-tack'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">endif</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>header</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>entry-header<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token string single-quoted-string">'post'</span> <span class="token operator">===</span> <span class="token function">get_post_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">:</span>
+      <span class="token keyword">echo</span> <span class="token string single-quoted-string">'&lt;div class="entry-meta">'</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">is_single</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">:</span>
+          <span class="token class-name return-type">twentyseventeen_posted_on</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">else</span> <span class="token punctuation">:</span>
+          <span class="token keyword">echo</span> <span class="token function">twentyseventeen_time_link</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token function">twentyseventeen_edit_link</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">endif</span><span class="token punctuation">;</span>
+      <span class="token keyword">echo</span> <span class="token string single-quoted-string">'&lt;/div>&lt;!-- .entry-meta -->'</span><span class="token punctuation">;</span>
+    <span class="token keyword">endif</span><span class="token punctuation">;</span>
+  
+    <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">is_single</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token function">the_title</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'&lt;h1 class="entry-title">'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'&lt;/h1>'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token delimiter important">?></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>amp-link<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>Also available in <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">the_permalink</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span>/amp<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>AMP<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      <span class="token function">the_title</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'&lt;h2 class="entry-title">&lt;a href="'</span> <span class="token operator">.</span> <span class="token function">esc_url</span><span class="token punctuation">(</span> <span class="token function">get_permalink</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string single-quoted-string">'" rel="bookmark">'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'&lt;/a>&lt;/h2>'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token delimiter important">?></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>header</span><span class="token punctuation">></span></span><span class="token comment">&lt;!-- .entry-header --></span>
+
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token string single-quoted-string">''</span> <span class="token operator">!==</span> <span class="token function">get_the_post_thumbnail</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span> <span class="token function">is_single</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">:</span> <span class="token delimiter important">?></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>post-thumbnail<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">the_permalink</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span><span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">the_post_thumbnail</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'twentyseventeen-featured-image'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><span class="token comment">&lt;!-- .post-thumbnail --></span>
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">endif</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>entry-content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+    <span class="token comment">/* translators: %s: Name of current post */</span>
+    <span class="token function">the_content</span><span class="token punctuation">(</span> <span class="token function">sprintf</span><span class="token punctuation">(</span>
+            <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Continue reading&lt;span class="screen-reader-text"> "%s"&lt;/span>'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'twentyseventeen'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token function">get_the_title</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+    <span class="token function">wp_link_pages</span><span class="token punctuation">(</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+            <span class="token string single-quoted-string">'before'</span>      <span class="token operator">=></span> <span class="token string single-quoted-string">'&lt;div class="page-links">'</span> <span class="token operator">.</span> <span class="token function">__</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'Pages:'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'twentyseventeen'</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+           <span class="token string single-quoted-string">'after'</span>       <span class="token operator">=></span> <span class="token string single-quoted-string">'&lt;/div>'</span><span class="token punctuation">,</span>
+           <span class="token string single-quoted-string">'link_before'</span> <span class="token operator">=></span> <span class="token string single-quoted-string">'&lt;span class="page-number">'</span><span class="token punctuation">,</span>
+           <span class="token string single-quoted-string">'link_after'</span>  <span class="token operator">=></span> <span class="token string single-quoted-string">'&lt;/span>'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token delimiter important">?></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><span class="token comment">&lt;!-- .entry-content --></span>
+
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">is_single</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">:</span> <span class="token delimiter important">?></span></span>
+  <span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token function">twentyseventeen_entry_footer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span>
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span> <span class="token keyword">endif</span><span class="token punctuation">;</span> <span class="token delimiter important">?></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>article</span><span class="token punctuation">></span></span><span class="token comment">&lt;!-- #post-## --></span>                                
+</code></pre>
+<p>We don’t need to implement AMP functionality. That has been implemented through a third-party plugin that we’ll discuss in more detail in the next section.</p>
+<h2 id="when-to-use-third-party-plugins%3F">When to use third party plugins?</h2>
+<p>In the previous section we added a link to the <a href="https://www.ampproject.org/">AMP</a> version of single posts but we didn’t have to worry about how to convert the posts into AMP, I used a <a href="https://wordpress.org/plugins-wp/amp/">plugin</a> from Automattic to generate the AMP content. It will add code and customizable templates to make AMP work with your content; you can then choose to customize the code or use it as is.</p>
+<p>This is a good point to stop and ask ourselves why do we need plugins and how safe are we installing third party plugins (particularly form a security stand point).</p>
+<p>First things first. <strong>Only download plugins from sites you trust</strong>. Plugins can modify the way your Wordpress installation works and cause all sorts of unsafe and unpredictable consequences.</p>
+<p>Next. <strong>Make sure that you actually need the features you’re installing plugins for</strong>. Just like with all web content the more plugins you have installed the bigger an impact on performance.</p>
+<p>Lastly. <strong>Test the plugins in a development server</strong>. Before putting anything in a production server you need to test it in development server that mirrors as closely as possible your production environment.  If you can afford it it would also help to have third party reviews of your plugins and how they interact with your code.</p>
+<h2 id="using-wordpress-rest-api-to-create-a-completely-different-front-end">Using Wordpress REST API to create a completely different front end</h2>
+<blockquote>
+<p>WordPress is moving towards becoming a fully-fledged application framework, and we needed new APIs. This project was born to create an easy-to-use, easy-to-understand and well-tested framework for creating these APIs, plus creating APIs for core.</p>
+<p>…</p>
+<p>The API exposes a simple yet powerful interface to WP Query, the posts API, post meta API, users API, revisions API and many more. Chances are, if you can do it with WordPress, WP API will let you do it.</p>
+<p>from the <a href="https://wordpress.org/plugins/rest-api/">wp-api plugin page</a></p>
+</blockquote>
+<p>The API is included in the core Wordpress installation as of version 4.7 and newer. There is a <a href="https://wordpress.org/plugins/rest-api/">plugin</a> available for versions between 4.4 and 4.6</p>
+<p>So why would I use this API rather than the traditional Wordpress API?  The API gives you the freedom to create your UI and UX in whatever language you want and in whatever way your users will be most comfortable with. To test the API, and give myself a good refresher on Polymer, I created  a Polymer element that fetches the latest 10 posts from my blog and converts them to HTML.</p>
+<p>The code looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- iron-ajax action --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iron-ajax</span>
+      <span class="token attr-name">auto</span>
+      <span class="token attr-name">url</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://rivendellweb.net/wp-json/wp/v2/posts<span class="token punctuation">"</span></span>
+      <span class="token attr-name">params</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>{"page": 1, "_embed": 1}<span class="token punctuation">'</span></span>
+      <span class="token attr-name">handle-as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>json<span class="token punctuation">"</span></span>
+      <span class="token attr-name">last-response</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{{posts}}<span class="token punctuation">"</span></span>
+      <span class="token attr-name">debounce-duration</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>300<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iron-ajax</span><span class="token punctuation">></span></span>
+
+    <span class="token comment">&lt;!-- local DOM for your element --></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cards-container<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">is</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dom-repeat<span class="token punctuation">"</span></span> <span class="token attr-name">items</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{{posts}}<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>post<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>paper-card</span> <span class="token attr-name">heading</span> <span class="token attr-name">tab-index</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>0<span class="token punctuation">'</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>marked-element</span> <span class="token attr-name">markdown</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>[[post.title.rendered]]<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+              <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>markdown-html<span class="token punctuation">"</span></span> <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>marked-element</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>post-meta<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>created: [[post.date]]<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>last update: [[post.modified]]<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Posted by: [[post._embedded.author.0.name]] in [[post._embedded.wp:term.0.0.name]]<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- closes post-meta --></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>card-content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>[[post._embedded.wp:featuredmedia.0.link]]<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>[[post._embedded.wp:featuredmedia.0.media_details.sizes.large.source_url]]<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">is</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dom-if<span class="token punctuation">"</span></span> <span class="token attr-name">if</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>[[post.content.protected]]<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+              <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Private Post<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+
+              <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>This is a protected post and the content is not available outside the original blog it was posted in<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>marked-element</span> <span class="token attr-name">markdown</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>[[post.content.rendered]]<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+              <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>markdown-html<span class="token punctuation">"</span></span> <span class="token attr-name">tab-index</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>0<span class="token punctuation">'</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>marked-element</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- closes card-content --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>paper-card</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- closes cards-container --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span>
+</code></pre>
+<h3 id="examples-of-apps-built-with-the-rest-api">Examples of apps built with the REST API</h3>
+<ul>
+<li><a href="https://developer.wordpress.com/docs/api/rest-api-example-apps/">REST API example apps</a></li>
+<li><a href="http://codepen.io/krogsgard/pen/NRBqPp">WordPress Posts in React</a></li>
+</ul>
+<h2 id="when-it%E2%80%99s-best-to-create-a-theme-from-scratch">When it’s best to create a theme from scratch</h2>
+<p>The biggest and most complex customization option is to build a theme from scratch. I seldom start completely from scratch but use something like Sitepoint’s base theme, <a href="https://github.com/Automattic/_shttps://github.com/Automattic/_s">underscores</a>. I used to work with Thesis but dropped it when the development became too complicated to do without using individual blocks and being forced into visual design.</p>
+<p>Before you jump into this adventure consider the following list of pros and cons that I consider essential when considering if you want to develop a theme from scratch or not:</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>You can use whatever technology stack you’re most comfortable with (I uses SCSS for my styles and have used Coffeescript to write scripts before converting them to ES5)</li>
+<li>You have total control over the looks and styles of your site. You can create as many or few templates as you want</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>You need to know (or know where to find information about) how to fully build templates and the PHP Way to do things</li>
+<li>You still need to have a design ready to go. Tania’s article referenced later uses a Bootstrap template as the basis for a theme. Zurb Foundation also provides a <a href="http://foundation.zurb.com/templates-previews-sites-f6/blog.html">blog template</a> using their platform.</li>
+</ul>
+<p>Rather than tell you how to do it, mostly because it would take several posts just as long as this one to cover in the level of detail that this needs. Tania Rascia has a very good series of articles covering <a href="https://www.taniarascia.com/developing-a-wordpress-theme-from-scratch/">how to build a theme from scratch</a></p>
+<h2 id="closing">Closing</h2>
+<p>Customizing a Wordpress theme can be as complicated as you need it to be.  You can work on different levels of customization to achieve your desired result. With the suite of technologies we’ve discussed the possibilities are only limited by your imagination.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

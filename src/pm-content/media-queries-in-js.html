@@ -1,0 +1,65 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="css-media-queries-in-javascript">CSS Media Queries in Javascript</h1>
+<p>Since a lot of work we do in CSS we actually do in Javascript, I thought it would be good to research how we can do media queries in JS too.</p>
+<p>There are two ways to work with media queries. The first one is do something with the condition when the script first loads. In this example, create a media query using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia">window.matchMedia</a> to determine if the document matched the specified media query.</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// Define the query</span>
+<span class="token keyword">const</span> mediaQuery <span class="token operator">=</span> window<span class="token punctuation">.</span><span class="token function">matchMedia</span><span class="token punctuation">(</span><span class="token string">"(max-width: 768px)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Create a media condition that </span>
+<span class="token comment">// targets smaller than 768px wide</span>
+<span class="token keyword">const</span> mediumSizeQuery <span class="token operator">=</span> window<span class="token punctuation">.</span><span class="token function">matchMedia</span><span class="token punctuation">(</span><span class="token string">"(max-width: 768px)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>mediumSizeQuery<span class="token punctuation">.</span>matches<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"MediumSizeQuery Matched!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token comment">// If the query doesn't match, bail</span>
+  console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">"Media Query Didn' Match!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This will only happen once; the query will not be evaluated when the dimensions of the screen change.</p>
+<p>To make the media query responsive to we need to add an event listener</p>
+<p>The version that adds an event listener to listen for changes the media query is a little more complex but not very much so.</p>
+<ol>
+<li>The first step is to define the media query that we want to use</li>
+<li>We then define the function we will use as the handler for our event listener. In this case we console log whether the query matched or not</li>
+<li>We run the handler once before we add it to the event handler to have the results when the script first loads</li>
+<li>The final step is to attach a listener to the media query we built. We then use the function defined earlier as the handler.</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> mediaQuery <span class="token operator">=</span> window<span class="token punctuation">.</span><span class="token function">matchMedia</span><span class="token punctuation">(</span><span class="token string">"(max-width: 768px)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Define a handler function for the event listener.</span>
+<span class="token keyword">function</span> <span class="token function">handleSizeChange</span><span class="token punctuation">(</span><span class="token parameter">mq</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>mediaQuery<span class="token punctuation">.</span>matches<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"MediumSizeQuery Matched!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token comment">// If the query doesn't match, bail</span>
+    console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">"Media Query Didn' Match!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Run the handler once.</span>
+<span class="token function">handleSizeChange</span><span class="token punctuation">(</span>mediaQuery<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Add the callback function as the</span>
+<span class="token comment">// callback to the event listener</span>
+mediaQuery<span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span>handleSizeChange<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>I need to do more testing to see what are the limitations of <code>matchMedia</code> and how complex can the queries we use with it be.</p>
+<p>For more information see the <a href="https://drafts.csswg.org/cssom-view/#dom-window-matchmedia">window.matchMedia method</a> as defined in the <a href="https://drafts.csswg.org/cssom-view/">CSSOM (CSS Object Model) View Module</a> specification.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

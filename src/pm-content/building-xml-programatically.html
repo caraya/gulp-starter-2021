@@ -1,0 +1,201 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="building-xml-programatically">Building XML programatically</h1>
+<p>XML still hunts us. There are still XML vocabularies that are necessary for the web to work well. One of these vocabularies is <a href="https://www.w3.org/TR/SVG11/">SVG</a>, a means to create vector and mixed vector/raster graphics for the web.</p>
+<p>Writing these elements by hand can be error prone and it’s defnitely not fun. When researching another project (how to create a <code>content.opf</code> file for epub), I found the <a href="https://oozcitak.github.io/xmlbuilder2/">xmlbuilder2</a> library and it was a huge help for creating basic XML, including nested elements. So I started looking at how to use <code>xmlbuilder</code> to create basic SVG elements that I can reuse in my projects.</p>
+<p>The post will look at the basics of building XML with <code>xmlbuilder</code> and then at how to create SVG elements.</p>
+<h2 id="the-basics">The Basics</h2>
+<p>The basic routine is to use the <code>create()</code> method to create the XML document and then use one of these basic methods:</p>
+<ul>
+<li><code>.ele</code> creates an element</li>
+<li><code>.att</code> creates an attribute for the parent element
+<ul>
+<li>You can add multiple attributes by passing an array of attributes instead of a single one</li>
+</ul>
+</li>
+<li><code>.txt</code> insert the text as the text of the parent and forces a closing tag for the parent</li>
+<li><code>.up</code> closes the current element</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> root <span class="token operator">=</span> <span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'root'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'foo'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">txt</span><span class="token punctuation">(</span><span class="token string">'foo has text and attributes'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">att2</span><span class="token operator">:</span> <span class="token string">'val2'</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">att3</span><span class="token operator">:</span> <span class="token string">'val3'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// closes foo</span>
+    <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'bar'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">txt</span><span class="token punctuation">(</span><span class="token string">'Bar is a child of foo'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// Closes bar</span>
+    <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'baz'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// closes baz</span>
+  <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// closes root</span>
+
+<span class="token comment">// convert the XML tree to string</span>
+<span class="token keyword">const</span> xml <span class="token operator">=</span> root<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">headless</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">prettyPrint</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Now that we have a basic XML element, we’ll look at how to create SVG elements.</p>
+<h2 id="creating-svg">Creating SVG</h2>
+<p>Elements in SVG use the basic elements with new additions. They use <a href="https://www.w3.org/TR/xml-names/">XML namespaces</a> in addition to the bacis elements discussed above.</p>
+<p>The major change is the introduction of namespaces to separate the different vocabularies we use in our SVG.</p>
+<p>Whe creating the root element of the SVG document, we add a default namespace (<a href="https://w3.org/TR/SVG11">SVG</a>) and then we add attributes for any additional namespaces we use, in this case the <a href="https://www.w3.org/TR/xlink">XLink</a>.</p>
+<p>Note that to make things easier and avoid repetitive typing we created constants for the namespaces we use.</p>
+<p>When reading an SVG file, the browser assumes that any element without a namespace belongs in the default namespace for the document. Other namespaces need to be explicitly called for their elements or it will result in an error and be ignored.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> svgNs <span class="token operator">=</span> <span class="token string">'http://www.w3.org/2000/svg'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> xlinkNs <span class="token operator">=</span> <span class="token string">'http://www.w3.org/1999/xlink'</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span>svgNs<span class="token punctuation">,</span> <span class="token string">'svg'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'http://www.w3.org/2000/xmlns/'</span><span class="token punctuation">,</span> <span class="token string">'xmlns:xlink'</span><span class="token punctuation">,</span> xlinkNs<span class="token punctuation">)</span>
+</code></pre>
+<p>The complete basic SVG element creates a ricle with a set of dimensions, a fill and a stroke.</p>
+<p>It adds multiple attributes using the attribute array method to add the element attributes:</p>
+<ul>
+<li><code>cx</code></li>
+<li><code>cy</code></li>
+<li><code>r</code></li>
+<li><code>fill</code></li>
+<li><code>stroke</code></li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> create <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'xmlbuilder2'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> svgNs <span class="token operator">=</span> <span class="token string">'http://www.w3.org/2000/svg'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> xlinkNs <span class="token operator">=</span> <span class="token string">'http://www.w3.org/1999/xlink'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> doc <span class="token operator">=</span> <span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span>svgNs<span class="token punctuation">,</span> <span class="token string">'svg'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'http://www.w3.org/2000/xmlns/'</span><span class="token punctuation">,</span> <span class="token string">'xmlns:xlink'</span><span class="token punctuation">,</span> xlinkNs<span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span>svgNS<span class="token punctuation">,</span> <span class="token string">'circle'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">cx</span><span class="token operator">:</span> <span class="token number">50</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">cy</span><span class="token operator">:</span> <span class="token number">50</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">r</span><span class="token operator">:</span> <span class="token number">48</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">fill</span><span class="token operator">:</span> <span class="token string">'none'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">stroke</span><span class="token operator">:</span> <span class="token string">'#000'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> xmlString <span class="token operator">=</span> doc<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">headless</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">prettyPrint</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// optional during development</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>xmlString<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Running the code will produce the following SVG output:</p>
+<pre class="language-xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span> 
+<span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>circle</span> <span class="token attr-name">cx</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+          <span class="token attr-name">cy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+          <span class="token attr-name">r</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>48<span class="token punctuation">"</span></span> 
+          <span class="token attr-name">fill</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>none<span class="token punctuation">"</span></span>
+          <span class="token attr-name">stroke</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#000<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="building-complex-svg">Building complex SVG</h2>
+<p>We’ll leverage the work we’ve done so far with a few more elements to make it interesting.</p>
+<p>We createour root element and build the nested structure for the elements.</p>
+<p>The <code>xlink:href</code> attribute could be built with <code>xmlbuild2</code> functionality but I haven’t figured out how to do it yet.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> root <span class="token operator">=</span> <span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'svg'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">600</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token number">450</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">viewbox</span><span class="token operator">:</span> <span class="token string">'0 0 600 450'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'filter'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'id'</span><span class="token punctuation">,</span> <span class="token string">'myFilter'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'feGaussianBlur'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'stDeviation'</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// closes feGausianBlur</span>
+  <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// closes filter</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'image'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'xlink:href'</span><span class="token punctuation">,</span> <span class="token string">'image.png'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token string">'100%'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'100%'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">x</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">y</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">filter</span><span class="token operator">:</span> <span class="token string">'url(#myFilter)'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// closes svg</span>
+<span class="token keyword">const</span> xml <span class="token operator">=</span> root<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">headless</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token literal-property property">prettyPrint</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The code will produce the following SVG code.</p>
+<pre class="language-xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>450<span class="token punctuation">"</span></span>
+      <span class="token attr-name">viewbox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 600 450<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>filter</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>myFilter<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>feGaussianBlur</span> <span class="token attr-name">stDeviation</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>5<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>filter</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>image</span>  <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image.png<span class="token punctuation">"</span></span> 
+          <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>100%<span class="token punctuation">"</span></span>
+          <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>100%<span class="token punctuation">"</span></span>
+          <span class="token attr-name">x</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span>
+          <span class="token attr-name">y</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span>
+          <span class="token attr-name">filter</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>url(#myFilter)<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="modularizing-the-code">Modularizing the code</h2>
+<p>The code in the previous section works but it’s tedious to build and can lead to errors when inserting new elements or attributes.</p>
+<p>We can create fragments and insert them into the root document. This will give us flexibility of what we import and where we place it in the root document</p>
+<p>We need to import the <code>fragment</code> method. The import instruction looks like this:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>
+  create<span class="token punctuation">,</span>
+  fragment
+<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'xmlbuilder2'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We use the fragment method to create a new fragment, in this case the fragment contains the instructions to creaate the filter portion of the SVG</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> filter1 <span class="token operator">=</span> <span class="token function">fragment</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'filter'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'id'</span><span class="token punctuation">,</span> <span class="token string">'myFilter'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'feGaussianBlur'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'stDeviation'</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// closes feGausianBlur</span>
+  <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// closes filter</span>
+</code></pre>
+<p>In our root SVG element we use the <code>import</code> method refercing the variable holding our XML fragmet where want to place it in the root element code.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> root <span class="token operator">=</span> <span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'svg'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">600</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token number">450</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">viewbox</span><span class="token operator">:</span> <span class="token string">'0 0 600 450'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">import</span><span class="token punctuation">(</span>filter1<span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">ele</span><span class="token punctuation">(</span><span class="token string">'image'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token string">'xlink:href'</span><span class="token punctuation">,</span> <span class="token string">'image.png'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">att</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token string">'100%'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'100%'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">x</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">y</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">filter</span><span class="token operator">:</span> <span class="token string">'url(#myFilter)'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">up</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// closes svg</span>
+<span class="token keyword">const</span> xml <span class="token operator">=</span> root<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">headless</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token literal-property property">prettyPrint</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>With a setup like this, we can create as many fragments as we need and use them to build out the document as needed.</p>
+<h2 id="building-more-complex-documents">Building more complex documents</h2>
+<p>Rather than rehashing it here, I’ll direct you to <a href="https://publishing-project.rivendellweb.net/creating-epub3-content-opf-file/">Creating epub3 content.opf file</a> for an example of how to build more complex XML files using techniques like the ones discussed in this post.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="xproc%3A-a-pipeline-publishing-language">xproc: a pipeline publishing language</h1>
+<p>I am not allergic to XML, quite the opposite. When I first started writing I did in Docbook XML and the associated XSLT stylesheets and have written my own stylesheets and schemas for personal projects.</p>
+<p>Given that bit of background, XProc fills an interesting niche, a pipeline-based composition language that will allow processing of a document producing one or more output documents.</p>
+<p>There are two versions of XProc, the original 1.0 and the newer 3.0. Many newer developments happened in 3.0 but, as of this writing, there are no processors that support the new version. I hope this will change soon.</p>
+<p>Using version 1.0 for the examples, an XProc pipeline looks like this:</p>
+<pre class="language-xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>declare-step</span>
+  <span class="token attr-name"><span class="token namespace">xmlns:</span>p</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc<span class="token punctuation">"</span></span>
+  <span class="token attr-name"><span class="token namespace">xmlns:</span>c</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc-step<span class="token punctuation">"</span></span>
+  <span class="token attr-name">version</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.0<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 1 --></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 2 --></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>inline</span><span class="token punctuation">></span></span>
+         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>doc</span><span class="token punctuation">></span></span>Hello World!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>doc</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>inline</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>output</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>result<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span> <span class="token comment">&lt;!-- 3 --></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>identity</span><span class="token punctuation">/></span></span> <span class="token comment">&lt;!-- 4 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>declare-step</span><span class="token punctuation">></span></span>
+</code></pre>
+<ol>
+<li>Declare the root element of the pipeline (<code>p:declare-step</code>), the name spaces for <code>xproc</code> and <code>xproc-step</code> and the version</li>
+<li>The input for the pipeline, in this case it’s an inline XML element</li>
+<li>The output for the pipeline</li>
+<li>Makes a direct copy of the input document and sends it to the ouput</li>
+</ol>
+<p>This is the simplest pipeline possible. We’ll continue to improve from here.</p>
+<p>Using XProc 1.0 we seek to answer the following questions:</p>
+<ul>
+<li>Can we generate multiple outputs from the same source?</li>
+<li>Can we generate multiple outputs from a single pipeline or do we need multiple pipelines?</li>
+<li>Can we use third-party software installed on our local machines as part of the pipelines we create?</li>
+<li>How do we document pipelines?</li>
+<li>Can we use Markdown as a source document?</li>
+</ul>
+<p>Note that this research dive will not cover all of XProc 1.0. We don’t need the more esoterica validation (Schema and Schematron) or some of the programming structures available to the language.</p>
+<h2 id="getting-started">Getting Started</h2>
+<p>The following example pipeline uses a single <a href="https://www.w3.org/TR/xproc/#c.xslt">xslt</a> step to convert an XML file into another XML file for further processing.</p>
+<pre class="language-xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>declare-step</span>
+    <span class="token attr-name"><span class="token namespace">xmlns:</span>p</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc<span class="token punctuation">"</span></span>
+    <span class="token attr-name"><span class="token namespace">xmlns:</span>c</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc-step<span class="token punctuation">"</span></span>
+    <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>publishPipeline<span class="token punctuation">"</span></span>
+    <span class="token attr-name">version</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.0<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>xslt</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 1 --></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>document</span>
+              <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>film-collection.xml<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 2 --></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>document</span>
+              <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>authors_list.xslt<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>parameters<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 3 --></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>empty</span> <span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>xslt</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>store</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>authors.xml<span class="token punctuation">"</span></span>
+      <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xml<span class="token punctuation">"</span></span>
+      <span class="token attr-name">indent</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>declare-step</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The xslt step takes three inputs:</p>
+<ol>
+<li>The name of of the XML document we want to process</li>
+<li>The name of the XSLT stylesheet (either version <a href="https://www.w3.org/TR/1999/REC-xslt-19991116">1.0</a> or <a href="https://www.w3.org/TR/2009/PER-xslt20-20090421/">2.0</a>) that will transform the XSLT document</li>
+<li>One or more parameters. This input can be specified as empty using the <code>&lt;p:empty&gt;</code> element</li>
+</ol>
+<p>The <code>&lt;p:store&gt;</code> instruction takes  mandatory attributes like <code>href</code> to indicate the name and location for the resulting file and <code>method</code> to indicate the type of file it is (XML in this case)</p>
+<p>There’s an optional <code>indent</code> attribute to indicate if the file should preserve indentation or not.</p>
+<p>to summarize, the code in the example will take the XML file, process it with the given XSLT stylesheet and output the result to the given file.</p>
+<h2 id="multiple-tasks-in-the-same-pipeline">Multiple Tasks in the same pipeline</h2>
+<p>Using the same concept as before we can create multiple sub-steps to accomplish different steps into a single pipeline.</p>
+<p>These can use the same files or, as in the example, use different stylesheets and result files.</p>
+<pre class="language-xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>declare-step</span>
+    <span class="token attr-name"><span class="token namespace">xmlns:</span>p</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc<span class="token punctuation">"</span></span>
+    <span class="token attr-name"><span class="token namespace">xmlns:</span>c</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc-step<span class="token punctuation">"</span></span>
+    <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>publishPipeline<span class="token punctuation">"</span></span>
+    <span class="token attr-name">version</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.0<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>xslt</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 1 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>document</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>film-collection.xml<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>document</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>authors_list.xslt<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>parameters<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>empty</span> <span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>xslt</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>store</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>authors.xml<span class="token punctuation">"</span></span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xml<span class="token punctuation">"</span></span> <span class="token attr-name">indent</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>xslt</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 2 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>document</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>film-collection.xml<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>document</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>film-collection.xslt<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>parameters<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>empty</span><span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>input</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>xslt</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>store</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>films.html<span class="token punctuation">"</span></span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xhtml<span class="token punctuation">"</span></span> <span class="token attr-name">indent</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>declare-step</span><span class="token punctuation">></span></span>
+</code></pre>
+<ol>
+<li>The first step is the same as the example in the earlier section</li>
+<li>The second step in the pipeline is also the same as the example in the last section with different stylesheets and result values</li>
+</ol>
+<p>Yes, you can do different transformations as part of the same pipeline.</p>
+<p>The examples so far use different inputs but there’s nothing stopping us from using the same input file in different transformation scenarios</p>
+<h2 id="using-third-party-tools-to-generate-pdf">Using third party tools to generate PDF</h2>
+<p>This is my favorite trick and it’s a two part process:</p>
+<ol>
+<li>Generate HTML from Markdown</li>
+<li>Generate PDF from the HTML created in step 1</li>
+</ol>
+<p>XProc 1.0 makes this harder than it needs to be as we’ll have to execute external commands to accomplish the tasks.</p>
+<p>XProc 3.0 has pre-defined custom steps that automate the process. The following pipeline example uses</p>
+<pre class="language-xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>declare-step</span>
+    <span class="token attr-name"><span class="token namespace">xmlns:</span>p</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc<span class="token punctuation">"</span></span>
+    <span class="token attr-name"><span class="token namespace">xmlns:</span>c</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/ns/xproc-step<span class="token punctuation">"</span></span>
+    <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>publishPipeline<span class="token punctuation">"</span></span>
+    <span class="token attr-name">version</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.0<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>markdown-to-html</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span>
+    <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>markdown-to-html</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>css-formatter</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>css-formatter</span><span class="token punctuation">></span></span>
+</code></pre>
+<pre class="language-xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>declare-step</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>p:markdown-to-html<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span> <span class="token attr-name">primary</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">content-types</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>output</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>result<span class="token punctuation">"</span></span> <span class="token attr-name">primary</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">content-types</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>html<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>option</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>parameters<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>map(xs:QName, item()*)?<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>declare-step</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>declare-step</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>p:css-formatter<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>source<span class="token punctuation">"</span></span> <span class="token attr-name">content-types</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xml html<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>input</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">content-types</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">sequence</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>output</span> <span class="token attr-name">port</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>result<span class="token punctuation">"</span></span> <span class="token attr-name">content-types</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>any<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>option</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>parameters<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>map(xs:QName,item()*)?<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">p:</span>option</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-type<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xs:string?<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">p:</span>declare-step</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="links%2C-toools-and-references">Links, toools and references</h2>
+<ul>
+<li>Tools
+<ul>
+<li><a href="https://www.oxygenxml.com/">Oxygen XML editor</a></li>
+</ul>
+</li>
+<li>XProc 1.0
+<ul>
+<li><a href="https://www.w3.org/TR/2010/REC-xproc-20100511/">XProc Recommendation</a></li>
+<li>Implementations
+<ul>
+<li><a href="http://xmlcalabash.com/">Calabash</a> maintained by Norman Walsh</li>
+<li><a href="https://community.emc.com/community/edn/xmltech">Calumet</a>, EMC’s XProc implementation</li>
+<li><a href="http://www.xml-project.com/morganaxproc">MorganaXProc</a> developed by &lt;xml-project /&gt;</li>
+<li><a href="https://code.google.com/p/quixproc/QuiXProc">QuiXProc</a>, Innovimax’s (GPL) version in Java implementing  Streaming and Parallel processing</li>
+<li><a href="https://code.google.com/p/tubular/Tubular">Tubular</a> (LGPL) maintained by Herve Quiroz</li>
+<li><a href="https://code.google.com/p/xprocxq/xprocxq">xprocxq</a>, XQuery old implementation on top of eXist</li>
+<li><a href="https://github.com/xquery/xproc.xq">xproc.xq</a>, XQuery implementation on top of MarkLogic</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>XProc 3.0
+<ul>
+<li><a href="https://spec.xproc.org/lastcall-2019-12/head/xproc/">XProc 3.0 Last Call Draft</a></li>
+<li><a href="https://spec.xproc.org/master/head/steps/">XProoc 3.0 Standard Step Library Last Call Draft</a></li>
+<li><a href="https://spec.xproc.org/master/head/paged-media/">XProc 3.0: Paged Media Steps</a></li>
+<li><a href="https://spec.xproc.org/master/head/text/">XProc 3.0: text steps</a></li>
+<li>Implementations. <strong>Note that, as of this writing, there are currently no XProc 3.0 implementations available. The ones listed here are under development</strong>
+<ul>
+<li><a href="http://xmlcalabash.com/">Calabash</a> maintained by Norman Walsh</li>
+<li><a href="http://www.xml-project.com/morganaxproc">MorganaXProc</a> developed by &lt;xml-project /&gt;</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

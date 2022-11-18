@@ -1,0 +1,160 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="pushing-houdini-forward">Pushing Houdini Forward</h1>
+<p>I’ve written about Houdini before and how awesome it is. The articles I’ve written are:</p>
+<ul>
+<li><a href="https://publishing-project.rivendellweb.net/css-houdini-present-and-future-of-css/">CSS Houdini: Present and Future of CSS</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/css-houdini-properties-values/">CSS Houdini: Properties &amp; Values</a></li>
+<li><a href="https://publishing-project.rivendellweb.net/css-houdini-css-typed-object-model/">CSS Houdini: CSS Typed Object Model</a></li>
+</ul>
+<p>But, because it’s not widely deployed and not all APIs have equal level of support in the browsers where they work, it’s hard to get something that works well without having to rely on writing two versions of the code.</p>
+<p>It wasn’t until I saw <a href="https://css-houdini.web.app/talks/design-systems/#/0">Design System Magic with CSS Houdini</a> that I realized that you can combine the different APIs and make fully working designs with them. It also prompted me to start looking  at coombination of the different APIs and how to provide API fallbacks for browsers that have not implemented them.</p>
+<p>In <a href="https://www.youtube.com/watch?v=GhRE3rML9t4">CSS Houdini &amp; The Future of Styling</a>, Una Kravets makes an interesting case for Houdini Custom Properties and Houdini APIs to style the web now and how much powerful these APIs can make your styles and design systems.</p>
+<h2 id="examples">Examples</h2>
+<p>Most of the Houdini APIs will take CSS elements as input. We can leverage Houdini Custom Properties. An example, taken from the specification.</p>
+<p>The body of the page contains the following content. In thehead of the document we add the styles:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css">
+  <span class="token selector">#example</span> <span class="token punctuation">{</span>
+    <span class="token property">--circle-color</span><span class="token punctuation">:</span> deepskyblue<span class="token punctuation">;</span>
+
+    <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">paint</span><span class="token punctuation">(</span>circle<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">font-family</span><span class="token punctuation">:</span> sans-serif<span class="token punctuation">;</span>
+    <span class="token property">font-size</span><span class="token punctuation">:</span> 36px<span class="token punctuation">;</span>
+    <span class="token property">transition</span><span class="token punctuation">:</span> --circle-color 1s<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token selector">#example:focus</span> <span class="token punctuation">{</span>
+    <span class="token property">--circle-color</span><span class="token punctuation">:</span> purple<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>In the body of the document we add the element we add the textarea element we’ll be working in and a script that will add the custom property, using <code>CSS.registerProperty</code> and load our paint worklet.</p>
+<p>We feature test that the methods are available before we run them. If they are not available we log the fact to the console; in a production application we may want to add the custom property via CSS and load a polyfill for the Paint API.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>textarea</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>example<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>CSS is awesome.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>textarea</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'registerProperty'</span> <span class="token keyword">in</span> <span class="token constant">CSS</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--circle-color'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'deepskyblue'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'property successfuly registered'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Houdini custom properties not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'paintWorklet'</span> <span class="token keyword">in</span> <span class="token constant">CSS</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token constant">CSS</span><span class="token punctuation">.</span>paintWorklet<span class="token punctuation">.</span><span class="token function">addModule</span><span class="token punctuation">(</span><span class="token string">'circle.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'paint worklet added successfully'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Paint API not supported or not working properly'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The paint worklet for this example registers input properties that we’ll take from the page’s existing properties and custom properties. The browser doesn’t care how we created the custom property, only that it exists.</p>
+<p>The syntax of the Paint Worklet is a subset of the Canvas API. Text rendering methods are missing and for security reasons you cannot read back pixels from the canvas.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">registerPaint</span><span class="token punctuation">(</span><span class="token string">'circle'</span><span class="token punctuation">,</span> <span class="token keyword">class</span> <span class="token punctuation">{</span>
+  <span class="token keyword">static</span> <span class="token keyword">get</span> <span class="token function">inputProperties</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token string">'--circle-color'</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">paint</span><span class="token punctuation">(</span><span class="token parameter">ctx<span class="token punctuation">,</span> size<span class="token punctuation">,</span> properties</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Get fill color from property</span>
+    <span class="token keyword">const</span> color <span class="token operator">=</span> properties<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'--circle-color'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Determine the center point and radius.</span>
+    <span class="token keyword">const</span> xCircle <span class="token operator">=</span> size<span class="token punctuation">.</span>width <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> yCircle <span class="token operator">=</span> size<span class="token punctuation">.</span>height <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> radiusCircle <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">min</span><span class="token punctuation">(</span>xCircle<span class="token punctuation">,</span> yCircle<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">2.5</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Draw the circle \o/</span>
+    ctx<span class="token punctuation">.</span><span class="token function">beginPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ctx<span class="token punctuation">.</span><span class="token function">arc</span><span class="token punctuation">(</span>xCircle<span class="token punctuation">,</span> yCircle<span class="token punctuation">,</span> radiusCircle<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">2</span> <span class="token operator">*</span> Math<span class="token punctuation">.</span><span class="token constant">PI</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ctx<span class="token punctuation">.</span>fillStyle <span class="token operator">=</span> color<span class="token punctuation">;</span>
+    ctx<span class="token punctuation">.</span><span class="token function">fill</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Other worklets you may find in the whild will have inputArguments instead. I’m researching how to use input arguments… the examples I’ve found don’t work in Chrome (stable or cannary).</p>
+<h2 id="polifilling">Polifilling</h2>
+<p>Houdini is awesome when it works, but what do we do when it doesn’t?</p>
+<p>Different areas of the Houdini universe have different ways to polyfill the APIs and not all APIs have been implemented to where having a polyfill.</p>
+<p>There is a <a href="https://github.com/GoogleChromeLabs/css-paint-polyfill/tree/master/demo">CSS Paint Polyfill</a> from Jason Miller.</p>
+<p><a href="https://www.npmjs.com/package/postcss-register-custom-props">PostCSS Register Custom Property</a> works by converting CSS-based custom element syntax (basically writing Houdini properties in CSS) using the syntax below:</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@property</span> --theme</span> <span class="token punctuation">{</span>
+  <span class="token property">syntax</span><span class="token punctuation">:</span> <span class="token string">'&lt;color>+'</span><span class="token punctuation">;</span>
+  <span class="token property">initial-value</span><span class="token punctuation">:</span> #fff<span class="token punctuation">;</span>
+  <span class="token property">inherits</span><span class="token punctuation">:</span> true<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>and converting it to Javascript</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"registerProperty"</span> <span class="token keyword">in</span> <span class="token constant">CSS</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">"--theme"</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">"&lt;color>+"</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">"#fff"</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="packaging-ideas-together">Packaging Ideas together</h2>
+<p>Another way to support Houdini APIs is to package them for consumption like <a href="https://twitter.com/una">Una Kravets</a> did with <a href="https://extra-css.netlify.com/">Extra.css</a>.</p>
+<p>Rather than provide a do-it-yourself framework where you’re responsible for all the details, it provides ready to use examples that you just link to your page.</p>
+<p>The following example, taken from: <a href="https://extra-css.netlify.com/">https://extra-css.netlify.com/</a> illustrates the process.</p>
+<p>In the HTML document we load the paint Worklet as a Javascript file.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Hello<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">/></span></span> World<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>content goes here<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+
+<span class="token comment">&lt;!-- This is where we include the worklet --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>https://unpkg.com/extra.css/crossOut.js<span class="token punctuation">'</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The CSS portion is where the magic happens. The CSS Paint API allows you to define custom paints, defined in the paint worklet, that we can use everywhere you ocan use an image.</p>
+<p>We wrap our CSS in a <a href="https://www.youtube.com/watch?v=KbXy0f0aCN0">@supports</a> statement to make sure that the browser supports the feature we’re working with before we actually use it.  We can also leverage the cascade to make sure we have something that works, either CSS variables, Houdini variables and APIs or soomething else.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">paint</span><span class="token punctuation">(</span>something<span class="token punctuation">)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">h1</span> <span class="token punctuation">{</span>
+    <span class="token property">--extra-crossColor</span><span class="token punctuation">:</span> #fc0<span class="token punctuation">;</span>
+    <span class="token property">--extra-crossWidth</span><span class="token punctuation">:</span> 3<span class="token punctuation">;</span>
+
+    <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">paint</span><span class="token punctuation">(</span>extra-crossOut<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token property">line-height</span><span class="token punctuation">:</span> 1.5<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token selector">span</span> <span class="token punctuation">{</span>
+    <span class="token property">--extra-crossColor</span><span class="token punctuation">:</span> #d4f<span class="token punctuation">;</span>
+    <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">paint</span><span class="token punctuation">(</span>extra-crossOut<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="more">More</h2>
+<ul>
+<li><a href="https://drafts.css-houdini.org/">Drafts of Houdini Specifications</a></li>
+<li><a href="https://ishoudinireadyyet.com/">Is Houdini ready yet‽</a> tracks status of Houdini APIs support across browsers</li>
+<li><a href="https://www.youtube.com/watch?v=lK3OiJvwgSc">State of Houdini (Chrome Dev Summit 2018) Video</a></li>
+<li><a href="https://css-houdini.rocks/">CSS Houdini Experiments</a>
+<ul>
+<li><a href="https://css-houdini.rocks/svg-path-layout/">SVG Path layout</a></li>
+</ul>
+</li>
+<li><a href="https://houdini.glitch.me/">CSS Houdini</a></li>
+<li><a href="https://css-tricks.com/the-css-paint-api/">The CSS Paint API</a></li>
+<li><a href="https://codersblock.com/blog/say-hello-to-houdini-and-the-css-paint-api/">Say Hello to Houdini and the CSS Paint API</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

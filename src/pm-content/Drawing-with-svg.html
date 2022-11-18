@@ -1,0 +1,152 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="drawing-with-svg%3A-lines%2C-shapes%2C-paths%2C-groups%2C-def-and-use">Drawing with SVG: Lines, Shapes, paths, groups, def and use</h1>
+<p>Since SVG is a drawing format, it makes sense to cover drawing commands and ways to reuse content. Also note that the elements are not in the order I will use them.</p>
+<h2 id="the-container">The container</h2>
+<p><code>&lt;svg&gt;</code> Wraps and defines the entire graphic. <code>&lt;svg&gt;</code> is to a scalable vector graphic what the <code>&lt;html&gt;</code> element is to a web page.</p>
+<p>The example below is the minimum SVG example:</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">viewbox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 100 100<span class="token punctuation">"</span></span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- content goes here --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>I’ve chosen to use CSS for the height and width of the SVG images and to explicitly list the default name space for SVG along with the name space for XLink, which we’ll use to create links inside the SVG element.</p>
+<h2 id="drawing-primitives">Drawing Primitives</h2>
+<p>Now that we’ve refreshed our minds about the SVG element and ViewBox attribute let’s draw.</p>
+<h3 id="line">Line</h3>
+<p>The simplest drawing primitive is <code>line</code>. It will draw a single straight line between too coordinates, defined by the pairs <code>x1 y1</code> and <code>x2 y2</code> and a <code>stroke</code> that represents the line’s color. These are all required attributes</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">viewbox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 100 100<span class="token punctuation">"</span></span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>line</span>   <span class="token attr-name">x1</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>10<span class="token punctuation">"</span></span> <span class="token attr-name">y1</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>10
+          x2=<span class="token punctuation">"</span></span><span class="token attr-name">90"</span> <span class="token attr-name">y2</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+          <span class="token attr-name">stroke</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>rebeccapurple<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<h3 id="polyline">Polyline</h3>
+<p>&lt;polyline creates straight lines connecting several points; usually creating open shapes as the last point doesn’t have to be connected to the first point.</p>
+<p>The points attribute is mandatory and represents the coordinates for the different coordinates for the line.</p>
+<p><code>fill</code> represents the color inside the lines and <code>stroke</code> represents the color of the lines themselves.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">viewbox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 200 100<span class="token punctuation">"</span></span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+  <span class="token comment">&lt;!-- Example of the same polyline shape with stroke and no fill --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>polyline</span> <span class="token attr-name">points</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0,
+                    25 150,
+                    25 150,
+                    75 200,
+                    0<span class="token punctuation">"</span></span>
+            <span class="token attr-name">fill</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blue<span class="token punctuation">"</span></span> <span class="token attr-name">stroke</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>black<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p><code>polyline</code> is different than a poligon, discussed later.</p>
+<h3 id="rect">Rect</h3>
+<p><code>rect</code> allows us to create rectanles and squares in SVG. We can control whether the element has rounded corners and both the line (stroke) color and the color of the inside of the element.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 220 100<span class="token punctuation">"</span></span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- Simple rect element --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>rect</span> <span class="token attr-name">x</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>10<span class="token punctuation">"</span></span> <span class="token attr-name">y</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>10<span class="token punctuation">"</span></span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+
+  <span class="token comment">&lt;!-- Rounded corner rect element --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>rect</span> <span class="token attr-name">x</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>120<span class="token punctuation">"</span></span> <span class="token attr-name">y</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>10<span class="token punctuation">"</span></span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span> <span class="token attr-name">rx</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>15<span class="token punctuation">"</span></span> <span class="token attr-name">ry</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>15<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>It takes four required attributes and, at least, four optional ones. The required attributes are:</p>
+<ul>
+<li><code>x</code> and <code>y</code> are the coordinates for the rectangle’s origin</li>
+<li><code>width</code> and <code>height</code> are the rectangle’s dimensions</li>
+</ul>
+<p>The optional attributes I use the most are:</p>
+<ul>
+<li><code>rx</code> and <code>ry</code> control the size of the rounded corners. Combined they are similar to CSS’ border radius property</li>
+<li><code>stroke</code> controls the color of the line drawing the element</li>
+<li><code>fill</code> controls the color inside of the element drawn with the stroke color</li>
+</ul>
+<p>If you use <code>stroke</code> and <code>fill</code> you must use both. At least in Chrome, using one of these will render the element invisible.</p>
+<h3 id="circle">Circle</h3>
+<p>Circles are self explainatory. They draw circles of the given radius at the specified coordinates.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 100 100<span class="token punctuation">"</span></span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>circle</span> <span class="token attr-name">cx</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>25<span class="token punctuation">"</span></span> <span class="token attr-name">cy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>22<span class="token punctuation">"</span></span> <span class="token attr-name">r</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>20<span class="token punctuation">"</span></span>
+    <span class="token attr-name">fill</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>navy<span class="token punctuation">"</span></span> <span class="token attr-name">stroke</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>transparent<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">opacity</span><span class="token punctuation">:</span> 0.25</span><span class="token punctuation">"</span></span></span><span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<ul>
+<li><code>cx</code> and <code>cy</code> indicate the position of the ellipse</li>
+<li><code>r</code> indicates the radius of the circle</li>
+</ul>
+<h3 id="ellipse">Ellipse</h3>
+<p>The ellipse element is what SVG uses to draw ellipses based on a center coordinate, and both their x and y radius.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 200 100<span class="token punctuation">"</span></span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ellipse</span> <span class="token attr-name">cx</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>100<span class="token punctuation">"</span></span> <span class="token attr-name">cy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span> <span class="token attr-name">rx</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>100<span class="token punctuation">"</span></span> <span class="token attr-name">ry</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The required attributes are:</p>
+<ul>
+<li><code>cx</code> and <code>cy</code> indicate the position of the ellipse</li>
+<li><code>rx</code> and <code>ry</code> represents the individual radius (X and Y) of the ellipse</li>
+</ul>
+<p>Optional attributes</p>
+<ul>
+<li><code>stroke</code> controls the color of the line drawing the element</li>
+<li><code>fill</code> controls the color inside of the element drawn with the stroke color</li>
+</ul>
+<p>If you use <code>stroke</code> and <code>fill</code> you must use both. At least in Chrome, using one of these will render the element invisible.</p>
+<h2 id="polygon">Polygon</h2>
+<p>Here’s where things get interesting. Polygons allow us to create multiline closed shape consisting of a set of connected straight line segments… think of all the faces of each shape of your <a href="https://en.wikipedia.org/wiki/Dice#Standard_variations">RPG dice</a>. The last point is connected to the first point unlike the <code>polyline</code> element where the shapes are open.</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>  <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 100 100<span class="token punctuation">"</span></span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>polygon</span> <span class="token attr-name">points</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 20, 40 20, 20 0<span class="token punctuation">"</span></span>
+            <span class="token attr-name">stroke</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>black<span class="token punctuation">"</span></span> <span class="token attr-name">fill</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>purple<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>polygon</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The polygon has only one require attribute. <code>points</code> defines at least three set of coordinates for the lines we want to draw.</p>
+<h2 id="path">Path</h2>
+<p>This is the heavy duty drawing element in SVG. I will cover the basics here and will refer you to MDN articles on the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path">path</a> element and the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">d</a> attribute.</p>
+<p>Where all the elements we’ve discussed so far allow you to draw discrete elements, the path allows you to create arbitrary elements using movement and drawing primitives exclusive to the path element.</p>
+<p>SVG defines 6 types of path commands, for a total of 20 commands:</p>
+<ul>
+<li>MoveTo: <code>M</code>, <code>m</code></li>
+<li>LineTo: <code>L</code>, <code>l</code>, <code>H</code>, <code>h</code>, <code>V</code>, <code>v</code></li>
+<li>Cubic Bézier Curve: <code>C</code>, <code>c</code>, <code>S</code>, <code>s</code></li>
+<li>Quadratic Bézier Curve: <code>Q</code>, <code>q</code>, <code>T</code>, <code>t</code></li>
+<li>Elliptical Arc Curve: <code>A</code>, <code>a</code></li>
+<li>ClosePath: <code>Z</code>, <code>z</code></li>
+</ul>
+<p>Note that the commands are case sensitive and that the upper case <code>M</code> command means something diffrent than lower case <code>m</code>. See the reference for the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands">d command</a> on MDN for a full reference.</p>
+<p>In the example below we perform the following tasks:</p>
+<pre class="language-svg"><code class="language-svg"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 100 100<span class="token punctuation">"</span></span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>path</span> <span class="token attr-name">d</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span> M 10,30
+            A 20,20 0,0,1 50,30
+            A 20,20 0,0,1 90,30
+            Q 90,60 50,90
+            Q 10,60 10,30 z<span class="token punctuation">"</span></span>
+      <span class="token attr-name">fill</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>red<span class="token punctuation">"</span></span> <span class="token attr-name">stroke</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>transparent<span class="token punctuation">"</span></span>
+    <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>In this example we move the drawing element to a set of coordinates, we draw two arcs and we draw two elements using quadratic bezier curves before we close the path to make a full shape.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>I know that doing this by hand can be too much. Fortunately, tools like <a href="https://www.adobe.com/products/illustrator.html?">Adobe Illustrator</a> from Adobe and <a href="https://inkscape.org/">Inkscape</a> allow you to export illustrations as SVG to use on the web.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

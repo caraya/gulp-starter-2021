@@ -1,0 +1,47 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="supporting-additional-media-formats-in-wordpress">Supporting additional media formats in WordPress</h1>
+<p>I was surprised when the WordPress media uploader blocked uploading WebP images. These are not like SVG graphics that have all sorts of security problems so I’m surprised that WordPress supports the video format (WebM) but not the image format (WebP).</p>
+<p>Even if we fix the problem for WebP we will face it again and again when we want to add new image formats like HEIC and AVIF or other media formats like epub ebooks and others. It is true that we could host them elsewhere and just link to them from WordPress but it’s hard to manage and coordinate the different resources and locations.</p>
+<p>We also need to account for security. As discussed in <a href="https://core.trac.wordpress.org/ticket/40175">Trac 40175</a> there are major security issues with SVG (the format referenced in that discussion) and potentially other formats you work with.  If you allow collaborators to your site to upload any type of file to your WordPress installation can you guarantee with absolute certainty that they scripts in the ebooks they are uploading are not harmful?</p>
+<p>To balance the need for security with the ability to upload the files we need to so the site will work as we want to we have to do a little coding.</p>
+<p>As with almost everything in WordPress, setting up the custom mime types is a two step process.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_mime_types</span><span class="token punctuation">(</span> <span class="token variable">$mime_types</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// WebP images</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'webp'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/webp'</span><span class="token punctuation">;</span>
+  <span class="token comment">// HEIF Images</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'heic'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/heic'</span><span class="token punctuation">;</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'heif'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/heif'</span><span class="token punctuation">;</span>
+  <span class="token comment">// HEIF Image Sequence</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'heics'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/heic-sequence'</span><span class="token punctuation">;</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'heifs'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/heif-sequence'</span><span class="token punctuation">;</span>
+  <span class="token comment">// AVIF Images</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'avif'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/avif'</span><span class="token punctuation">;</span>
+  <span class="token comment">// AVIF Image Seuqence</span>
+  <span class="token variable">$mime_types</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'avis'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'image/avif-sequence'</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">return</span> <span class="token variable">$mime_types</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'upload_mimes'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'rivendellweb_mime_types'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">1</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>First we create a function where we add all the mimetypes we want to add and return the <code>$mime_types</code> variable with the additional mimetypes.</p>
+<p>We then use the <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/upload_mimes">upload_mimes filter</a> with the function we just created as the callback.</p>
+<p>Be patient.</p>
+<p>When I made this change to my production system it took WordPress significantly longer to process WebP images and show me the icons in the media library. I’m not sure if this is because of WordPress or the Cloudinary media management plugin that I use… it’s still something worth keeping in mind.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

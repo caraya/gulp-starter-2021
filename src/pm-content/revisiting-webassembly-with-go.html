@@ -1,0 +1,310 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="revisiting-webassembly-with-go">Revisiting WebAssembly with Go</h1>
+<p>It’s been a while since I’ve looked at WebAssembly and Go. Some things have changed since then and I want to document as I revisit them.</p>
+<p>Some of these changes deal with the evolution of Go as a programming language, some of them deal with Go’s support for Webassmebly, and some have dealt with the evolution of WebAssembly.</p>
+<h2 id="first-project%3A-building-a-template">First project: Building a template</h2>
+<p>Before we start looking at specific projects, let’s look at what we need to do to compile Go to WebAssembly.</p>
+<p>The first step is to initialize the project from GO. We do this by running the following command:</p>
+<pre class="language-bash"><code class="language-bash">go mod init go-project
+</code></pre>
+<p>The resulting go.mod will look like this:</p>
+<pre class="language-text"><code class="language-text">module go-project
+
+go 1.17
+</code></pre>
+<p>As we install more packages, they will be added to <code>go.mod</code> so that when people build and run our code they will be in sync with the packages the author used to write it.</p>
+<p><code>hello-world</code> is the simplest example we can write and run</p>
+<pre class="language-go"><code class="language-go"><span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+  <span class="token string">"fmt"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Hello World from Go"</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The compilation itself is simple:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token assign-left variable">GOOS</span><span class="token operator">=</span>js <span class="token assign-left variable">GOARCH</span><span class="token operator">=</span>wasm go build <span class="token parameter variable">-o</span> main.wasm
+</code></pre>
+<p>This is similar to how we crosscompile Go to platforms other than the one we’re compiling on.</p>
+<p><code>GOOS</code> defines the target operating system. in this case we choose <code>js</code> which is the target OS for WebAssembly.</p>
+<p><code>GOARCH</code> defines the target architecture. The target for WebAssembly is <code>wasm</code>.</p>
+<p>We the two flags set, we rung go build to compile the code, we use the <code>-o</code> to specify the name of the output file, and we use the <code>.wasm</code> extension to indicate this is a WebAssembly file.</p>
+<p>The next part is to load the glue Javascript code into the browser.</p>
+<p><code>wasm_exec.js</code> is available with the Go installation. You need to copy it into the js directory of your project with the following command:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">cp</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>go <span class="token function">env</span> GOROOT<span class="token variable">)</span></span>/misc/wasm/wasm_exec.js"</span> ./js
+</code></pre>
+<p>The Javascript is straight forward. I’m experimenting with <a href="https://fastify.io">fastify</a> to build a simple HTTP server. You could do it with <a href="https://expressjs.com/">Express</a> or any other framework of your choosing</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> fastify <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fastify'</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">logger</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'path'</span><span class="token punctuation">)</span>
+
+<span class="token comment">// Serve the static assets</span>
+fastify<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fastify-static'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">root</span><span class="token operator">:</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">prefix</span><span class="token operator">:</span> <span class="token string">'/'</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">start</span> <span class="token operator">=</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword">await</span> fastify<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">8080</span><span class="token punctuation">,</span> <span class="token string">"0.0.0.0"</span><span class="token punctuation">)</span>
+
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"server listening on:"</span><span class="token punctuation">,</span> fastify<span class="token punctuation">.</span>server<span class="token punctuation">.</span><span class="token function">address</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>port
+    <span class="token punctuation">)</span>
+<span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  fastify<span class="token punctuation">.</span>log<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>The HTML portion of the project is where the magic happens. We will discuss the script inside the HTML document that will actually run the code.</p>
+<p>The code follows these steps:</p>
+<ol>
+<li>The <code>Go()</code> function provides the Go WASM runtime brought by <code>wasm_exec.js</code> (it handles all the binding between the wasm file and the JavaScript API)</li>
+<li><code>instantiateStreaming</code> allows to load the WebAssembly module from a streamed source.
+<ul>
+<li>This function takes two parameters: the “streamed” wasm file and an <code>importObject</code> (an object containing the values to be imported into the newly-created WebAssembly Instance)
+<ul>
+<li>The first parameter: <code>fetch(main.wasm)</code> directly streams the <code>main.wasm</code> module</li>
+<li>The Go Wasm runtime provides a ready to use importObject that we call with <code>go.importObject;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>If the WebAssembly module loads successfully, we run the instance using <code>go.run(result.instance)</code></li>
+<li>If the module fails to load we log the error to console</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> go <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Go</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// 1</span>
+
+WebAssembly<span class="token punctuation">.</span><span class="token function">instantiateStreaming</span> <span class="token punctuation">(</span><span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">"main.wasm"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> go<span class="token punctuation">.</span>importObject<span class="token punctuation">)</span> <span class="token comment">// 2</span>
+<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">result</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"main.wasm is loaded"</span><span class="token punctuation">)</span>
+  go<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>instance<span class="token punctuation">)</span> <span class="token comment">// 3</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"ouch"</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span> <span class="token comment">// 4</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="interacting-with-the-browser-dom">Interacting with the browser DOM</h2>
+<p>One of the newer things I’ve learned about working with Go and WebAssembly is the ability to interact with the browser DOM.</p>
+<p>We do this by using the <a href="https://pkg.go.dev/syscall/js">syscall/js</a> package</p>
+<pre class="language-go"><code class="language-go"><span class="token keyword">package</span> main
+  <span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"syscall/js"</span>
+  <span class="token punctuation">)</span>
+
+  <span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    message <span class="token operator">:=</span> <span class="token string">"Hello World from Go"</span>
+    document <span class="token operator">:=</span> js<span class="token punctuation">.</span><span class="token function">Global</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span><span class="token string">"document"</span><span class="token punctuation">)</span>
+    h2 <span class="token operator">:=</span> document<span class="token punctuation">.</span><span class="token function">Call</span><span class="token punctuation">(</span><span class="token string">"createElement"</span><span class="token punctuation">,</span> <span class="token string">"h2"</span><span class="token punctuation">)</span>
+    h2<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"innerHTML"</span><span class="token punctuation">,</span> message<span class="token punctuation">)</span>
+    document<span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span><span class="token string">"body"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Call</span><span class="token punctuation">(</span><span class="token string">"appendChild"</span><span class="token punctuation">,</span> h2<span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>All the code from the previous section remains the same.</p>
+<h2 id="having-go-and-javascript-talk-to-each-other">Having Go and Javascript talk to each other</h2>
+<p>Using the <a href="https://pkg.go.dev/syscall/js">syscall/js</a> package we can leverage the best language for a given task and then have them communicate with each other.</p>
+<h3 id="calling-a-go-function-from-javascript">Calling a Go function from Javascript</h3>
+<p>Import the <code>syscall/js</code> package (this package allows the WebAssembly to access the host environment (the browser)).</p>
+<p>The Hello function takes two parameters (this and args) and returns an <code>interface{}</code> type.</p>
+<p>We retrieve the first argument passed to the Hello function from JavaScript.</p>
+<p>To export the Hello function to the global JavaScript context, we use the <code>FuncOf</code> Go method (<code>FuncOf</code> is used to create a Func type).</p>
+<pre class="language-go"><code class="language-go"><span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+  <span class="token string">"syscall/js"</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">func</span> <span class="token function">Hello</span><span class="token punctuation">(</span>this js<span class="token punctuation">.</span>Value<span class="token punctuation">,</span> args <span class="token punctuation">[</span><span class="token punctuation">]</span>js<span class="token punctuation">.</span>Value<span class="token punctuation">)</span> <span class="token keyword">interface</span><span class="token punctuation">{</span><span class="token punctuation">}</span> <span class="token punctuation">{</span>
+  message <span class="token operator">:=</span> args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">return</span> <span class="token string">"Hello "</span> <span class="token operator">+</span> message
+<span class="token punctuation">}</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  js<span class="token punctuation">.</span><span class="token function">Global</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">,</span> js<span class="token punctuation">.</span><span class="token function">FuncOf</span><span class="token punctuation">(</span>Hello<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We also need to update the script inside <code>index.html</code> to call the <code>Hello</code> function.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">loadWasm</span><span class="token punctuation">(</span><span class="token parameter">path</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> go <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Go</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Promise</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">resolve<span class="token punctuation">,</span> reject</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    WebAssembly<span class="token punctuation">.</span><span class="token function">instantiateStreaming</span><span class="token punctuation">(</span>
+        <span class="token function">fetch</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        go<span class="token punctuation">.</span>importObject
+      <span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">result</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        go<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>instance<span class="token punctuation">)</span>
+        <span class="token function">resolve</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>instance<span class="token punctuation">)</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        <span class="token function">reject</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">loadWasm</span><span class="token punctuation">(</span><span class="token string">"main.wasm"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">wasm</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> message <span class="token operator">=</span> <span class="token function">Hello</span><span class="token punctuation">(</span><span class="token string">"Bob Morane"</span><span class="token punctuation">)</span>
+  document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">"h1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> message
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Once the wasm file is loaded and executed, we can call the Hello function.</p>
+<p>Change the value of the <code>&lt;h1&gt;&lt;/h1&gt;</code> tag with the result of the Hello function.</p>
+<h3 id="calling-a-javascript-function-from-go">Calling a Javascript function from Go</h3>
+<p>The WebAssembly Go runtime converts the Go types to JavaScript types:</p>
+<table>
+<thead>
+<tr>
+<th>Go</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>js.Value</td>
+<td>[its value]</td>
+</tr>
+<tr>
+<td>js.Func</td>
+<td>function</td>
+</tr>
+<tr>
+<td>nil</td>
+<td>null</td>
+</tr>
+<tr>
+<td>bool</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>integers and floats</td>
+<td>number</td>
+</tr>
+<tr>
+<td>string</td>
+<td>string</td>
+</tr>
+<tr>
+<td>[]interface{}</td>
+<td>new array</td>
+</tr>
+<tr>
+<td>map[string]interface{}</td>
+<td>new object</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>syscall/js</code> package provides the functions to access the wasm environment and to the host. Thanks to this package, we can access the
+functions and variables of the JavaScript host (your browser).</p>
+<p>This example shows different things that you can do with the <code>syscall/js</code> package.</p>
+<ol>
+<li>Call the sayHello JavaScript function with a string as parameter (Bill)</li>
+<li>Get the value of the message JavaScript variable</li>
+<li>Change the value of the message JavaScript variable</li>
+<li>Get the bill JavaScript object</li>
+<li>Add 2 fields with values to the bill JavaScript object</li>
+<li><code>&lt;-make(chan bool)</code> tells the Go application that we don’t want to exit by using a <a href="https://gobyexample.com/channels">channel</a>
+<ul>
+<li>The channel waits for data and will pause the execution until it receives data.</li>
+</ul>
+</li>
+</ol>
+<pre class="language-go"><code class="language-go"><span class="token keyword">package</span> main
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+  <span class="token string">"fmt"</span>
+  <span class="token string">"syscall/js"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// 1</span>
+  fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>js<span class="token punctuation">.</span><span class="token function">Global</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Call</span><span class="token punctuation">(</span><span class="token string">"sayHello"</span><span class="token punctuation">,</span> <span class="token string">"Bill"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+  <span class="token comment">// 2</span>
+  message <span class="token operator">:=</span> js<span class="token punctuation">.</span><span class="token function">Global</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+  fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"message (before):"</span><span class="token punctuation">,</span> message<span class="token punctuation">)</span>
+  
+  <span class="token comment">// 3</span>
+  js<span class="token punctuation">.</span><span class="token function">Global</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">"Hello from Go"</span><span class="token punctuation">)</span>
+  
+  <span class="token comment">//4 </span>
+  bill <span class="token operator">:=</span> js<span class="token punctuation">.</span><span class="token function">Global</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span><span class="token string">"bill"</span><span class="token punctuation">)</span>
+
+  fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"bill (before):"</span><span class="token punctuation">,</span> bill<span class="token punctuation">)</span>
+
+  <span class="token comment">// 5</span>
+  bill<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"firstName"</span><span class="token punctuation">,</span> <span class="token string">"Bill"</span><span class="token punctuation">)</span> 
+  bill<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"lastName"</span><span class="token punctuation">,</span> <span class="token string">"Ballantine"</span><span class="token punctuation">)</span>
+
+  <span class="token comment">// 6</span>
+  <span class="token operator">&lt;-</span><span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We also need to change the script in <code>index.html</code>.</p>
+<p>We create Javascript functions and constants that will be used in conjunction with the Go code.</p>
+<p>The <code>loadWasm</code> function is used to load the Wasm file without having to write it every time.</p>
+<p>We then load the Wasm file, execute the code and call the functioons defined in Go.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> message <span class="token operator">=</span> <span class="token string">"this is a message"</span>
+
+<span class="token keyword">function</span> <span class="token function">sayHello</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Hello </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> bill <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token number">42</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">loadWasm</span><span class="token punctuation">(</span><span class="token parameter">path</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> go <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Go</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Promise</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">resolve<span class="token punctuation">,</span> reject</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    WebAssembly<span class="token punctuation">.</span><span class="token function">instantiateStreaming</span><span class="token punctuation">(</span>
+        <span class="token function">fetch</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        go<span class="token punctuation">.</span>importObject
+      <span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">result</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        go<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>instance<span class="token punctuation">)</span>
+        <span class="token function">resolve</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>instance<span class="token punctuation">)</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        <span class="token function">reject</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Load the wasm file</span>
+<span class="token function">loadWasm</span><span class="token punctuation">(</span><span class="token string">"main.wasm"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">wasm</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"message (after):"</span><span class="token punctuation">,</span> message<span class="token punctuation">)</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"bill (after):"</span><span class="token punctuation">,</span> bill<span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"ouch"</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>So we can create Go code that provides functionality to Javascript applications and consumes data from Javascript.</p>
+<p>So what’s next?</p>
+<p>There are several things that we can explore from here. Some of them include</p>
+<ul>
+<li>Reduce the size of the Wasm binaries by using <a href="https://tinygo.org/">TinyGo</a> and understanding the tradeofs and limitations of the TinyGo subset of the language</li>
+<li>Using different abstraction layers like Wasmtime, Wasmedge and Wasmer, and WASI to create standalone applications that run WebAssembly
+<ul>
+<li>Take advantage of tools like <a href="https://github.com/suborbital/subo">subo</a>, part of the <a href="https://github.com/suborbital/subo">Suborbital</a> family of tools</li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

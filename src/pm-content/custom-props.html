@@ -1,0 +1,209 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="houdini-properties-%26-values">Houdini Properties &amp; Values</h1>
+<p>If you haven’t read my prior articles about CSS Houdini, I’ll point you to the video below by Tab Atkins where he talk about Houdini as a (far) future combination of CSS and Javascript (he should know, he edits the Houdini specs and a whole bunch of other CSS specs for W3C).</p>
+<p>This is not CSS in JS but a way to use JS to hook into the browser’s rendering lifecycle to add your own bits and pieces. With this we don’t have to wait for browser vendors to implement a feature, we can create our version that will fail gracefully if the browser doesn’t understand Houdini, calc or CSS variables.</p>
+<div class="video">
+<iframe src="https://player.vimeo.com/video/242890906?byline=0&portrait=0" width="560" height="315" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+</div>
+<p>Properties and values are CSS Variables in steroids. The spec is designed to address the shortcomings of variables as first implemented:</p>
+<ul>
+<li>Custom properties allow for validation because we know what kind of value they have without having to parse and check for errors on every use
+<ul>
+<li>It’s not a string but a proper CSS Typed OM value</li>
+</ul>
+</li>
+<li>We can assign default/initial values
+<ul>
+<li>No manual error handling every time the property is used</li>
+<li>Provides a sensibble default when there is an error</li>
+</ul>
+</li>
+<li>We can decide if the property inherits down the cascade or not
+<ul>
+<li>Variables as currently defined always inherit</li>
+</ul>
+</li>
+<li>Allows for animating and transitioning of the custom properties
+<ul>
+<li>Values are known Typed OM values</li>
+</ul>
+</li>
+</ul>
+<p>Now that we know why these custom properties are important let’s look at how they work.</p>
+<h2 id="registering-properties">Registering Properties</h2>
+<p>The firs step in using custom properties is to define them in JavaScript.</p>
+<p><code>CSS.registerProperty</code> (case sensitive) does this by taking</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'registerProperty'</span> <span class="token keyword">in</span> <span class="token constant">CSS</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--my-custom-prop'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'black'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>There are 4 values that we need to pass to <code>registerProperty</code>:</p>
+<p>The <strong>name</strong> is what we’ll use to reference the property. The two dashes at the beginning should be familiar from CSS variables and are required. This is how we’ll distinguish our custom variables and properties from what the CSS WG does and will do in the future.</p>
+<p><strong>Syntax</strong> indicates the possible syntaxes for the property. The following values are available in level 1 of the spec and matching corresponding units in <a href="https://drafts.csswg.org/css-values-3/">CSS Values and Units Module Level 3</a></p>
+<ul>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#lengths">length</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#numeric-types">number</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#percentages">percentage</a></li>
+<li>length-percentage (defined in the CSS Properties spec)
+<ul>
+<li>Any valid <code>&lt;length&gt;</code></li>
+<li>Any valid <code>&lt;percentage&gt;</code></li>
+<li>Any valid <code>&lt;calc()&gt;</code> expression combining <code>&lt;length&gt;</code> and <code>&lt;percentage&gt;</code> components.</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/css-color-3/#valuea-def-color">color</a> (defined in CSS Color spec)</li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#images">image</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#urls">url</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#integers">integer</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#angles">angle</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#time">time</a></li>
+<li><a href="https://www.w3.org/TR/2018/WD-css-values-4-20180814/#resolution">resolution</a></li>
+<li><a href="(https://www.w3.org/TR/css-transforms-1/#two-d-transform-functions)">transform-function</a></li>
+<li>transform-list
+<ul>
+<li>One or more transform functions</li>
+</ul>
+</li>
+<li><a href="https://www.w3.org/TR/css3-values/#identifier-value">custom-ident</a></li>
+<li>Identifiers
+<ul>
+<li>Any sequence consisting of a <a href="https://www.w3.org/TR/css-syntax-3/#name-start-code-point">name-start code point</a>, followed by zero or more <a href="https://www.w3.org/TR/css-syntax-3/#name-code-point">name code points</a>, which matches the &lt;<a href="https://www.w3.org/TR/css3-values/#identifier-value">custom-ident</a>&gt; production</li>
+</ul>
+</li>
+</ul>
+<p>In addition you can use the following modifiers or replacement tokens for the syntax:</p>
+<ul>
+<li>* any value</li>
+<li>| logical or (one or the other)</li>
+<li>
+<ul>
+<li>one or more of the type specified</li>
+</ul>
+</li>
+<li># one or more of the type specified <strong>separated by commas</strong></li>
+</ul>
+<p>You can create farily complex syntax for your custom properties but until we become familiar with them, I advocate for the KISS (Keep It Simple Silly) principle.</p>
+<p><code>Inherit</code> tells the CSS parser if this custom rule should propagate down the cascade. Setting it to fallse gives us more power to style specific elements wituout being afraid to mess up elements further down the chain.</p>
+<p>The final value is an <code>initialValue</code>. Use this to provide a sensible default for the property. We’ll analyze why this is important later.</p>
+<p>That’s it… we now have a custom property.</p>
+<h2 id="using-custom-properties">Using custom properties</h2>
+<p>To demonstrate how to use Custom Properties we’ll reuse the <code>--bg-color</code> Javascript example and use it in several different elements.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--bg-color'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'red'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The CSS will not be any different than if we used variables. But the things it does for free are much more interresting.</p>
+<p>First we define common parameters to create 200px by 200px squares using <code>div</code> elements.</p>
+<pre class="language-scss"><code class="language-scss"><span class="token selector">div </span><span class="token punctuation">{</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 1px solid black<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><code>.smoosh1</code> and <code>.smoosh2</code> set up colors other than the initial value and each have a different color to change on hover.</p>
+<pre class="language-scss"><code class="language-scss"><span class="token selector">.smoosh1 </span><span class="token punctuation">{</span>
+  <span class="token property">--bg-color</span><span class="token punctuation">:</span> rebeccapurple<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--bg-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">transition</span><span class="token punctuation">:</span> --bg-color 0.3s linear<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 50vh<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 15vw<span class="token punctuation">;</span>
+
+  <span class="token selector"><span class="token parent important">&amp;</span>:hover </span><span class="token punctuation">{</span>
+    <span class="token property">--bg-color</span><span class="token punctuation">:</span> orange<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.smoosh2 </span><span class="token punctuation">{</span>
+  <span class="token property">--bg-color</span><span class="token punctuation">:</span> teal<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--bg-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">transition</span><span class="token punctuation">:</span> --bg-color 0.3s linear<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 20em<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 45em<span class="token punctuation">;</span>
+
+  <span class="token selector"><span class="token parent important">&amp;</span>:hover </span><span class="token punctuation">{</span>
+    <span class="token property">--bg-color</span><span class="token punctuation">:</span> pink<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><code>.smoosh3</code> was set up with a wrong type of color (1 is not a valid CSS color). In normal CSS the rule would be ignored and there would be no background color. Because we added an <code>initialValue</code> to the property, it’ll take this value instead of giving an error.</p>
+<pre class="language-scss"><code class="language-scss"><span class="token selector">.smoosh3 </span><span class="token punctuation">{</span>
+  <span class="token property">--bg-color</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--bg-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">transition</span><span class="token punctuation">:</span> --bg-color 0.3s linear<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 5em<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 35em<span class="token punctuation">;</span>
+
+  <span class="token selector"><span class="token parent important">&amp;</span>:hover </span><span class="token punctuation">{</span>
+    <span class="token property">--bg-color</span><span class="token punctuation">:</span> lightgrey<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>You can see the full working demo in <a href="https://codepen.io/caraya/pen/KxZRKV">Codepen</a></p>
+<h2 id="why-is-this-important%3F">Why is this important?</h2>
+<p>There are a couple reasons that make custom properties particularly useful.</p>
+<h3 id="validation">Validation</h3>
+<p>As we saw in the last section, custom properties allow for default initial values that give developers a way to avoid errors or unexpected behavior.</p>
+<p>If we define the following custom property:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token constant">CSS</span><span class="token punctuation">.</span><span class="token function">registerProperty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'--bg-color'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">syntax</span><span class="token operator">:</span> <span class="token string">'&lt;color>'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">inherits</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">initialValue</span><span class="token operator">:</span> <span class="token string">'red'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>And mistakenly use the property with the following declaration below:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.dark-theme-section</span> <span class="token punctuation">{</span>
+  <span class="token property">--bg-color</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We would expect to get an error or, in CSS, to ignore the rule altogether. But, as the demo showed, the CSS will use the initial value.</p>
+<p>We can also test what the value is using Javascript.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> section <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'.smoosh3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> styles <span class="token operator">=</span> <span class="token function">getComputedStyle</span><span class="token punctuation">(</span>section<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> themeColor <span class="token operator">=</span> styles<span class="token punctuation">.</span><span class="token function">getPropertyValue</span><span class="token punctuation">(</span><span class="token string">'--bg-color'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>themeColor<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// "red"</span>
+</code></pre>
+<h3 id="animations">Animations</h3>
+<p>CSS variables don’t provide good support for animation because the browser doesn’t know what type of value it has.</p>
+<p>Because we assign a value to the property now the parser knows what to do with the property when we ask to animate it.</p>
+<p>The <a href="https://codepen.io/caraya/pen/KxZRKV">Codepen Demo</a> shows how the animation works.</p>
+<p>We could do further modularization in the animation itself by creating properties for the animation parameters or the positioning of each individual content… but, for now, baby steps are OK.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li><a href="https://www.w3.org/TR/css-properties-values-api-1/">Spec</a></li>
+<li><a href="https://vitaliy-bobrov.github.io/blog/css-custom-properties-in-depth/">CSS Custom Properties In Depth</a></li>
+<li><a href="https://danielcwilson.com/blog/2018/02/houdini-quickstart/">Houdini Quickstart</a></li>
+<li><a href="https://css-houdini.rocks/">CSS Houdini Experiments</a></li>
+<li><a href="https://www.smashingmagazine.com/2016/03/houdini-maybe-the-most-exciting-development-in-css-youve-never-heard-of/">Houdini on Smashing Mag</a></li>
+<li><a href="https://developers.google.com/web/updates/2018/03/cssom/">Working with the new CSS Typed Object Model</a></li>
+<li><a href="https://medium.com/@mutebg/houdini-could-be-like-babel-but-for-css-7110d7cb6d60">Houdini is like Babel but for CSS</a></li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

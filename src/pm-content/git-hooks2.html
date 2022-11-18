@@ -1,0 +1,40 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="git-hooks-to-keep-code-clean">git hooks to keep code clean</h1>
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/bin/bash</span>
+<span class="token assign-left variable">files</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">git</span> <span class="token function">diff</span> <span class="token parameter variable">--cached</span> --name-only <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">'\.jsx\?$'</span><span class="token variable">)</span></span>
+
+<span class="token comment"># Prevent ESLint help message if no files matched</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token variable">$files</span> <span class="token operator">=</span> <span class="token string">""</span> <span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token builtin class-name">exit</span> <span class="token number">0</span>
+<span class="token keyword">fi</span>
+
+<span class="token assign-left variable">failed</span><span class="token operator">=</span><span class="token number">0</span>
+<span class="token keyword">for</span> <span class="token for-or-select variable">file</span> <span class="token keyword">in</span> <span class="token variable">${files}</span><span class="token punctuation">;</span> <span class="token keyword">do</span>
+  <span class="token function">git</span> show <span class="token builtin class-name">:</span><span class="token variable">$file</span> <span class="token operator">|</span> eslint <span class="token variable">$file</span>
+  <span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token variable">$?</span> <span class="token operator">!=</span> <span class="token number">0</span> <span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">;</span> <span class="token keyword">then</span>
+    <span class="token assign-left variable">failed</span><span class="token operator">=</span><span class="token number">1</span>
+  <span class="token keyword">fi</span>
+<span class="token keyword">done</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token variable">$failed</span> <span class="token operator">!=</span> <span class="token number">0</span> <span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token builtin class-name">echo</span> <span class="token string">"🚫🚫🚫 ESLint failed, git commit denied!"</span>
+  <span class="token builtin class-name">exit</span> <span class="token variable">$failed</span>
+<span class="token keyword">fi</span>
+</code></pre>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

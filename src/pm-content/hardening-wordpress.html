@@ -1,0 +1,170 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="security-hardening-wordpress">Security Hardening WordPress</h1>
+<p>WordPress security is as good as you make it and you can always make it better. This post will discuss tools and techniques for making your WordPress installation more secure.</p>
+<p>Some of these are default choices in WordPress but some are not only not the defaults but you have to manually added to configuration files or .htaccess files.</p>
+<p>Some of these rules will make local development harder as we expect constant change. However, these are excellent for production sites where we don’t expect major changes and we expect them to be slower in adapting new code.</p>
+<div class="message warning">
+  <p>This post links to third party plugins in the WordPress Plugin Directory. They are what I use and they've proven good for my use.</p>
+  <p>Please, always test third party plugins and themes on a development environment away from production data and users.</p>
+</div>
+<h2 id="disable-automatic-registration">Disable automatic registration</h2>
+<p>The first idea is an easy one. Disable automatic user account creation for your site.</p>
+<p>Yes, I get that we’re disallowing legitimate users from logging in to the site but I consider this a fair price to pay to prevent bots and other bad actors from running crazy on my sites.</p>
+<p>It happens that this is the easiest task to complete. From Inside the Administrator Interface go to <em><strong>General</strong></em> and about midway down the screen you will see option to allow anyone to register and a pulldown menu to indicate the new user’s default role.</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v
+  1590803364/publishing-project.rivendellweb.net/disallow-user-creation-wp-admin.png" alt="">
+  <figcaption>WordPress settings for membership and new user default role.</figcaption>
+</figure>
+<p>Make sure that the default values shown in the figure above remains as they are unless you’re ready to do the work of managing users and their roles.</p>
+<p>Unless you have a lot of users you can create accounts and assign roles manually.</p>
+<h2 id="check-file-permissions">Check file permissions</h2>
+<p>The next item on my list is to check the permissions of the files in my WordPress installation. If you are used to the octal three-digit representation of Unix permissions we want our directories to have permissions of 755 and our files to have permission of 640.</p>
+<p>We don’t want anyone but the owner of the files, the user who WordPress was installed under, to have access to the WordPress files.</p>
+<h2 id="protect-configurationn-file-from-direct-access">Protect configurationn file from direct access</h2>
+<p>Next on the list, we need to make sure that our configuration file, <code>wp-config.php</code> is not readable by anyone who doesn’t need to. The configuration file containes the name and credentials for the WordPress database and the salt for all our security tools like nonces.</p>
+<p>To disable access we add the following code to the <code>.htaccess</code> file at the root of our WordPress installation.</p>
+<p>Make sure this code is at the top of the file, before the generated code for permalinks.</p>
+<pre class="language-apacheconf"><code class="language-apacheconf"><span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>Files</span><span class="token directive-block-parameter attr-value"> wp-config.php</span><span class="token punctuation">></span></span>
+
+	<span class="token comment"># Apache &lt; 2.3</span>
+	<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>IfModule</span><span class="token directive-block-parameter attr-value"> !mod_authz_core.c</span><span class="token punctuation">></span></span>
+		<span class="token directive-inline property">Order</span> <span class="token directive-inline property">allow</span>,deny
+		<span class="token directive-inline property">Deny</span> from all
+		<span class="token directive-inline property">Satisfy</span> All
+	<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>IfModule</span><span class="token punctuation">></span></span>
+
+	<span class="token comment"># Apache >= 2.3</span>
+	<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>IfModule</span><span class="token directive-block-parameter attr-value"> mod_authz_core.c</span><span class="token punctuation">></span></span>
+		<span class="token directive-inline property">Require</span> all denied
+	<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>IfModule</span><span class="token punctuation">></span></span>
+
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>Files</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="use-.htaccess-to-prevent-access-to-files">Use .htaccess to prevent access to files</h2>
+<p>In addition to making sure people can snoop on our configuration file we need to make sure that they can’t guess what files we have stored in our WordPress installation.</p>
+<p>It uses Apache’s <a href="https://httpd.apache.org/docs/2.4/mod/mod_alias.html">mod_alias</a> and the <a href="https://httpd.apache.org/docs/2.4/mod/mod_alias.html#redirectmatch">RedirectMatch</a> directive to redirect a list of indicated files and extensions to a 403 status code, denying access to the requested resource.</p>
+<pre class="language-apacheconf"><code class="language-apacheconf"><span class="token comment"># SECURE LOOSE FILES</span>
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>IfModule</span><span class="token directive-block-parameter attr-value"> mod_alias.c</span><span class="token punctuation">></span></span>
+	<span class="token directive-inline property">RedirectMatch</span> 403 (?i)(<span class="token regex">^</span><span class="token comment">#.*#|~)$</span>
+	<span class="token directive-inline property">RedirectMatch</span> 403 (?i)/readme\.(html|txt|md)
+	<span class="token directive-inline property">RedirectMatch</span> 403 (?i)\.(ds_store|well-known)
+	<span class="token directive-inline property">RedirectMatch</span> 403 (?i)/wp-config-sample\.php
+	<span class="token directive-inline property">RedirectMatch</span><span class="token regex"> 403 (?i)\.(7z|bak|bz2|com|conf|dist|fla|git|inc|ini|log|old|psd|rar|tar|tgz|save|sh|sql|svn|swo|swp)$</span>
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>IfModule</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>With these rules we make sure that people can’t get our backups and other sensitive files directly from the server.</p>
+<h2 id="prevent-administrators-from-editing-theme-and-plugin-files">Prevent administrators from editing theme and plugin files</h2>
+<p>Depending on the situation you may not want administrators to edit themes and plugins from the admin UI. This is particularly important when contractors and other third parties have access to admininsrative areas and, if allowed, can edit any plugin or theme installed on the server and make unexpected changes and introduce malware to your system.</p>
+<p>To disable editing, add the following command to your <code>wp-config.php</code> if it doesn’t exist already.</p>
+<p>To Reenable editing set the attribute to false or remove it altogether.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'DISALLOW_FILE_EDIT'</span><span class="token punctuation">,</span> <span class="token constant boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+</span></code></pre>
+<h2 id="disable-directory-listing">Disable Directory Listing</h2>
+<p>Another way for external users to snoop in and potentially gain information about your system to use in an exploit is to see what files are on your WordPress installation by being able to see the files inside your installation.</p>
+<p>The easiest way to fix this issue is to add an empty <code>index.html</code> or <code>index.php</code> in directories where one is not available</p>
+<h2 id="remove-version-number">Remove Version Number</h2>
+<p>Surprisingly the version number of WordPress can be used as a weapon by hackers and other bad actors. Once they identify a vulnerability in a given version of a software they will look for it so they can use the vulnerabilities in those specific versions.</p>
+<p>The code goes in the theme’s <code>functions.php</code> and it does the following:</p>
+<ol>
+<li>Removes the version number in HTML pages by removing the <code>generator</code> meta tag</li>
+<li>Removed the version number from the RSS feed by returning an empty string instead of the generator string</li>
+<li>Removes the version query string attribute from scripts</li>
+<li>Removes the version query string attribute from style sheets</li>
+</ol>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">remove_action</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'wp_head'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp_generator'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 1</span>
+
+<span class="token function">add_filter</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'the_generator'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'__return_empty_string'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 2</span>
+
+<span class="token comment">// remove version from scripts and styles</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_remove_version_scripts_styles</span><span class="token punctuation">(</span><span class="token variable">$src</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">strpos</span><span class="token punctuation">(</span><span class="token variable">$src</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'ver='</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token variable">$src</span> <span class="token operator">=</span> <span class="token function">remove_query_arg</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'ver'</span><span class="token punctuation">,</span> <span class="token variable">$src</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">return</span> <span class="token variable">$src</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span>
+  <span class="token string single-quoted-string">'style_loader_src'</span><span class="token punctuation">,</span>
+  <span class="token string single-quoted-string">'rivendellweb_remove_version_scripts_styles'</span><span class="token punctuation">,</span> <span class="token number">9999</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+<span class="token function">add_filter</span><span class="token punctuation">(</span>
+  <span class="token string single-quoted-string">'script_loader_src'</span><span class="token punctuation">,</span>
+  <span class="token string single-quoted-string">'rivendellweb_remove_version_scripts_styles'</span><span class="token punctuation">,</span> <span class="token number">9999</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 4</span>
+</span></code></pre>
+<p>These changes don’t prevent WordPress from working but it will remove the version of WordPress from all the places it appears in the WordPress pages and feeds.</p>
+<h2 id="limit-number-of-login-attempts">Limit Number of Login Attempts</h2>
+<p>One basic way to reduce the impact of bad actors getting user names for a brute force attack is to limit the number of times they can attempt to log into your system</p>
+<p><a href="https://wordpress.org/plugins/wp-cerber/">Cerber Security, Antispam &amp; Malware Scan</a> allows you to control login attempts and disallows further access when the limits are exceeded.</p>
+<figure>
+  <img
+    src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v1590961415/publishing-project.rivendellweb.net/cerber-security-logins-config.png"
+    alt="Cerber Security Plugin Login Configuration"
+  >
+  <figcaption>Cerber Security Plugin Login Configuration</figcaption>
+</figure>
+<h2 id="stop-user-enumeration">Stop User Enumeration</h2>
+<p>User Enumeration is a type of attack where nefarious parties can probe your website to discover your login name. This is often a pre-cursor to brute-force password attacks.</p>
+<p>The idea is to block the user enumeration attack and make the following brute force attack harder.</p>
+<p>For example, a hacker trying to attack your site could run the following URLs to hit the REST API in order to get information about users in our WordPress installation.</p>
+<pre class="language-html"><code class="language-html">http://example.com/wp-json/wp/v2/users/1
+http://example.com/wp-json/wp/v2/users/2
+http://example.com/wp-json/wp/v2/users/3
+http://example.com/wp-json/wp/v2/users/4
+http://example.com/wp-json/wp/v2/users/5
+</code></pre>
+<p>We could also automate the discovery with something like CURL or Wget.</p>
+<p>There purpose built plugins against these types of attacks like <a href="https://wordpress.org/plugins/stop-user-enumeration/">Stop user enumeration</a></p>
+<p>General purpose security plugins like <a href="https://wordpress.org/plugins/wp-cerber/">Cerber Security, Antispam &amp; Malware Scan</a> also have the option to stop enumeration attacks.</p>
+<h2 id="monitor-usage">Monitor Usage</h2>
+<p>This is important if you use contractors as part of your admin team and you want to keep track of what’s going on in your syste.</p>
+<p>Use a pluging like <a href="https://wordpress.org/plugins/aryo-activity-log/">Activity Log</a> to track activity on your server. This answers the “who did it” question</p>
+<p>If you haven’t disabled editing access for administrators then a plugin like <a href="https://wordpress.org/plugins/website-file-changes-monitor/">Website File Changes Monitor</a> will let you see what files were added, modified or deleted from your WordPress installation. THis answers the “what was done” question.</p>
+<h2 id="things-to-consider">Things To Consider</h2>
+<p>These are not hard requirements but things that are worth considering and that may improve security for your users but it takes work from them.</p>
+<h3 id="do-you-want-to-allow-hotlinking%3F">Do You Want to Allow Hotlinking?</h3>
+<p>Hotlinking is when websites other than your own link to your assets. This can have adverse effect on your bandwidth and your content can be used for things you won’t aprove of.</p>
+<p>To prevent hotlinking you can use the following <code>.htaccess</code> fragment.</p>
+<pre class="language-apacheconf"><code class="language-apacheconf"> <span class="token comment"># STOP HOTLINKING</span>
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;</span>IfModule</span><span class="token directive-block-parameter attr-value"> mod_rewrite.c</span><span class="token punctuation">></span></span>
+  <span class="token comment"># 1</span>
+	<span class="token directive-inline property">RewriteCond</span> <span class="token variable">%{HTTP_REFERER}</span><span class="token regex"> !^$</span>
+	<span class="token comment"># 2</span>
+  <span class="token directive-inline property">RewriteCond</span> <span class="token variable">%{HTTP_REFERER}</span> !<span class="token regex">^http(s)?://([^.]+\.)?rivendellweb\.net </span><span class="token directive-flags keyword">[NC]</span>
+	<span class="token comment"># 3</span>
+  <span class="token directive-inline property">RewriteRule</span><span class="token regex"> \.(gif|jpe?g?|png|webp|woff2|woff)$</span> - <span class="token directive-flags keyword">[NC,F,L]</span>
+<span class="token directive-block tag"><span class="token directive-block tag"><span class="token punctuation">&lt;/</span>IfModule</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The idea behind the fragment is that:</p>
+<ol>
+<li>If there is a referer, meaning the request comes from a fully qualified URL</li>
+<li>And the URL doesn’t match our domain our domain, in this case <code>rivendellweb.net</code> either in http or https</li>
+<li>Then fail all the requests for images and fonts identified by their extension</li>
+</ol>
+<p>We can add additional extensions to the list in step 3 to make sure we keep our content on our own server.</p>
+<h3 id="consider-two-factor-authentication">Consider Two-Factor Authentication</h3>
+<p>Two-factor authentication uses a second means of authenticating you before you’re allowed access to WordPress.</p>
+<p>I ran this <a href="https://wordpress.org/plugins/search/two+factor+authentication/">two-factor authentication plugin search</a> on the <a href="http://WordPress.org">WordPress.org</a> plugin directory. I will not advocate any particular solution.</p>
+<p>However if you use <a href="https://wordpress.org/plugins/duo-wordpress/">Duo Two-Factor Authentication</a> or the  <a href="https://wordpress.org/plugins/google-authenticator/">Google Authenticator Plugin</a> for other two-factor authentication needss, you can leverage those tools with your WordPress installation.</p>
+<p>Two Factor Authentication presents an interesting issue. Unless you make two factor authentication mandatory for all users (which would make sense) you’ll have to use something like the <a href="https://wordpress.org/plugins/google-authenticator-per-user-prompt/">Google Authenticator – Per User Prompt</a> oor its equivalent for your authenticator so it will only show it to the users who have opted in to authentication.</p>
+<h3 id="consider-a-wordpress-based-firewall">Consider A WordPress-Based Firewall</h3>
+<p>The last consideration we’ll adress in this post is whether to add a software firewall in addition to whatever hardware or software firewall your host provides. There are <a href="https://www.uscybersecurity.net/firewall-hardware-firewall-software/">difference between software and hardware firewalls</a> that should be kept in mind when making the decision.</p>
+<p>I ran a <a href="https://wordpress.org/plugins/search/firewalls">firewall plugin</a> query on he WordPress plugin directory for reference.</p>
+<p>The plugin that caught my attention and I’ve used in the past is <a href="https://wordpress.org/plugins/block-bad-queries/">Block Bad Queries (BBQ)</a>. The only drawback is that you can’t customize the settings, for that you need a <a href="https://plugin-planet.com/bbq-pro/">pro version</a></p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

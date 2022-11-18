@@ -1,0 +1,69 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="compressing-avif-images-with-gulp">Compressing AVIF images with Gulp</h1>
+<p>Now that AVIF support is enabled by default in Chrome stable (85) and Firefox (behind a flag) we really should look at how to encode images to AVIF as part of a build workflow.</p>
+<p>In my normal workflow, I use <a href="https://www.npmjs.com/package/imagemin">imagemin</a>, <a href="https://www.npmjs.com/package/gulp-imagemin">gulp-imagemin</a>, <a href="www.npmjs.com/package/imagemin-mozjpeg">imagemin-mozjpeg</a>, <a href="www.npmjs.com/package/imagemin-webp">imagemin-webp</a>, and, experimentally, <a href="https://www.npmjs.com/package/imagemin-guetzli">imagemin-guetzli</a>.</p>
+<p>As of right now there is no Node package to compress AVIF images (either direct library manipulation or wrapper for the existing scripts) so we’re left to explore other options.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/image/upload/v1599713591/publishing-project.rivendellweb.net/squosh.png' alt='Squosh compressing an image to AVIF'>
+  <figcaption>Squosh compressing an image to AVIF</figcaption>
+</figure>
+<p>The first one is use a tool like <a href="https://squoosh.app/">Squoosh</a> from the Google Chrome team. It is awesome to have the option to do it online but, once you go beyond a handfult of images, the manual process gets tedious and can hog your browser. As Jake Archibald points out in <a href="https://jakearchibald.com/2020/avif-has-landed/">AVIF has landed</a>:</p>
+<blockquote>
+<p>At an ‘effort’ of 2, it takes a good few seconds to encode. ‘Effort’ 3 is significantly better, but that can take a couple of minutes. ‘Effort’ 10 (which I used for images in this article) can take over 10 minutes to encode a single image.</p>
+</blockquote>
+<p>So, what other options do we have?</p>
+<p>If you’re on a Macintosh machine, one option is to compile an AVIF encoder like <code>libheif</code> or <code>libavif</code> and the <a href="https://nodejs.org/docs/latest-v14.x/api/child_process.html">child_spawn</a> module to create a task to run the encoder.</p>
+<p>The first naive attempt looks something like this:</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'avif'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'child_process'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">'avifenc ./images/*.png'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>The problem is that <code>avifenc</code> the encode tool for <code>libavif</code> expects all the images to be of the same dimensions as it will build an image sequence (animation) by default and that’s not what I want. I want the tool to compress each image indepemently. It also expects an explicit output image name.</p>
+<p>After much fidling and playing with options, this was the best I could come up with. It works, I tested it with a small number of JPG and PNG images and it produced AVIF images that opened in Chrome and Firefox, the only way we can actually test them.</p>
+<p>The code follows these steps:</p>
+<ol>
+<li>Select all the files under the image directory</li>
+<li>For each file encode it using <code>avifenc</code></li>
+<li>Change the extension to <code>.avif</code> from whatever the original was</li>
+<li>Put them in the destination directory, defined in the <code>destination</code> constant</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> exec <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-exec'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> rename <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-rename'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'avif'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> destination <span class="token operator">=</span> <span class="token string">'./converted'</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./images/*'</span><span class="token punctuation">)</span> <span class="token comment">// 1</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">file</span><span class="token punctuation">)</span> <span class="token operator">=></span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">avifenc </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>file<span class="token punctuation">.</span>path<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// 2</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">rename</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">extname</span><span class="token operator">:</span> <span class="token string">'.avif'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// 3</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>destination<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// 4</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>It is not perfect.</p>
+<p>The task depends on an external library outside the Javascript/Node ecosystem. Depending on your OS and how comfortable you are with compiling and installing tools, it may be a breeze or not.</p>
+<p>It relies on a certain level of ‘magic’ to work as intended. If you look at the <code>avifenc</code> declaration, it uses a hacky way to specify the destination of the compressed files.</p>
+<p>I can’t figure out if it’s completely necessary but, since it does its job and the task works as intended, I won’t worry too much about it but just document it here.</p>
+<p>It relies on users doing the right thing. The AVIF compression library works with PNG and JPG images as input. Anytihng else will fail. I tried using a special glob in <code>gulp.src</code> to specify it should only take PNG and JPG images and ignore everything else but I couldn’t. So, for now the task relies on you putting only JPG and PNG files in the source directory.</p>
+<p>The task uses the default encoder (AOM 2.0) with all settings at their default values. Depending on how your version of <code>libavif</code> was compiled, you may have access to additional encoders that can produce better results.</p>
+<p>The task doesn’t address how to serve the images using <code>picture</code>-based responsive images. I described the process in <a href="https://publishing-project.rivendellweb.net/the-best-way-to-leverage-new-image-formats/">A way to leverage new image formats</a>.</p>
+<p>The task will continue to evolve it may take time to figure out some of these issues. My hope is that it’ll become unnecessary as people build AVIF support into existing tools.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

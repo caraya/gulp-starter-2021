@@ -1,0 +1,139 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="creating-custom-buttons-(1)%3A-action-buttons">Creating custom buttons (1): Action Buttons</h1>
+<p>We take a lot of what HTML does for granted and assume that whatever we throw at the browser will do the same thing.</p>
+<p>One of the earliest examples I remember is creating our own custom buttons.</p>
+<p>We will use this code adapted from the ARIA Authoring Practices Guide (APG) <a href="https://www.w3.org/WAI/ARIA/apg/example-index/button/button.html">button examples</a> as we go through the process of turning this code:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>action<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Print Page
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Into an accessible and usable button.</p>
+<p>The first set of changes are attributes to the HTML code itself:</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Attribute</th>
+<th>Element</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>button</td>
+<td></td>
+<td>div</td>
+<td>Identifies the element as a button widget.<br/><br/>Accessible name for the button is defined by the text content of the element</td>
+</tr>
+<tr>
+<td></td>
+<td>tabindex=“0”</td>
+<td>div</td>
+<td>Includes the element in the tab sequence.<br/><br/>Needed on the a element because it does not have a href attribute.</td>
+</tr>
+</tbody>
+</table>
+<p>We add the <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/button_role">button role</a> to the <code>div</code> to tell assistive technology tools that the div represents a button.</p>
+<p>The tabindex attribute represents the tab order of the current element. Using a value of 0 means that it will be at the same level as any other element that hasn’t been explicitly given a tabindex attribute.</p>
+<p>With these changes, the element now looks like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> 
+  <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span>
+  <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span>
+  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>action<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Print Page
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Users must be able to activate the button via the keyboard. This is done via Javascript.</p>
+<p>We need to consider two events for each of the actions:</p>
+<ul>
+<li><strong>pointerDown</strong> when a pointer device is down on this element
+<ul>
+<li>We will use pointer events rather than click</li>
+</ul>
+</li>
+<li><strong>keydown</strong> when a key is pressed on this element
+<ul>
+<li>The key pressed has to be the space bar or then enter key. THey will both have the same result</li>
+<li>Any other keys pressed will be ignored in this button</li>
+</ul>
+</li>
+</ul>
+<p>I’ve broken the script by sections to make it easier to comment.</p>
+<p>The first section defines a constant to hold the button by it’s ID and a function to call from our event handlers…</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> button <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"action"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">printWindow</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  window<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Next we define the functions that will run inside the event handlers.</p>
+<p>The <code>handlePointerDown</code> function will be used with the <code>pointerDown</code> event and will call  the <code>printWindow</code> function.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">handlePointerDown</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Pointer Down Event"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">printWindow</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The <code>handleKeyDown</code> function is a little more complicated. We only want some keys to trigger the event so we test them using an if block.</p>
+<p>In the if block we test if they key pressed was either the space bar (represented by both the string <code>Space</code> or a string with a space in it) or the <code>Enter</code> key (represented by the string <code>Enter</code>) and call the <code>printWindow</code> function. Otherwise we do nothing.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">handleKeyDown</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>
+    event<span class="token punctuation">.</span>key <span class="token operator">===</span> <span class="token string">"Space"</span> <span class="token operator">||</span>
+    event<span class="token punctuation">.</span>key <span class="token operator">===</span> <span class="token string">" "</span> <span class="token operator">||</span>
+    event<span class="token punctuation">.</span>key <span class="token operator">===</span> <span class="token string">"Enter"</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Key pressed event"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">printWindow</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Finally we call the events handlers on our button.</p>
+<p>The syntax is the same for both events, the first parameter is the name of the event as a string and the second is the function that we want to execute. Both functions are already defined.</p>
+<p>For the pointer-related events, we use the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerdown_event">pointerdown event</a> to capture the mouse, pen, or touch on the button. When the event triggers we want to run the <code>handlePointerDown</code> function.</p>
+<p>The second function will handle the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event">keydown event</a> event and runs the <code>handleKeyDown</code> function.</p>
+<pre class="language-js"><code class="language-js">button<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span>
+  <span class="token string">"pointerdown"</span><span class="token punctuation">,</span> 
+  handlePointerDown
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+button<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span>
+  <span class="token string">"keydown"</span><span class="token punctuation">,</span> 
+  handleKeyDown
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The full working example, along with CSS styling, is in the Codepen below</p>
+<iframe height="459.673583984375" style="width: 100%;" scrolling="no" title="Button Experiment" src="https://codepen.io/caraya/embed/gOzVOOO?default-tab=css%2Cresult" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/caraya/pen/gOzVOOO">
+  Button Experiment</a> by Carlos Araya (<a href="https://codepen.io/caraya">@caraya</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+<p>&nbsp;</p>
+<p>The HTML of an equivalent <code>button</code> element woud look like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">></span></span>
+  Print Page
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>What we get when we use a button:</p>
+<ul>
+<li><code>role = &quot;button&quot;</code> is implicit for the button element so we don’t need to add it</li>
+<li>you can <code>tab</code> into buttons without adding <code>tabindex=&quot;0&quot;</code></li>
+<li>both the <code>space</code> and <code>enter</code> keys activate the button</li>
+<li>buttons are clickable by default</li>
+</ul>
+<p>You still have to code events that will execute actions based on these events.</p>
+<p><em><strong>Yes, we can create buttons and other components using our own custom code but it’s not trivial and it requires a lot of work that native components do for you.</strong></em></p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

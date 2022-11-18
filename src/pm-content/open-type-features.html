@@ -1,0 +1,83 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="open-type-features-in-css">Open Type Features in CSS</h1>
+<p>I’ve been playing a little with Open Type font variations (and their CSS equivalents) for a few weeks now and I’ve revisited a few areas I had played with before and left because, at the time, I didn’t see the need or usefulness.</p>
+<p>That said, there are projects where good typography is just as important than size, line height, and other basic elements. In this essay we’ll look aat some less common features of OpenType fonts and how to use them in CSS, both the original specification using <code>font-feature-settings</code> and the newer version using <code>font-variants-*</code>. We’ll also look at ways to DRY our code and keep ourelves from repeating code.</p>
+<p>CSS <a href="https://www.w3.org/TR/css-fonts-3/#font-rend-props">Fonts Module Level 3</a> defines the set of OpenType features supported by spec-compliant browsers</p>
+<p>Older browsers may support a <a href="https://css-tricks.com/almanac/properties/f/font-feature-settings/">font-feature-settings</a>, a lower level syntax to control access to the OpenType features.</p>
+<p>To cover all our bases we’d have to do something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.liga</span> <span class="token punctuation">{</span>
+  <span class="token atrule"><span class="token rule">@supports</span> <span class="token keyword">not</span> <span class="token punctuation">(</span><span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> common-ligatures<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token property">font-feature-settings</span><span class="token punctuation">:</span> <span class="token string">"liga"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">/* IE doesn’t support @supports; explicitly use the prefixed version. */</span>
+  <span class="token property">-ms-font-feature-settings</span><span class="token punctuation">:</span> <span class="token string">"liga"</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/* Best case scenario, just use `font-variant-*`. */</span>
+  <span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> common-ligatures<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We test if the browser does <code>not</code> support font feature settings. If it doesn’t we fall back to font feature settings for ligatures.</p>
+<p>Because neither Edge nor IE support the <code>@supports</code> command. Because of this we need to add the Microsoft specific</p>
+<p>The final case uses <code>font-variant-ligatures</code>.</p>
+<p>A more elegant, and efortless, solution is to use the Utility OpenType library from Kenneth Normandy that takes a slightly different approach to using the different supported way of doing things.</p>
+<p>It sets up the default values and then tests if either the <code>webkit-</code> or the regular value for <code>font-variant-ligatures</code> are not supported and if the tests fails (meaning they <code>are</code> supported) it changes the support to use <code>font-feature-settings</code> and the webkit prefixed version.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.liga</span> <span class="token punctuation">{</span>
+  <span class="token property">-ms-font-feature-settings</span><span class="token punctuation">:</span> <span class="token string">"liga"</span><span class="token punctuation">;</span>
+  <span class="token property">-webkit-font-variant-ligatures</span><span class="token punctuation">:</span> common-ligatures<span class="token punctuation">;</span>
+          <span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> common-ligatures<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token keyword">not</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token property">-webkit-font-variant-ligatures</span><span class="token punctuation">:</span> common-ligatures<span class="token punctuation">)</span> <span class="token keyword">or</span>
+              <span class="token punctuation">(</span><span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> common-ligatures<span class="token punctuation">)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.liga</span> <span class="token punctuation">{</span>
+    <span class="token property">-webkit-font-feature-settings</span><span class="token punctuation">:</span> <span class="token string">"liga"</span><span class="token punctuation">,</span> <span class="token string">"liga"</span><span class="token punctuation">,</span> <span class="token string">"clig"</span><span class="token punctuation">;</span>
+    <span class="token property">font-feature-settings</span><span class="token punctuation">:</span> <span class="token string">"liga"</span><span class="token punctuation">,</span> <span class="token string">"liga"</span><span class="token punctuation">,</span> <span class="token string">"clig"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><a href="https://wakamaifondue.com/">Wakamaifondue</a> provides both a visual demonstration of all the features a font support, whether they are Variable Font Axes or Open Type features and a CSS stylesheet that you can incorporate into your own projects to ake advantage of these features.</p>
+<p><a href="https://github.com/kennethormandy/utility-opentype">Utility OpenType</a> provides classes for OpenType features reducing the conginitive load of having to know how to use each feature. You’re still required to know if the font support the features you want to use.</p>
+<p>Using these features in combination with <a href="https://caraya.github.io/vfonts-demo/">variable fonts</a> that support the OpenType features we need gives us a lot of flexibility when it comes to typography.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li>Specifications
+<ul>
+<li><a href="https://www.w3.org/TR/css-fonts-3/">CSS Fonts Module Level 3</a> - Candidate Recommendation</li>
+<li><a href="https://www.w3.org/TR/css-fonts-4/">CSS Fonts Module Level 4</a> - First Public Working Draft</li>
+</ul>
+</li>
+<li>Tools
+<ul>
+<li><a href="https://wakamaifondue.com">Wakamaifondue</a></li>
+<li><a href="http://utility-opentype.kennethormandy.com/">Utility OpenType</a> library by Kenneth Normandy</li>
+</ul>
+</li>
+<li>Books
+<ul>
+<li><a href="https://www.wikiwand.com/en/The_Elements_of_Typographic_Style">Elements of typographic style</a> - Robert Binghurst</li>
+<li><a href="http://webtypography.net/intro/">The Elements of Typographic Style Applied to the Web</a> - Richard Rutter</li>
+<li><a href="https://abookapart.com/products/on-web-typography">On Web Typography</a> - Jason Santa María</li>
+<li><a href="https://abookapart.com/products/webfont-handbook">Webfont Handbook</a></li>
+<li><a href="http://shop.oreilly.com/product/0636920034063.do">Responsive Web Typography</a> - Jason Pamental</li>
+<li><a href="http://book.webtypography.net/">Web Typography</a> - Richard Rutter</li>
+</ul>
+</li>
+</ul>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

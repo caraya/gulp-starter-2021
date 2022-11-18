@@ -1,0 +1,122 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="creating-custom-buttons-(2)%3A-toggle-buttons">Creating custom buttons (2): Toggle Buttons</h1>
+<p>In a previous post we discussed what it takes to create action buttons that execute a specific action.</p>
+<p>In this post we’ll discuss toggle buttons, a special type of button that changes based on the status of the button, like if the audio track is playing or not.</p>
+<h2 id="toggle-button">Toggle button</h2>
+<p>Like we did with the action button, we need to look at the roles and attributes we need to have in a custom button.</p>
+<p>The biggest difference is the <code>aria-pressed</code> attribute that we will add programmatically. This attribute tells assistive technology tools whether the button is pressed or not.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Attribute</th>
+<th>Element</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>button</td>
+<td></td>
+<td>div</td>
+<td><p>Identifies the element as a button widget.</p><p>Accessible name for the button is defined by the text content of the element.</td>
+</tr>
+<tr>
+<td></td>
+<td>tabindex=“0”</td>
+<td>div, a</td>
+<td><p>Includes the element in the tab sequence.</p><p>Needed on the a element because it does not have a href attribute</p></td>
+</tr>
+<tr>
+<td></td>
+<td>aria-pressed=“false”</td>
+<td>a</td>
+<td><p>Identifies the button as a toggle button</p><p>Indicates the toggle button is not pressed</p></td>
+</tr>
+<tr>
+<td></td>
+<td>aria-pressed=“true”</td>
+<td>a</td>
+<td><p>Identifies the button as a toggle button.</p><p>Indicates the toggle button is pressed.</p></td>
+</tr>
+</tbody>
+</table>
+<p>With that in mind the structure of the HTML we will use for this example is almost identical to the action button from the previous post.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>toggle<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  Play
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>All the work for the toggle is done in Javascript. I’ve broken the code into sections to make it easier to explain:</p>
+<p>The first action is to capture a reference to the element we use as toggle.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> toggleButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"toggle"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The <code>toggleButtonClickHandler</code> function checks if we’re working with a real button or elements with a role of button then we execute the <code>toggleButtonState</code> function passing the event as the function parameter.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">toggleButtonClickHandler</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>
+    event<span class="token punctuation">.</span>currentTarget<span class="token punctuation">.</span>tagName <span class="token operator">===</span> <span class="token string">"button"</span> <span class="token operator">||</span>
+    event<span class="token punctuation">.</span>currentTarget<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"role"</span><span class="token punctuation">)</span> <span class="token operator">===</span> <span class="token string">"button"</span>
+  <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">toggleButtonState</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>currentTarget<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The <code>toggleButtonKeydownHandler</code> function handles the keyboard navigation. It tests if the key pressed are either the <code>Space</code> or <code>Enter</code> keys and runs the <code>toggleButtonState</code> function.</p>
+<p>We use the <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">event.key</a> read-only property to identify the key that was pressed and only execute the <code>toggleButtonState</code> function if the user clicke the <code>space bar</code> or <code>enter</code>  keys.</p>
+<p>Older examples use the <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">event.keyCode</a> property to read the key that was pressed but the property has been deprecated and it is system dependant.</p>
+<p>For the spacebar key detection we use two possible values:</p>
+<ul>
+<li><code>Spacebar</code> will work with older browsers</li>
+<li>The space string (<code>&quot; &quot;</code>) works in modern browsers.</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">toggleButtonKeydownHandler</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>
+    event<span class="token punctuation">.</span>key <span class="token operator">===</span> <span class="token string">"Spacebar"</span> <span class="token operator">||</span>
+    event<span class="token punctuation">.</span>key <span class="token operator">===</span> <span class="token string">" "</span> <span class="token operator">||</span>
+    event<span class="token punctuation">.</span>key <span class="token operator">===</span> <span class="token string">"Enter"</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">toggleButtonState</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>currentTarget<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><code>toggleButtonState</code> is where we do the bulk of the work.</p>
+<p>We first create a constant to set the <code>aria-pressed</code> attribute to true by default.</p>
+<p>We then use a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator">ternary operator</a> to set the <code>aria-pressed</code> attribute. It toggles between true and false based on the existing value of the attribute.</p>
+<p>We then use the value of the <code>aria-pressed</code> attribute to change the text of the button. If the value of <code>aria-pressed</code> is true, we set the text to the string <code>Play</code>, otherwise we set the text of the button to the string <code>False</code>.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">toggleButtonState</span><span class="token punctuation">(</span><span class="token parameter">button</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> isAriaPressed <span class="token operator">=</span> button<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"aria-pressed"</span><span class="token punctuation">)</span> <span class="token operator">===</span> <span class="token string">"true"</span><span class="token punctuation">;</span>
+
+  button<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token string">"aria-pressed"</span><span class="token punctuation">,</span> isAriaPressed <span class="token operator">?</span> <span class="token string">"false"</span> <span class="token operator">:</span> <span class="token string">"true"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>isAriaPressed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    button<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">"Play"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    button<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">"Pause"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Finally we add event listeners for the <code>pointerdown</code> and <code>keydown</code> events.</p>
+<pre class="language-js"><code class="language-js">toggleButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"pointerdown"</span><span class="token punctuation">,</span> toggleButtonClickHandler<span class="token punctuation">)</span><span class="token punctuation">;</span>
+toggleButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"keydown"</span><span class="token punctuation">,</span> toggleButtonKeydownHandler<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The full example is here:</p>
+<iframe height="300" style="width: 100%;" scrolling="no" title="Toggle Button Example" src="https://codepen.io/caraya/embed/JjvgmPb?default-tab=css%2Cresult" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/caraya/pen/JjvgmPb">
+  Toggle Button Example</a> by Carlos Araya (<a href="https://codepen.io/caraya">@caraya</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

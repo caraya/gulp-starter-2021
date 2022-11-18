@@ -1,0 +1,137 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="asking-the-user-for-permission">Asking the user for permission</h1>
+<p>There are times when you’re using an API when it would be nice to know what’s the permission status is for a given API.</p>
+<p>The <a href="https://w3c.github.io/permissions/">Permission API</a> works around two concepts: permissions and “powerful features”</p>
+<p>The spec defines a powerful feature as:</p>
+<blockquote>
+<p>A feature of a UA that some code might not be allowed to access, for example, because its environment settings object doesn’t satisfy some criteria, or because the user hasn’t given permission.</p>
+<p><a href="https://w3c.github.io/permissions/#definitions">Permissions</a></p>
+</blockquote>
+<p>To describe the features, the API provides a <a href="https://w3c.github.io/permissions/#permission-registry">registry</a> for the features and their descriptors. Currently only <a href="https://w3c.github.io/permissions/#h-push">Push</a> and <a href="https://w3c.github.io/permissions/#h-midi">midi</a> have additional parameters specific to those APIs.</p>
+<p>The powerful features gated with this API are:</p>
+<ul>
+<li>accelerometer</li>
+<li>ambient-light-sensor</li>
+<li>background-fetch</li>
+<li>background-sync</li>
+<li>bluetooth</li>
+<li>camera</li>
+<li>clipboard-write</li>
+<li>device-info</li>
+<li>display-capture</li>
+<li>geolocation</li>
+<li>gyroscope</li>
+<li>magnetometer</li>
+<li>microphone</li>
+<li>midi</li>
+<li>nfc</li>
+<li>notifications</li>
+<li>persistent-storage</li>
+<li>push</li>
+<li>speaker-selection</li>
+</ul>
+<h2 id="working-with-permissions">Working with permissions</h2>
+<p>There are three basic things we can do with permissions, we can query them, request them, and revoke them.</p>
+<p>For these examples, we’ll use both push, a second parameter, and geolocation to write promise-based code that takes advantage of these powerful features.</p>
+<h3 id="querying">Querying</h3>
+<p>Using <code>navigator.permissions.query</code> we can check individual permissions. It returns a promise that we can further process.</p>
+<p>The following code will check the status of the permission and then log in to the console.</p>
+<p>We also add an <a href="https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onchange">onchange</a> event handler to report when the feature permission changes.</p>
+<pre class="language-js"><code class="language-js">navigator<span class="token punctuation">.</span>permissions<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'push'</span><span class="token punctuation">,</span> <span class="token literal-property property">userVisibleOnly</span><span class="token operator">:</span> <span class="token string">'true'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">permissionStatus</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'push permission state is '</span><span class="token punctuation">,</span> permissionStatus<span class="token punctuation">.</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    permissionStatus<span class="token punctuation">.</span><span class="token function-variable function">onchange</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'push permission state has changed to '</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We can also check multiple permissions at the same time using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all">promise.all</a> and do something with each promise.</p>
+<pre class="language-js"><code class="language-js">Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+  navigator<span class="token punctuation">.</span>permissions<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">"geolocation"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  navigator<span class="token punctuation">.</span>permissions<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'push'</span><span class="token punctuation">,</span> <span class="token literal-property property">userVisibleOnly</span><span class="token operator">:</span> <span class="token string">'true'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span><span class="token punctuation">{</span> <span class="token literal-property property">state</span><span class="token operator">:</span> geoState <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">state</span><span class="token operator">:</span> notifState <span class="token punctuation">}</span><span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Geolocation permission state is:"</span><span class="token punctuation">,</span> geoState<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Push permission state is:"</span><span class="token punctuation">,</span> notifState<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Code like this would let us know if we need to request permission from the user to use a feature.</p>
+<h3 id="requesting">requesting</h3>
+<p>Once we know if we need to ask permission, we need to ask for it. That’s where <code>navigator.permissions.request</code> comes in. Using the same name that we did when we queried, we tell the browser to ask for permission to use the feature.</p>
+<pre class="language-js"><code class="language-js">navigator<span class="token punctuation">.</span>permissions<span class="token punctuation">.</span><span class="token function">request</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'push'</span><span class="token punctuation">,</span> <span class="token literal-property property">userVisibleOnly</span><span class="token operator">:</span> <span class="token string">'true'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">permissionStatus</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'push permission state is '</span><span class="token punctuation">,</span> permissionStatus<span class="token punctuation">.</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    permissionStatus<span class="token punctuation">.</span><span class="token function-variable function">onchange</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'push permission state has changed to '</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The promise will resolve with the status of the request based on user action.</p>
+<p>We also add an <code>onchange</code> event handler for the permission status so we know what the user did without having to inspect the result of the promise.</p>
+<h3 id="revoking">revoking</h3>
+<p>We can also revoke permissions we’ve granted before using <code>navigator.permissions.revoke</code> to remove the permission we gave earlier.</p>
+<p>As with the other methods, we log the result of the request to console and we set up an <code>onchange</code> event listener on permissionStatus to record any change to the permission.</p>
+<pre class="language-js"><code class="language-js">navigator<span class="token punctuation">.</span>permissions<span class="token punctuation">.</span><span class="token function">revoke</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'geolocation'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">permissionStatus</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Geolocation permission state is '</span><span class="token punctuation">,</span> permissionStatus<span class="token punctuation">.</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    permissionStatus<span class="token punctuation">.</span><span class="token function-variable function">onchange</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Geolocation permission state has changed to '</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="coding-defensively">Coding defensively</h2>
+<p>Because Safari doesn’t support the API, we have to code defensively and test if the feature is supported before we use it.</p>
+<p><code>supportPermissions()</code> tests if the navigator object has a permissions function available to it.</p>
+<p>If the API is available then we can proceed, if not we need to communicate it to the user and, maybe, request permission anyways.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">supportsPermissions</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token string">'permissions'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">supportsPermissions</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'we support the permissions API'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'we don\'t support the permissions API... Booo!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="some-final-considerations">Some final considerations</h2>
+<p>While we can use the permission API to work with geolocation and navigation, each of these APIs provides its own way to request the user’s permission and it’s important to know when to use each API.</p>
+<p>Geolocation asks for permission when you call <code>geolocation.getCurrentPosition</code> with code like this:</p>
+<pre class="language-js"><code class="language-js">navigator<span class="token punctuation">.</span>geolocation<span class="token punctuation">.</span><span class="token function">getCurrentPosition</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">position</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Geolocation permissions granted'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Latitude:'</span> <span class="token operator">+</span> position<span class="token punctuation">.</span>coords<span class="token punctuation">.</span>latitude<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Longitude:'</span> <span class="token operator">+</span> position<span class="token punctuation">.</span>coords<span class="token punctuation">.</span>longitude<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Notifications have their own <code>requestPermission</code> method that allows you to detect if permission was granted and take action on it.</p>
+<pre class="language-js"><code class="language-js">Notification<span class="token punctuation">.</span><span class="token function">requestPermission</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">result</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>result <span class="token operator">===</span> <span class="token string">'denied'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Permission request denied'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>result <span class="token operator">===</span> <span class="token string">'default'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Permission request was dismissed.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Permission was granted for notifications'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We can combine both techniques to only run these special permissions requests when permission has not been granted (when the permission status is not denied or granted) and after we explain to the user why we’re asking for permission.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<html lang="en">
+
+<head>
+  <!-- <link rel="stylesheet" href="../paged-media/highlight/styles/solarized-light.css"> -->
+  <link rel="stylesheet" href="../paged-media/prism/prism.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+  <title></title>
+</head>
+
+<body data-type="book">
+
+  <h1 id="revisiting-images-formats-for-the-web">Revisiting images formats for the web</h1>
+<p>Every so often I see comparisons between image formats that say one format is better than others or that one format is better for a given task but I’ve always wondered where the numbers came from and what testing criteria was used. Rather than take things at face value, I want to make sure that whatever decision I make it is backed up with data.  I’ve put all the files and scripts on a <a href="https://github.com/caraya/testing-image-formats/">Github repository</a> for you to run the same tests and see if the results match mine. Beware that the TIFF images are very large and may take a large chunk of your data plan if you download them on mobile.</p>
+<p>This post does not cover HEIC/HEIF and AVIF image formats. To cover those two formats well, I need more time to compile and test the tools and want to make sure that I don’t mix tool research with image quality. I will post the results of any research on those two formats in a separate post.</p>
+<p>Before we jump into looking at the quality of compressed images, let’s take a look at what’s available and what’s coming down the pipeline as far as image formats for the web.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Format</th>
+      <th>Initial Release</th>
+      <th>Open?</th>
+      <th>Type</th>
+      <th>Available Encoder</th>
+      <th>Encoder to use</th>
+      <th>Notes</th>
+    </tr>
+  <thead>
+  <tbody>
+    <tr>
+      <td>GIF</td>
+      <td>1987</td>
+      <td>No</td>
+      <td>Lossless</td>
+      <td>Yes</td>
+      <td><a href="https://imagemagick.org/">ImageMagick</a></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>JPG</td>
+      <td>1992</td>
+      <td>Yes</td>
+      <td>Lossy</td>
+      <td>Yes</td>
+      <td><a href="https://imagemagick.org/">ImageMagick</a> </td>
+      <td>According to Wikipedia patents for JPEG technologies expired</td>
+    </tr>
+    <tr>
+      <td>PNG</td>
+      <td>1996</td>
+      <td>Yes</td>
+      <td>Lossless</td>
+      <td>Yes</td>
+      <td><a href="https://imagemagick.org/">ImageMagick</a></td>
+      <td>Also Provides animation support. Check [caniuse.com](https://caniuse.com/#feat=apng) for supported browsers</td>
+    </tr>
+    <tr>
+      <td>WebP</td>
+      <td>2010</td>
+      <td>Yes</td>
+      <td>Lossless and Lossy</td>
+      <td>Yes</td>
+      <td><a href="https://imagemagick.org/script/webp.php">ImageMagick</a> or directly with <a href="https://developers.google.com/speed/webp/docs/precompiled">cwebp</a>	  </td>
+      <td>Based of WebM video compression</td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="the-process">The process</h2>
+<p>As Kornel Lesinski writes in <a href="https://kornel.ski/en/faircomparison">How to compare images fairly</a>:</p>
+<blockquote>
+<p>Absolutely the worst way to compare images is to convert one lossy format to another and conclude you “can’t see the difference”.</p>
+<p>Why is it bad? Save a photo as a couple JPEGs at quality=98 and quality=92. It will be hard to tell them apart, but their file sizes will differ by nearly 40%! Does it prove that JPEG is 40% better than… itself? No, it shows that “quality appears the same, but the file much is smaller!” can easily be nonsense that proves nothing.</p>
+<p>To make a fair comparison you really have to pay meticulous attention to encoder settings, normalizing quality, and ensuring that compared images are in fact comparable.</p>
+<p>It’s really hard to make a fair comparison.</p>
+</blockquote>
+<p>Before we even start encoding the images we have to do a few things:</p>
+<ul>
+<li>Find a lossless, high-quality image to use as the source for the exercises</li>
+<li>Decide what tools we will use to encode the images. Sometimes this may be decided for you as there may not be many tools for the newer formats</li>
+<li>Decide what criteria you will use for your testing and how will you measure it</li>
+<li>Will you measure objective quality using tools like DSSIM?</li>
+<li>Will you compare file size for a given quality?</li>
+<li><strong>How will you decide which metric is more important?</strong></li>
+<li>Make sure that the tools produce similar output. For example, all formats should use <a href="https://en.wikipedia.org/wiki/Chroma_subsampling">chroma subsampling</a> or none should</li>
+<li><strong>Figure out what are the equivalent settings for the formats that you’re testing. Q=80 for a JPEG image may not be the same as Q=80 for other formats</strong></li>
+<li>Test all formats at the same or equivalent quality</li>
+<li>Make sure that all format encoders can work from the same source</li>
+<li>If the format offer lossless and lossy compression use lossy to match what JPEG does</li>
+</ul>
+<p>I chose to work with different images in TIFF format. Information about the specific images is listed below:</p>
+<ul>
+<li>Images from Los Lajones Estate, downloaded from <a href="http://www.loslajonesestate.com/eng/download/">their website</a></li>
+<li>Image of the USS California from <a href="https://commons.wikimedia.org/wiki/File:USS_California_at_1927_naval_review_NARA_19-LC-19C.tif">Wikimedia Commons</a> is in the public domain</li>
+<li>Images from <a href="https://hubblesite.org">Hubblesite</a> taken from <a href="https://hubblesite.org/contents/media/images/2020/22/4668-Image">bat shadow</a> and <a href="https://hubblesite.org/image/4680/news">NGC 6302: The “Butterfly Nebula”</a> are in the public domain as stated in the <a href="https://hubblesite.org/copyright">hubblesite copyright page</a></li>
+</ul>
+<p>We’ll use different encoders for different formats, below is the list of formats with their associated image encoders. All the binaries were reinstalled to make sure I have the latest versions available via Homebrew as of this writing:</p>
+<ul>
+<li>PNG: ImageMagick</li>
+<li>JPG: ImageMagick</li>
+<li>WebP: cwebp</li>
+</ul>
+<h2 id="first-test%3A-equal-quality-to-measure-file-size">First Test: Equal Quality to measure file size</h2>
+<p>The first test I wanted to run is what happens if we encode a TIFF source image to all image formats that we can test with the same quality value, in this case, 80. It is important to note that a JPEG image encoded at 80 quality is not the same as a lossy WebP image encoded at the same quality.  We do it this way because it’s the easiest way to test and it’s what I would do in Photoshop of when running image compression with tools like imagemin</p>
+<p>The questions that I want to answer with this test:</p>
+<p><em><strong>Keeping quality constant, what loseless format provides the smaller file size?</strong></em></p>
+<p>Rather than type the command every time that I run the test, and to make the results reproducible, I created the  Bash script below</p>
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#! /usr/bin/env bash</span>
+
+<span class="token comment"># Variable holding name of source image.</span>
+<span class="token assign-left variable">SOURCE_IMAGE</span><span class="token operator">=</span><span class="token string">'STSCI-H-p2022a-f-4398x3982'</span>
+
+<span class="token comment"># Variables holding names of</span>
+<span class="token comment"># encoders's binaries</span>
+<span class="token assign-left variable">IMAGE_MAGICK</span><span class="token operator">=</span><span class="token string">'convert'</span>
+<span class="token assign-left variable">WEBP_ENCODER</span><span class="token operator">=</span><span class="token string">'cwebp'</span>
+<span class="token assign-left variable">HEIC_ENCODER</span><span class="token operator">=</span><span class="token string">'heif-enc'</span>
+
+<span class="token builtin class-name">echo</span> Starting First Encoding Test
+
+<span class="token keyword">if</span> <span class="token builtin class-name">hash</span> <span class="token variable">${IMAGE_MAGICK}</span> <span class="token operator"><span class="token file-descriptor important">2</span>></span>/dev/null<span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token builtin class-name">echo</span> encoding to PNG
+  <span class="token variable">${IMAGE_MAGICK}</span> <span class="token variable">${SOURCE_IMAGE}</span>.tif <span class="token punctuation">\</span>
+  <span class="token parameter variable">-quality</span> <span class="token number">80</span> <span class="token variable">${SOURCE_IMAGE}</span>.png
+  <span class="token builtin class-name">echo</span> encoding to JPG
+  <span class="token variable">${IMAGE_MAGICK}</span> <span class="token variable">${SOURCE_IMAGE}</span>.tif <span class="token punctuation">\</span>
+  <span class="token parameter variable">-quality</span> <span class="token number">80</span> <span class="token variable">${SOURCE_IMAGE}</span>.jpg
+<span class="token keyword">else</span>
+  <span class="token builtin class-name">echo</span> cannot convert to PNG or JPG
+<span class="token keyword">fi</span>
+
+<span class="token keyword">if</span> <span class="token builtin class-name">hash</span> <span class="token variable">${WEBP_ENCODER}</span> <span class="token operator"><span class="token file-descriptor important">2</span>></span>/dev/null<span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token builtin class-name">echo</span> encoding to lossy WebP
+  <span class="token variable">${WEBP_ENCODER}</span> <span class="token parameter variable">-q</span> <span class="token number">80</span> <span class="token punctuation">\</span>
+  <span class="token variable">${SOURCE_IMAGE}</span>.tif <span class="token punctuation">\</span>
+  <span class="token parameter variable">-o</span> <span class="token variable">${SOURCE_IMAGE}</span>.webp
+<span class="token keyword">else</span>
+  <span class="token builtin class-name">echo</span> cannot convert to WEBP
+<span class="token keyword">fi</span>
+
+<span class="token keyword">if</span> <span class="token builtin class-name">hash</span> <span class="token variable">${HEIC_ENCODER}</span> <span class="token operator"><span class="token file-descriptor important">2</span>></span>/dev/null<span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token builtin class-name">echo</span> encoding to lossy HEIC
+  <span class="token variable">${HEIC_ENCODER}</span> <span class="token parameter variable">--quality</span> <span class="token number">80</span> <span class="token punctuation">\</span>
+  <span class="token variable">${SOURCE_IMAGE}</span>.png
+<span class="token keyword">else</span>
+  <span class="token builtin class-name">echo</span> could not encode to HEIC
+<span class="token keyword">fi</span>
+</code></pre>
+<p>My Results with images encoded from TIF high quality sources and JPG where TIF was not an option:</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>File Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TIFF (base)</td>
+<td>15MB</td>
+</tr>
+<tr>
+<td>PNG</td>
+<td>13.9MB</td>
+</tr>
+<tr>
+<td>JPG</td>
+<td>855KB</td>
+</tr>
+<tr>
+<td>WebP</td>
+<td>266KB</td>
+</tr>
+</tbody>
+</table>
+<p>There is a lot of research and tweaking to obtain optimal results.</p>
+<p>So in the naïve, all quality is the same test, WebP wins by a lot. remember that image quality is not a straight equivalency across formats as explained earlier.</p>
+<h2 id="finding-the-optimal-quality">Finding the optimal quality</h2>
+<p>I know that optimal quality depends on the type of image and the screens we’re working with, but an initial step on determining our optimal quality may be to establish what are the best compression settings for each format. We’re likely to be serving at least two with our sources or srcset images.
+To answer this question we’ll do a two-step process:</p>
+<ul>
+<li>We create a set of WebP and a set of JPG images with quality ranging from 50 to 100</li>
+<li>We’ll use SSIM to provide an objective metric to use in comparing the images.</li>
+</ul>
+<p>We then analyze the SSIM results to decide which of the compressed images gives us the best combination of quality measured by SSIM against a 100 quality compressed PNG image (for some reason ImageMagick’s compare command will not work against a TIFF source image) and file size.</p>
+<h3 id="the-scripts">The Scripts</h3>
+<p>Each step of the process uses its own script.</p>
+<p>The first scripts generates the multiple images. It is essentially the same script that we used for the previous evaluation, except that we have to pass the name of the image, without extension, as a parameter when we invoke the script.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token keyword">if</span> <span class="token builtin class-name">hash</span> <span class="token variable">${WEBP_ENCODER}</span> <span class="token operator"><span class="token file-descriptor important">2</span>></span>/dev/null<span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token keyword">for</span> <span class="token for-or-select variable">i</span> <span class="token keyword">in</span> <span class="token punctuation">{</span><span class="token number">50</span><span class="token punctuation">..</span><span class="token number">100</span><span class="token punctuation">..</span><span class="token number">10</span><span class="token punctuation">}</span>
+    <span class="token keyword">do</span>
+      <span class="token builtin class-name">echo</span> encoding to lossy WebP at <span class="token variable">${i}</span> quality
+      <span class="token variable">${WEBP_ENCODER}</span> <span class="token parameter variable">-q</span> <span class="token variable">${i}</span> <span class="token punctuation">\</span>
+      <span class="token variable">${SOURCE_IMAGE}</span>.tif <span class="token punctuation">\</span>
+      <span class="token parameter variable">-o</span> <span class="token variable">${SOURCE_IMAGE}</span>-<span class="token variable">${i}</span>.webp
+  <span class="token keyword">done</span>
+<span class="token keyword">else</span>
+  <span class="token builtin class-name">echo</span> cannot convert to WEBP
+<span class="token keyword">fi</span>
+</code></pre>
+<p>The second script does the comparison. I would much rather use a direct SSIM encoder rather than using ImageMagick’s compare command but none of the available encoders works as well as I would like.</p>
+<p>So we use <code>magick compare</code> as our comparison tool and we run it against every WebP and JPG image we created using the 100 quality PNG as our standard to compare against.</p>
+<p>I’d rather compare against the TIFF image but IM errors out with that comparison so, in my opinion, PNG is the next best available testing option.</p>
+<p>This code will only work on Bash shells version 4 and higher.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token assign-left variable">SOURCE_IMAGE</span><span class="token operator">=</span><span class="token variable">$1</span>
+<span class="token assign-left variable">IMAGE_MAGICK_COMPARE</span><span class="token operator">=</span><span class="token string">'magick compare'</span>
+
+<span class="token builtin class-name">echo</span> starting to work with SSIM comparison
+
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token parameter variable">-f</span> <span class="token variable">${SOURCE_IMAGE}</span>-100.png <span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+  <span class="token builtin class-name">echo</span> <span class="token variable">${SOURCE_IMAGE}</span>-100.png exits
+  <span class="token keyword">for</span> <span class="token for-or-select variable">i</span> <span class="token keyword">in</span> <span class="token punctuation">{</span><span class="token number">50</span><span class="token punctuation">..</span><span class="token number">100</span><span class="token punctuation">..</span><span class="token number">10</span><span class="token punctuation">}</span>
+    <span class="token keyword">do</span>
+      <span class="token builtin class-name">echo</span> <span class="token string">"running comparisons for webp at <span class="token variable">${i}</span> quality"</span>
+      <span class="token variable">${IMAGE_MAGICK_COMPARE}</span> <span class="token parameter variable">-metric</span> ssim <span class="token punctuation">\</span>
+      <span class="token variable">${SOURCE_IMAGE}</span>-100.png <span class="token punctuation">\</span>
+      <span class="token variable">${SOURCE_IMAGE}</span>-<span class="token variable">${i}</span>.webp <span class="token punctuation">\</span>
+      null:
+  <span class="token keyword">done</span>
+
+  <span class="token keyword">for</span> <span class="token for-or-select variable">i</span> <span class="token keyword">in</span> <span class="token punctuation">{</span><span class="token number">50</span><span class="token punctuation">..</span><span class="token number">100</span><span class="token punctuation">..</span><span class="token number">10</span><span class="token punctuation">}</span>
+    <span class="token keyword">do</span>
+      <span class="token builtin class-name">echo</span> <span class="token string">"running comparisons for jpg at <span class="token variable">${i}</span> quality"</span>
+      <span class="token variable">${IMAGE_MAGICK_COMPARE}</span> <span class="token parameter variable">-metric</span> ssim <span class="token punctuation">\</span>
+      <span class="token variable">${SOURCE_IMAGE}</span>-100.png <span class="token punctuation">\</span>
+      <span class="token variable">${SOURCE_IMAGE}</span>-<span class="token variable">${i}</span>.jpg <span class="token punctuation">\</span>
+      null:
+  <span class="token keyword">done</span>
+<span class="token keyword">else</span>
+  <span class="token builtin class-name">echo</span> can<span class="token punctuation">\</span>'t run the WebP comparison
+<span class="token keyword">fi</span>
+</code></pre>
+<h3 id="the-results">The Results</h3>
+<p>The first table uses <a href="https://github.com/caraya/testing-image-formats/blob/master/test-two/STSCI-H-p2022a-f-4398x3982.tif">STSCI-H-p2022a-f-4398x3982</a> from the Nasa image library… The image is 14MB and may use a significant portion of your data plan in mobile.</p>
+<p>The file sizes are generally what I expected and the differences between the SSIM values is similar enough to make file size becomes the primary consideration.</p>
+<table>
+<thead>
+<tr>
+<th>Quality</th>
+<th>WebP File Size</th>
+<th>WebP SSIM Value</th>
+<th>JPG File Size</th>
+<th>JPG SSIM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100</td>
+<td>2.1MB</td>
+<td>0.986584</td>
+<td>10.9M</td>
+<td>0.992733</td>
+</tr>
+<tr>
+<td>90</td>
+<td>639KB</td>
+<td>0.981029</td>
+<td>3.6MB</td>
+<td>0.985442</td>
+</tr>
+<tr>
+<td>80</td>
+<td>266KB</td>
+<td>0.975904</td>
+<td>2.1MB</td>
+<td>0.982087</td>
+</tr>
+<tr>
+<td>70</td>
+<td>183KB</td>
+<td>0.973957</td>
+<td>1.5MB</td>
+<td>0.978859</td>
+</tr>
+<tr>
+<td>60</td>
+<td>153KB</td>
+<td>0.973044</td>
+<td>1.1MB</td>
+<td>0.974777</td>
+</tr>
+<tr>
+<td>50</td>
+<td>128KB</td>
+<td>0.972133</td>
+<td>864KB</td>
+<td>0.972219</td>
+</tr>
+</tbody>
+</table>
+<p>The second table uses <a href="https://github.com/caraya/testing-image-formats/blob/master/test-two/geisha_hi_res.tif">geisha-high-res</a>as the image to test. This is a much brighter and deep contrast color image. The image is 11.9MB and may use a significant portion of your data plan in mobile.</p>
+<table>
+<thead>
+<tr>
+<th>Quality</th>
+<th>WebP File Size</th>
+<th>WebP SSIM Value</th>
+<th>JPG File Size</th>
+<th>JPG SSIM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100</td>
+<td>2.6MB</td>
+<td>0.980442</td>
+<td>5.2MB</td>
+<td>0.992432</td>
+</tr>
+<tr>
+<td>90</td>
+<td>757KB</td>
+<td>0.961136</td>
+<td>1.4MB</td>
+<td>0.966931</td>
+</tr>
+<tr>
+<td>80</td>
+<td>300KB</td>
+<td>0.947507</td>
+<td>788KB</td>
+<td>0.956424</td>
+</tr>
+<tr>
+<td>70</td>
+<td>217KB</td>
+<td>0.943466</td>
+<td>535KB</td>
+<td>0.949292</td>
+</tr>
+<tr>
+<td>60</td>
+<td>188KB</td>
+<td>0.941836</td>
+<td>407KB</td>
+<td>0.942214</td>
+</tr>
+<tr>
+<td>50</td>
+<td>166KB</td>
+<td>0.939598</td>
+<td>332KB</td>
+<td>0.937974</td>
+</tr>
+</tbody>
+</table>
+<p>The final example, the <a href="https://github.com/caraya/testing-image-formats/blob/master/test-two/USS_California_at_1927_naval_review_NARA_19-LC-19C.tif">USS California</a> image presents some interesting variance for analysis. The image is 12.8MB and may use a significant portion of your data plan in mobile.</p>
+<p>I ran the compression and the SSIM comparison in separate steps, so I made the incorrect assumption that grayscale WebP images would exhibit the same behavior as color ones where the WebP files scored better in the SSIM metric across the board instead of fluctuating as they did. Need to do more research, particularly if it has to do with encoding settings on the WebP size and whether the <code>-jpeg_like</code>  and <code>-shap_yuv</code> flags would change the results in any way.</p>
+<table>
+<thead>
+<tr>
+<th>Quality</th>
+<th>WebP File Size</th>
+<th>WebP SSIM Value</th>
+<th>JPG File Size</th>
+<th>JPG SSIM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100</td>
+<td>10.1MB</td>
+<td>1</td>
+<td>11.2MB</td>
+<td>0.998955</td>
+</tr>
+<tr>
+<td>90</td>
+<td>3MB</td>
+<td>0.956338</td>
+<td>3.6MB</td>
+<td>0.951193</td>
+</tr>
+<tr>
+<td>80</td>
+<td>1.1MB</td>
+<td>0.909765</td>
+<td>2.1MB</td>
+<td>0.930837</td>
+</tr>
+<tr>
+<td>70</td>
+<td>669KB</td>
+<td>0.891505</td>
+<td>1.5MB</td>
+<td>0.91801</td>
+</tr>
+<tr>
+<td>60</td>
+<td>530KB</td>
+<td>0.88458</td>
+<td>1.1MB</td>
+<td>0.907007</td>
+</tr>
+<tr>
+<td>50</td>
+<td>426KB</td>
+<td>0.877016</td>
+<td>864MB</td>
+<td>0.898054</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what%E2%80%99s-missing">What’s missing</h2>
+<p>There are two additional image formats that should be in the encoding tests but are not.</p>
+<p>HEIC is an image format based on the HEVC video code. The only encoder I found for the format produced significantly larger sizes than any other formats. I need to run additional tests to make sure I’m encoding it as it should be and that the larger sizes are not a result of my doing it wrong.</p>
+<p>AVIF is the image format based on the open-source AV1 video format. The same encoder that creates HEIC files (lib-heif) will, supposedly, create AVIF files when running with a flag. I have yet to get it to work.</p>
+<p>I was able to install the libavif reference implementation but I’ll take a little time to document the process and then set up another test to see how heic and avif compare to WebP, JPG, and PNG.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>There is additional work that needs to happen regarding format-specific configuration and encoding flags and test them to see if the formats are affected by the flags you use when doing the compression.</p>
+<p>Depending on the type of images you use on your site or project, evaluating the file sizes of a representative number of images is always a good idea.</p>
+
+
+<!-- <script src="../paged-media/highlight/highlight.pack.js"></script> -->
+<script src="../paged-media/prism/prism.js"></script>
+</body>
+</html>
