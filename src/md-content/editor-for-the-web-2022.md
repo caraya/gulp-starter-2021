@@ -1,4 +1,4 @@
-# Editor for the web (March 2022 update)
+# Editor for the web (late 2022 update)
 
 I'm still looking for a good toolkit to build an editor around. Most of the solutions I've looked at have some sort of drawback that made me drop them from the project.
 
@@ -12,4 +12,4 @@ It looks exactly like what I need but it has the same problem as with ProseMirro
 
 I can probably figure Vue components out but it seems like a lot of work.
 
-I started with the [Vue CLI](https://cli.vuejs.org/) to automate the configuration and setup of the project at the cost of flexibility, like many 
+I started with the [Vue CLI](https://cli.vuejs.org/) to automate the configuration and setup of the project at the cost of flexibility, like many

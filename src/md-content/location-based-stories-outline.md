@@ -1,10 +1,10 @@
-**Current Outline**
+# Current Outline
 
 * Google Maps as the location solution?
   * See [Make the world your playground](cloud.google.com/maps-platform/gaming/) for more information about this part of the API
 * What kinds of stories work best for this format?
   * Is it worth retrofitting existing stories?
-    * [Rayuela](<https://es.wikipedia.org/wiki/Rayuela_(novela)>)
+    * [Rayuela](https://es.wikipedia.org/wiki/Rayuela_(novela)) or [Hopscotch](https://en.wikipedia.org/wiki/Hopscotch_(Cort%C3%A1zar_novel)) in English
 * Combined with location-based games?
   * Look at [The Silent Story](http://www.thesilenthistory.com/) and [The Silent Story: What is this?](http://www.thesilenthistory.com/what)
   * [Inside The Silent History](http://contentsmagazine.com/articles/inside-the-silent-history/) is also a good reference
