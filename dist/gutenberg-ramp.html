@@ -1,0 +1,107 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="partial-gutenberg-in-wordpress-with-gutenberg-ramp">Partial Gutenberg in WordPress with Gutenberg Ramp</h1>
+<p>AS much as I dislike Gutenberg, mostly because of the amount of duplicated work it makes you do, there are times when it would be nice to have it for some things but not for others.</p>
+<p>While researching alternatives to Gutenberg I discovered the <a href="https://wordpress.org/plugins/gutenberg-ramp/">Gutenberg Ramp</a> plugin. It presents an interesting way to grow how you use Gutenberg that lies no use (with plugins like classic editor) and full use (letting Gutenberg be the default editor).</p>
+<p>For this experiment we’ll do the following:</p>
+<ol>
+<li>Create a custom post type for eassays</li>
+<li>Install Gutenberg Ramp and configure it to only allow Gutenberg for essays</li>
+<li>Evaluate how well it works and how it impacts</li>
+</ol>
+<h2 id="create-a-custom-post-type">Create a custom post type</h2>
+<p>The following code will create an essay custom post type and make it available to the REST API.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">function</span> <span class="token function-definition function">rivendellweb_custom_essay_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token variable">$args</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span>
+      <span class="token string single-quoted-string">'public'</span>       <span class="token operator">=></span> <span class="token constant boolean">true</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'show_in_rest'</span> <span class="token operator">=></span> <span class="token constant boolean">true</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'rest_base'</span>    <span class="token operator">=></span> <span class="token string single-quoted-string">'essays'</span><span class="token punctuation">,</span>
+      <span class="token string single-quoted-string">'label'</span>        <span class="token operator">=></span> <span class="token string single-quoted-string">'Essays'</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">register_post_type</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'essay'</span><span class="token punctuation">,</span> <span class="token variable">$args</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'init'</span><span class="token punctuation">,</span> 
+<span class="token string single-quoted-string">'rivendellweb_custom_essay_type'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<div class="message info">
+  <h2>Note</h2>
+  <p>This will create the custom post type but will not render it in the homepage when you list existing posts. To get the posts and essays together you need to create a customized <code>WP_Query()</code> loop.</p>
+  <p>&nbsp;</p>
+  <p>I will cover an example of how to create the custom loop in a future post.</p>
+</div>
+<h2 id="install-and-configure-gutenberg-ramp">Install and configure Gutenberg Ramp</h2>
+<p>In your WordPress Admin Screen go to <em><strong>Admin &gt; Plugins &gt; Add New</strong></em> and enter <em>Gutenberg Ramp</em> in the search box.</p>
+<p>Once you install it and activate it go to the <em><strong>setings &gt; writing</strong></em> menu. You will see a way to tell Gutenberg Ramp what kinds of content to use Gutenberg with.</p>
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1613799694/publishing-project.rivendellweb.net/gutenberg_ramp/gutenberg_ramp.png' alt='Gutenber Ramp settings screen showing how to choose the post types that will use Gutenberg'>
+  <figcaption>Gutenber Ramp settings screen showing how to choose the post types that will use Gutenberg</figcaption>
+</figure>
+<p>We can also configure Gutenberg programmatically. Loading Gutenberg for all post types, which is equivalent to not using the plugin, can be done with the code below</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">function_exists</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'gutenberg_ramp_load_gutenberg'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">gutenberg_ramp_load_gutenberg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</span></code></pre>
+<p>To load Gutenberg only for posts and essays, the custom post type we created, we use code like this:</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">gutenberg_ramp_load_gutenberg</span><span class="token punctuation">(</span>
+  <span class="token punctuation">[</span>
+    <span class="token string single-quoted-string">'post_types'</span> <span class="token operator">=></span> <span class="token punctuation">[</span> <span class="token string single-quoted-string">'posts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'essays'</span> <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>This is equivalent to using the admin screen as we did in a previous section.</p>
+<h2 id="evaluation">Evaluation</h2>
+<p>Whether this solution works for you will depend on several factors. Some of the factors that I can think of are:</p>
+<ol>
+<li>Does Gutenberg meet your needs?
+<ul>
+<li>Does Gutenberg works well as a standalone product?</li>
+<li>Do you need to create custom blocks?</li>
+<li>Do you need to use third-party block libraries?
+<ul>
+<li>How well do these third-party block libraries integrated with Gutenberg and any custom blocks?</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Do the blocks match the style of your blog or site?
+<ul>
+<li>If they don’t match, then how much work do you need to do to make them match?</li>
+<li>Do the styles for the editor match the styles in the front end?</li>
+</ul>
+</li>
+<li>Do you need to create custom blocks or patterns?</li>
+<li>Are you and your content creators happy with the way Gutenberg works?</li>
+</ol>
+<p>There is no one-size-fits-all solution but Gutenberg may be flexible enough to come close.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

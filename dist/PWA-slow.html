@@ -1,0 +1,99 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="pwas%3A-don%E2%80%99t-build-it-all-at-oncce">PWAs: Don’t build it all at oncce</h1>
+<p>One of the things that has been tempting when working on a PWA for my <a href="http://web-layout-experiments.firebaseapp.com">layout experiments</a> has been to do everything at once and work on them in parallel.</p>
+<p>Reading <a href="https://twitter.com/grigs">Jason Grigsby’s</a> <a href="https://abookapart.com/products/progressive-web-apps">Progressive Web Applications</a> book from A Book Apart reminded me that we need to take it easy, plan ahead and do incremental deployment of PWA features.</p>
+<h2 id="the-basics">The basics</h2>
+<p>What do I mean by this? There are three technical items that we know we need to turn a site into a PWA:</p>
+<ul>
+<li>Host the site using HTTPS</li>
+<li>A Web Manifest</li>
+<li>A Service Worker</li>
+</ul>
+<p>The basics are easy. We can add an SSL certificate using free tools like <a href="https://letsencrypt.org/">let’s encrypt</a>.</p>
+<p>The (basic) Manifest is also fairly straight forward, you can generate it manually using instructions like thos on <a href="https://developers.google.com/web/fundamentals/web-app-manifest/">Google developers</a> or generate it automatically using one of many Web Manifest Generators. I suggest <a href="https://www.pwabuilder.com/generate">PWA Builder</a>, mostly because it will help you generate both the manifest and a basic service worker that you can later tinker with.</p>
+<p>The Service Worker is also fairly easy. One thing that we need to remember is that we don’t need to do everything the first time. <a href="https://www.pwabuilder.com/generate">PWA Builder</a> will give you options for creating your Service Worker and the code to insert into your site’s entry page to use it.</p>
+<h2 id="thinking-things-through">Thinking things through</h2>
+<div class="message info">
+  <p>These are not all the items worth reviewing an analyzing before you implement your site as a PWA but it's a good starting point.</p>
+  <p>For a more thorough discussion of how to gradually roll out a PWA, check <a href="https://abookapart.com/products/progressive-web-apps">Progressive Web Applications</a>.</p>
+</div>
+<p>There is more than the basics when it comes to PWAs and web applications in general. Yes, we can slap a manifest and a service working into a mediocre website and making into a mediocre PWA.</p>
+<p>But there are a lot of other things we need to consider when turning our sites into applications even before we write our first line of code.</p>
+<p>Some of these considerations have to do with our site as it exists before we implement PWA technologies.</p>
+<h2 id="navigation">Navigation</h2>
+<p>The first item to consider, for me, is the site’s navigation. If we make the site in to a full screen application then we need to make sure that users can navigate without the browser’s chrome available.</p>
+<h2 id="performance-matters">Performance matters</h2>
+<p>Another aspect to consider is how is your site performing before we implement a PWA. My favorite tool is <a href="https://developers.google.com/web/tools/lighthouse/">Lighthouse</a> available as a <a href="https://developers.google.com/web/tools/lighthouse/#cli">CLI</a> that you can integrate into your existing workflows and as part of <a href="https://developers.google.com/web/tools/lighthouse/#devtools">DevTools</a>.</p>
+<p>To channel my inner Alex Russell, any performance test you run must run in the devices using <code>chrome://inspect</code> to debug it remotely. The results from DevTools are good approximations but will never match the results of running in a real device.</p>
+<p>The reason we run performance tests is to make sure we’re not using the Service Worker as an excuse for slow loading content.</p>
+<h2 id="service-worker%3A-what-part-of-the-swiss-army-knife-do-we-need%3F">Service Worker: what part of the swiss army knife do we need?</h2>
+<p>When planning a Service Worker you have to decide how hard or how easy do you want to build it. Do you want a site that automatically caches all assets on first load? Do we want a Service Worker that will pre-cache certain assets (the shell of an app or the assets needed to load an index page)? Push notifications? User activated background fetch?</p>
+<p>The cool thing is that we can do all these things over time. The idea behind a service workers is that you can build them out over time and users will only see the new features.</p>
+<p>We can start with a basic service worker that will cache all resources to a single cache. We can progress from there. Every time you change the service worker, browsers will treat them as a brand new worker and will update whatever needs to change.</p>
+<p>There are also tools like <a href="https://developers.google.com/web/tools/workbox/">Workbox.js</a> that will automate service worker creation and usage. It makes it easier to creaate multiple caches, using different caching strategies and it gives you access to newer technologies built on top of service workers.</p>
+<p>It also gives you more time to develop your strategy for how you will implement the worker.</p>
+<h2 id="frameworks-and-pwas">Frameworks and PWAs</h2>
+<p>If you’re using a framework, you can still consider evaluate PWAs Angular and React both provide PWA implementation for new apps/sites… Angular through the CLI and the <code>@angular/pwa</code> package and React through the <code>create-react-app</code> tool.  In my limited research I wasn’t able to figure out if this is only for new applications or if we’d be able to update an existing one to make it a PWA but if you’re familiar with the tools you should be familiar with the tools and the communities where you can find additional information.</p>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li><a href="https://infrequently.org/2015/06/progressive-apps-escaping-tabs-without-losing-our-soul/">Progressive Web Apps: Escaping Tabs Without Losing Our Soul</a></li>
+<li><a href="https://alistapart.com/article/responsive-web-design">Responsive Web Design</a></li>
+<li><a href="https://cloudfour.com/thinks/designing-responsive-progressive-web-apps/">Designing Responsive Progressive Web Apps</a></li>
+<li><a href="http://blog.oshineye.com/2017/06/progressive-web-sites.html">Progressive web sites: a future that’s native to the web</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/web-app-manifest/">Web App Manifest</a></li>
+<li><a href="https://www.youtube.com/watch?v=J8Hj5bIYuYA&amp;t=221">Designer vs. Developer #3 - Adopting the Native Language of the Web</a></li>
+<li>Angular
+<ul>
+<li><a href="https://angular.io/guide/service-worker-intro">Angular service worker introduction</a></li>
+<li><a href="https://blog.angulartraining.com/progressive-web-apps-for-angular-6-and-beyond-f7e4b9a2f9fa">Progressive Web Apps for Angular 6 and beyond</a></li>
+</ul>
+</li>
+<li>React
+<ul>
+<li><a href="https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app">Making a Progressive Web App</a></li>
+<li><a href="https://medium.freecodecamp.org/how-to-build-a-pwa-with-create-react-app-and-custom-service-workers-376bd1fdc6d3">How to build a PWA with Create-React-App and custom service workers</a></li>
+</ul>
+</li>
+<li>Remote Debugging
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/remote-debugging/">Android</a></li>
+<li><a href="https://appletoolbox.com/2014/05/use-web-inspector-debug-mobile-safari/">iOS</a></li>
+</ul>
+</li>
+<li>Tools
+<ul>
+<li><a href="https://developers.google.com/web/tools/workbox/">Workbox.js</a></li>
+<li><a href="https://www.pwabuilder.com/">PWA Builder</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

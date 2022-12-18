@@ -1,0 +1,76 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="measurments-on-the-web-with-css-and-javascript">Measurments on the web with css and javascript</h1>
+<p>How do we measure height and width for your layout and</p>
+<h2 id="javascript">Javascript</h2>
+<h3 id="clientwidth%2Fheight">clientWidth/Height</h3>
+<p>Measures the inner width/height of an element in pixels. It includes padding but not the vertical/Horizontal scrollbar (if present, if rendered), border or margin.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> clientX <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span>clientWidth<span class="token punctuation">;</span>
+<span class="token keyword">let</span> clientY <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span>clientHeight<span class="token punctuation">;</span>
+</code></pre>
+<h3 id="innerwidth%2Fheight">InnerWidth/Height</h3>
+<p>Width/Height (in pixels) of the browser window viewport including, if rendered, the vertical/Horizontal scrollbar if presented and rendered.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> windowX <span class="token operator">=</span> window<span class="token punctuation">.</span>innerWidth<span class="token punctuation">;</span>
+<span class="token keyword">let</span> windowY <span class="token operator">=</span> window<span class="token punctuation">.</span>innerHeight<span class="token punctuation">;</span>
+</code></pre>
+<h3 id="safe-bet-the-bigest-of-clientwidth%2Fheight-and-innerwidth%2Fheight">Safe bet the bigest of ClientWidth/Height and innerWidth/Height</h3>
+<p>The safest way to measure viewport dimensions is to use the largest of clientWidth /  innerWidth and clientHeight / innerHeight, something like this</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> windowW <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>clientX<span class="token punctuation">,</span> windowX<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> windowH <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>clientY<span class="token punctuation">,</span> windowY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">There biggest values are </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>windowW<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> x </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>windowH<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="making-this-into-a-function">Making this into a function</h3>
+<p>Rather than make the calculation eveerytime we need it and run it again when the screen changes either because we resize the window in desktop (which has no effect in mobile) or change the display orientation (useful in mobile and some desktop monitors that can turn from vertical to horizontal).</p>
+<p>We first initialize variables to false or 0 in the global scope.</p>
+<p>We then calculate the values for the different elements inside the <code>calcScreen</code> function.</p>
+<p>We run the function.</p>
+<p>The most important parts of this version are the event listeners for <code>resize</code> and <code>orientationchange</code>. When either of those events trigger we want to rerun the function to get updated values.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">let</span> screenW <span class="token operator">=</span> screenH <span class="token operator">=</span> windowW <span class="token operator">=</span> windowH <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> <span class="token function-variable function">calcScreen</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  screenW <span class="token operator">=</span> screen<span class="token punctuation">.</span>width<span class="token punctuation">;</span>
+  screenH <span class="token operator">=</span> screen<span class="token punctuation">.</span>height<span class="token punctuation">;</span>
+  windowW <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span>clientWidth<span class="token punctuation">,</span> window<span class="token punctuation">.</span>innerWidth<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  windowH <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span>clientHeight<span class="token punctuation">,</span> window<span class="token punctuation">.</span>innerHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token function">calcScreen</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"resize"</span><span class="token punctuation">,</span> <span class="token function">calcScreen</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"orientationchange"</span><span class="token punctuation">,</span> <span class="token function">calcScreen</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="css">CSS</h2>
+<h3 id="viewport-units">Viewport Units</h3>
+<ul>
+<li><a href="http://thenewcode.com/660/Using-vw-and-vh-Measurements-In-Modern-Site-Design">http://thenewcode.com/660/Using-vw-and-vh-Measurements-In-Modern-Site-Design</a></li>
+<li><a href="http://thenewcode.com/1137/MinMaxing-Understanding-vMin-and-vMax-in-CSS">http://thenewcode.com/1137/MinMaxing-Understanding-vMin-and-vMax-in-CSS</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

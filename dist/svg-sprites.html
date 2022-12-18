@@ -1,0 +1,187 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="creating-svg-sprites">Creating svg sprites</h1>
+<p>The idea behind SVG sprites is similar to <a href="https://www.codeandweb.com/what-is-a-sprite-sheet">sprite sheets</a> using CSS to place the images on the page.</p>
+<p>The structure of the demonstration project is as follows:</p>
+<pre class="language-text"><code class="language-text">svg-sprites
+├── gulpfile.js
+├── icons
+└── package.json
+</code></pre>
+<p>We’ll use Gulp to create the sprite and the <code>gulpfile.js</code> contains the instructions for the build. The details of the process will be described in the next section.</p>
+<p>The <code>icons</code> directory will hold the individual icons that we’ll use in the sprite</p>
+<p><code>package.json</code> contains all NPM-related information necessary for the Gulp process to run.</p>
+<h2 id="creating-the-sprite-sheet">Creating the sprite sheet</h2>
+<p>As with all Node projects, first we need to initialize the project’s <code>package.json</code> file. I choose to automate the file creation and then, if necessaary, change it.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> init <span class="token parameter variable">--yes</span>
+</code></pre>
+<p>The next step is to install the packages we need. I’ve chosen to do this as a standalone project but it can be just as easily included in a larger Gulp-based project.</p>
+<p>The packages we will use are</p>
+<ul>
+<li><a href="https://www.npmjs.com/package/gulp">Gulp</a> to drive the build process. I am running version 3, not the latest version so the syntax will be different than what you see for Gulp 4 tutorials</li>
+<li><a href="https://www.npmjs.com/package/run-sequence">run-sequence</a> allows Gulp to run sequences of files in the specified order</li>
+<li><a href="https://www.npmjs.com/package/gulp-cheerio">gulp-cheerio</a> allows for document manipulation using a jQuery-like syntax</li>
+<li><a href="https://www.npmjs.com/package/gulp-svgmin">gulp-svgmin</a>minifies SVG using <a href="https://github.com/svg/svgo">SVGO</a></li>
+<li><a href="https://www.npmjs.com/package/gulp-svgstore">gulp-svgstore</a> combines SVG files into a single file using &lt;symbol&gt;</li>
+</ul>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> i <span class="token parameter variable">-D</span> gulp@3.9.1 <span class="token punctuation">\</span>
+run-sequence <span class="token punctuation">\</span>
+gulp-cheerio <span class="token punctuation">\</span>
+gulp-svgmin <span class="token punctuation">\</span>
+gulp-svgstore
+</code></pre>
+<p>We now start building the tasks that will create the sprite.</p>
+<p>The first step is to require the packages we want to use. These are the same as the packages we installed in the previous step.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> runSequence <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'run-sequence'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> cheerio <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-cheerio'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> svgmin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-svgmin'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> svgstore <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-svgstore'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p><code>svgstore</code> is the main task of this build.</p>
+<p>It takes all the svg files in the <code>icons</code> directory, minimizes them using <code>svgmin</code>, creates the sprite using <code>svgstore</code>, removes the fill attribute (if present) using <code>Cheerio</code> and the pushes the resulting <code>sprite.svg</code> file to the includes directory.</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'svgstore'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'icons/*.svg'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">svgmin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      <span class="token function">svgstore</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">fileName</span><span class="token operator">:</span> <span class="token string">'sprite.svg'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      <span class="token function">cheerio</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token function-variable function">run</span><span class="token operator">:</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">$</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token function">$</span><span class="token punctuation">(</span><span class="token string">'[fill]'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">removeAttr</span><span class="token punctuation">(</span><span class="token string">'fill'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">parserOptions</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+          <span class="token literal-property property">xmlMode</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'includes/'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The <code>default</code> task links to <code>svgstore</code> to make sure that using the gulp command without parameters doesn’t give an error</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'default'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">runSequence</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'svgstore'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="using-the-sprites">Using the sprites</h2>
+<p>Using SVG images for the icons requires much less work to implement. We can use a single <code>svg</code> element to hold our icons and one additional <code>svg</code> element to insert the icons we referenced in our definition element.</p>
+<p>To make the explanation easier I’ve put all the code inside the body of the HTML document.</p>
+<p>We start with the SVG sprite we generated with our build process. I’ve manually copied it to the document. It looks like this (shortened to make it easier to read)</p>
+<pre class="language-svg"><code class="language-svg"> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>icons<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>symbol</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>codepen<span class="token punctuation">"</span></span> <span class="token attr-name">viewBox</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0 0 24 24<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>path</span>
+        <span class="token attr-name">d</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>M24 8.182l-.018-.087-.017-.05c-.01-.024-.018-.05-.03-.075-.003-.018-.015-.034-.02-.05l-.035-.067-.03-.05-.044-.06-.046-.045-.06-.045-.046-.03-.06-.044-.044-.04-.015-.02L12.58.19a1.024 1.024 0 0 0-1.142 0L.453 7.502l-.015.015-.044.035-.06.05-.038.04-.05.056-.037.045-.05.06c-.02.017-.03.03-.03.046l-.05.06-.02.06c-.02.01-.02.04-.03.07l-.01.05C0 8.12 0 8.15 0 8.18v7.497c0 .044.003.09.01.135l.01.046c.005.03.01.06.02.086l.015.05c.01.027.016.053.027.075l.022.05c0 .01.015.04.03.06l.03.04c.015.01.03.04.045.06l.03.04.04.04c.01.013.01.03.03.03l.06.042.04.03.01.014 10.97 7.33c.164.12.375.163.57.163s.39-.06.57-.18l10.99-7.28.014-.01.046-.037.06-.043.048-.036.052-.058.033-.045.04-.06.03-.05.03-.07.016-.052.03-.077.015-.045.03-.08v-7.5c0-.05 0-.095-.016-.14l-.014-.045.044.003zm-11.99 6.28l-3.65-2.44 3.65-2.442 3.65 2.44-3.65 2.44zm-1.034-6.674l-4.473 2.99L2.89 8.362l8.086-5.39V7.79zm-6.33 4.233l-2.582 1.73V10.3l2.582 1.726zm1.857 1.25l4.473 2.99v4.82L2.89 15.69l3.618-2.417v-.004zm6.537 2.99l4.474-2.98 3.613 2.42-8.087 5.39v-4.82zm6.33-4.23l2.583-1.72v3.456l-2.583-1.73zm-1.855-1.24L13.042 7.8V2.97l8.085 5.39-3.612 2.415v.003z<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>symbol</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- Other symbols go here --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The next block is the CSS. In this section I want to highlight three areas:</p>
+<p>First how we set the container for the icons, the <code>social-media-bar</code> element to be a flex container that takes half the width of the screen and is centered using margins.</p>
+<p>The second is a peculliarity of SVG. While we can use CSS to style SVG the primary attribute names are different and we need to be careful not to confuse them. The <code>fill</code> attribute handles the background of an SVG element, whatever shape it has.</p>
+<p>The last is to make sure we remove the underline for the links inside SVG elements.</p>
+<p>Here to, I’ve removed selectors and attributes to make sure that it’s readable without confusing you.</p>
+<pre class="language-css"><code class="language-css"> <span class="token selector">&lt;style>
+    .social-media-bar</span> <span class="token punctuation">{</span>
+      <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+      <span class="token property">flex-flow</span><span class="token punctuation">:</span> row wrap<span class="token punctuation">;</span>
+      <span class="token property">justify-content</span><span class="token punctuation">:</span> space-around<span class="token punctuation">;</span>
+      <span class="token property">width</span><span class="token punctuation">:</span> 50%<span class="token punctuation">;</span>
+      <span class="token property">margin</span><span class="token punctuation">:</span> 0 auto<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token selector">.codepen-icon</span> <span class="token punctuation">{</span>
+      <span class="token property">fill</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token selector">.facebook-icon</span> <span class="token punctuation">{</span>
+      <span class="token property">fill</span><span class="token punctuation">:</span> #4267b2<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token selector">a</span> <span class="token punctuation">{</span>
+      <span class="token property">text-decoration</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  &lt;/style>
+</code></pre>
+<p>The last section is the combination of HTML and SVG that actually builds the navigation bar.</p>
+<p>Some of the attributes in the svg element look different than those in HTML.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Namespaces_Crash_Course">xmlns</a> provides a default namespace, an association between a string and an XML vocabulary, <code>xmlns:xlink</code> associates the string <code>xlink</code> with the <a href="https://www.w3.org/TR/xlink11/">xlink vocabulary</a>, a way to link between XML vocabularies.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/title">title</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/desc">desc</a>.</p>
+<p>Height and width are presented without units to make sure it scaled appropriately.</p>
+<p>The <code>use</code> element links to the reference the symbols we added earlier in the document. It’s the XML way to link to an anchor… just like HTML’s.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>social-media-bar<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://codepen.io<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span>
+      <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Codepen<span class="token punctuation">"</span></span>
+      <span class="token attr-name">desc</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Codepen Logo<span class="token punctuation">"</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+      <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+      <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>icon codepen-icon<span class="token punctuation">"</span></span>
+    <span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>use</span> <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#codepen<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://facebook.com/<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span>
+      <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span>
+      <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span>
+      <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Facebook<span class="token punctuation">"</span></span>
+      <span class="token attr-name">desc</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Facebook Logo<span class="token punctuation">"</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+      <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span>
+      <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>icon facebook-icon<span class="token punctuation">"</span></span>
+    <span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>use</span> <span class="token attr-name"><span class="token namespace">xlink:</span>href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#facebook<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>So, after all the work, was it worth it?</p>
+<p>SVG has advantages and disadvantages. Advantages first</p>
+<ul>
+<li>It eliminates network requestsby inlining the resources</li>
+<li>Vector graphics scale to whatever screen size you need or want. No more responsive images</li>
+<li>You can style them with CSS</li>
+</ul>
+<p>Disadvantages</p>
+<ul>
+<li>Vector graphics are only good for line drawings and icons</li>
+<li>They require more work to produce and display</li>
+<li>The format is not well supported among older browsers</li>
+</ul>
+<p>With those advantages and limitations I would definitely consider using SVG for icons and other line drawings on the page.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

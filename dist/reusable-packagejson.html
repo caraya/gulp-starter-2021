@@ -1,0 +1,231 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="reproducible-configs">Reproducible Configs</h1>
+<p>A lot of the projects that I work with use a fairly standard setup of tools and scripts. Rather than reinstall them every time and have to fix paths and install dependencies outside the Node ecosystem I’ve created a script that will perform the following actions:</p>
+<ol>
+<li>Check if <code>package.json</code> exists. If it doesn’t then create one with default values</li>
+<li>Install packages explaining what it’s doing when installing each group</li>
+<li>Run an additional script that will create configuration files</li>
+<li>Remove the .git directory and recreate it for the current directory</li>
+</ol>
+<p>This way I can initialize a new project using 2 files that will create a reproducible starting point yet retaining a degree of flexibility.</p>
+<p>That’s why we don’t force an ESLint configuration. If I’m writing React I’ll use Airbnb preset as it is geared towards working with React. For most other projects I’ll use Google’s preset; it is what I became comfortable with when developing PWA content and I think it’s still the one that makes most sense.</p>
+<p>There are two directories and a file that I’ve included to use for my type of projects. I create a <code>src</code> directory with the structure of files that I will use in the Gulpfile.</p>
+<p>The first thing we do is check if there is a <code>package.json</code> file in the directory we’re running the script in. If there is one we exit. I’d rather not overwrite the file that is there.</p>
+<p>If there isn’t one we initialize a default package.json file that we’ll install packages to.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/usr/bin/env bash</span>
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Checking if package.json exists"</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token parameter variable">-f</span> package.json <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"package.json exists."</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"package.json doesn't exists... creating"</span>
+    <span class="token function">npm</span> init <span class="token parameter variable">--yes</span>
+<span class="token keyword">fi</span>
+</code></pre>
+<p>The rest of this script installs different sets of packages.  I will only highlight any specifics that I think are important.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"installing NPM packages "</span>
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Gulp 4.0 and load-plugins"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> gulp@next gulp-load-plugins
+</code></pre>
+<p>The first big change I’ve made is to fully embrace Gulp 4.0. I will modify the file to take into account the new methods it uses.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Installing PostCSS and related plugins"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> postcss autoprefixer cssnano gulp-postcss
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Babel Core and Preset Env"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> @babel/core @babel/preset-env
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Browser Sync"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> browser-sync connect-history-api-fallback
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing ESLint"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> eslint gulp-eslint
+</code></pre>
+<p>It’s important to notice that we’re only installing eslint. We’ll handle the preset installation later</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Installing SASS and related plugins"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> gulp-sass gulp-sourcemaps
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing critical and uncss"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> critical uncss
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installing Remarkable and related plugins.  I use Remarkable and associated plugins to generate production-ready HTML"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> remarkable gulp-remarkable gulp-wrap
+</code></pre>
+<p>I use Markdown as my authoring tool. I then use <code>Remarkable</code> and <code>gulp-remarkable</code> to convert it to HTML and <code>gulp-wrap</code> to put the content inside a template that has links to the CSS and Javascript that I use for particular projects. All we need to do to use different assets is to change the links in the template.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Installing miscelaneous plugins"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span>  gulp-concat gulp-debug gulp-exec gulp-run gulp-size
+
+<span class="token builtin class-name">echo</span> <span class="token string">"The following plugins are optional. "</span>
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Installs Google Cloud utilities to upload content to google cloud storage. Including gulp-gzip for compression.  Separating them to make sure this is still the best option"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> gulp-gcloud-publish gulp-gzip
+</code></pre>
+<p>The original project created PDF assets that were the uploaded to a Google Cloud storage bucket. I haven’t decided if I want to continue using GCloud Storage that way or if I want to move to Firebase hosting instead.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"Utility Opentype adds classes for using Opentype font options"</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> utility-opentype
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Cheerio provides the means to query HTML and XML structures from a Gulp file."</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> cheerio
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Axe is an accessibility evaluation tool."</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> gulp-axe-webdriver
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Evaluates your node_modules file for vulnerabilities.  This is the tool that NPM runs when using npm audit."</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> gulp-snyk snyk
+
+<span class="token builtin class-name">echo</span> <span class="token string">"External Dependecies Required"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"SASSDoc and SCSS Lint depend on external Ruby dependencies."</span>
+<span class="token function">npm</span> i <span class="token parameter variable">-D</span> sassdoc scss-lint gulp-scss-lint gulp-scss-lint-stylish
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Running configuration script"</span>
+<span class="token function">sh</span> configure.sh
+</code></pre>
+<p>Rather than make the script longer than it needs to be I call a second script to do configuration. This script is more complex and uses some Bash tricks.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token shebang important">#!/usr/bin/env bash</span>
+
+<span class="token comment"># Configure ESLint</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"ESLint configuration"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Checking if .eslintrc.json exists.  We're assuming it was written as a Javascript file"</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token parameter variable">-f</span> .eslintrc.js <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".eslintrc.json exists."</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".eslintrc.json not found. Creating... "</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"Please answer the questions below:"</span>
+    npx eslint <span class="token parameter variable">--init</span>
+<span class="token keyword">fi</span>
+</code></pre>
+<p>If the <code>.eslintrc.js</code> file exists then we tell the user and exit. If it doesn’t exist then we run <code>npx eslint --init</code> to configure eslint based on our preferences and the needs of the project.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Creating .babelrc file</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token parameter variable">-f</span> .babelrc <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".babelrc exists"</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"creating .babelrc"</span>
+<span class="token keyword">fi</span>
+
+<span class="token function">touch</span> .babelrc
+<span class="token function">cat</span> <span class="token operator">></span> .babelrc <span class="token operator">&lt;&lt;-</span> <span class="token string">"EOF"
+{
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": ["last 2 versions", "safari >= 7"]
+      }
+    }]
+  ]
+}
+EOF</span>
+</code></pre>
+<p>Configuring babel is slightly different. We test like we did with ESLint. When it doesn’t then we create the file using the <code>touch</code> command and then append the content of the file.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Create and populate .editorconfig</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token parameter variable">-f</span> .editorconfig <span class="token punctuation">]</span>
+  <span class="token keyword">then</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".editorconfig exists"</span>
+    <span class="token builtin class-name">exit</span> <span class="token number">1</span>
+  <span class="token keyword">else</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">".editorconfig doesn't exist"</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"creating..."</span>
+<span class="token keyword">fi</span>
+
+<span class="token function">touch</span> .editorconfig
+<span class="token function">cat</span> <span class="token operator">></span> .editorconfig <span class="token operator">&lt;&lt;-</span> <span class="token string">"EOF"
+# http://editorconfig.org
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Use 4 spaces for the Python files
+[*.py]
+indent_size = 4
+max_line_length = 80
+
+# The JSON files contain newlines inconsistently
+[*.json]
+insert_final_newline = ignore
+
+# Minified JavaScript files shouldn't be changed
+[**.min.js]
+indent_style = ignore
+insert_final_newline = ignore
+
+# Makefiles always use tabs for indentation
+[Makefile]
+indent_style = tab
+
+# Batch files use tabs for indentation
+[*.bat]
+indent_style = tab
+
+[*.md]
+trim_trailing_whitespace = false
+EOF</span>
+</code></pre>
+<p><a href="https://editorconfig.org/">editorconfig</a> provides a standard way to tell your editor how to behave. The (defacto) standard is supported by most modern text editors.</p>
+<p>The file we’re adding to the project is a basic default that we can use for most projects. Check the website for additional information.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Git configuration has to be the last step to make sure</span>
+<span class="token comment"># that we get all the files we want are committed to the repo</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Reseting GIT configuration.Because I downloaded this as a Git Repo clone I want to remove it and start over"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"If you're working with an existing project this may loose your project's history"</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Removing .git directory"</span>
+<span class="token function">rm</span> <span class="token parameter variable">-rf</span> .git
+<span class="token builtin class-name">echo</span> <span class="token string">"creating empty git repository"</span>
+<span class="token function">git</span> init
+<span class="token builtin class-name">echo</span> <span class="token string">"creating .gitignore"</span>
+<span class="token function">touch</span> .gitignore
+<span class="token builtin class-name">echo</span> <span class="token string">"adding node_modules and shell files to .gitignore"</span>
+<span class="token comment">#</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"node_modules"</span> <span class="token operator">>></span> .gitignore
+<span class="token builtin class-name">echo</span> <span class="token string">"install.sh"</span> <span class="token operator">>></span> .gitignore
+<span class="token builtin class-name">echo</span> <span class="token string">"configure.sh"</span> <span class="token operator">>></span> .gitignore
+<span class="token comment">#</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"adding files to repository"</span>
+<span class="token function">git</span> <span class="token function">add</span> <span class="token builtin class-name">.</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"commit initial files"</span>
+<span class="token function">git</span> commit <span class="token parameter variable">-am</span> <span class="token string">"initial commit"</span>
+</code></pre>
+<p>Working with Git in this setup is the last step in the process. It is important to note that if you’re working on an existing project this will blow up your project’s local history.</p>
+<p>The first step of the process is to remove the existing <code>.git</code> directory. I choose to do it tto make sure that the next steps are done on what, for Git, is a clean repository.</p>
+<p>Next we create a <code>.gitignore</code> file and  add the files we don’t want to upload to Git. In this case I’ve chosen not to upload the shell (<code>install.sh</code> and <code>configure.sh</code> files and the <code>node_modules</code> directory.</p>
+<p>Then we add the files to the repository and commit them. All that is left is to push them to your Git or Github repo.</p>
+<p>In a later post I will discuss the <code>gulpfile.js</code> build file and some alternatives for how to run build tasks without Gulp.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

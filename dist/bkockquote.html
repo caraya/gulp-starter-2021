@@ -1,0 +1,104 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="implementing-quotebacks-in-wordpress">Implementing Quotebacks in WordPress</h1>
+<p>Quotebacks are an interesting way to cite content from other websites. They work in two stages.</p>
+<h2 id="installing-the-extension-and-getting-the-quotations">Installing the extension and getting the quotations</h2>
+<p>The first one is HTML formatted with special data attributes, a footer and a link to the script. There are browser extensions to create this code, one for Chrome and one for Firefox (currently under development).</p>
+<p>Once the extension is installed, go to a page, select text and press command + shift + S on Mac and control + shift + S on Windows</p>
+<figure>
+  <img loading="lazy" src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v1592371680/publishing-project.rivendellweb.net/citation-00.png" alt="">
+  <figcaption>The result of highlighting text and pressing command/control + shift + S to generate the quote back. There are options to copy embed, copy markdown or close the quote at the bottom of the caption.</figcaption>
+</figure>
+<p>The final step in this section is to paste the code into the page that you want to use</p>
+<h2 id="installing-the-script">Installing the script</h2>
+<p>The second part, the <code>quoteback.js</code> scripts converts the blockquote into a custom element with its own built-in styles. The installation is simple, either create a script and point the source to the CDN</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/gh/Blogger-Peer-Review/quotebacks@1/quoteback.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Or download the script and link to it locally</p>
+<pre class="language-html"><code class="language-html">&lt;script src="js/vendor/quoteback.js><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Completing both steps will produce results similar to the following image.</p>
+<figure>
+  <img loading="lazy" src="https://res.cloudinary.com/dfh6ihzvj/image/upload/v1592371040/publishing-project.rivendellweb.net/citation-01.png" alt="">
+  <figcaption>Example of a formatted quoteback</figcatption>
+</figure>
+<h2 id="why-use-them%3F">Why Use them?</h2>
+<p>Using these types of citations keep me honest and it makes me think about the type of resources I use and how I use them. It also allows readers to get the full text and context of your citations and form their own opinions about the subject.</p>
+<h2 id="wordpress-specifics">WordPress specifics</h2>
+<p>There are a few WordPress-specific issues that we need to address as we implement them in a WordPress site.</p>
+<h3 id="linking-to-cdn-or-hosting-locally%3F">Linking to CDN or hosting locally?</h3>
+<p>This is a tricky question.</p>
+<p>If we run the plugin from CDN, we get the latest code but we add one or more request to those already being made and, potentially making the site slower since the custom elements will only be upgraded when the script finishes loading.</p>
+<p>Keeping a local copy makes the code moore efficient, it reduces the number of requests, but it puts the weight of updating the code on the plugin creator.</p>
+<p>For this project I chose to host the script as part of the plugin.</p>
+<h3 id="plugin-or-theme%3F">Plugin or theme?</h3>
+<p>Whether to host it in a plugin or a theme will depend on what you want to do with it.</p>
+<p>If you want the functionality to be part of a theme and don’t mind if the code breaks when you move to another theme, then a theme would be ok.</p>
+<p>But if you want to keep the functionality regardless of the theme you’re using, then you must use a plugin.</p>
+<p>For this project I’ve chosen to build it as a plugin.</p>
+<h3 id="process">Process</h3>
+<p>To create a WordPress plugin we need to add a preamble comment that contains the plugin metadata that WordPress will use to show the plugin in the admin plugin menu.</p>
+<p>I also incorporate a basic tool to prevent direct access to the plugin. If the constant ABSPATH is not defined then the user tried to access the script directly and we don’t allow that to happen so we exit.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?</span>
+<span class="token comment">/*
+  Plugin Name: WP-Quotebacks
+  Plugin URI: https://publishing-project.rivendellweb.net/
+  description: Backend work for Quotebacks See &lt;a href="https://quotebacks.net/">quotebacks.net&lt;/a>
+  Version: 1.0
+  Author: Carlos Araya
+  Author URI: https://publishing-project.rivendellweb.net/
+  License: MIT
+*/</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token operator">!</span> <span class="token function">defined</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'ABSPATH'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">exit</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</span></code></pre>
+<p>The main part of the script is the function and action to add the script to the pages.</p>
+<p>We don’t add the script like we’d add it in a regular page, we need to use WordPress-specific functions, <a href="https://developer.wordpress.org/reference/functions/wp_enqueue_script/">enqueue_script</a>, to add them to all pages on the WordPress installation.</p>
+<p>By itself <code>enqueue_script</code> will not add the script, for that we need to add an action that uses the <a href="https://developer.wordpress.org/reference/hooks/wp_enqueue_scripts/">enqueue_scripts</a> hoook (note the plural) and a function callback.</p>
+<pre class="language-php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?</span>
+<span class="token keyword">function</span> <span class="token function-definition function">quotebacks_enqueue_script</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">wp_enqueue_script</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'quotebacks'</span><span class="token punctuation">,</span>
+  <span class="token function">plugins_url</span><span class="token punctuation">(</span>
+    <span class="token string single-quoted-string">'vendor/quoteback.js'</span><span class="token punctuation">,</span> <span class="token constant">__FILE__</span> <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token string single-quoted-string">'20200615'</span><span class="token punctuation">,</span>
+    <span class="token constant boolean">true</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">add_action</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_enqueue_scripts'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'quotebacks_enqueue_script'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></code></pre>
+<p>With this plugin installed we can just paste the code from the extension with one difference, we should delete the script located at the end of every embed for quotebacks.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

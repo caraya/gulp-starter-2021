@@ -1,0 +1,289 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <p>A couple years ago I wrote a <a href="https://caraya.github.io/d3v4-demo/css-tree3.html">CSS Properties Data Visualization</a> experiment to teach myself how to use D3 version 3 and how to build a tree-based layout. I had also donated the work to the Web Platform Documentation Project for their use (as far as i know it was never used).</p>
+<p>I’ve stayed away from D3 in particular and data visualization in general since I completed the project because I haven’t had the need to do data visualizations. I have the spare cycles to look at D3 again and, now that version 4 of D3 has been released, it’s time to come back and take another look.</p>
+<h2 id="what-version-4-brings-to-the-table">What version 4 brings to the table</h2>
+<p>The main thing in version 4, for me, is modularity. It makes the code bundles for D3 smaller and it forces me to learn what it is that I’m working with so I can then bundle it to use. ## Technical: Shaking the tree</p>
+<p>D3 now leverages ES2015 modules to create a modularized build where we can download only those packages that we need for our project rather than use the complete D3 package.</p>
+<p>During development we can install the packages we need using NPM and then, when we’re ready to deploy the application to staging and/or production we can bundle it together to reduce the load in HTTP servers unable to preload or push content. We may also have to create an unbundled version for HTTP/2 servers where this is not an issue.</p>
+<p>The NPM install process is simple, we use NPM install and make sure to save the package as a dependency, like so:</p>
+<pre class="language-language-bash"><code class="language-language-bash">npm install --save d3-scale
+</code></pre>
+<p>You can still download and use modules manually and reference all the related dependencies manually as well. To use <code>d3-scale</code> without NPM the links in the home page would look like this:</p>
+<pre class="language-language-html"><code class="language-language-html">&lt;script src=&quot;https://d3js.org/d3-array.v1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-collection.v1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-color.v1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-format.v1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-interpolate.v1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-time.v1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-time-format.v2.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://d3js.org/d3-scale.v1.min.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>Of course you can always install the full package (whether you need all of it or not) just like you did with version 3:</p>
+<pre class="language-language-html"><code class="language-language-html">&lt;script src=&quot;https://d3js.org/d3.v4.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h3 id="working-with-modules-directly">Working with modules directly</h3>
+<p>In browsers that support modules directly we should be able to do something like this to import only the needed symbols for your application. In this case we import <code>event</code>, <code>selection</code>, <code>select</code> and <code>selectAll</code> from the <code>d3-selection</code> module and the entire <code>d3-transition</code> module.</p>
+<pre class="language-language-html"><code class="language-language-html">&lt;script type=&quot;module&quot;&gt;
+export {
+  event,
+  selection,
+  select,
+  selectAll
+} from &quot;d3-selection&quot;;
+
+import &quot;d3-transition&quot;;
+
+// Rest of the modules goes here
+
+&lt;/script&gt;
+</code></pre>
+<h2 id="demo%3A-css-property-tree-revisited">Demo: CSS Property tree revisited</h2>
+<p>This project was one of the first things I did in D3. I’m revisting it as a way to explore how to identify modules we need to import to accomplish a given task. Doing it for one project is easier than doing it for a larger project.</p>
+<p>The idea is that rather than use version 3 of the D3 library I’ll create a customized bundle of version 4 and link to that as my D3 library for the project. This will test my ability to figure out what to bundle, the bundling of modules themselves and whether the resulting bundle works or not; Unless there are major changes to the codebase, this should work as is.</p>
+<p>The steps to bundle our custom D3 library are:</p>
+<ol>
+<li>Install Rollup as a global Node application</li>
+<li>Initialize <code>package.json</code> to hold our D3 modules</li>
+<li>Install Rollup and dependencies for the project using NPM</li>
+<li>Identify the components to bundle</li>
+<li>Install the packages that contain the components identified above using NPM</li>
+<li>Create <code>index.js</code> containing all the files to bundle</li>
+<li>Create the rollup configuration file</li>
+<li>Run Rollup with your configuration</li>
+</ol>
+<h3 id="install-rollup-and-uglify-as-global-node-applications">Install Rollup and Uglify as global Node applications</h3>
+<p>Just to make sure I don’t forget later in the process, I’ll install Rollup as a global Node application. This will put it in my shell’s path and will save me from typying full paths to my project’s <code>node_modules</code> bin directory</p>
+<pre class="language-language-bash"><code class="language-language-bash">npm install -g rollup uglify-es
+</code></pre>
+<h3 id="initialize-a-package.json-file">initialize a package.json file</h3>
+<p>If this is a new project you need to initialize a <code>package.json</code> file to store dependencies and other configuration options. We’ll run the command with the <code>--yes</code> flag to take all the default values without typing them in. We cam</p>
+<pre class="language-language-bash"><code class="language-language-bash">npm init --yes
+</code></pre>
+<h3 id="install-rollup-and-dependencies-for-the-project-using-npm">Install Rollup and dependencies for the project using NPM</h3>
+<p>We’ve already installed Rollup as a global plugin for N</p>
+<pre class="language-language-bash"><code class="language-language-bash">npm i -D rollup rollup-plugin-node-resolve uglify-es
+</code></pre>
+<h3 id="identify-the-components-to-bundle">Identify the components to bundle</h3>
+<p>Working from the <a href="https://github.com/d3/d3/blob/master/API.md">API docs</a> I’ve identified the following items to bundle to get the application working.</p>
+<p><code>d3.hierarchy</code> contains the tree layout we use in the project and <code>d3.selection</code> holds the navigation and data related utilities we need to make the layout work. <code>d3.request</code> contains the json function that will load the data for the project. <code>d3-collection</code> and <code>d3-dispatch</code> are imported by <code>d3-request</code>.</p>
+<ul>
+<li>d3.selection
+<ul>
+<li>selection.select - select a descendant element for each selected element</li>
+<li>selection.selectAll - select multiple descendants for each selected element</li>
+<li>selection.attr - get or set an attribute</li>
+<li>selection.style - get or set a style property</li>
+<li>selection.append - create, append and select new elements</li>
+<li>selection.data - join elements to data</li>
+<li>selection.enter - get the enter selection (data missing elements</li>
+<li>selection.exit - get the exit selection (elements missing data)</li>
+</ul>
+</li>
+<li>d3.hierarchy
+<ul>
+<li>tree</li>
+</ul>
+</li>
+<li>d3.shape
+<ul>
+<li>link</li>
+</ul>
+</li>
+<li>d3.request
+<ul>
+<li>json</li>
+</ul>
+</li>
+<li>Required by d3.request
+<ul>
+<li>d3-collection
+<ul>
+<li>map</li>
+</ul>
+</li>
+<li>d3-dispatch
+<ul>
+<li>dispatch</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="install-the-packages-that-contain-the-components-identified-above-using-npm">Install the packages that contain the components identified above using NPM</h3>
+<p>Now that we’ve identified the packages we need for the bundle, the next step is to install them using NPM. This is the reason why we initialized a <code>package.json</code> earlier… now we need to install the files and save themas development dependencies. The command looks like this:</p>
+<pre class="language-language-bash"><code class="language-language-bash">npm install -D d3-hierarchy d3-selection d3-request \
+d3-collection d3-dispatch
+</code></pre>
+<p>You don’t have to save them but in doing so we ensure that the build is repeatable without having to run the installer on every machine we move this build to. It also ensures that we can upload the application to version control without having to download the packages every time.</p>
+<p>TODO: Figure out how deep you need to import… right now it looks like a nightmare</p>
+<h3 id="create-index.js-containing-all-the-files-to-bundle">Create <code>index.js</code> containing all the files to bundle</h3>
+<p><code>index.js</code> is the entry point to the bundle we’re creating. Rollup will use this entry point when creating the bundle later on. The file itself is a simple Javascript file that contains all the module imports we need for the project.</p>
+<pre class="language-language-javascript"><code class="language-language-javascript">export {
+  style,
+  event,
+  selection,
+  select,
+  selectAll
+} from &quot;d3-selection&quot;;
+
+export {
+  link
+} from &quot;d3-shape&quot;;
+
+export {
+  tree
+} from &quot;d3-hierarchy&quot;;
+
+export {
+  json
+} from &quot;d3-request&quot;;
+
+export {
+  map
+} from &quot;d3-collection&quot;;
+
+export {
+  dispatch
+} from &quot;d3-dispatch&quot;;
+
+</code></pre>
+<h3 id="create-the-rollup-configuration-file">Create the rollup configuration file</h3>
+<p>For this project, Rollup’s configuration is fairly easy. We create a module and tell that we want to use the <code>rollup-plugin-node-resolve</code> plugin. This will enable Rollup to locate modules using the Node resolution algorithm to search for third party modules in node_modules</p>
+<p>In the file (<code>rollup.config.js</code>) we import the resolve symbol from the plugin and then create an export default that uses <code>node()</code> as a plugin.</p>
+<pre class="language-language-javascript"><code class="language-language-javascript">import resolve from 'rollup-plugin-node-resolve';
+
+export default {
+  plugins: [ node() ]
+};
+</code></pre>
+<h3 id="run-rollup-with-your-configuration">Run Rollup with your configuration</h3>
+<p>Ok, now that’we gone through the pain of configuration the rest will be, almost, anticimatic. We need to run both the rollup and Uglify commands to generate the minimized version of the bundle to use.</p>
+<p>The command is shown below:</p>
+<pre class="language-language-bash"><code class="language-language-bash">rollup -c -f umd -n d3 -o d3.js -- index.js &amp;&amp; uglifyjs d3.js -c -m -o d3.min.js
+</code></pre>
+<p>To make it easier to digest we’ll discuss each individual command separately. We start with <code>rollup</code>.  In this command we want to generate the bundled <code>d3.js</code> file so we use the following configuration flags.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Short Option</th>
+      <th>Long Option</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>-c</td>
+      <td>--conftig</td>
+      <td>Use this config file. if argument is used but value is unspecified, defaults to <code>rollup.config.js</code></td>
+    </tr>
+    <tr>
+      <td>-f</td>
+      <td>--format</td>
+      <td>the output format. For this example we're using <code>umd</code></td>
+    </tr>
+    <tr>
+      <td>-n</td>
+      <td>--name</td>
+      <td>name of bundle in UMD/IIFE output</td>
+    </tr>
+    <tr>
+      <td>-o</td>
+      <td>--output</td>
+      <td>output. If absent, prints to stdout</td>
+    </tr>
+    <tr>
+      <td>-m</td>
+      <td>--sourcemap</td>
+      <td>generate sourcemap</td>
+    </tr>
+  </tbody>
+</table>
+<p>This will create the bundle but it’s still to big for my liking so I’ll run it through uglify-es to shrink it further.</p>
+<p>The flags we use for uglify are:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Short Option</th>
+      <th>Long Option</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>-c</td>
+      <td>--compress</td>
+      <td>Enable compressor</td>
+    </tr>
+    <tr>
+      <td>-m</td>
+      <td>--mangle</td>
+      <td>Mangle names</td>
+    </tr>
+    <tr>
+      <td>-o</td>
+      <td>--output</td>
+      <td>Output file path (default STDOUT)</td>
+    </tr>
+  </tbody>
+</table>
+<p>Rather than write the command out every time we can add a script to the <code>package.json</code> file to do this for us. We’ll call the script <code>bundle</code> and add it like so:</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"scripts"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"bundle"</span><span class="token operator">:</span> <span class="token string">"rollup -c -f umd -n d3 -o d3.js -- index.js &amp;&amp; uglifyjs d3.js -c -m -o d3.min.js"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre>
+<p>and instead of typing that entire command every time we want to change the bundle, we can just type the following in terminal:</p>
+<pre class="language-language-bash"><code class="language-language-bash">npm run bundle
+</code></pre>
+<p>And it will execute the command specified.</p>
+<p>The final test is to change the link in the HTML file to point to our bundle and see if it still works. If it does then we’re good, if not we’ll have to gnp back to the drawing board and figure out why.</p>
+<p>There are significant changes to make to the existing code and I’m having a hard time wrapping my head around the new way of working with the code.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>This does a lot. It reduces the size of the minimized bundle to <em><strong>25k</strong></em> which can be further reduced if your server can send gzipped content and your client can read it.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li><a href="https://github.com/d3/d3/blob/master/CHANGES.md">Changes documentation in the D3 distribution</a></li>
+<li><a href="https://iros.github.io/d3-v4-whats-new/#1">D3 V4 - What’s new?</a></li>
+<li><a href="https://github.com/d3/d3/blob/master/API.md">D3 Version 4 API</a></li>
+<li>Examples of using Rollout to create custom D3 bundles
+<ul>
+<li><a href="https://bl.ocks.org/mbostock/bb09af4c39c79cffcde4">Example 1</a></li>
+<li><a href="https://bl.ocks.org/mbostock/97557a39b4bfc8229786c8bccb54074d">Example 2</a></li>
+</ul>
+</li>
+<li>Additional information
+<ul>
+<li><a href="https://code.lengstorf.com/learn-rollup-js/">Rollup</a></li>
+<li><a href="https://github.com/mishoo/UglifyJS2/tree/harmony">Uglify ES</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

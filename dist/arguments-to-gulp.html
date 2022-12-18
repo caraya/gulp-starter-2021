@@ -1,0 +1,59 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="passing-argument-to-gulp">Passing argument to Gulp</h1>
+<p>There are times when we want to do different things based on whether we’re creating code for production or development.</p>
+<p>This is based on the example from the <a href="https://github.com/gulpjs/gulp/blob/master/docs/recipes/pass-arguments-from-cli.md">Gulp documentation</a>. We’ll use this as the base and then see if we can expand it further.</p>
+<p>As with all Gulp projects we use NPM to install the packages we want to use</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">-D</span> gulp gulp-if <span class="token punctuation">\</span>
+gulp-uglify yargs
+</code></pre>
+<p>Then we requite the packages. We’re not using modules for this example.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> gulp <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> gulpif <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-if'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> uglify <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'gulp-uglify'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> args <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'yargs'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>argv<span class="token punctuation">;</span>
+</code></pre>
+<p>We then set the different options we want to control. In this case we create an <code>env</code> consts and make the value either the value of the <code>NODE_ENV</code> variable or <code>development</code> if we don’t add a value in the command line.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> env <span class="token operator">=</span> args<span class="token punctuation">.</span>env <span class="token operator">?</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">NODE_ENV</span> <span class="token operator">:</span> <span class="token string">'development'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The task uses <code>gulp-if</code> to test if we asked for a production environment (if <code>arg.env</code> is production) and uglifies the scripts if we did.</p>
+<pre class="language-js"><code class="language-js">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'scripts'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./src/js/**/*'</span><span class="token punctuation">)</span>
+     <span class="token comment">// only minify in production</span>
+     <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">gulpif</span><span class="token punctuation">(</span>args<span class="token punctuation">.</span>env <span class="token operator">===</span> <span class="token string">'production'</span><span class="token punctuation">,</span> <span class="token function">uglify</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'dist'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The following Bash command will produce uglified script output.</p>
+<pre class="language-sh"><code class="language-sh">gulp scripts <span class="token parameter variable">--env</span> production
+</code></pre>
+<p>We could add other flags to add conditions elsewhere in the build file. For example, if we use SASS or other CSS preprocessors, we could use the same technique to only produce compressed output or generate sourcemaps for production.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

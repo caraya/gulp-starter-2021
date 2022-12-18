@@ -1,0 +1,58 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="loading-scripts-the-right-way-for-everyone">Loading scripts the right way for everyone</h1>
+<p>Differential loading is the technique where you load different content for different browsers that support different sets of Javascript features and APIs.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/js/modern.mjs<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">nomodule</span> <span class="token attr-name">defer</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/js/legacy.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>This works awesome with modern browsers that understand <code>type=&quot;module&quot;</code> and that will hapily ignore <code>nomodule</code>.</p>
+<p>The problem is that we can’t really make that assumption safely. There are browsers that will download the nomodule script twice and others that will download both scripts, even when they will only execute one of them.</p>
+<p>Jeremy Wagner’s article <a href="https://jeremy.codes/blog/a-less-risky-differential-serving-pattern/">A Less Risky Differential Serving Pattern</a> proposes the following hack to make sure that all browsers will load a single version of the code for the page depending on whether they use modules or not.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token comment">// Create a new script element</span>
+  <span class="token comment">//to slot into the DOM.</span>
+  <span class="token keyword">var</span> scriptEl <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">"script"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Check whether the script element</span>
+  <span class="token comment">// supports the `nomodule` attribute.</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"noModule"</span> <span class="token keyword">in</span> scriptEl<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    scriptEl<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">"/js/modern.mjs"</span><span class="token punctuation">;</span>
+    scriptEl<span class="token punctuation">.</span>type <span class="token operator">=</span> <span class="token string">"module"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    scriptEl<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">"/js/legacy.js"</span><span class="token punctuation">;</span>
+    scriptEl<span class="token punctuation">.</span>defer <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>scriptEl<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>In a separate article in the <a href="https://calendar.perfplanet.com/2018/">2018 Performance Calendar</a> entry  <a href="https://calendar.perfplanet.com/2018/doing-differential-serving-in-2019/">Doing Differential Serving in 2019</a> he goes more in depth on how to prepare the bundles that will differentially serve.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

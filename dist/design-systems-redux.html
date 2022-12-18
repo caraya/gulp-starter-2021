@@ -1,0 +1,502 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="revisiting-design-systems">Revisiting design systems</h1>
+<p>Design systems are an interesting because of how they scale design to multiple teams and multiple sites/products while still providing a consitent and recognizable brand.</p>
+<p>For a full introduction to design systems, see <a href="https://www.designbetter.co/design-systems-handbook/introducing-design-systems">Introducing Design Systems</a></p>
+<p>The work I do is not always conductive to creating a design system but it’s always good to know about them so we can jump in without having to start completely from scratch.</p>
+<p>That said we’ll look at three areas:</p>
+<ul>
+<li>Building a basic component using just HTML, and CSS</li>
+<li>Building the same component using existing design systems
+<ul>
+<li>Material Design from Google</li>
+<li>Atomic Design from Brad Frost</li>
+</ul>
+</li>
+<li>Building the component using Web Components
+<ul>
+<li>Plain Web Components</li>
+<li>Polymer</li>
+</ul>
+</li>
+</ul>
+<h2 id="no-design-systems">No Design Systems</h2>
+<p>I want to design a card component where we can control the direction (vertical or horizontal), the dimensions (height and width) and the border. The component should also provide ways to layout its children using Flex.</p>
+<p>The CSS looks something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--card-border-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token property">--card-border-width</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
+  <span class="token property">--card-border-style</span><span class="token punctuation">:</span> solid<span class="token punctuation">;</span>
+  <span class="token property">--card-display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+  <span class="token property">--card-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
+  <span class="token property">--card-width</span><span class="token punctuation">:</span> 400px<span class="token punctuation">;</span>
+  <span class="token property">--card-height</span><span class="token punctuation">:</span> 300px<span class="token punctuation">;</span>
+  <span class="token property">--card-padding</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-display<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">flex-flow</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-direction<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-width<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-style<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-width<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card-title</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #fff<span class="token punctuation">;</span>
+  <span class="token property">background-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card-content</span> <span class="token punctuation">{</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-padding<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The idea is that by changing the value of the variable declared in the <code>:root</code> element we change the way that all card elements will look on the page. I choose the <code>:root</code> element rather than <code>html</code> because <code>:root</code> has higher specificity and it would override any declarations in HTML rather than having to depend on the way properties were declared every time.</p>
+<p>Let’s saay that we want to create a horizontal card. All we have to do is redefine the variables for the elements we need to change, something like the following example:</p>
+<p>In this example we make the card layout its children in a row, rather than a column, we also change the dimensions of the card but we keep all other values the same as our <code>:root</code> declaration.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--card-border-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token property">--card-border-width</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
+  <span class="token property">--card-border-style</span><span class="token punctuation">:</span> solid<span class="token punctuation">;</span>
+  <span class="token property">--card-display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+  <span class="token property">--card-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
+  <span class="token property">--card-width</span><span class="token punctuation">:</span> 400px<span class="token punctuation">;</span>
+  <span class="token property">--card-height</span><span class="token punctuation">:</span> 300px<span class="token punctuation">;</span>
+  <span class="token property">--card-padding</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card2</span> <span class="token punctuation">{</span>
+  <span class="token property">--card-border-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token property">--card-direction</span><span class="token punctuation">:</span> row<span class="token punctuation">;</span>
+  <span class="token property">--card-height</span><span class="token punctuation">:</span> 300px<span class="token punctuation">;</span>
+  <span class="token property">--card-width</span><span class="token punctuation">:</span> 800px<span class="token punctuation">;</span>
+
+  <span class="token property">border</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-width<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-style<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-display<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">flex-flow</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-direction<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-width<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token selector">.card-title</span> <span class="token punctuation">{</span>
+    <span class="token property">width</span><span class="token punctuation">:</span> 10em<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This is just an initial step, we could further refine the card component by providing deefaults in case we want to add an image instead of text on the title, but it’ll do as the basic example of what we want to accomplish.</p>
+<p>One other thing that need to happen for this card to become an element is to document the ways in which you can customize the component… ideally with full examples that can be copy and pasted to be used.</p>
+<h2 id="design-system">Design System</h2>
+<p>Now that we have a basic idea of what we want to do, let’s look at different ways in which design systems can make the process easier, less painful or both.</p>
+<h3 id="material-design">Material Design</h3>
+<p>The new iteration of material design has its good and bad aspects.</p>
+<p>The good is that the new version is much easier to customize and make look “less like a Google product” than the original</p>
+<p>The bad is that Material Design now reuires SCSS and ES6 for development. You can’t just drop the Material Design components into an existing project if the project doesn’t use a build system or SASS to process the CSS.</p>
+<p>Since I already use both ES6 and SCSS for my projects, I think the drawbacks, if you can call them that, are worth the investment.</p>
+<p>As you can see the code depends hevily on classes starting with <code>mdc-</code>. The reason why will become clearer when we look at the SCSS code that styles the element.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card mdc-card--outlined my-card <span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__media mdc-card__media--square<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__media-content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Content goes here<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__actions<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-card__action-buttons<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>
+        mdc-button
+        mdc-card__action
+        mdc-card__action--button<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Action 1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>mdc-button
+        mdc-card__action
+        mdc-card__action--button<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Action 2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Material design is based on SCSS so to add the components’ styles we just import them using SASS <code>@import</code> syntax… with a twist.</p>
+<pre class="language-scss"><code class="language-scss"><span class="token keyword">@import</span> <span class="token string">'@material/card/mdc-card'</span><span class="token punctuation">;</span>
+<span class="token keyword">@import</span> <span class="token string">'@material/button/mdc-button'</span><span class="token punctuation">;</span>
+
+<span class="token selector">body </span><span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Roboto<span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.mdc-card </span><span class="token punctuation">{</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 2em auto<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 350px<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 350px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.mdc-card__media </span><span class="token punctuation">{</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token url">url</span><span class="token punctuation">(</span><span class="token string">'../images/sunrise.jpg'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token selector">img </span><span class="token punctuation">{</span>
+    <span class="token property">width</span><span class="token punctuation">:</span> 350px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Because we are going into the <code>node_modules</code> directory we have to call the sass command with a special flag to include the modules directory into the path SASS searches. The command is:</p>
+<pre class="language-sh"><code class="language-sh">sass <span class="token parameter variable">-I</span> node_modules/ sass/:css/
+</code></pre>
+<p>This works in version 1.13.0, the current Dart version of SASS.</p>
+<h3 id="atomic-design">Atomic Design</h3>
+<p>Atomic Design, conceived by <a href="http://bradfrost.com/">Brad Frost</a>, and explained in <a href="http://atomicdesign.bradfrost.com/">the book of the same name</a> is a way to break a page into its components down to the single HTML element. The introduction of the book explains it like so:</p>
+<blockquote>
+<p>And then Brad Frost the front-end developer started talking like Brad Frost the chemist. He talked about atoms and molecules and organisms—about how large pieces of design can be broken down into smaller ones and even recombined into different large pieces. Instead of visualizing the finished recipe for the design, in other words, he was showing us the ingredients. And we lit up: this was a shift in perspective, a way to move away from conceiving a website design as a collection of static page templates, and instead as a dynamic system of adaptable components. It was an inspired way to approach this responsive website—and all responsive projects for that matter.</p>
+<p>Atomic Design — Introduction.</p>
+</blockquote>
+<p>Atomic design uses three structures to build pages: Atoms, molecules and organisms.</p>
+<p>Think of individual HTML elements as <strong>atoms</strong>, the basic building block of a web page. You can’t break down an atom into smaller parts without loosing functionality and the effect the element has on the page.</p>
+<p>Look at the table below to get an idea of what the possible atoms of a web page are.</p>
+<figure>
+  <img src='../images/html-periodic-table.png' alt='HTML Periodic Table of Elements'>
+  <figcaption><a href="http://smm.zoomquiet.top/data/20110511083224/index.html">HTML Periodic Table of Elements</a></figcaption>
+</figure>
+<p>These atoms may be the plain elements or styles for specific theme or molecule designs.</p>
+<p>The next step up is a <strong>molecules</strong>. We create a molecule when we combine two or more atoms to perform a given task.</p>
+<p><strong>Organisms</strong> are groups of molecules functioning together as a unit. These structures can be as small or as large as you need them to be. We can use these organisms to bbuild pages and applications.</p>
+<p>For more infomation about Atomic Design, check the <a href="http://atomicdesign.bradfrost.com/">the book</a>.</p>
+<p>For the card organism we’ll take the same card declaration that we used when we created the card component.</p>
+<p>We have two molecules making the card organism:</p>
+<ul>
+<li>A <code>card-title</code> molecule that contains title and, optionally, an image inside</li>
+<li>A <code>card-content</code> molecule that contains the text content</li>
+</ul>
+<p>Each of these molecules can have any number of atoms inside of them. We can choose to document individual atoms or to just to document the styles for colors, links and typography, among others.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>card<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>card-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Card Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>card-content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>I want to design a card component<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The styling is the same as for the no-design-system using CSS variables to handle different alternatives for the content and some effects on the text and background colors of the molecules.</p>
+<pre class="language-scss"><code class="language-scss"><span class="token selector">:root </span><span class="token punctuation">{</span>
+  <span class="token property">--card-border-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token property">--card-border-width</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
+  <span class="token property">--card-border-style</span><span class="token punctuation">:</span> solid<span class="token punctuation">;</span>
+  <span class="token property">--card-display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+  <span class="token property">--card-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
+  <span class="token property">--card-width</span><span class="token punctuation">:</span> 400px<span class="token punctuation">;</span>
+  <span class="token property">--card-height</span><span class="token punctuation">:</span> 300px<span class="token punctuation">;</span>
+  <span class="token property">--card-padding</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+  <span class="token property">--card-title-color</span><span class="token punctuation">:</span> #fff<span class="token punctuation">;</span>
+  <span class="token property">--card-title-background-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">body </span><span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Roboto<span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 80%<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 0 auto<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card </span><span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-display<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">flex-flow</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-direction<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-width<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-style<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-border-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-width<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card-title </span><span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-title-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">background-color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-title-background-color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.card-content </span><span class="token punctuation">{</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--card-padding<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="web-components-as-design-systems">Web Components As Design Systems</h2>
+<p>Web components, to me, address some of the shortcomings of design systems.</p>
+<p>They encapsulate styles so there’s no bleeding between the containing page and the components, this means that styles accross different components can have the same name as they are exclusive to the element… We’ll explore advantages and disadvantages of the model.</p>
+<h3 id="vanilla-js">Vanilla JS</h3>
+<p>The vanilla Javascript version consists of two parts: The CSS and HTML that we’ll stamp every time we create an element of this kind.</p>
+<p>We use CSS variables that we’ll define in the HTML container for the element.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> template <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'template'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+template<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> `<span class="token operator">&lt;</span>style<span class="token operator">></span>
+  <span class="token punctuation">.</span>card <span class="token punctuation">{</span>
+    <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">80</span><span class="token operator">%</span> <span class="token punctuation">;</span>
+    <span class="token literal-property property">margin</span><span class="token operator">:</span> <span class="token number">0</span> auto<span class="token punctuation">;</span>
+    <span class="token literal-property property">display</span><span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>display<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    flex<span class="token operator">-</span>flow<span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>direction<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token literal-property property">border</span><span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>border<span class="token operator">-</span>width<span class="token punctuation">)</span>
+            <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>border<span class="token operator">-</span>style<span class="token punctuation">)</span>
+            <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>border<span class="token operator">-</span>color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>width<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token punctuation">.</span>card<span class="token operator">-</span>title <span class="token punctuation">{</span>
+    <span class="token literal-property property">color</span><span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>title<span class="token operator">-</span>color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    background<span class="token operator">-</span>color<span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>title<span class="token operator">-</span>background<span class="token operator">-</span>color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token punctuation">.</span>card<span class="token operator">-</span>content <span class="token punctuation">{</span>
+    <span class="token literal-property property">padding</span><span class="token operator">:</span> <span class="token keyword">var</span><span class="token punctuation">(</span><span class="token operator">--</span>card<span class="token operator">-</span>padding<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token operator">&lt;</span><span class="token operator">/</span>style<span class="token operator">></span>
+</code></pre>
+<p>The HTML portion of the template uses slots to reflect elements of the ‘light side’ declaration to places in the template.</p>
+<p>The slots also provide additional ways to style the content.</p>
+<p>We’ll look at slots in more detail on the slotted content when we look at the implementation of the card element.</p>
+<pre class="language-js"><code class="language-js">  <span class="token operator">&lt;</span>div <span class="token keyword">class</span><span class="token operator">=</span><span class="token string">"card"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div <span class="token keyword">class</span><span class="token operator">=</span><span class="token string">"card-title"</span><span class="token operator">></span>
+      <span class="token operator">&lt;</span>slot id<span class="token operator">=</span><span class="token string">"title"</span> name<span class="token operator">=</span><span class="token string">"title"</span><span class="token operator">></span><span class="token operator">&lt;</span>h1<span class="token operator">></span>Title<span class="token operator">&lt;</span><span class="token operator">/</span>h1<span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>slot<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+
+    <span class="token operator">&lt;</span>div <span class="token keyword">class</span><span class="token operator">=</span><span class="token string">"card-content"</span><span class="token operator">></span>
+      <span class="token operator">&lt;</span>slot id<span class="token operator">=</span><span class="token string">"content"</span> name<span class="token operator">=</span><span class="token string">"content"</span><span class="token operator">></span><span class="token operator">&lt;</span>p<span class="token operator">></span>Content<span class="token operator">&lt;</span><span class="token operator">/</span>p<span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>slot<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+  <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+`<span class="token punctuation">;</span>
+</code></pre>
+<p>The second part of the <code>card-element</code> element is the definition of the custom element itself. We do it by creating a class that extends <code>HTMLElement</code>, the base class for all HTML elements.</p>
+<p>We then build the constructor where we dwothe following:</p>
+<ol>
+<li>Call the parent’s class constructor using <code>super()</code></li>
+<li>create a shadow root for the element</li>
+<li>Append the content of the template to the shadow root we just created</li>
+</ol>
+<p>Finally we use the <code>define</code> method of the customElements registry to associate a tag name with the component we just defined.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">cardComponent</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Allways call super() first</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> root <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">'open'</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    root<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>template<span class="token punctuation">.</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+window<span class="token punctuation">.</span>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'card-element'</span><span class="token punctuation">,</span> cardComponent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>With that we’re ready to implement the element.</p>
+<p>In the head of the element I’ll place a link to Google Fonts and a set of variable declarations for the <code>:root</code> element.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span>
+<span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.googleapis.com/css?family=Roboto:400,400i,700,700i<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css">
+<span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Roboto<span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+  <span class="token property">--card-border-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token property">--card-border-width</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
+  <span class="token property">--card-border-style</span><span class="token punctuation">:</span> solid<span class="token punctuation">;</span>
+  <span class="token property">--card-display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+  <span class="token property">--card-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
+  <span class="token property">--card-width</span><span class="token punctuation">:</span> 400px<span class="token punctuation">;</span>
+  <span class="token property">--card-height</span><span class="token punctuation">:</span> 300px<span class="token punctuation">;</span>
+  <span class="token property">--card-padding</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+  <span class="token property">--card-title-color</span><span class="token punctuation">:</span> #fff<span class="token punctuation">;</span>
+  <span class="token property">--card-title-background-color</span><span class="token punctuation">:</span> #000<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>We then import the card element as a module using the <code>type=module</code> attribute of the script tag.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wc-card.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>In the body of the page we stamp out multiple versions of our <code>card-element</code> element. The first one is just the element. This will create a card with only fallback content.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>card-element</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>card-element</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The second element uses the slots we defined in the element’s template. We can add as much content to each slot as we want… as far as I know there is no limit.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>card-element</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Card Demo #2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Some content that is different from our default<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>card-element</span><span class="token punctuation">></span></span>
+</code></pre>
+<h3 id="polymer">Polymer</h3>
+<p>Polymer adds syntactic sugar on top of web components with additional functionality and syntactic sugar. The idea is to drop these components.</p>
+<p>Building a Polymer element is very similar to building a vanilla Javascript web component. Instead of extending from <code>HTMLElement</code> we extend from <code>PolymerElement</code>, the base class for Polymer.</p>
+<p>Since we’re not using any binding in the element, we can use use a template like the one we created for the vanilla components.</p>
+<p>The main difference is that we must import the <code>html</code> tagged template literal and <code>PolymerElement</code> base class before we can use them anywhere.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> html<span class="token punctuation">,</span> PolymerElement <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@polymer/polymer/polymer-element.js'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">MyCard</span> <span class="token keyword">extends</span> <span class="token class-name">PolymerElement</span> <span class="token punctuation">{</span>
+  <span class="token keyword">static</span> <span class="token keyword">get</span> <span class="token function">template</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> html<span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">
+  &lt;style>
+  :host {
+    width: 80% ;
+    margin: 0 auto;
+    font-family: Roboto, sans-serif;
+    --card-border-color: #000;
+    --card-border-width: 1px;
+    --card-border-style: solid;
+    --card-display: flex;
+    --card-direction: column;
+    --card-width: 400px;
+    --card-height: 300px;
+    --card-padding: 1em;
+    --card-title-color: #fff;
+    --card-title-background-color: #000;
+  }
+
+  /* Rest of the CSS Removed for brevity */
+  &lt;/style>
+
+  &lt;div class="card">
+    &lt;div class="card-title">
+      &lt;slot id="title" name="title">
+        &lt;h1>Title&lt;/h1>
+      &lt;/slot>
+    &lt;/div>
+
+    &lt;div class="card-content">
+      &lt;slot id="content" name="content">
+        &lt;p>Content&lt;/p>
+      &lt;/slot>
+    &lt;/div>
+  &lt;/div>
+</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+window<span class="token punctuation">.</span>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'my-card'</span><span class="token punctuation">,</span> MyCard<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The host document is almost identical to the plain vanilla web component. We add the following elements to the head of the element.</p>
+<p>We include the <a href="https://www.webcomponents.org/polyfills">wecomponents polifill</a> to make sure that the component works in browsers without native support.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.googleapis.com/css?
+family=Roboto:400,400i,700,700i<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>../my-card.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The Polymer version of the element is identical to the vanilla component. We insert the following into the body of the page.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>my-card</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Card Demo #2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Some content that is different from our default
+       so we can be sure that the slots are working as
+       intended and we are not pulling the default content<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>my-card</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="documenting-your-design-system">Documenting Your Design System</h2>
+<p>Now that we’ve decided to use a design system and we’ve chosen the components that we want to share. Now we need to document it.</p>
+<p><a href="https://fractal.build/">Fractal</a> provides tools and structure for design systems. We will not address the specifics of Fractal or any other tools to document.</p>
+<p>I chose Fractal because it gives you the flexibility to use components with copy/paste or incorporating into a build system.</p>
+<p>Fractal’s downside is the documentation. It leaves a lot to be desired when it comes to documenting the process to incorporate the tool into other applications, the API and mount points for the application.</p>
+<p>There is ongoing work to improve and update Fractal. See <a href="https://github.com/frctl/fractal/issues/449">issue 449</a> in the Fractal Github repository for more details as to current status.</p>
+<h2 id="looking-forward%3A-ai-design-systems%3F">Looking forward: AI Design Systems?</h2>
+<p>An interesting take on design systems is what would it look like if we can get working code from a hand-drawn wireframe?</p>
+<p>There are projects in early prototype stages that will let you do this.</p>
+<p>Pix2Code has published both <a href="https://arxiv.org/pdf/1705.07962.pdf">a paper</a>
+and the corresponding <a href="https://github.com/tonybeltramelli/pix2code">Github repo</a> explaining their work.</p>
+<p>According to the paper:</p>
+<blockquote>
+<p>Transforming a graphical user interface screenshot created by a designer into computer code is a typical task conducted by a developer in order to build customized software, websites, and mobile applications. In this paper, we show that deep learning methods can be leveraged to train a model end-to-end to automatically generate code from a single input image with over 77% of accuracy for three different platforms (i.e. iOS, Android and web-based technologies).</p>
+<p><a href="https://arxiv.org/pdf/1705.07962.pdf">pix2code: Generating Code from a Graphical User
+Interface Screenshot</a></p>
+</blockquote>
+<p>This would mean that the aproximation we craft can be translated to code that can be further iterated on or, if it meets the team’s quality, can be put into production.</p>
+<p>In an interesting twist AirBnB is alos looking at using Machine Learning to translate mockups into code that can be further moved up and down the design and development chain.</p>
+<p>There is no actual code prototype but the idea is intriguing enough to merit further attention and research.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li>AirBnB
+<ul>
+<li><a href="https://airbnb.design/the-way-we-build/">The Way We Build</a></li>
+<li><a href="https://airbnb.design/building-a-visual-language/">Building a Visual Language</a></li>
+</ul>
+</li>
+<li>Atomic Design
+<ul>
+<li><a href="http://atomicdesign.bradfrost.com/table-of-contents/">Book</a></li>
+</ul>
+</li>
+<li>Google
+<ul>
+<li><a href="https://design.google/library/">Google Design Library</a></li>
+</ul>
+</li>
+<li>Design Systems Repo
+<ul>
+<li><a href="https://designsystemsrepo.com/">Repo</a></li>
+<li><a href="https://designsystemsrepo.com/design-systems/">Gallery</a></li>
+<li><a href="https://designsystemsrepo.com/articles/">Articles</a></li>
+</ul>
+</li>
+<li>Mailchimp
+<ul>
+<li><a href="https://styleguide.mailchimp.com/">Content Style Guide</a></li>
+</ul>
+</li>
+<li>Web Components
+<ul>
+<li>Google Developers
+<ul>
+<li><a href="https://developers.google.com/web/fundamentals/web-components/customelements">Custom Elements v1: Reusable Web Components</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/web-components/shadowdom">Shadow DOM v1: Self-Contained Web Components</a></li>
+</ul>
+</li>
+<li><a href="https://www.smashingmagazine.com/2018/07/reusable-components-custom-elements-shadow-dom-npm/">The Holy Grail Of Reusable Components: Custom Elements, Shadow DOM, And NPM</a></li>
+<li><a href="https://www.polymer-project.org/">Polymer</a></li>
+<li><a href="https://wiredjs.com/">Wired Elements</a></li>
+</ul>
+</li>
+<li>Sites Using Fractal
+<ul>
+<li><a href="https://patterns.boston.gov/">City of Boston</a></li>
+<li><a href="https://stijlgids.stad.gent/v2/">City of Ghent</a></li>
+<li><a href="https://bits.24ways.org/">24Ways.org</a></li>
+<li><a href="http://fractal.clearleft.com/">Clearleft</a></li>
+<li><a href="http://patterns.perchcms.com/">Perch CMS</a></li>
+<li><a href="https://components.designsystem.digital.gov/">US Web Design System</a></li>
+<li><a href="https://kanbasu.liip.ch/2/">Kanbasu</a></li>
+<li><a href="https://styleguide.liip.ch/">Liip</a></li>
+<li><a href="https://style.eurostar.com/">Eurostar</a></li>
+</ul>
+</li>
+<li>Machine Learning and Design Systems
+<ul>
+<li>Pix2code
+<ul>
+<li><a href="https://arxiv.org/pdf/1705.07962.pdf">pix2code: Generating Code from a Graphical User Interface Screenshot</a></li>
+<li><a href="https://github.com/tonybeltramelli/pix2code">Github Repo</a></li>
+</ul>
+</li>
+<li><a href="https://blog.floydhub.com/turning-design-mockups-into-code-with-deep-learning/">Turning Design Mockups Into Code With Deep Learning</a>
+<ul>
+<li><a href="https://airbnb.design/sketching-interfaces/">Sketching Interfaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

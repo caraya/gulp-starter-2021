@@ -1,0 +1,181 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="service-workers%3A-working-offline-and-updating-your-content">Service Workers: Working offline and updating your content</h1>
+<p>One of the things that has caught my attention are service workers and the capabilities that they bring to the web.</p>
+<h2 id="installing-the-service-worker">Installing the service worker</h2>
+<p>In your site’s index page we register the service worker. We only need to do it once in the index page to register the worker for the entire site.</p>
+<p>The script will check if the browser supports service workers and only runs the installation code if they are.</p>
+<p>We register the service worker using <code>navigator.serviceWorker.register</code> with the full path to the service worker as a parameter. It returns a promise that will resolve if the registration is sucessful and reject if it’s not.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'serviceWorker'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token string">'/sw.js'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'ServiceWorker succesfully registered'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'ServiceWorker registration failed: '</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>In the service worker (<code>sw.js</code>) we write the service worker itself.</p>
+<p>We split the full cache name in two parts: The name and the version. When creating a new version of the service we only update the version; this will force the browser to install the new version.</p>
+<p>The <code>assetsToCache</code> array contains all the items that we want to cache before we worry about the pages and their content; things like main JS and CSS files, possibly fonts, and things that we want to have available when the page loads.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> cacheName <span class="token operator">=</span> <span class="token string">'assets'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> cacheVersion <span class="token operator">=</span> <span class="token string">'v1'</span>
+<span class="token keyword">const</span> fullCacheName <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cacheName<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>cacheVersion<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> assetsToCache <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token string">'/css/main.css'</span><span class="token punctuation">,</span>
+  <span class="token string">'/js/main.js'</span><span class="token punctuation">,</span>
+  <span class="token string">'/fonts/raleway.woff2'</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We then cycle through the service worker’s lifecycle events and take action where appropriate.</p>
+<p>The first event is install. This is a good place to load essential assets for the site.</p>
+<p>The old version of the service worker is still handling things so the install event shouldn’t affect the existing site.</p>
+<pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'install'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span>
+    caches<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span>fullCacheName<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">cache</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> cache<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>assetsToCache<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> self<span class="token punctuation">.</span><span class="token function">skipWaiting</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The next event is the installation. Our new service worker has taken over but we haven’t started fetching the site’s resources so this is the best place to do housekeeping like applying migrations for any IndexedDB databases or deleting old caches.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent/waitUntil">waitUntil</a> will keep the task from terminating until it is completed.</p>
+<p>This example will do delete all the caches that are not used by the current service worker. This way we prevent bloat by deleting unused content.</p>
+<pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'activate'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span>
+    cache<span class="token punctuation">.</span><span class="token function">keys</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">cacheNames</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> Promise<span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span>
+        cacheNames
+          <span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">cacheName</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token punctuation">}</span><span class="token punctuation">)</span>
+          <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">cacheName</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> caches<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span>cacheName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'fetch'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">.</span>method <span class="token operator">!==</span> <span class="token string">'GET'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">http:</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">.</span><span class="token function">test</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+  event<span class="token punctuation">.</span><span class="token function">respondWith</span><span class="token punctuation">(</span>
+    caches<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span>cacheName<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">cache</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token function">fetch</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">networkResponse</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        cache<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">,</span> networkResponse<span class="token punctuation">.</span><span class="token function">clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> networkResponse<span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> cache<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="updating-data-and-notifying-the-user">Updating data and notifying the user</h3>
+<p>One of the most interesting things, to me, about service workers is how to show users that the content has been updated and give them the option to reload the page to update the service worker.</p>
+<p>Most of the work will be done in <code>index.html</code>.</p>
+<p>I’ve broken the code for index.html into two sections to make it easier to walk through it.</p>
+<p>The <code>showUpdateBar</code> function will display the notification notice.</p>
+<p>The click event listener for the <code>#reload</code> element will reload the page when activated.</p>
+<pre class="language-js"><code class="language-js">  <span class="token keyword">let</span> newWorker<span class="token punctuation">;</span>
+
+  <span class="token keyword">function</span> <span class="token function">showUpdateBar</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> snackbar <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'snackbar'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    snackbar<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">'show'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'reload'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    newWorker<span class="token punctuation">.</span><span class="token function">postMessage</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">action</span><span class="token operator">:</span> <span class="token string">'skipWaiting'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The service worker registration code will:</p>
+<ol>
+<li>Check if the browser supports service workers</li>
+<li>If it does then it register the service worker</li>
+<li>Add an <a href="https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/updatefound_event">updatefound</a> event listener</li>
+<li>When the <code>updatefound</code> event listener is triggered load the new service worker</li>
+<li>Add a <a href="https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker/statechange_event">statechange</a></li>
+<li>Test if there has been a change in the state</li>
+<li>Test the status of the new service worker. If it’s installed then run <code>showUpdateBar</code></li>
+<li>Add a <a href="https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerContainer/controllerchange_event">controllerchange</a> event listener
+<ul>
+<li>When the window is reloading return and do nothing</li>
+<li>When the window is <strong>not</strong> refreshing then reload it</li>
+</ul>
+</li>
+</ol>
+<pre class="language-js"><code class="language-js">  <span class="token comment">// 1</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'serviceWorker'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 2</span>
+    navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token string">'/service-worker.js'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">reg</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      <span class="token comment">// 3 </span>
+      reg<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'updatefound'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        <span class="token comment">// 4</span>
+        newWorker <span class="token operator">=</span> reg<span class="token punctuation">.</span>installing<span class="token punctuation">;</span>
+        
+        <span class="token comment">// 5</span>
+        newWorker<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'statechange'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+          <span class="token comment">// 6</span>
+          <span class="token keyword">switch</span> <span class="token punctuation">(</span>newWorker<span class="token punctuation">.</span>state<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 7 </span>
+            <span class="token keyword">case</span> <span class="token string">'installed'</span><span class="token operator">:</span>
+              <span class="token keyword">if</span> <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span>controller<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token function">showUpdateBar</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+              <span class="token punctuation">}</span>
+              <span class="token keyword">break</span><span class="token punctuation">;</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">let</span> refreshing<span class="token punctuation">;</span>
+    <span class="token comment">// 8</span>
+    navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'controllerchange'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>refreshing<span class="token punctuation">)</span> <span class="token keyword">return</span><span class="token punctuation">;</span>
+      window<span class="token punctuation">.</span>location<span class="token punctuation">.</span><span class="token function">reload</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      refreshing <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+</code></pre>
+<p>Changes to the service worker are more straightforward. We only need to add a <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/message_event">message</a> event to process the data that we get from the page.</p>
+<p>If the value of the action message is <code>skip</code> then we run <a href="https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/skipWaiting">skipWaiting</a> to force the waiting service worker to become active.</p>
+<pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'message'</span><span class="token punctuation">,</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>data<span class="token punctuation">.</span>action <span class="token operator">===</span> <span class="token string">'skipWaiting'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    self<span class="token punctuation">.</span><span class="token function">skipWaiting</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This is an example of what you can do with a combination of your service working loading script and the service worker itself.</p>
+<p>There’s more we can do; we’ll look at third party workbox libraries to make the process easier.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="using-latex-to-build-web-content">Using Latex to build web content</h1>
+<p>Latex is an old-school language for document typesetting. It was created by Donald Knuth to typeset his book The Art of Computer Science. You still see LaTex in scientific articles and papers</p>
+<p>If you’re only familiar with HTML, Latex syntax will look strange. Rather than tags and attributes  we have a preamble, package declarations and intructions.</p>
+<p>A basic LaTex article, set to print in portrait mode with a body text size of 12 points looks like this:</p>
+<pre class="language-tex"><code class="language-tex"><span class="token function selector">\usepackage</span><span class="token punctuation">{</span><span class="token keyword">amssymb</span><span class="token punctuation">}</span>
+<span class="token function selector">\usepackage</span><span class="token punctuation">{</span><span class="token keyword">epstopdf</span><span class="token punctuation">}</span>
+<span class="token comment">% Broken into two lines for readability. In production</span>
+<span class="token comment">% the command would go in one line</span>
+<span class="token function selector">\DeclareGraphicsRule</span><span class="token punctuation">{</span>.tif<span class="token punctuation">}</span><span class="token punctuation">{</span>png<span class="token punctuation">}</span><span class="token punctuation">{</span>.png<span class="token punctuation">}</span>
+<span class="token punctuation">{</span>`convert #1 `dirname #1`/`basename #1 .tif`.png<span class="token punctuation">}</span>
+
+<span class="token function selector">\title</span><span class="token punctuation">{</span>Brief Article<span class="token punctuation">}</span>
+<span class="token function selector">\author</span><span class="token punctuation">{</span>The Author<span class="token punctuation">}</span>
+<span class="token comment">%\date{}</span>
+<span class="token comment">% Activate to display a given date or no date</span>
+
+<span class="token function selector">\begin</span><span class="token punctuation">{</span><span class="token keyword">documen
+\maketitle
+\section{</span><span class="token punctuation">}</span>
+<span class="token function selector">\subsection</span><span class="token punctuation">{</span><span class="token punctuation">}</span>
+<span class="token function selector">\end</span><span class="token punctuation">{</span><span class="token keyword">document</span><span class="token punctuation">}</span>
+</code></pre>
+<p><code>documentclass</code> indicates what type of document we want to creaate the parameters  (font size in this case) is in square brackets <code>[]</code></p>
+<p><code>\usepackage{}</code> loads modules for use into the document</p>
+<p>Commands that start with a backslash, like <code>\geometry{}</code> and <code>\DeclareGraphhicsRule{}</code> are instructions that will generate output of some kind for the document.</p>
+<h2 id="converting-latex-to-html">Converting Latex to HTML</h2>
+<p>I like LaTex but I’m still a fan of the web and I want to make sure that whatever I create in LaTex is also available on the web, assuming the publisher allows me to :)</p>
+<p>There are two ways to create HTML content from LaTex files. The first one is <code>tex4ht</code> or <code>htlatex</code> and the second one is <code>make4ht</code>, an abstraction on top of tex4ht that simplifies adding options to the different pieces of the configuration.</p>
+  <p>The rest of the article uses the tex file from <a href="https://gist.github.com/caraya/69a45d08d03214d78779a7d0a60da083">this gist</a> as the source for the commands.</p>
+<div class="message info">
+</div>
+<h3 id="tex4ht">tex4ht</h3>
+<p>tex4ht converts LaTex sources into one or more HTML documents with a very (and I mean very) basic style sheet that you can customize and expand as needed.</p>
+<p>The most basic command will create a single page for all the content along with the corresponding image</p>
+<pre class="language-bash"><code class="language-bash">htlatex article.tex
+</code></pre>
+<p>For shorter articlles the single-file approach may be ok (with customized styles) but for larger files or articles with larger sections it may prove harder to read online.</p>
+<p>We can break the arcile down into multiple files based on the headings on the document.</p>
+<p>The example below will generate mutliple files and it will also generate navigation links within the pages of the document.</p>
+<p>The styles, as with the previous document can definitely be enchanced.</p>
+<pre class="language-bash"><code class="language-bash">htlatex article.tex <span class="token string">"html,index=2,3,next"</span>
+</code></pre>
+<p>For those interested, you can also convert your LaTex to Docbook 5.0. While you can also convert it to TEI, it fails to convert the file successfully and I’m not certain why as the document converts succesfully to Docbook.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># Conversion to Docbook</span>
+htlatex article.tex <span class="token string">"xhtml,docbook"</span> <span class="token string">" -cunihtf"</span> <span class="token string">"-cdocbk"</span>
+<span class="token comment"># Conversion to TEI</span>
+htlatex article.tex <span class="token string">"xhtml,tei"</span> <span class="token string">" -cunihtf"</span> <span class="token string">"-cdocbk"</span>
+</code></pre>
+<h3 id="make4ht">make4ht</h3>
+<p>As we’ve discussed <code>tex4ht</code> system supports several output formats with multiple steps and multiple parameters possible for each step and format combination.</p>
+<p>I just want to make sure this is visible as it’ll save a lot of time if you know it exists and where you can find its documentation.</p>
+<p>The most basic version of the htlatex command will convert the TeX file into HTML using UTF-8 as the encoding:</p>
+<pre class="language-bash"><code class="language-bash">make4ht <span class="token parameter variable">-uf</span> html5 filename.tex
+</code></pre>
+<p>When you just add new text to your TeX document, without cross-references, or new additions to the table of contents, you can use <code>draft</code> mode which will invoke LaTeX only once. It can save quite a lot of the compilation time:</p>
+<pre class="language-bash"><code class="language-bash">make4ht <span class="token parameter variable">-um</span> draft <span class="token parameter variable">-f</span> html5 filename.tex
+</code></pre>
+<p>As with many things in the TeX universe there are a lot of configuratuion options. I’m deliberately not covering them both to keep the post from balloning in size and to avoid confusion; I’ll assume that you know where to find the documentation if you need it.</p>
+<h2 id="items-to-research-and-conclusion">Items to research and conclusion</h2>
+<p>Using LaTeX as the source for documents presents some clear advantages and some interesting challenges. TeX and LaTeX were designed from the start to work as print typesetting languages and the quality of the printed result is clearly better than what we can get from HTML alone.</p>
+<p>Particularly with <code>make4ht</code> there are many questions left to answer. Sone of the questions that merit additional research:</p>
+<ul>
+<li>Would the output of the tool using the <code>staticsite</code> extension be good enough for static sites other than Jekyll?</li>
+<li>Is the output in <code>Tei</code> and <code>Docbook</code> good enough to feed to their corresponding processing toolchains? If not what additional changes do we need to make?</li>
+<li>Is it worth learning Lua just to automate one type of task for one tool?</li>
+</ul>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li><a href="https://www.tug.org/tex4ht/">tex4ht</a></li>
+<li><a href="https://www.tug.org/TUGboat/tb25-1/gurari.pdf">Tex4ht: HTML Production</a></li>
+<li><a href="https://github.com/michal-h21/make4ht/blob/master/README.md">make4ht</a></li>
+<li><a href="https://github.com/michal-h21/tex4ebook/blob/master/README.md">tex4ebook</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

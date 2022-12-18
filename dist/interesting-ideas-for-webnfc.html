@@ -1,0 +1,64 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="interesting-ideas-for-webnfc">Interesting ideas for WebNFC</h1>
+<p>One of the things I’ve always loved is <a href="https://en.wikipedia.org/wiki/Near-field_communication">NFC (Near Field Communication)</a>. A technology that allows for short range contactless communication between two devices.</p>
+<p>As part of Project Fugu, Google developed <a href="https://web.dev/nfc/">WebNFC</a> to provide a simple API for NFC communication. As with many of the Fugu APIS, there has been pushback from other browsers about possible security concerns. These security concerns and the fact that Chrome for iOS is just a skin on top of WebKit View, mean that the API is only available to Chrome for Android at the moment. Still it is good to take a look at the API, see how it works and brainstorm some ideas for how to use it.</p>
+<!-- 
+[NFC comes to the web](https://cxlabs.sap.com/2021/07/27/nfc-comes-to-the-web/) -->
+<h2 id="getting-everything-ready">Getting everything ready</h2>
+<pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'NDEFReader'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* Scan and write NFC tags */</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The <code>NDEFReader</code> object is the entry point in Web NFC that exposes functionality for preparing reading and/or writing actions that are fulfilled when an NDEF tag comes in proximity. The NDEF in NDEFReader stands for <code>NFC Data Exchange Format</code>, a lightweight binary message format standardized by the <a href="https://nfc-forum.org/">NFC Forum</a>.</p>
+<p>The NDEFReader object is for acting on incoming NDEF messages from NFC tags and for writing NDEF messages to NFC tags within range.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> ndef <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">NDEFReader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ndef<span class="token punctuation">.</span><span class="token function">scan</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Scan started successfully."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  ndef<span class="token punctuation">.</span><span class="token function-variable function">onreadingerror</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Cannot read data from the NFC tag. Try another one?"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  ndef<span class="token punctuation">.</span><span class="token function-variable function">onreading</span> <span class="token operator">=</span> <span class="token parameter">event</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"NDEF message read."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Error! Scan failed to start: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>error<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">.</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="brainstorming">Brainstorming</h2>
+<p>Examples of sites that may use Web NFC include:</p>
+<ul>
+<li>Museums and art galleries can display additional information about a display when the user touches their device to an NFC card near the exhibit</li>
+<li>Inventory management sites can read or write data to the NFC tag on a container to update information on its contents</li>
+<li>Conference sites can use it to scan NFC badges during the event</li>
+<li>Stores with items on display can provide additional information about the products on display when the user touches their device to an NFC tag near the item</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

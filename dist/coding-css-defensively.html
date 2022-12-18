@@ -1,0 +1,79 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="coding-css-defensively">Coding CSS defensively</h1>
+<p>When working with CSS technologies, we may be in situations where not all browsers support a property and we need to code around this partial support for the feature we’re testing.</p>
+<p>To me, this is particularly important when creating examples to publish as part of a blog post or as standalone examples in Codepen.</p>
+<p>The idea is as follows:</p>
+<ol>
+<li>Add a message to the example HTML and style it appropriately</li>
+<li>Check if the browser supports the feature
+<ol>
+<li>If it does, hide the message</li>
+<li>If the feature is not supported then make sure the message is displayed</li>
+</ol>
+</li>
+</ol>
+<p>Using <code>:dir(rtl)</code> as an example, we add the following <code>div</code> with a warning class to the example.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- 1 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>warning<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Feature not supported<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Your browser doesn't support the <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>code</span><span class="token punctuation">></span></span>:dir<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>code</span><span class="token punctuation">></span></span> pseudo class<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>In the CSS we create a class to style our warning <code>div</code>.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* 1 */</span>
+<span class="token selector">.warning</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We then test if the feature is supported using the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@supports">@supports</a> at rule with the <code>selector()</code> syntax so rather than testing for an attribute we’re testing if the browser supports a given selector.</p>
+<p>If the browser supports the <code>:dir(rtl)</code> selector,  we hide the warning by setting the div’s display to <code>none</code>.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* i */</span>
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token function">selector</span><span class="token punctuation">(</span><span class="token selector-function-argument selector">:dir(rtl)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.warning</span> <span class="token punctuation">{</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This may not be totally necessary as the rule will remain visible if the browser doesn’t support the rule but I believe in redundancy so I add another <code>@suports</code> block with <code>selector()</code> syntax and the <code>not</code> operator. This time we’re testing if the browser <strong>doesn’t</strong> support the selector.</p>
+<p>If the <code>:dir(rtl)</code> selector is not supported then we make sure that the warning is show by setting the <code>display</code> attribute on the warning div to <code>block</code>.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/* ii */</span>
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token keyword">not</span> <span class="token punctuation">(</span><span class="token function">selector</span><span class="token punctuation">(</span><span class="token selector-function-argument selector">:dir(rtl)</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.warning</span> <span class="token punctuation">{</span>
+    <span class="token property">display</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We could do other tings as well. In the second support block, if the selector is not supported we could also provide fall backs, polyfills or workarounds to make the feature work closer to the original version.</p>
+<p>However, for the purposes of demonstration, just flagging that the feature is not supported is enough for me.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

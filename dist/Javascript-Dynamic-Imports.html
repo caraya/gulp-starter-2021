@@ -1,0 +1,101 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="javascript-dynamic-imports">Javascript Dynamic Imports</h1>
+<p>There is a function-like, dynamic form of import that will allow us to play with imports inside modules and classes and will let us work with them together with <code>async</code> functions and <code>await</code>ing for async events to complete instead of using <code>then/catch</code> blocks for our promise-based async code.</p>
+<pre class="language-js"><code class="language-js"><span class="token operator">&lt;</span>script type<span class="token operator">=</span><span class="token string">"module"</span><span class="token operator">></span>
+  <span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> utilsModuleSpecifier <span class="token operator">=</span> <span class="token string">'./utils.js'</span><span class="token punctuation">;</span>
+      <span class="token keyword">const</span> utilsModule <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token keyword">import</span><span class="token punctuation">(</span>utilsModuleSpecifier<span class="token punctuation">)</span>
+      utilsModule<span class="token punctuation">.</span><span class="token function">default</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      utilsModule<span class="token punctuation">.</span><span class="token function">doStuff</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">catch</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Dynamic import failed'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>Modules (either dynamic or static) use <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#Attributes">defer</a> by default.</p>
+<p>ES6 modules run in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode">strict mode</a>, even if you don’t write “use strict”; in them. If you’re not familiar with strict mode, it can throw unexpected errors and warnings.</p>
+<p>You can use import and export in modules.</p>
+<h2 id="a-dynamic-module-example">A Dynamic Module example</h2>
+<p>The idea behind the example in this section is that the admin module (<code>admin.js</code>) will only be loaded if the conditions are met and the user is an administrator.</p>
+<p>The idea behind the example in this section is that the admin module (<code>admin.js</code>) will only be loaded if the conditions are met and the user is an administrator.</p>
+<p>This will save us both on the size of the scripts we load and load time for the scripts we actually use. The examples are small but you can imagine large admin scripts with lots of functionality.</p>
+<p>The process is as follows:</p>
+<p>We define two modules.</p>
+<p>One module for users (user.js) for functions and data that relates to users.</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">//user.js</span>
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">isAdmin</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'user is an administrator'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The second module is for administrator-only functions. We separate them to make each module smaller and more specialized.</p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// admin.js</span>
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">nukeSystem</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'system will be nuked in 10 seconds'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Admin decided to nuke the system'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Our main script does a few things:</p>
+<ol>
+<li>Declare that we’re using a module</li>
+<li>Creates an async function</li>
+<li>Sets up a string to be the user module specifier.</li>
+<li>Awaits the import of the module with the given specifier</li>
+<li>Uses a function of the module to check if the user is an administrator</li>
+<li>If the user is an administrator then we await loading the admin module</li>
+<li>We run the <code>nukeSystem</code> function from the admin module</li>
+<li>If the user is not an admin we tell the user</li>
+<li>If the try statement doesn’t work, we jump to the catch statement and log an error message to the console</li>
+</ol>
+<pre class="language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script type<span class="token operator">=</span><span class="token string">"module"</span><span class="token operator">></span> <span class="token comment">// 1</span>
+  <span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span> <span class="token comment">//2</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> userModuleSpecifier <span class="token operator">=</span> <span class="token string">'./user.js'</span> <span class="token comment">//3</span>
+      <span class="token keyword">const</span> userModule <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token keyword">import</span> <span class="token punctuation">(</span>userModuleSpecifier<span class="token punctuation">)</span><span class="token comment">// 4</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>userModule<span class="token punctuation">.</span><span class="token function">isAdmin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 5</span>
+        <span class="token keyword">const</span> adminModuleSpecifier <span class="token operator">=</span> <span class="token string">'./admin.js'</span>
+        <span class="token keyword">const</span> adminModule <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token keyword">import</span> <span class="token punctuation">(</span>adminModuleSpecifier<span class="token punctuation">)</span> <span class="token comment">// 6</span>
+        adminModule<span class="token punctuation">.</span><span class="token function">nukeSystem</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// 7</span>
+      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">User is not administrator</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 8</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">catch</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Something went wrong'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 9</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

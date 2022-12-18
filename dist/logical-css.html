@@ -1,0 +1,117 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="logical-css">Logical CSS</h1>
+<p>If you’ve been following the CSS specifications you will see that several of the more recent ones have addopted <code>start</code> and <code>end</code> as values for the properties and I wondered why was this, wasn’t it enough to work with top, bottom, left and right?</p>
+<p>It wasn’t until I started working with and learning about writing modes that the reasoning became clear. when working from top to bottom and left to right then it’s easier to think about the layout in the way we normally do, it also saves us from code duplication by eliminating code that we’d use to handle right-to-left code when the default is left-to-right.</p>
+<p>According to <a href="https://caniuse.com/#feat=css-logical-props">caniuse.com</a> only Firefox has full support for the properties while Chrome and Safari (and Chrome for Android, UC Browser for Android and Samsung Internet) have partial support behind the <code>webkit</code> flag.</p>
+<p>Edge has the feature under consideration and high priority according to the <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/csslogicalpropertieslevel1/">Edge Platfom Status entry</a>.</p>
+<h2 id="postcss-to-the-rescue">PostCSS To The Rescue</h2>
+<p>Since we can’t be sure if our target browsers support the specific logical features that we want, we can use PostCSS’ logical CSS plugin to get the behavior we want now, rather than waiting for browsers to catch up.</p>
+<p>I’ve added the <code>postcssLogical</code> plugin to my processCSS task.</p>
+<pre class="language-javascript"><code class="language-javascript">gulp<span class="token punctuation">.</span><span class="token function">task</span><span class="token punctuation">(</span><span class="token string">'processCSS'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// What processors/plugins to use with PostCSS</span>
+  <span class="token keyword">const</span> <span class="token constant">PROCESSORS</span> <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token function">postcssLogical</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">dir</span><span class="token operator">:</span> <span class="token string">'ltr'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token function">autoprefixer</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">browsers</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'last 3 versions'</span><span class="token punctuation">]</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> gulp
+    <span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'src/css/**/*.css'</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span>sourcemaps<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span><span class="token function">postcss</span><span class="token punctuation">(</span><span class="token constant">PROCESSORS</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>$<span class="token punctuation">.</span>sourcemaps<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token string">'.'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'src/css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>
+      $<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token literal-property property">pretty</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">title</span><span class="token operator">:</span> <span class="token string">'processCSS'</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Then take the following CSS that uses inset and padding-inline and run it through the processor.</p>
+<p>the <code>inset</code> property defines the logical block offset values of an element, which maps to a physical offset depending on the element’s writing mode, directionality, and text orientation. It may correspons to the top, right, bottom, or left property depending on the values defined for writing-mode, direction, and text-orientation.</p>
+<p>In this case, when using three values the first value corresponds to <code>top</code>, the second one to <code>left</code> and <code>right</code> and the third one to <code>bottom</code>.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.banner</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #222222<span class="token punctuation">;</span>
+  <span class="token property">inset</span><span class="token punctuation">:</span> logical 0 5px 10px<span class="token punctuation">;</span>
+  <span class="token property">padding-inline</span><span class="token punctuation">:</span> 20px 40px<span class="token punctuation">;</span>
+  <span class="token property">resize</span><span class="token punctuation">:</span> block<span class="token punctuation">;</span>
+  <span class="token property">transition</span><span class="token punctuation">:</span> color 200ms<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The result will be like follows:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.banner</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #222222<span class="token punctuation">;</span>
+  <span class="token property">top</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">left</span><span class="token punctuation">:</span> 5px<span class="token punctuation">;</span>
+  <span class="token property">bottom</span><span class="token punctuation">:</span> 10px<span class="token punctuation">;</span>
+  <span class="token property">right</span><span class="token punctuation">:</span> 5px<span class="token punctuation">;</span>
+
+  <span class="token selector">&amp;:dir(ltr)</span> <span class="token punctuation">{</span>
+    <span class="token property">padding-left</span><span class="token punctuation">:</span> 20px<span class="token punctuation">;</span>
+    <span class="token property">padding-right</span><span class="token punctuation">:</span> 40px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token selector">&amp;:dir(rtl)</span> <span class="token punctuation">{</span>
+    <span class="token property">padding-right</span><span class="token punctuation">:</span> 20px<span class="token punctuation">;</span>
+    <span class="token property">padding-left</span><span class="token punctuation">:</span> 40px<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token property">resize</span><span class="token punctuation">:</span> vertical<span class="token punctuation">;</span>
+  <span class="token property">transition</span><span class="token punctuation">:</span> color 200ms<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Notice that we got two additional selectors, one to handle left to right (<code>:dir(ltr)</code>) and one for right to left (<code>:dir(rtl)</code>) for free. While this is essential for right-to-left writing modes, it’s also fun to have when experimenting with writing modes as a creative tool.</p>
+<p>Perhaps my favorite logical property is <code>block-size</code>. It defines the horizontal or vertical size of an element’s block, depending on its writing mode. It corresponds to either the width or the height property, depending on the value of writing-mode.</p>
+<p>This little beauty will let me work with text in vertical and horizontal layouts without having to remember whether I’m working with height or width. Win!</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li>CSS Logical Properties
+<ul>
+<li><a href="https://drafts.csswg.org/css-logical/">Spec</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties">MDN Docs</a></li>
+</ul>
+</li>
+<li>Logical CSS PostCSS Module
+<ul>
+<li><a href="https://jonathantneal.github.io/postcss-logical/">Githubb Repo</a></li>
+<li><a href="https://github.com/jonathantneal/postcss-logical/blob/master/README.md">Logical CSS PostCSS Module README</a></li>
+</ul>
+</li>
+<li>Writing
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout/CSS_Grid,_Logical_Values_and_Writing_Modes">CSS Grid, Logical Values and Writing Modes</a></li>
+<li><a href="https://24ways.org/2016/css-writing-modes/">CSS Writing Modes</a></li>
+<li><a href="https://www.smashingmagazine.com/2018/03/understanding-logical-properties-values/">Understanding Logical Properties And Values</a></li>
+</ul>
+</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

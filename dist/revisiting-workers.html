@@ -1,0 +1,148 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="web-workers%2C-how%2C-why%2C-when">Web Workers, How, Why, When</h1>
+<p>Web Workers (workers for short) are a way to create multi-treaded applications in Javascript and get around the language’s single threaded application model.</p>
+<p>According to <a href="https://dassur.ma/things/when-workers/">Surma</a>:</p>
+<blockquote>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Web Workers</a>, also called “Dedicated Workers”, are JavaScript’s take on threads. JavaScript engines have been built with the assumption that there is a single thread, and consequently there is no concurrent access JavaScript object memory, which absolves the need for any synchronization mechanism. If regular threads with their shared memory model got added to JavaScript it would be disastrous to say the least. Instead, we have been given <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Web Workers</a>, which are basically an entire JavaScript scope running on a separate thread, without any shared memory or shared values. To make these completely separated and isolated JavaScript scopes work together you have <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage">postMessage()</a>, which allows you to trigger a message event in the other JavaScript scope together with the copy of a value you provide (copied using the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">structured clone algorithm</a>).</p>
+</blockquote>
+<p>So, the idea is that we get a way to run computationally expensive tasks off the main execution thread, improving the application’s performance and responsiveness by making the main thread do less work.</p>
+<p>In a script/module hosted in the main page, in this example using a script tag,  we create a worker and provide functions for it to communicate with the main thread.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">const</span> supportsWorker <span class="token operator">=</span> <span class="token string">'Worker'</span> <span class="token keyword">in</span> window<span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>supportsWorker<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Web Workers not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Implement a fallback strategy</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+	<span class="token keyword">const</span> worker <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Worker</span><span class="token punctuation">(</span><span class="token string">'echoWorker.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">const</span> result <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#result'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token comment">// post message to worker</span>
+	worker<span class="token punctuation">.</span><span class="token function">postMessage</span><span class="token punctuation">(</span><span class="token string">'&lt;h1>Message sent to the worker&lt;/h1>'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	worker<span class="token punctuation">.</span><span class="token function-variable function">onmessage</span> <span class="token operator">=</span> <span class="token parameter">event</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+		result<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> event<span class="token punctuation">.</span>data<span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p><code>echoWorker</code> will send back whatever message it received from the main thread. It will do this by reacting to messages using the <code>onmessage</code> event and posting the content of the event back too the main thread using <code>postMessage</code>.</p>
+<pre class="language-js"><code class="language-js"><span class="token function-variable function">onmessage</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Echoing message we got from main script'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">postMessage</span><span class="token punctuation">(</span>e<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The combination offers interesting posibilities an example that I found interesting is converting Markdown to HTML using a worker.</p>
+<p>The code in the main page is similar to the echo example. The main difference is we’re sending a Markdown file in the postMessage to the worker and taking the result of processing that file as the result.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>result<span class="token punctuation">'</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token keyword">const</span> supportsWorker <span class="token operator">=</span> <span class="token string">'Worker'</span> <span class="token keyword">in</span> window<span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>supportsWorker<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// If the browser doesn't support workers bail</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Web Workers not supported'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Create the worker</span>
+    <span class="token keyword">const</span> worker <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Worker</span><span class="token punctuation">(</span><span class="token string">'./markdownWorker.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> result <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#result'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// post message to worker with the file to use</span>
+    worker<span class="token punctuation">.</span><span class="token function">postMessage</span><span class="token punctuation">(</span><span class="token string">'./content2.md'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    worker<span class="token punctuation">.</span><span class="token function-variable function">onmessage</span> <span class="token operator">=</span> <span class="token parameter">event</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      result<span class="token punctuation">.</span>innerHTML <span class="token operator">=</span> event<span class="token punctuation">.</span>data<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>I’ve broken the <code>markdownWorker.js</code> file into multiple sections to make the explanation easier.</p>
+<p>The worker uses third-party resources via <a href="https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/importScripts">importScripts</a>. In this case we load the Remarkable Markdown Parser and the Highlight.js syntax highlighter.</p>
+<pre class="language-js"><code class="language-js"><span class="token function">importScripts</span><span class="token punctuation">(</span>
+  <span class="token string">'https://cdn.jsdelivr.net/npm/remarkable@1.7.1/dist/remarkable.js'</span><span class="token punctuation">,</span>
+  <span class="token string">'https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/highlight.pack.min.js'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Everything that we want to react to happens inside the <code>onmessage</code> event.</p>
+<p>We first create and configure a Remarkable instance. The highlight configuration uses Highlight.js to insert the hightlighting classes and attributes that will display the highlighted code.</p>
+<pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function-variable function">onmessage</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> md <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Remarkable</span><span class="token punctuation">(</span><span class="token string">'full'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">html</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">linkify</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">typographer</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token comment">// Set highlight options for highlight.js</span>
+    <span class="token function-variable function">highlight</span><span class="token operator">:</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">str<span class="token punctuation">,</span> lang</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>lang <span class="token operator">&amp;&amp;</span> hljs<span class="token punctuation">.</span><span class="token function">getLanguage</span><span class="token punctuation">(</span>lang<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+          <span class="token keyword">return</span> hljs<span class="token punctuation">.</span><span class="token function">highlight</span><span class="token punctuation">(</span>lang<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+
+      <span class="token keyword">try</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> hljs<span class="token punctuation">.</span><span class="token function">highlightAuto</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+      <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+      <span class="token keyword">return</span> <span class="token string">''</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The final element of the worker is a fetch promise chain. The chain does the following:</p>
+<ol>
+<li>It fetches the file indicated by <code>event.data</code></li>
+<li>Converts the downloaded data into text</li>
+<li>Renders the text file into Markdown using the Remarkable instance we defined earlier</li>
+<li>Sends the data back to the main script using <code>postMessage</code></li>
+</ol>
+<p>If there is an error the catch block triggers and we report it to the console.</p>
+<pre class="language-js"><code class="language-js">  <span class="token function">fetch</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token comment">// Convert the response to text</span>
+    <span class="token keyword">return</span> response<span class="token punctuation">.</span><span class="token function">text</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">content</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> transformedSource <span class="token operator">=</span> md<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span>content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">postMessage</span><span class="token punctuation">(</span>transformedSource<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">err</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'There\'s been a problem completing your request: '</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="some-things-to-consider">Some things to consider</h2>
+<p>While workers have access to most APIs and features available to the main thread they are not fully equivalent.</p>
+<p>The biggest issue, for me, is that you can’t directtly manipulate the DOM from inside Workers (since the global element is <code>DedicatedWorkerGlobalScope</code> and not the window global scope)</p>
+<p>See <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker/Functions_and_classes_available_to_workers">Functions and classes available to workers</a> for a list of functions and APIs that work inside a worker.</p>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li>MDN <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Using Web Workers</a></li>
+<li><a href="https://dassur.ma/things/when-workers/">When should you be using Web Workers?</a></li>
+<li>MDN <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Using Web Workers</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

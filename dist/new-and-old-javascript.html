@@ -1,0 +1,78 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="cds-2020%3A-moving-to-modern-javascript">CDS 2020: Moving to Modern Javascript</h1>
+<p>As far as Handling both current and older browsers has gotten more complicated since Javascript adopted an anual realease schedule.</p>
+<p>We are not talking about the stark difference between ES2015/ES6 and ES5 but on a more nuanced set of difference and what it means for transpilation and browser support.</p>
+<p>Take for example, Async/Await, a features introduced in ES2017. If we want to use it in production we have have to provide fallback for browsers that may meet all our other Javascript requirements. Take the following list of Javascript features along with the version of the langaguage they were introduced in:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes">Classes</a> (ES2015)</li>
+<li><a href="https://javascript.info/arrow-functions">Arrow functions</a> (ES2015)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator">Generators</a> (ES2015)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block">Block scoping</a> (ES2015)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment">Destructuring</a> (ES2015)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters">Rest parameters</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">spread syntax</a> (ES2015)</li>
+<li><a href="https://alligator.io/js/object-property-shorthand-es6/">Object shorthand</a> (ES2015)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await">Async/await</a> (ES2017)</li>
+</ul>
+<p>If we want to support all the items in the list, then we have to support ES2017 for <code>async/await</code> and assume that if the browsers supports ES2017 then it’ll support ES2015 features ask well.</p>
+<p>With the information above, and for the purpose of this post, we’ll stick with ES2017 as the closest to modern syntax we have today.</p>
+<p>We can use the following browserslist configuration as a starting point. We’re basically telling browserslist-aware tools that to execute the assigned task for all browsers older than these versions.</p>
+<p>Normally I would have used a yearly preset like <a href="https://babeljs.io/docs/en/babel-preset-es2017/">preset-es2017</a> but the Babel team now discourages using those and are deprecated since Babel 6.</p>
+<pre class="language-json"><code class="language-json">  <span class="token property">"browserslist"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"Firefox &lt; 84"</span><span class="token punctuation">,</span>
+    <span class="token string">"Chrome &lt; 87"</span><span class="token punctuation">,</span>
+    <span class="token string">"Edge &lt; 87"</span><span class="token punctuation">,</span>
+    <span class="token string">"Safari &lt; 13"</span><span class="token punctuation">,</span>
+    <span class="token string">"iOS &lt; 13.7"</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Babel provides two plugins that use these lists are <a href="https://babeljs.io/docs/en/babel-preset-env">@babel/preset-env</a> and <a href="https://github.com/babel/preset-modules">@babel/preset-modules</a> to make your WebPack bundles leaner by only compiling code for browsers on your list. <code>preset-modules</code> does some additional optimizations for modules that are not part of <code>preset-env</code> yet.</p>
+<p>Also see Philip Walton’s <a href="https://philipwalton.com/articles/deploying-es2015-code-in-production-today/">Deploying ES2015+ Code in Production Today</a> for examples of WebPack configurations to build both modern and legacy code bundles</p>
+<p>Rollup has its own <a href="https://github.com/rollup/plugins/tree/master/packages/babel">rollup-plugin-babel</a> to handle processing with Babel.</p>
+<h2 id="serving-content-to-different-browsers">Serving content to different browsers</h2>
+<p>The best way to serve different files based on javascript support is to use the module/nomodule pattern.</p>
+<p>Using  <code>type=&quot;module&quot;</code> on script tags for modern files allows you to use modules and modern features on your browser code today.</p>
+<p>For browsers that don’t support the features we want <code>nomodule</code> attribute for the legacy files.</p>
+<pre class="language-js"><code class="language-js"><span class="token operator">&lt;</span>script type<span class="token operator">=</span><span class="token string">"module"</span> src<span class="token operator">=</span><span class="token string">"modern.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+<span class="token operator">&lt;</span>script nomodule src<span class="token operator">=</span><span class="token string">"legacy.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>Browsers that support type=“module” will load <code>modern.js</code>, and leagacy browsers will ignore it.</p>
+<h2 id="package-exports-in-node">Package exports in Node</h2>
+<p>In our package.json file, we can now define another “main” script file using the exports key.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"my-package"</span><span class="token punctuation">,</span>
+  <span class="token property">"exports"</span><span class="token operator">:</span> <span class="token string">"./modern.js"</span><span class="token punctuation">,</span>
+  <span class="token property">"main"</span><span class="token operator">:</span> <span class="token string">"./legacy.js"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The idea is that if a version of Node can read the exports filed in the <code>package.json</code> file, then it’ll execute that script and if it doesn’t then it’ll execute the script in the main entry point.</p>
+<p>This exports field is only supported in Node 12.8 and above, which implies support for ES2019+ syntax.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

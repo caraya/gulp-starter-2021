@@ -1,0 +1,56 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <p>Loading Javascript may slow down your page as the browser will follow several steps for each script the page links to and not continue until the script is fully parsed and all the associated resources loaded:</p>
+<p>The browser has no way of knowing what, if any, changes it needs to make to the page based on the script so it’ll downaload and parse the script even if it ends up not using any of it in rendering the page itself.</p>
+<p>There are two ways we can bypass the blocking scripts problem. Which one you use will depend on what you want to do. The options are <code>async</code> and <code>defer</code>.</p>
+<p>Async scripts will download the script without blocking rendering the page and will execute it as soon as the script finishes downloading. You get no guarantee that scripts will run in any specific order, only that they will not stop the rest of the page from displaying. It is best to use it when the the scripts in the page run independently from each other and depend on no other script on the page.</p>
+<p>For example, if you have the following script tags</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script <span class="token keyword">async</span> src<span class="token operator">=</span><span class="token string">"js/vendor/jquery.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+<span class="token operator">&lt;</span>script <span class="token keyword">async</span> src<span class="token operator">=</span><span class="token string">"js/script2.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+<span class="token operator">&lt;</span>script <span class="token keyword">async</span> src<span class="token operator">=</span><span class="token string">"js/script3.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>You can’t rely on the order the scripts appear. jQuery may load before or after script2 and script3 and if any functions in those scripts depend on jQuery you will get an error because jQuery will not be defined at the time the script runs.</p>
+<p>Defer will run the scripts in the order they appear in the page and execute them as soon as the script and content are downloaded.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script defer src<span class="token operator">=</span><span class="token string">"js/vendor/jquery.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+<span class="token operator">&lt;</span>script defer src<span class="token operator">=</span><span class="token string">"js/script2.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+<span class="token operator">&lt;</span>script defer src<span class="token operator">=</span><span class="token string">"js/script3.js"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>All the scripts with the <code>defer</code> attribute will load in the order they appear on the page. So in the second example we can be sure that jQuery will load before script2 and script3 and that script2 will load before script3.</p>
+<p>To summarize:</p>
+<ul>
+<li>If your scripts can run independently without requiring any dependencies then use <code>async</code></li>
+<li>If your scripts depend on other scripts run them using <code>defer</code> and put them  in the order you want the browser to execute them</li>
+</ul>
+<h2 id="do-async-and-defer-matter-in-scripts-at-the-bottom-of-the-page">Do async and defer matter in scripts at the bottom of the page</h2>
+<p>If you search the web for performance and scripts you will see that many authors suggest you put all your scripts at the bottom of the page right before the <code>&lt;/body&gt;</code> tag.</p>
+<p>The rationale for this is: By the time the browser gets to the scripts it will have parsed all the HTML of the page and, likely, displayed it to the user so there is no rendering to block.</p>
+<p>Putting the scripts at the bottom of the page is an old recommendation that you may find when searching for information. Using <code>async</code> and <code>defer</code> there is no problem putting the scripts in the <code>&lt;head&gt;</code> of the document.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

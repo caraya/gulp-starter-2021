@@ -1,0 +1,290 @@
+<h1 id="updates-to-%40font-face">Updates to @font-face</h1>
+<p><code>@font-face</code> has been around for a while and it works fine for the existing monochrome, one file per style.</p>
+<p><a href="https://w3c.github.io/csswg-drafts/css-fonts/">CSS Fonts level 4</a> introduced a new property related to font types (<code>tech()</code>) to the <code>src</code> attribute of <code>@font-face</code> at-rules. I also looked again at the <code>format()</code> attribute of the <code>src</code> descriptor; particularly what benefits would we get from using it.</p>
+<p>We will discuss each of these in turn.</p>
+<h2 id="format()"><code>format()</code></h2>
+<p>This attribute specifies the font format of the font it is attached to.</p>
+<p>If the value for <code>format()</code> is not supported or invalid, the browser will not download the resource, potentially saving bandwidth and improving performance.</p>
+<p>If omitted, the browser will always download the font and then detect the format. The font will still work but it may take the browser longer to download and use.</p>
+<p>The preferred value type is a keyword, with or without quotes.</p>
+<p>The following table shows the following information for each supported format that appears in the specification:</p>
+<ul>
+<li>The quoted string format</li>
+<li>The equivalen unquoted syntax</li>
+<li>The font format</li>
+<li>The format name</li>
+<li>Commons extensions associated with the format</li>
+</ul>
+<p>Even though <code>format()</code> is not as important as it used to be since most modern browsers support WOFF and WOFF2 fonts, it is still a good habit to get into.</p>
+<table>
+<thead>
+<tr>
+<th>String Format</th>
+<th>Equivalent Syntax</th>
+<th>Font Format</th>
+<th>Format Name</th>
+<th>Common extensions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>format(“woff2”)</td>
+<td>format(woff2)</td>
+<td>woff2</td>
+<td>WOFF 2.0</td>
+<td>.woff2</td>
+</tr>
+<tr>
+<td>format(“woff”)</td>
+<td>format(woff)</td>
+<td>woff</td>
+<td>WOFF 1.0</td>
+<td>.woff</td>
+</tr>
+<tr>
+<td>format(“truetype”)</td>
+<td>format(truetype)</td>
+<td>truetype</td>
+<td>TrueType</td>
+<td>.ttf</td>
+</tr>
+<tr>
+<td>format(“opentype”)</td>
+<td>format(opentype)</td>
+<td>opentype</td>
+<td>OpenType</td>
+<td>.otf, .ttf</td>
+</tr>
+<tr>
+<td>format(“collection”</td>
+<td>format(collection)</td>
+<td>collection</td>
+<td>OpenType Collection</td>
+<td>.otc, .ttc</td>
+</tr>
+<tr>
+<td>format(“woff2-variations”)</td>
+<td>format(woff2) tech(variations)</td>
+<td>woff2</td>
+<td>WOFF 2.0</td>
+<td>.woff2</td>
+</tr>
+<tr>
+<td>format(“woff-variations”)</td>
+<td>format(woff) tech(variations)</td>
+<td>woff</td>
+<td>WOFF 1.0</td>
+<td>.woff</td>
+</tr>
+<tr>
+<td>format(“truetype-variations”)</td>
+<td>format(truetype) tech(variations)</td>
+<td>truetype</td>
+<td>TrueType</td>
+<td>.ttf</td>
+</tr>
+<tr>
+<td>format(“opentype-variations”)</td>
+<td>format(opentype) tech(variations)</td>
+<td>opentype</td>
+<td>OpenType</td>
+<td>.otf, .ttf</td>
+</tr>
+<tr>
+<td>format(embedded-opentype)</td>
+<td>format(“embedded-opentype”)</td>
+<td>Embedded OpenType</td>
+<td>Embedded OpenType</td>
+<td>.eot</td>
+</tr>
+<tr>
+<td>format(svg)</td>
+<td>format(“svg”)</td>
+<td>SVG (deprecated)</td>
+<td>SVG</td>
+<td>.svg, .svgz</td>
+</tr>
+</tbody>
+</table>
+<p>Loading a font and explicitly stating that it’s a WOFF2 variable font would look like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/path/to/recursive.woff2"</span><span class="token punctuation">)</span></span> 
+    <span class="token function">format</span><span class="token punctuation">(</span>woff2<span class="token punctuation">)</span>
+    <span class="token function">tech</span><span class="token punctuation">(</span>variations<span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/path/to/recursive.woff"</span><span class="token punctuation">)</span></span> 
+    <span class="token function">format</span><span class="token punctuation">(</span>woff<span class="token punctuation">)</span>
+    <span class="token function">tech</span><span class="token punctuation">(</span>variations<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="tech()"><code>tech()</code></h2>
+<p>This is an optional descriptor that indicates the technologies that the font supports.</p>
+<p>The value for this property is one of the following keywords:</p>
+<ul>
+<li>variations</li>
+<li>palettes</li>
+<li>incremental</li>
+<li>features-opentype</li>
+<li>features-aat</li>
+<li>features-graphite</li>
+<li>color-COLRv0</li>
+<li>color-COLRv1</li>
+<li>color-SVG</li>
+<li>color-sbix</li>
+<li>color-CBDT.</li>
+</ul>
+<p>The following table shows several old unnormalized format() values and their new equivalent syntax:</p>
+<table>
+<thead>
+<tr>
+<th>Old syntax</th>
+<th>Equivalent syntax</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>format(“woff2-variations”)</td>
+<td>format(woff2) tech(variations)</td>
+</tr>
+<tr>
+<td>format(“woff-variations”)</td>
+<td>format(woff) tech(variations)</td>
+</tr>
+<tr>
+<td>format(“opentype-variations”)</td>
+<td>format(opentype) tech(variations)</td>
+</tr>
+<tr>
+<td>format(“truetype-variations”)</td>
+<td>format(truetype) tech(variations)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="using-%40support-with-the-new-%40font-face-features">Using @support with the new @font-face features</h2>
+<p>What I find most intriguing is that we can target font technology and format using <code>@supports</code>.</p>
+<h2 id="testing-for-specific-font-technologies">Testing for specific font technologies</h2>
+<p>You can use <code>@supports</code> and the <code>tech()</code> attribute of the <code>src</code> descriptor to test if a browser supports a given font technology.</p>
+<p>The list of technologies you can test for is listen in the following table</p>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Supports</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>color-colrv0</td>
+<td>Color Fonts using the COLR version 0 table</td>
+</tr>
+<tr>
+<td>color-colrv1</td>
+<td>Color fonts using the COLR version 1 table</td>
+</tr>
+<tr>
+<td>color-svg</td>
+<td>SVG multi-colored tables</td>
+</tr>
+<tr>
+<td>color-sbix</td>
+<td>Standard bitmap graphics tables</td>
+</tr>
+<tr>
+<td>color-cbdt</td>
+<td>Color bitmap data tables</td>
+</tr>
+<tr>
+<td>features-opentype</td>
+<td>OpenType GSUB and GPOS tables</td>
+</tr>
+<tr>
+<td>features-aat</td>
+<td>TrueType morx and kerx tables</td>
+</tr>
+<tr>
+<td>features-graphite</td>
+<td><a href="https://en.wikipedia.org/wiki/Graphite_(smart_font_technology)">Graphite</a> features, namely Silf, Glat , Gloc , Feat, and Sill tables</td>
+</tr>
+<tr>
+<td>incremental</td>
+<td>Incremental font loading</td>
+</tr>
+<tr>
+<td>variations</td>
+<td>Font variations in TrueType and OpenType variable fonts to control variable font axes</td>
+</tr>
+<tr>
+<td>palettes</td>
+<td>Font palettes by means of font-palette to select one of many color palettes in the font</td>
+</tr>
+</tbody>
+</table>
+<p>The syntax for the <code>@supports</code> at rule is:</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span> <span class="token function">font-tech</span><span class="token punctuation">(</span>name-of-tech<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token comment">/* 
+  Code that supports the
+  technology goes here
+  */</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This example imports the Bungee Spice Color V1 font from Google Fonts and will only use in the body element if the browser supports COLRv1 font technology</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@import</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"https://fonts.googleapis.com/css2?family=Bungee+Spice"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span></span>
+
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token function">font-tech</span><span class="token punctuation">(</span>color-COLRv1<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+  <span class="token selector">.bungee-example</span> <span class="token punctuation">{</span>
+    <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Bungee Spice"</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="format()-1">Format()</h2>
+<p>We use <code>font-format</code> as the value of the feature we’re testing with <code>@supports</code>. A list of valid values is show in the following table.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Description</th>
+<th>File extensions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>collection</td>
+<td>OpenType Collection</td>
+<td>.otc, .ttc</td>
+</tr>
+<tr>
+<td>embedded-opentype</td>
+<td>Embedded OpenType</td>
+<td>.eot</td>
+</tr>
+<tr>
+<td>opentype</td>
+<td>OpenType</td>
+<td>.ttf, .otf</td>
+</tr>
+<tr>
+<td>svg</td>
+<td>SVG Font (deprecated)</td>
+<td>.svg, .svgz</td>
+</tr>
+<tr>
+<td>truetype</td>
+<td>TrueType</td>
+<td>.ttf</td>
+</tr>
+<tr>
+<td>woff</td>
+<td>WOFF 1.0 (Web Open Font Format)</td>
+<td>.woff</td>
+</tr>
+<tr>
+<td>woff2</td>
+<td>WOFF 2.0 (Web Open Font Format)</td>
+<td>.woff2</td>
+</tr>
+</tbody>
+</table>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@supports</span><span class="token punctuation">:</span> <span class="token function">font-format</span><span class="token punctuation">(</span>woff2<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+
+<span class="token punctuation">}</span>
+</code></pre>

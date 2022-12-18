@@ -1,0 +1,80 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="css-modules-and-constructable-stylesheets">CSS Modules and Constructable Stylesheets</h1>
+<p>If you work with web components, one of the pain points is how to add styles to multiple copies of the same component.</p>
+<p>None of the existing solutions work well and all have one or more rough edges. See the <a href="https://chromestatus.com/feature/5948572598009856">CSS Modules Scripts Chrome Status Entry</a> for an explanation of the rough edges as seen by the team implementing the feature.</p>
+<p><a href="https://web.dev/css-module-scripts/">CSS Module Scripts</a> (CSS Modules for short) allows you to import and external stylesheet and attach it to multiple documents and components.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> sheet <span class="token keyword">from</span> <span class="token string">'./index.css'</span> <span class="token keyword">assert</span> <span class="token punctuation">{</span> <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'css'</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+document<span class="token punctuation">.</span>adoptedStyleSheets <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">...</span>document<span class="token punctuation">.</span>adoptedStyleSheets<span class="token punctuation">,</span> sheet<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Attach to a shadow root</span>
+shadowRoot<span class="token punctuation">.</span>adoptedStyleSheets <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">...</span>document<span class="token punctuation">.</span>adoptedStyleSheets<span class="token punctuation">,</span> sheet<span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token comment">// 3</span>
+</code></pre>
+<p>The first step is to import the stylesheet. The <code>assert { type: 'css' }</code> statement is important. It tells the Javascript engine that the module you’re importing is a CSS module. Otherwise, the module will be interpreted as a Javascript module and the import will fail (modules imports use strict mime-types).</p>
+<p>To add the imported module we use <code>adoptedStyleSheets</code> on the document or shadow root and append the imported stylesheet to the existing array of stylesheets.</p>
+<p>The <code>adoptedStyleSheets</code> method is part of the <a href="https://developers.google.com/web/updates/2019/02/constructable-stylesheets">constructable stylesheets</a> proposal.</p>
+<p>We can also use this technique with dynamic imports.</p>
+<p>Here the main difference is use <code>cssModule.default</code> rather than <code>cssModule</code> since dynamic imports return a module namespace object. The CSSStyleSheet is the default export of the module, so it’s accessed at <code>cssModule.default</code>.</p>
+<pre class="language-js"><code class="language-js"><span class="token operator">&lt;</span><span class="token operator">!</span><span class="token operator">--</span> Dynamic Import <span class="token operator">--</span><span class="token operator">></span>
+<span class="token keyword">const</span> cssModule <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token keyword">import</span><span class="token punctuation">(</span><span class="token string">'./index.css'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">assert</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'css'</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+document<span class="token punctuation">.</span>adoptedStyleSheets <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">...</span>adoptedStylesheets<span class="token punctuation">,</span> cssModule<span class="token punctuation">.</span>default<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="working-with-shadow-dom">Working with shadow DOM</h2>
+<p>When working with Shadow DOM, the process gets a little more complicated (at least for me).</p>
+<p>We define the element in its own script and  then we import it using a <code>script</code> tag in the host page.</p>
+<p>The second script will import the stylesheet and attach it to the custom element’s shadow root.</p>
+<p>I always prefer to wait on user action so we create a button and capture a reference in the <code>myButton</code> constant.</p>
+<p>We attach a click event handler to the button so when the user clicks the button, the browser will create a new <code>demo-element</code> element, append it to the body of the host page (making it appear) and attaching the imported stylesheet using the <code>shadowRoot.adoptedStyelSheets</code> method. Note that we also add a spread of all existing adopted stylesheets to the array we assign to the custom element. This way, if the element has already defined styles, we won’t lose them.</p>
+<pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- Imports the demo-element element --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>./demo.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+
+<span class="token comment">&lt;!-- add elements and import stylesheet--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">import</span> sheet <span class="token keyword">from</span> <span class="token string">'./index2.css'</span> <span class="token keyword">assert</span> <span class="token punctuation">{</span> <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'css'</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> myButton <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'newwin'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// button event listener</span>
+myButton<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> win <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'demo-element'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>win<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  win<span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>adoptedStyleSheets <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token operator">...</span>document<span class="token punctuation">.</span>adoptedStyleSheets<span class="token punctuation">,</span>
+    sheet
+  <span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>SO that’s it! with CSS modules and constructable stylesheets you can create custom elements that can be styled without having to create style elements to go with them</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="new-css-selectors%3A-%3Ais-and-%3Awhere">New CSS selectors: :is and :where</h1>
+<p>A pair of new pseudo-class selectors have made it easier to write CSS in a way that is easier to read and to reason through.</p>
+<p><code>:is</code> and <code>:where</code> allow you to combine selectors that have the same styles. For example, to identify the headers inside an article you’d normally do this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">article, h1,
+article, h2,
+article, h3,
+article, h4,
+article, h5,
+article, h6</span> <span class="token punctuation">{</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> black<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Instead, you could use <code>:is</code> and improve legibility while avoiding a long selector and potential typos associated with it:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">article :is(h1, h2, h3, h4, h5, h6)</span> <span class="token punctuation">{</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> black<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>When writing CSS, <code>:is</code> (and its cousin <code>:where</code>) give you a way to group elements together anywhere in a selector.</p>
+<p>Here are a few more examples of <code>:is</code> and <code>:where</code> building selectors for a hypothetical article:</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/*
+  All the headers in an article
+*/</span>
+<span class="token selector">article :is(h1,h2,h3,h4,h5,h6)</span> <span class="token punctuation">{</span>
+  <span class="token property">background-color</span><span class="token punctuation">:</span> black<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 1em 1em 1em 0<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/* 
+  all the paragraphs in an article 
+  header or footer
+*/</span>
+<span class="token selector">article :is(header, footer) > p</span> <span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> darkgrey
+<span class="token punctuation">}</span>
+
+<span class="token comment">/*
+  All paragraphs inside blockquotes
+  and pullquotes
+*/</span>
+<span class="token selector">article :where(blockquote, .pull-quote) > p</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 1.25em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/*
+  h1 or h2 elements 
+  with class header or boldest
+*/</span>
+<span class="token selector">article :is(h1,h2,:is(.header,.boldest))</span> <span class="token punctuation">{</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 900<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="specificity">Specificity</h2>
+<p>While <code>:is</code> and <code>:where</code> are almost identical they have one key difference: how they handle specificity.</p>
+<p><code>:is</code> will take the highest specificity from among their children. The example below will take the specificity of the ID element rather than the class or a combination of both.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/*
+  All paragraphs inside .header or #header
+  elements.
+*/</span>
+<span class="token selector">article :is(#header, .header) > p</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 1.5em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><code>:where</code> will remove all the specificity from their children. The whole selector will have no specificity.</p>
+<p>This example removes the specificity from the selector below, it works as long as there are no other rules targeting the same selector.</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/*
+  All paragraphs inside .header or #header
+  elements.
+*/</span>
+<span class="token selector">article :where(#header, .header) > p</span> <span class="token punctuation">{</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 1.5em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>TL,DR:</strong></p>
+<ul>
+<li>:is() takes the specificity of the child with the highest specificity in the selector list passed as parameter</li>
+<li>:where() has no specificity. It removes all the specificity in the selector list passed as parameter</li>
+</ul>
+<h2 id="browser-compatibility">Browser compatibility</h2>
+<p><code>:is</code> and <code>:where</code> are supported in Chromium (88 and later), Firefox (78 and later) and Safari (14 and later). Some older browser versions support the <code>:is()</code> selector as <code>:matches()</code> or <code>-webkit-any()</code>.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

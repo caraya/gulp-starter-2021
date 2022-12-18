@@ -1,0 +1,150 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="recursive-variable-font%E2%80%A6-a-deep-dive">recursive variable font… a deep dive</h1>
+<p><a href="https://www.recursive.design/">Recursive</a> is a variable font under development by Arrowtype that caught my attention by the posibilities it provides.</p>
+<p>Recursive provides two custom axes: One that moves from monospaced to sans-serif and another one that ranges from standard/linear to more casual/playful styles.</p>
+<p>It also provides three standard axes: Weight, Slant and Italics.</p>
+<p>The combination of these 5 axes in 64 pre-defined instance variables make for a very expressive font that can serve many duties in a site or application without adding font files and impacting performance.</p>
+<p>In a <a href="https://publishing-project.rivendellweb.net/custom-material-design-typography/">previous post</a> I looked at using Recursive in the context of Material Design typography and how to add features that are specific to a font rather than to the design system created with Material Design.</p>
+<p>But what would it take to use the font outside a Material Design environment.</p>
+<p>The first thing to do is to download the font from <a href="https://github.com/arrowtype/recursive/releases">Github release page</a>. This will give you the <a href="https://www.w3.org/TR/WOFF2/">WOFF2</a> file.</p>
+<p>I will use <a href="https://wakamaifondue.com/">Wakamaifondue</a> to generate the CSS that we’ll use throughout the document. Load the font  (currently Beta 25) on Wakamaifondue and save the generated CSS file to your computer. This generated file coontains all the classes to enable OpenType features and font named instances.</p>
+<p>One thing the font doesn’t have is the <code>@font-face</code> at-rule to actually load the font. The code to actually load the font looks like this.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Recursive'</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span>
+    <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">'../fonts/recursive.woff2'</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">'woff2-variations'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 300 1000<span class="token punctuation">;</span>
+  <span class="token property">font-display</span><span class="token punctuation">:</span> swap<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>There are a few differences to account for the variable font. Instead of <code>woff2</code> we use <code>woff2-variations</code> to indicate that it’s a variable font compressed using WOFF2.</p>
+<p>The <code>font-weight</code> attribute for variable fonts takes two values, representing the minimum and maximum values for the weight. It geos withou saying that these values should match those available to the font.</p>
+<p>Now we’re ready to start exploring the font.</p>
+<h2 id="opentype-features-and-predefined-instances">OpenType features and Predefined Instances</h2>
+<p>What makes Wakamaifondue so attractive is that it it does most of the work for you. It creates variables for each OpenType feature the font makes available and for each predefined instance.</p>
+<p>You can combine these classes to get the effects that you want. In the example below we have a monospaced font and the Slashed Zero OpenType feature.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pre</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>recursive-b025-zero
+            recursive-b025-mono-linear<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  All the text in this box is monospaced.
+
+  All the 0 have a diagonal dash on them
+  to distinguish them from O
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pre</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>All the work Wakamaifondue did up front means that developers and content authors can use existing structures adding classes to existing elements or wrapping content in the semantically neutral <code>div</code> and <code>span</code> elements to accomplish our objectives.</p>
+<h2 id="using-variables">Using variables</h2>
+<p>Because Recursive uses custom axes, two of the default axes may conflict with each other and there is an issue with inheritance for <code>font-variation-settings</code> as documented in <a href="https://pixelambacht.nl/2019/fixing-variable-font-inheritance/">Boiling eggs and fixing the variable font inheritance problem</a> we would have to use CSS variables or their Houdini equivalents to control individual axes and them merge them together. You can get more information about how to write CSS using Variable Fonts in <a href="https://rwt.io/typography-tips/variable-fonts-what-web-authors-need-know">Variable Fonts: What web authors need to know</a> issue from Jason Pamental’s Responsive Typography Newsletter.</p>
+<p>The first block of CSS sets up the default values for each axis and then uses <code>font-weight</code> and <code>font-variation-settings</code> to configure the default values for the font.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
+  <span class="token property">--vf-mono</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--vf-casl</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--vf-wght</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span>
+  <span class="token property">--vf-slnt</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+  <span class="token property">--vf-ital</span><span class="token punctuation">:</span> 0.5<span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-wght<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/*
+    This will define the values for
+    the entire document
+  */</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-mono<span class="token punctuation">)</span>
+                           <span class="token string">"CASL"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-casl<span class="token punctuation">)</span>
+                           <span class="token string">"slnt"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-slnt<span class="token punctuation">)</span>
+                           <span class="token string">"ital"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-ital<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>in later elements we update only the values that we want to change. For example, if we want element to use the monospaced font we could do something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">pre, code, pre code</span> <span class="token punctuation">{</span>
+  <span class="token property">--vf-mono</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-mono<span class="token punctuation">)</span>
+                           <span class="token string">"CASL"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-casl<span class="token punctuation">)</span>
+                           <span class="token string">"slnt"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-slnt<span class="token punctuation">)</span>
+                           <span class="token string">"ital"</span> <span class="token function">var</span><span class="token punctuation">(</span>--vf-ital<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Note that since we defined font variation settings on the <code>:root</code> element with the default values, this technique forces you to define the values and <code>font-variation-settings</code> on all elements that don’t use the default.</p>
+<p>If we were not using variables then we’d have to use the bare metal approach which we’ll discuss below.</p>
+<h2 id="bare-metal">Bare Metal</h2>
+<p>Using variables address the cascade issues with <code>font-variation-settings</code> but there may be times when we don’t care about the extra work that we need to do.</p>
+<p>Let’s say, for example that we want to tweak <code>strong</code> and <code>b</code> to make it slightly less bold than the default value, we could redefine it like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">strong,
+b</span> <span class="token punctuation">{</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 600<span class="token punctuation">;</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"ital"</span> 0.5<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This technique also allows for customizing the classes and how they use the font. Expanding on the previous example we can use <code>font-variation-settings</code> to combine slant and italics axes for the same text rather than using a single axis.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">em,
+i</span> <span class="token punctuation">{</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+    <span class="token string">"ital"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The block below, from <a href="https://prismjs.com/">Prism.js</a> default stylesheet incorporates Recursive as the default monospaced font for all code fenced blocks that Prism handles.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">code[class*="language-"],
+pre[class*="language-"]</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Recursive<span class="token punctuation">,</span> Consolas<span class="token punctuation">,</span> Monaco<span class="token punctuation">,</span>
+    <span class="token string">'Andale Mono'</span><span class="token punctuation">,</span> <span class="token string">'Ubuntu Mono'</span><span class="token punctuation">,</span> monospace<span class="token punctuation">;</span>
+  <span class="token property">font-size</span><span class="token punctuation">:</span> 1em<span class="token punctuation">;</span>
+
+  <span class="token comment">/* Solarized light base00 */</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #657b83<span class="token punctuation">;</span>
+  <span class="token property">text-align</span><span class="token punctuation">:</span> left<span class="token punctuation">;</span>
+  <span class="token property">white-space</span><span class="token punctuation">:</span> pre<span class="token punctuation">;</span>
+  <span class="token property">word-spacing</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token property">word-break</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+  <span class="token property">word-wrap</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
+
+  <span class="token comment">/* Variable font settings */</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span>
+  <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span>
+    <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+    <span class="token string">"ital"</span> 0.5<span class="token punctuation">;</span>
+
+  <span class="token property">line-height</span><span class="token punctuation">:</span> 1.5<span class="token punctuation">;</span>
+
+  <span class="token comment">/* Change tab size to 2 */</span>
+  <span class="token property">tab-size</span><span class="token punctuation">:</span> 2<span class="token punctuation">;</span>
+
+  <span class="token comment">/* Control hyphenation */</span>
+  <span class="token property">hyphens</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>These are a few examples of what you can do with the font. You can also combine the different approaches to create an even more flexible solution.</p>
+<p>Recursive also presents some interesting characteristics that make it fun to play and experiment with. Let’s see how far we can push the technology.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="automating-accessibility-testing-and-fixes">Automating accessibility testing and fixes</h1>
+<p>In a previous post we looked at the top accessibility issues reported in the WebAIM Million <a href="https://webaim.org/projects/million/">2022 report</a>, how to create accessible content and how to test and repair accessibility errors.</p>
+<p>In this post we’ll look at different ways and tools to automate detecting accessibility issues rather than evaluating pages one at a time.</p>
+<p>Finally, we’ll look at ways of atuomating testing in Github repositories using Github Actions.</p>
+<h2 id="web-based-accessibility-testing">Web-based accessibility testing</h2>
+<p>The easiest way to test if a site has accessibility issues is to run it through a web-based accessibility tool.</p>
+<p>The simplest one to use is the <a href="https://www.deque.com/axe/browser-extensions/">Axe browser extension</a> from <a href="https://www.deque.com/">Deque</a>.</p>
+<p>While the extension will only work on single pages, it is far easier to run.</p>
+<p>To start, download the extension from the <a href="https://chrome.google.com/webstore/detail/axe-devtools-web-accessib/lhdoppojpmngadmnindnejefpokejbdd">Chrome Store</a>.</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655520360/publishing-project.rivendellweb.net/axe-browser-ext-01/axe-browser-ext-01.png"
+  alt="Axe browser extension in the chrome store">
+  <figcaption>
+    Axe browser extension in the chrome store.
+  </figcaption>
+</figure>
+<p>The extension will add a menu option to the browser’s DevTools. To get to the menu, activate DevTools either by pressing <code>CMD/CTRL + Shift + I</code> or right clicking on the window and selecting <code>Inspect</code>.</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655520360/publishing-project.rivendellweb.net/axe-browser-ext-02/axe-browser-ext-02.png?_i=AA" alt="Inspect menu item in the right click menu">
+  <figcaption>
+    Inspect menu item in the right click menu.
+  </figcaption>
+</figure>
+<p>In the DevTools window, the axe DevTools will be at the far right of the menu as show in the following image:</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655520360/publishing-project.rivendellweb.net/axe-browser-ext-03/axe-browser-ext-03.png?_i=AA" alt="Axe DevTools menu item in DevTools">
+  <figcaption>
+    Axe DevTools menu item in DevTools.
+  </figcaption>
+</figure>
+<p>When you click on the menu item you will see the Axe extension main window.</p>
+<p><strong>The extension, as downloaded, will only run full-page basic scans. To run the partial scan or any of the specialized scans you must register for the paid version of Axe</strong>. There is also a 14-day trial for you to test the tool and see if it meets your needs.</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655520360/publishing-project.rivendellweb.net/axe-browser-ext-04/axe-browser-ext-04.png?_i=AA" alt="Axe extension main screen">
+</figure>
+<p>Once you click on the left-side <code>Scan ALL of my page</code> button the extension will scan your page for accessibility issues and present them on the right side of the screen as shown in the following image:</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655520360/publishing-project.rivendellweb.net/axe-browser-ext-05/axe-browser-ext-05.png?_i=AA" alt="Axe browser extension results" >
+</figure>
+<p>Alongside the automated problems, the extension will suggest how to fix them.</p>
+<p><a href="https://www.accessibilitychecker.org/">Accessibility Checker</a>
+and <a href="https://wave.webaim.org/">WAVE – Web Accessibility Versatile Evaluator</a> provide web-based tools for testing and evaluating accessibility.</p>
+<p>These tools will work with full websites, not individual pages but they require a public web server to run the tests, they will not work in local development environments.</p>
+<p>The accessibility evaluator tool has one special chaacteristic: It can use the accessibility standards from multiple countries and regions; these standards may be different from US-based standards.</p>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655582371/publishing-project.rivendellweb.net/wave-accessibility-checker/wave-accessibility-checker.png?_i=AA" alt="WAVE evaluator homepage">
+  <figcaption>
+    WAVE evaluator homepage.
+  </figcaption>
+</figure>
+<figure>
+  <img src="https://res.cloudinary.com/dfh6ihzvj/images/v1655582362/publishing-project.rivendellweb.net/accessibility-checker/accessibility-checker.png?_i=AA" alt="accessibility checker homepage">
+  <figcaption>
+    Accessibility checker homepage.
+  </figcaption>
+</figure>
+<h2 id="manually-accessibility-testing">Manually accessibility testing</h2>
+<p>The <a href="https://github.com/dequelabs/axe-core-npm/blob/develop/packages/cli/README.md">Axe Core CLI</a> tool provides a command line interface to the Axe Core library.</p>
+<p>Install the library as a global NPM package:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> axe-core-npm <span class="token parameter variable">--global</span>
+</code></pre>
+<p>This will make the <code>axe</code> command globally available.</p>
+<p>If your app runs a server, you can start the server and run Axe-core against it.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token comment"># starts the server</span>
+<span class="token function">npm</span> start
+<span class="token comment"># The example assumes the server</span>
+<span class="token comment"># is running at http://localhost:3000</span>
+
+<span class="token comment"># runs axe against the server</span>
+axe http://localhost:3000
+</code></pre>
+<h2 id="using-github-actions-for-accessibility-testing">Using Github Actions for accessibility testing</h2>
+<p>The last method to test for accessibility is to use <a href="https://docs.github.com/en/actions">Github Actions</a> with a variety of accessibility evaluation tools.</p>
+<p>This will allow us to test for accessibility any time we push new content or there is a pull request into the repository.</p>
+<p>The Axe action makes the following assumptions</p>
+<ul>
+<li>The project uses a Node.js build system</li>
+<li>There is a <code>npm build</code> command that will build</li>
+<li>The project runs a server when you run <code>npm start</code></li>
+</ul>
+<p>With these assumptions, the action does the following:</p>
+<ol>
+<li>Chooses when the action will run. In this case it will run on new push and pull requests to the repository</li>
+<li><code>jobs</code> defines the tasks that this action will run and the order the tasks will run on</li>
+<li>We set up the agent to run the tests in <code>macOS 11</code>, also presented as <code>macos-latest</code></li>
+<li>The <code>stragey</code> section presents the different versions of Node that we will use for the action.
+<ol>
+<li>The <code>matrix</code> element controls the different combination of Node versions that we will use</li>
+<li><code>node-version</code> is an array of one or more Node of versions we want to use</li>
+</ol>
+</li>
+<li>Next we use the <code>actions/checkout</code> action to chekcout the code from the repository</li>
+<li>We use use the Node.js version specified in the <code>matrix.node-version</code> to run the tests
+<ol>
+<li>We then configure the version of Node that we’ll use</li>
+</ol>
+</li>
+<li>This steps performs the following tasks
+<ol>
+<li>The <code>npm ci</code> command performs a clean installation of the files in <code>package.json</code></li>
+<li>it then runs the build command with the <a href="https://docs.npmjs.com/cli/v8/commands/npm-run-script#if-present">–if-present</a> flag. The <code>--if-present</code> flag will error out if the build command is not present</li>
+</ol>
+</li>
+<li>It then runs the Axe commands
+<ol>
+<li>It installs <code>@axe-core/cli</code> as a global NPM package</li>
+<li>It run the Axe binary on the server (<code>https://localhost:3000</code>)</li>
+</ol>
+</li>
+</ol>
+<pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">name</span><span class="token punctuation">:</span> Axe
+
+<span class="token comment"># 1</span>
+<span class="token key atrule">on</span><span class="token punctuation">:</span>
+  <span class="token key atrule">push</span><span class="token punctuation">:</span>
+    <span class="token key atrule">branches</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>main<span class="token punctuation">]</span>
+  <span class="token key atrule">pull_request</span><span class="token punctuation">:</span>
+    <span class="token key atrule">branches</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>main<span class="token punctuation">]</span>
+
+<span class="token comment"># 2</span>
+<span class="token key atrule">jobs</span><span class="token punctuation">:</span>
+  <span class="token key atrule">axe</span><span class="token punctuation">:</span>
+    <span class="token comment"># 3</span>
+    <span class="token key atrule">runs-on</span><span class="token punctuation">:</span> macos<span class="token punctuation">-</span>latest
+
+    <span class="token comment"># 4</span>
+    <span class="token key atrule">strategy</span><span class="token punctuation">:</span>
+      <span class="token key atrule">matrix</span><span class="token punctuation">:</span>
+        <span class="token key atrule">node-version</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token number">16</span><span class="token punctuation">]</span>
+
+    <span class="token key atrule">steps</span><span class="token punctuation">:</span>
+      <span class="token comment"># 5</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">uses</span><span class="token punctuation">:</span> actions/checkout@v3
+      <span class="token comment"># 6</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Use Node.js $<span class="token punctuation">{</span><span class="token punctuation">{</span> matrix.node<span class="token punctuation">-</span>version <span class="token punctuation">}</span><span class="token punctuation">}</span>
+        <span class="token key atrule">uses</span><span class="token punctuation">:</span> actions/setup<span class="token punctuation">-</span>node@v3
+        <span class="token key atrule">with</span><span class="token punctuation">:</span>
+          <span class="token key atrule">node-version</span><span class="token punctuation">:</span> $<span class="token punctuation">{</span><span class="token punctuation">{</span> matrix.node<span class="token punctuation">-</span>version <span class="token punctuation">}</span><span class="token punctuation">}</span>
+          <span class="token key atrule">cache</span><span class="token punctuation">:</span> <span class="token string">"npm"</span>
+      <span class="token comment"># 7</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">run</span><span class="token punctuation">:</span> npm ci
+      <span class="token punctuation">-</span> <span class="token key atrule">run</span><span class="token punctuation">:</span> npm run build <span class="token punctuation">-</span><span class="token punctuation">-</span>if<span class="token punctuation">-</span>present
+      <span class="token punctuation">-</span> <span class="token key atrule">run</span><span class="token punctuation">:</span> npm start &amp; npx wait<span class="token punctuation">-</span>on http<span class="token punctuation">:</span>//localhost<span class="token punctuation">:</span><span class="token number">3000</span>
+      <span class="token comment"># 8</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Run axe
+        <span class="token key atrule">run</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string">
+          npm install -g @axe-core/cli
+          axe http://localhost:3000 --exit</span>
+</code></pre>
+<p>With this action in place we get an accessibility report everytime we get new content in the repository. We can go a step further and cause the action to fail and block the desired change. I’ve chosen not to do it in this demo.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

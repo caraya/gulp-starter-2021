@@ -1,0 +1,114 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="inspecting-a-font-with-fontkit.js">Inspecting a font with fontkit.js</h1>
+<p>Several times I’ve found myself working with fonts where I want to know what’s available in the font without using tools like <a href="https://wakamaifondue.com/">Wakmaifondue</a>.</p>
+<p>Recently, I discovered <a href="https://github.com/foliojs/fontkit/">fontkit.js</a>, a tool that will read and manipulate fonts so I decided to use it in a test script to see what a font has available to use.</p>
+<p>This is a node script so it assumes one of two things:</p>
+<ul>
+<li>there is a <code>package.json</code> where you’ve installed fontkit</li>
+<li>You’ve installed fontkit globally</li>
+</ul>
+<p>The script also imports the <a href="https://nodejs.org/docs/latest/api/process.html#processargv">argv</a> from the built-in process module to capture the full path to the font we wat to process.</p>
+<p>Next, we create two constants:</p>
+<ul>
+<li>One to capture the value of the first parameter, the path tot he font</li>
+<li>One to use Fontkit’s <code>openSync</code> method to open the font. We will use this constant throughout the script to gather the data we want</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> argv <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'node:process'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token operator">*</span> <span class="token keyword">as</span> fontkit <span class="token keyword">from</span> <span class="token string">'fontkit'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> fontPath <span class="token operator">=</span> argv<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> font <span class="token operator">=</span> fontkit<span class="token punctuation">.</span><span class="token function">openSync</span><span class="token punctuation">(</span>fontPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The first block of data we output is metadata about the font:</p>
+<ul>
+<li>The full name of the font</li>
+<li>The family name of the font</li>
+<li>Version of the font</li>
+<li>Font Copyright</li>
+</ul>
+<p>This is not essential but it’s good information to have if you’re working with a font for the first time.</p>
+<p>Note that whitespace is signficant in string literals. We don’t need to use <code>\n\n</code> inside literals, we can just press return.</p>
+<pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Font metadata
+
+
+Font name: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>fullName<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Font family name: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>familyName<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Version: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>version<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Copyright: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>copyright<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+</code></pre>
+<p>The next block tackles font metrics. These are particularly useful when you’re trying to match your fallback font as they give you ascender, desncender and gap values to use.</p>
+<p>It also lists the Unicode codpoints the font supports.</p>
+<pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Font Metrics
+
+
+Units Per Em: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>unitsPerEm<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Ascent: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>ascent<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Descender </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>descent<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Line Gap: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>lineGap<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Underline Position: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>underlinePosition<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Underline Thickness: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>underlineThickness<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Italic Angle: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>italicAngle<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Cap Height: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>capHeight<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+bbox: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>bbox<span class="token punctuation">.</span>minX<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> x </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>bbox<span class="token punctuation">.</span>minY<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+      </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>bbox<span class="token punctuation">.</span>maxX<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> x </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>bbox<span class="token punctuation">.</span>maxX<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+Number of glyphs: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>numGlyphs<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+
+Supported Unicode Codepoints:
+</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>font<span class="token punctuation">.</span>characterSet<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">
+
+
+</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+</code></pre>
+<p>Next, we look at the OpenType Features available on the font.</p>
+<p>On their own, the four-letter codes for the available features won’t do much good, but at least they tell us what’s available.</p>
+<pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Available OpenType features'</span><span class="token punctuation">)</span>
+console<span class="token punctuation">.</span><span class="token function">table</span><span class="token punctuation">(</span>font<span class="token punctuation">.</span>availableFeatures<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Font variation axes are single aspects of a typeface’s design that can be altered by the user.</p>
+<p>If an axis is listed in lowercase the axis is a default axis defined in the OpenType specification. If the axis is listed in uppercase the axis is a custom axis to the font.</p>
+<p>The listing also presents the minimal, default, and maximum values for each listed axis.</p>
+<pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">\n\n</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Font variation axes supported'</span><span class="token punctuation">)</span>
+console<span class="token punctuation">.</span><span class="token function">table</span><span class="token punctuation">(</span>font<span class="token punctuation">.</span>variationAxes<span class="token punctuation">)</span>
+</code></pre>
+<p>The final item listed is the set of named instances for the font. This is only applicable to variable fonts.</p>
+<p>In addition to providing information about the available axes, variable fonts may present one or more named instances.</p>
+<p>The named instances are a combination of available axes values that produce a predetermined effect.</p>
+<pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">\n\n</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Font named instances'</span><span class="token punctuation">)</span>
+console<span class="token punctuation">.</span><span class="token function">table</span><span class="token punctuation">(</span>font<span class="token punctuation">.</span>namedVariations<span class="token punctuation">)</span>
+</code></pre>
+<p>This gives us the information th at we want but it’s not really usable unless you know what you’re doing and how to create the CSS for it.</p>
+<p>We could use the same data to generate a CSS stylesheet that we can either copy or download for our use.</p>
+<p>It could also include one or more backup fonts that address content shift using ascenders or descenders.</p>
+<p>There are other possibilities worth exploring, we’re just scratching the surface.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

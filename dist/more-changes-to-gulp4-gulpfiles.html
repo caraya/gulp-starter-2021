@@ -1,0 +1,56 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="additional-updates-for-my-gulp-build-scripts">Additional updates for my Gulp build scripts</h1>
+<p>I finally decided to update my build to work with Gulp 4.x instead of 3. I’m familiar with series and parallel changes that are necessary for the build file to work in the new format.</p>
+<p>What I wasn’t aware of was that tasks are no longer the prefered way to create build commands. Instead you’re expected to create each task as its own function and then export it to make it available to the CLI.</p>
+<p>The Gulp team claims that the task way of defining work units still works but I spent several hours trying to get it working on an existing project so I gave up and switched to functions.</p>
+<p>The idea is that we move from using <code>gulp.task</code> to define the task we write a function to describe the steps of the task we want to create; the body of the function is the same than the task.</p>
+<p>We then have to export the function to make it available to the CLI.</p>
+<p>A function to create CSS from SASS sources, and create the associated sourcemaps,  the command could look like this:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">createSass</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+ <span class="token keyword">return</span> gulp<span class="token punctuation">.</span><span class="token function">src</span><span class="token punctuation">(</span><span class="token string">'./sass/**/*.scss'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>sourcemaps<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>sass<span class="token punctuation">.</span><span class="token function">sync</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">outputStyle</span><span class="token operator">:</span> <span class="token string">'expanded'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'error'</span><span class="token punctuation">,</span> sass<span class="token punctuation">.</span>logError<span class="token punctuation">)</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>sourcemaps<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token string">'./css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>plumber<span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">pipe</span><span class="token punctuation">(</span>gulp<span class="token punctuation">.</span><span class="token function">dest</span><span class="token punctuation">(</span><span class="token string">'./css'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We then export it using any name we want using <a href="https://developer.mozilla.org/en-US/docs/web/javascript/reference/statements/export">exports</a></p>
+<pre class="language-js"><code class="language-js"><span class="token comment">// exports</span>
+exports<span class="token punctuation">.</span>sass <span class="token operator">=</span> createSass<span class="token punctuation">;</span>
+</code></pre>
+<p>This will be the name that you get when you run <code>gulp --tasks</code> or <code>gulp -T</code>.</p>
+<p>I’ve created an example of the new code in this Gist:</p>
+<script src="https://gist.github.com/caraya/947efecce775ec0dacad5b22155e48d0.js"></script>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

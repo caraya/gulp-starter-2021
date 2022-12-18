@@ -1,0 +1,106 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="import-maps%3A-what-they-are-and-why-they-are-important">Import maps: What they are and why they are important</h1>
+<p>Most current browsers support <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">ESModules</a>. This is the way the ECMAScript standard defines to import modules. However, because it’s come late to the party after <a href="https://github.com/umdjs/umd">UMD</a> and <a href="https://nodejs.org/api/modules.html#modules_modules_commonjs_modules">CommonJS</a> modules, they are not widely used on client-side code. One of the problems is how to reference the modules we want to import.</p>
+<p>Import maps are a way to map the names of imported packages to the full path on the filesystem allowing developers to use bare module import.</p>
+<p>At their simplest, import maps are a list of tuples in the form of  <code>&lt;package-name&gt;: &lt;path-to-package&gt;</code></p>
+<p>The following example gives Lodash the identified lodash, like so:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>importmap<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token punctuation">{</span>
+  <span class="token string-property property">"imports"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string-property property">"lodash"</span><span class="token operator">:</span> <span class="token string">"/node_modules/lodash-es/lodash.js"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Then you can do the following in your module scripts:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">import</span> <span class="token punctuation">{</span> partition <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"lodash"</span><span class="token punctuation">;</span>
+
+<span class="token function">partition</span><span class="token punctuation">(</span>users<span class="token punctuation">,</span> <span class="token string">'active'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Then start a server in the root of your project where your package.json and node_modules folder live. And that’s <code>python3 -m http.server</code> or whichever you prefer.</p>
+<p>Now you can import your module scripts with the bare module syntax directly in the browser without intermediate build steps.</p>
+<h2 id="the-devil-is-in-the-details">The devil is in the details</h2>
+<p>There are two issues that make this technique more difficult to use as it should be right now.</p>
+<h3 id="browser-support">Browser support</h3>
+<p>The first one is browser support. Import Maps are currently only supported in Chromium browsers (Chrome, Edge, Opera among others). They are not supported in Firefox and Safari.</p>
+<p>The <a href="https://github.com/guybedford/es-module-shims">es-module-shims</a> package can polyfill import maps (and other module-related specifications) for older browsers.</p>
+<p>It requires some changes to our code. First, we need to load <code>es-module-shims</code> using a script tag with the defer attribute so it won’t block rendering.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+        <span class="token attr-name">defer</span> 
+        <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>es-module-shims.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The value for the <code>type</code> attribute for the import map changes to <code>importmap-shim</code> so it can use the shim script we loaded.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>importmap-shim<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+<span class="token punctuation">{</span>
+  <span class="token string-property property">"imports"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string-property property">"lodash"</span><span class="token operator">:</span> <span class="token string">"/node_modules/lodash-es/lodash.js"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Likewise, the <code>type</code> attribute for module scripts changes to <code>module-shim</code> so it can use the import map we defined.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module-shim<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+  <span class="token keyword">import</span> <span class="token punctuation">{</span> partition <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"lodash"</span><span class="token punctuation">;</span>
+  <span class="token comment">// ...</span>
+  <span class="token function">partition</span><span class="token punctuation">(</span>users<span class="token punctuation">,</span> <span class="token string">'active'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>The order of the scripts does matter. In any other order the scripts will not work and you will get an error.</p>
+<h3 id="esm-module-availablity">ESM Module availablity</h3>
+<p>The second isssue is that not all packages in NPM are available as ESModules.</p>
+<p>Tools like Snowpack can help deal with this. In its simplest use Snowpack <em><strong>“re-installs your dependencies as single JS files to a new web_modules/ directory”</strong></em> to be used with import commands.</p>
+<p>You can either run Snopwack manually in your directory:</p>
+<pre class="language-bash"><code class="language-bash">npx snowpack dev
+</code></pre>
+<p>or run it as an NPM script:</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"scripts"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token property">"prepare"</span><span class="token operator">:</span> <span class="token string">"snowpack dev"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Snowpack will generate a <code>web_modules</code> directories that you’ve specified as dependencies in your <code>package.json</code> and an import map file that you can use to import the modules.</p>
+<p>If you need to use packages that are not defined as dependencies in your project’s <code>package.json</code> you can define them as part of your <code>package.json</code> definition</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"snowpack"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token property">"dependencies"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"file1"</span><span class="token punctuation">,</span>
+    <span class="token string">"file2"</span><span class="token punctuation">,</span>
+    <span class="token string">"core-js"</span><span class="token punctuation">,</span>
+    <span class="token string">"module1"</span><span class="token punctuation">,</span>
+    <span class="token string">"module2"</span><span class="token punctuation">,</span>
+    <span class="token string">"moodule3"</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>It is not an ideal solution, but it works and provides an interim solution until all modules are available as ESModules.</p>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>

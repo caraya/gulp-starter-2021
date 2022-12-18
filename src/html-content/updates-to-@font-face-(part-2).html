@@ -1,0 +1,91 @@
+<h1 id="updates-to-%40font-face-(part-2)">Updates to @font-face (part 2)</h1>
+<p>After looking at <code>format()</code> and <code>tech()</code> (discussed in the <a href="https://publishing-project.rivendellweb.net/updates-to-font-face/">Updates to @font-face</a>) I thought it would be good to look at other aspects of the <code>@font-face</code> at-rule that changed or are new since the last time I looked at.</p>
+<h2 id="font-weight%2C-font-style-and-font-stretch">font-weight, font-style and font-stretch</h2>
+<p>These descriptors will still work with a single value.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight">font-weight</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch">font-stretch</a> can take two values to represent the lower and upper boundaries of the variable font range for the descriptor.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-style">font-style</a> can also use ranges but it’s a little more complex than <code>font-weight</code> and <code>font-stretch</code>. The possible valyes for the descriptor are:</p>
+<p>normal
+: Selects the normal version of the font-family
+: If you use this value then it must be the only value for <code>font-style</code></p>
+<p>italic
+: Specifies that font-face is an italicized version of the normal font
+: If you use this value then it must be the only value for <code>font-style</code></p>
+<p>oblique
+: Specifies that the font-face is an artificially sloped version of the normal font</p>
+<p>oblique with angle
+: Selects a font classified as oblique, and additionally specifies an angle for the slant of the text</p>
+<p>oblique with angle range
+: Selects a font classified as oblique, and additionally specifies a range of allowable angle for the slant of the text
+: This will only work with variable fonts that make a range available
+: Note that a range is only supported when the font-style is oblique</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"myFont"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token function">local</span><span class="token punctuation">(</span><span class="token string">"myFont"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">local</span><span class="token punctuation">(</span><span class="token string">"myfont"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"myFont.ttf"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+  <span class="token property">font-stretch</span><span class="token punctuation">:</span> 50% 200%<span class="token punctuation">;</span>
+  <span class="token property">font-style</span><span class="token punctuation">:</span> oblique 20deg 50deg<span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 100 400<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="line-gap-override">line-gap-override</h2>
+<p>Defines the line gap metric for the font.</p>
+<h2 id="ascent-override-and-descent-override">ascent-override and descent-override</h2>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/ascent-override">ascent metric</a> controls the ascent metric for the font.</p>
+<p>The ascent metric is the height above the baseline that CSS uses to lay out line boxes in an inline formatting context.</p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/descent-override">descent override</a> Defines the descent metric for the font.</p>
+<p>The descent metric is the height below the baseline that CSS uses to lay out line boxes in an inline formatting context.</p>
+<h2 id="font-display">font-display</h2>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display">font-display</a> etermines how a font face is displayed based on whether and when it is downloaded and ready to use.</p>
+<p>the <code>font-display</code> behavior is closely related to the font display timeline. The timeline is divided into the three periods which dictate the rendering behavior of any elements using the font face.</p>
+<p>The three periods are:</p>
+<p><strong>Font block</strong>
+: If the font face is not loaded, any element attempting to use it must render an invisible fallback font face
+: If the font face successfully loads during this period, it is used normally which may lead to font swapping of active elements in the viewport</p>
+<p><strong>Font swap</strong>
+: If the font face is not loaded, any element attempting to use it must render a fallback font face
+: If the font face successfully loads during this period, it is used normally  which may lead to font swapping of active elements in the viewport</p>
+<p><strong>Font failure</strong>
+: If the font face is not loaded, the user agent treats it as a failed load causing normal font fallback.</p>
+<p>Given the three timelines above, valid values for font display and how they are impacted by the font display timeline:</p>
+<p>auto
+: The font display strategy is defined by the user agent.
+: This is the default</p>
+<p>block
+: Gives the font face a short block period and an infinite swap period.</p>
+<p>swap
+: Gives the font face an extremely small block period and an infinite swap period.</p>
+<p>fallback
+: Gives the font face an extremely small block period and a short swap period.</p>
+<p>optional
+: Gives the font face an extremely small block period and no swap period.</p>
+<h2 id="font-feature-settings">font-feature-settings</h2>
+<p>Controls advanced typographic features in OpenType fonts.</p>
+<p>Whenever possible, authors should use the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant">font-variant</a> shorthand property or an associated longhand property such as:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps">font-variant-caps</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-east-asian">font-variant-east-asian</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-alternates">font-variant-alternates</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric">font-variant-numeric</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-position">font-variant-position</a></li>
+</ul>
+<div class="message warning">
+<p><strong>Warning:</strong></p>
+<p>Using <code>font-feature-settings</code> inside a <code>@font-face</code> at-rule is only supported in Firefox.</p>
+<p></p>
+<p>The longhand <code>font-variant-*</code> descriptors have varying level of browser support, according to <a href="https://caniuse.com/?search=font-variant">caniuse</a></p>
+</div>
+<h2 id="font-variation-settings">font-variation-settings</h2>
+<p>Allows low-level control over OpenType or TrueType font variations, by specifying the four letter axis names of the features to vary, along with their variation values. This allows developers to control variable fonts</p>
+<p>You must set all the features of the font that you want to use. Otherwise they will be reset to their initial values. See <a href="https://pixelambacht.nl/2019/fixing-variable-font-inheritance/">Boiling eggs and fixing the variable font inheritance problem</a> for a solution to the problem.</p>
+<p>Getting these features is not intuitive. I recommend using tools like <a href="https://wakamaifondue.com/beta/">Wakamaifondue</a> to get information about <code>font-feature-settings</code> and <code>font-variation-settings</code> along with a CSS stylesheet implementing a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/--*">CSS Custom Properties</a> solution to the inheritance problem.</p>
+<h2 id="size-adjust">size-adjust</h2>
+<p>Defines a multiplier for glyph outlines and metrics associated with this font. This particularly useful when working with fallback fonts.</p>
+<p>All metrics associated with the font are scaled by the given percentage. This includes glyph advances, baseline tables, and overrides provided by <code>@font-face</code> descriptors.</p>
+<h2 id="src">src</h2>
+<p>Specifies font resources to load. A comma-separated list representing the resource fallback order, each resource specified by <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/url">url()</a> or local() functions. If the previous resource is loaded successfully, the latter resources will not be used. The <code>url()</code> can be followed by <code>format()</code> and <code>tech()</code>.
+Specifies font resources to load. A comma-separated list representing the resource fallback order, each resource specified by <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/url">url()</a> or <code>local()</code> functions. Browsers will use the first font they support, whether it’s loaded locally or remotely.</p>
+<div class="message warning">
+<p><strong>Warning</strong></p>
+<p>Local fonts can be used as a vector for fingerprinting, particularly if you have company-specific fonts installed on your computer. For example, if you have Google Sans installed on your system, it is likely that you work for Google since the font has not been released for public use.</p>
+</div>
+<p>The <code>url()</code> function can be followed by <code>format()</code> and <code>tech()</code>.</p>

@@ -1,0 +1,131 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="quick-note%3A-using-viewport-units">Quick Note: Using Viewport Units</h1>
+<p>These little darling units allow for some really nice effects and typographical work. We’ll explore what they are and a couple effects we can use them on.</p>
+<h2 id="vh-and-vw">vh and vw</h2>
+<p>The two basic units for viewport measurement are <code>vh</code> and <code>vw</code> which track like so:</p>
+<ul>
+<li><code>vw</code>: 1/100th (1%) viewport width</li>
+<li><code>vh</code>: 1/100th (1%) viewport height</li>
+</ul>
+<p>The units will remain constant. 1/100th of the viewport width will remain 1/100th regardless of how wide or narrow the viewport becomes. to make an element span half the screen horizontally we could do something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">hero</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 50vw<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>There may also be elements like a masthead that we want to place in the top 20% of the screen we could combined with <code>position: fixed</code> to do something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.masthead</span> <span class="token punctuation">{</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 20vh<span class="token punctuation">;</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> fixed<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="vmin-and-vmax">vmin and vmax</h2>
+<p>These two units are a little more complicated, they will take the value from whatever side matches the minimum or maximum value.</p>
+<ul>
+<li><code>vmin</code>: 1/100th (1%) of the smallest side</li>
+<li><code>vmax</code>: 1/100th (1%) of the largest side</li>
+</ul>
+<p>I’ve always had a hard time when it comes to choosing how/when to use <code>vmin</code> and <code>vmax</code>. The default value for these will also depend on the device’s orientation and how much has the user resized the browser window:</p>
+<p><code>vmin</code> uses the ratio of the smallest side. If the height of the browser window is less than its width, <code>1vmin</code> will be equivalent to <code>1vh</code>. Otherwise <code>1vmin</code> is <code>1vw</code>.</p>
+<p><code>vmax</code> is the opposite: <code>1vmax</code> equals <code>1vw</code> if the viewport is wider than it is tall; If not <code>1vmax</code> is equal to <code>1vh</code>.</p>
+<p>This means we can use these values inside device orientation media queries (<code>(@media screen and (orientation : portrait)</code> or <code> @media screen and (orientation : landscape)</code>) since these units are already designed to take the value from either the height or the width.</p>
+<h2 id="some-examples">Some examples</h2>
+<p>Here are some examples of what you can do with these units.</p>
+<h3 id="trully-responsive-content">Trully responsive content</h3>
+<p>A couple years ago I came across a Pen from <a href="https://codepen.io/brianhaferkamp/">Brian Haferkamp</a></a> called <a href="https://codepen.io/brianhaferkamp/details/xEypqR">2-Up Magazine Layout</a> and I was amazed at the level of complexity he crammed into the Pen and the attention to detail that he paid to little details such as responsive sizing of the content and how the 2-column layout would automatically resize itself in narrower viewports.</p>
+<p>I took the idea, having a fixed image next to scrolling text. I think I’ve finally figure out what the technique is and how to implement it. This is a stripped down version of <a href="https://codepen.io/caraya/full/aGVPvL/">my pen</a>.</p>
+<p>The first thing we do is set the wrapper container to be a flex container using <code>display: flex</code>. We don’t need to set the children items as <code>flex-item</code>. This is automatically done when we set the parent element’s display.</p>
+<p><a href="https://css-tricks.com/almanac/properties/b/background-size/">background-size: cover</a> tells the browser to cover the full dimension of the container, in this case 100vh and 50vw.</p>
+<p>QWe can play with the image positioning using <a href="https://css-tricks.com/almanac/properties/b/background-position/">background-position</a> to place different parts of the image in the viewpoert we’re covering.</p>
+<p>The <a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/#article-header-id-13">flex</a> property is the shorthand for <a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/#article-header-id-10">flex-grow</a>, <a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/#article-header-id-11">flex-shrink</a> and <a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/#article-header-id-12">flex-basis</a> combined. With these values we’re telling <code>.poster-image</code> elements to take 50% of the parent container size before other elements are distributed in it.</p>
+<p>For the <code>.text</code> element(s) we give them padding and a left margin. We also make sure that they are at the top of the stacking order.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.article-wrapper</span> <span class="token punctuation">{</span>
+  <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.poster-image</span> <span class="token punctuation">{</span>
+  <span class="token property">position</span><span class="token punctuation">:</span> fixed<span class="token punctuation">;</span>
+  <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"path/to/image"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+  <span class="token property">background-size</span><span class="token punctuation">:</span> cover<span class="token punctuation">;</span>
+  // <span class="token property">background-position</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 100vh<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 50vw<span class="token punctuation">;</span>
+  <span class="token property">flex</span><span class="token punctuation">:</span> 0 0 50%<span class="token punctuation">;</span>
+  <span class="token property">z-index</span><span class="token punctuation">:</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.text</span> <span class="token punctuation">{</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 100px 60px 60px<span class="token punctuation">;</span>
+  <span class="token property">margin-left</span><span class="token punctuation">:</span> 50%<span class="token punctuation">;</span>
+  <span class="token property">z-index</span><span class="token punctuation">:</span> 10<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The HTML is a series of div containers that hold:</p>
+<ul>
+<li>The article wrapper element (<code>.article-wrapper</code>)</li>
+<li>The poster image (<code>.poster-image</code>)</li>
+<li>The text of the article (<code>.text</code>)</li>
+<li>And the article content itself (<code>article</code>)</li>
+</ul>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>article-wrapper<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>poster-image<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Article Title<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>article</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>article</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+</code></pre>
+<h2 id="some-considerations">Some considerations</h2>
+<p>There are a couple things I haven’t quite figure out to make this work reliably for all browsers.</p>
+<h3 id="scrollbars">Scrollbars</h3>
+<p>Browsers have inconsistent behaviors regarding scrollbars across operating systems. A very basic way to address the issue is to script the behavior of scrollbars: If the  height of an element’s content, including content not visible on the screen due to overflow (in the read-only property <code>element.scrollHeight</code> of the document element) is taller than the inner height of the document element in pixels, including padding but not the horizontal scrollbar height, border, or margin (in the read-only <code>clientHeight</code>property of the document element) the we force scrollbars, otherwise we hide them.</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> element <span class="token operator">=</span> document<span class="token punctuation">.</span>documentElement<span class="token punctuation">;</span>
+
+<span class="token keyword">if</span><span class="token punctuation">(</span>element<span class="token punctuation">.</span>scrollHeight <span class="token operator">></span> element<span class="token punctuation">.</span>clientHeight<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Overflow detected; force scroll bar</span>
+  element<span class="token punctuation">.</span>style<span class="token punctuation">.</span>overflow <span class="token operator">=</span> <span class="token string">'scrollbar'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token comment">// No overflow detected; prevent scroll bar</span>
+  element<span class="token punctuation">.</span>style<span class="token punctuation">.</span>overflow <span class="token operator">=</span> <span class="token string">'hidden'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Yes, this is a simplistic solution. If you want more details and a much more thorough solution to the problem, check <a href="https://tylercipriani.com/2014/07/12/crossbrowser-javascript-scrollbar-detection.html">Crossbrowser JavaScript Scrollbar Detection</a> by Tyler Cipriani</p>
+<h3 id="legibility-on-smaller-screens">Legibility on smaller screens</h3>
+<p>If we set the font to a viewport unit we need to be very careful that the text is readable in smaller screens. The best and most reliable way to do this is to create media queries for the smaller form factors and set the font  to an absolute value or em or rem to make sure the text is still readable.</p>
+<h2 id="links-and-resources">Links and Resources</h2>
+<ul>
+<li><a href="http://thenewcode.com/660/Using-vw-and-vh-Measurements-In-Modern-Site-Design">Using vw and vh Measurements In Modern Site Design</a></li>
+<li><a href="http://thenewcode.com/1137/MinMaxing-Understanding-vMin-and-vMax-in-CSS">MinMaxing: Understanding vMin and vMax in CSS</a></li>
+<li><a href="https://web-design-weekly.com/2014/11/18/viewport-units-vw-vh-vmin-vmax/">Viewport units: vw, vh, vmin, vmax</a></li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
