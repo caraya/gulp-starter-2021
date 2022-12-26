@@ -1,0 +1,130 @@
+<h1 id="configuring-typescript-for-new-projects">Configuring Typescript for new projects</h1>
+<p>I’ve finally given into working with TypeScript despite some of my misgivings about the technology.</p>
+<p>My misgivings include:</p>
+<ul>
+<li>The need to set up a transpiler toolchain</li>
+<li>You can’t run the code directly in the browser</li>
+<li>You have to decide on what version of Javascript to transpile the code to. This decision will be hardcoded in the Typescript configuration file</li>
+</ul>
+<p>We’ll look at setup and configuration of a Typescript project, along with some gotchas I’ve learned along the way.</p>
+<p>These instructions assume you’ve initialized a <code>package.json</code> file.</p>
+<h2 id="installing-typescript">Installing Typescript</h2>
+<p>You have two options to configure Typescript. You can install it globally to work on any project and any directory.</p>
+<p>To install Typescript globally run the following command.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">-g</span> typescript
+</code></pre>
+<p>You can also install Typescript on individual projects. This is preferred as you can work with different versions of Typescript for each project.</p>
+<p>The command for project installation uses the <code>-D</code> flag to install it as a developer dependency.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">-D</span> typescript
+</code></pre>
+<h2 id="adding-scripts-to-package.json">Adding scripts to <code>package.json</code></h2>
+<p>The next step is to add the commands to run Typescript-related commands.</p>
+<p>The first command, <code>tsc</code>, will just run TSC to compile all TSC files in the project. It will exit when compilation is complete.</p>
+<p>The second command, <code>watch</code> sets the Typescript compiler’s watch mode. It will compile all files and then wait for your to make changes at which point will automatically run the compilation process again.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"scripts"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"tsc"</span><span class="token operator">:</span> <span class="token string">"tsc"</span><span class="token punctuation">,</span>
+    <span class="token property">"watch"</span><span class="token operator">:</span> <span class="token string">"tsc -w"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>To run the commands use <code>npm run tsc</code> and <code>npm run watch</code>.</p>
+<h2 id="configuring-typescript">Configuring Typescript</h2>
+<p>So far, we’ve installed Typescript and set up the commands to run Typescript in the project’s <code>package.json</code> file.</p>
+<p>We now have to configure Typescript. Rather than manually type the configuration, I’ll leverage Typescript to generate one for me.</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> run tsc <span class="token parameter variable">--init</span>
+</code></pre>
+<p>This will generate a <code>tsconfig.json</code> file with all the possible settings for your project.</p>
+<p>We will not cover all the possible settings. You can do that by inspecting the generated files and the comment after each setting or by checking the <a href="https://www.typescriptlang.org/tsconfig">TSConfig Reference</a> documentation.</p>
+<p>The <code>target</code> attribute indicates the version of Javascript that we want to transpile our code to.</p>
+<p>The <code>lib</code> attribute is an array of the libraries that we want to use in the Typescript project.</p>
+<p>I also include the <code>DOM</code> and <code>WebWorker</code> libraries since most of the work I do is web-related and I want to use web workers in future projects so I better add it now.</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"target"</span><span class="token operator">:</span> <span class="token string">"ES2017"</span><span class="token punctuation">,</span>
+<span class="token property">"lib"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+  <span class="token string">"ES2017"</span><span class="token punctuation">,</span>
+  <span class="token string">"DOM"</span><span class="token punctuation">,</span>
+  <span class="token string">"WebWorker"</span>
+<span class="token punctuation">]</span>
+</code></pre>
+<p>I chose ES2017 my target because it provides a sane set of features that work in at least 90% of browsers today.</p>
+<p>According to Houssein Djirdeh and Jason Miller’s <a href="https://web.dev/publish-modern-javascript/">Publish, ship, and install modern JavaScript for faster applications</a></p>
+<blockquote>
+<p>This means that 95% of global web traffic comes from browsers that support the most widely used JavaScript language features from the past 10 years, including:</p>
+<ul>
+<li>Classes (ES2015)</li>
+<li>Arrow functions (ES2015)</li>
+<li>Generators (ES2015)</li>
+<li>Block scoping (ES2015)</li>
+<li>Destructuring (ES2015)</li>
+<li>Rest and spread parameters (ES2015)</li>
+<li>Object shorthand (ES2015)</li>
+<li>Async/await (ES2017)</li>
+</ul>
+<p>Features in newer versions of the language specification generally have less consistent support across modern browsers. For example, many ES2020 and ES2021 features are only supported in 70% of the browser market—still the majority of browsers, but not enough that it’s safe to rely on those features directly. This means that although “modern” JavaScript is a moving target, ES2017 has the widest range of browser compatibility while including most of the commonly used modern syntax features. In other words, ES2017 is the closest to modern syntax today.</p>
+</blockquote>
+<p>ES2017 is the earliest version of the Javascript standard that supports modules. This enables the <code>module/nomodule</code> pattern as an imperfect solution to supporting older browsers.</p>
+<p>Targetting 2017 and ES5 would allows to create two bundles, one for modern code and one for older, legacy code, and use them like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bundle.modern.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">nomodule</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bundle.legacy.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Browsers that support modules will load the modern bundles and bundles that don’t will load the legacy bundle with all the necessary polyfills.</p>
+<p>One of the biggest problems with the <code>module/nomodule</code> pattern are third-party libraries. Gary Chew documented the problem in <a href="https://dev.to/garylchew/bringing-modern-javascript-to-libraries-432c">Bringing Modern JavaScript to Libraries</a></p>
+<p>I also want to allow Javascript files in this project. Allowing <code>.js</code> files in a Typescript project doesn’t mean that the Javascript files will be type checked.</p>
+<p>That is a separate setting that I’ve chosen not to enable since most of the Javascript files will come from third parties.</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"allowJs"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+</code></pre>
+<p>The largest chunk of options are for type checking.</p>
+<pre class="language-json"><code class="language-json"><span class="token property">"strict"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"noImplicitAny"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"strictNullChecks"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"strictPropertyInitialization"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"noImplicitThis"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"useUnknownInCatchVariables"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"noUnusedLocals"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"noImplicitReturns"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"noFallthroughCasesInSwitch"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"allowUnusedLabels"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token property">"allowUnreachableCode"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+</code></pre>
+<p>Several checks in this list will help check assumptions I make about the code.</p>
+<p>For example, <code>noImplicitAny</code> will flag if Typescript can’t infer/guess the type of a variable and fall back to the implicit default type <code>any</code>.</p>
+<p>This may be ok in some cases but can cause unpected errors if we pass a variable that was not expected.</p>
+<p>Some fo these settings will prevent footguns. <code>noFallthroughCasesInSwitch</code> will flag any non-empty case inside a switch statement that doesn’t include either break or return statements.</p>
+<p>Rather than relying on case fall through behavior if you want to group cases together, be explicit about the grouping with something like this:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> pet<span class="token operator">:</span><span class="token builtin">string</span> <span class="token operator">=</span> <span class="token string">"dog"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">switch</span> <span class="token punctuation">(</span>pet<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">case</span> <span class="token string">"lizard"</span><span class="token operator">:</span>
+  <span class="token keyword">case</span> <span class="token string">"snake"</span><span class="token operator">:</span>
+    <span class="token builtin">console</span><span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"I own a reptile"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token keyword">case</span> <span class="token string">"dog"</span><span class="token operator">:</span>
+  <span class="token keyword">case</span> <span class="token string">"cat"</span><span class="token operator">:</span>
+    <span class="token builtin">console</span><span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"I own a house pet"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token keyword">case</span> <span class="token string">"parrot"</span><span class="token operator">:</span>
+    <span class="token builtin">console</span><span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"I own a parrot"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token keyword">default</span><span class="token operator">:</span>
+    <span class="token builtin">console</span><span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"I don't own a pet"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>And I’m still in the fence about some of these tests, specifically <code>allowUnusedLabels</code> abd <code>allowUnreachableCode</code>. While they may make sense during development they are not useful or meaningful in a production script or app.</p>
+<p>For example, in the code below, the final <code>return true</code> statement will never be reached. Was that meant to be another <code>else</code> block so the first one would be an <code>else if</code> or another <code>if</code> block?</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">function</span> <span class="token function">fn</span><span class="token punctuation">(</span>n<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">></span> <span class="token number">5</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token comment">// This will never be reached</span>
+  <span class="token comment">// Is the code structured correctly?</span>
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="conclusion%3A-why-go-through-all-the-trouble%3F">Conclusion: why go through all the trouble?</h2>
+<p>Setting up Typescript by hand is not trivial.</p>
+<p>Yes, we could setup <a href="https://vitejs.dev/">Vite</a> with the vanilla-ts template, and it would make perfect sense for some projects. But we still have to change the configuration to what makes the most sense to us and the projects we are working on.</p>
+<p>Why I chose to switch? Typescript keeps me honest. It makes me think about the code as I’m writing it rather than figuring out problems after the code is written and published.</p>
+<p>Yes, I know Typescript is not the solution to all problems, but I’ll take all the help I can get.</p>

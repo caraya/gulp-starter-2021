@@ -1,0 +1,78 @@
+<html lang="en" dir="ltr" class="no-js lazy">
+
+<head>
+  <!--<link rel="stylesheet" href="ccs/github.css">-->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/image-load.css">
+  <link rel="stylesheet" href="css/video-load.css">
+  <link rel="stylesheet" href="css/prism.css">
+  <!-- <script async src="scripts/menu.js"></script> -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title></title>
+</head>
+
+<body>
+<article class="container">
+  <h1 id="subresource-integrity%3A-what-it-means-and-how-it-works">Subresource integrity: what it means and how it works</h1>
+<p>When you use libraries like jQuery from CDN, you will see code like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://code.jquery.com/jquery-3.6.2.min.js<span class="token punctuation">"</span></span>
+  <span class="token attr-name">integrity</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sha256-2krYZKh//PcchRtd+H+VyyQoZ/e3EcrkxhM8ycwASPA=<span class="token punctuation">"</span></span>
+  <span class="token attr-name">crossorigin</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>anonymous<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>I’ve always been curious as to what is the <code>integrity</code> attribute, why is it there and why do we need the <code>crossorigin</code> attribute.</p>
+<p>This post will look at crossorigin integrity and how it can help secure web applications.</p>
+<h2 id="crossorigin-integrity">Crossorigin integrity</h2>
+<p>According to the <a href="https://w3c.github.io/webappsec-subresource-integrity/">Subresource Integrity Specification</a>:</p>
+<blockquote>
+<p>Sites and applications on the web are rarely composed of resources from only a single origin. For example, authors pull scripts and styles from a wide variety of services and content delivery networks, and must trust that the delivered representation is, in fact, what they expected to load. If an attacker can trick a user into downloading content from a hostile server (via DNS [<a href="https://www.rfc-editor.org/rfc/rfc1035">RFC1035</a>] poisoning, or other such means), the author has no recourse. Likewise, an attacker who can replace the file on the Content Delivery Network (CDN) server has the ability to inject arbitrary content.</p>
+<p>Delivering resources over a secure channel mitigates some of this risk: with TLS [<a href="https://www.rfc-editor.org/rfc/rfc8446">TLS</a>], HSTS [<a href="https://www.rfc-editor.org/rfc/rfc6797">RFC6797</a>], and pinned public keys [<a href="https://www.rfc-editor.org/rfc/rfc7469">RFC7469</a>], a user agent can be fairly certain that it is indeed speaking with the server it believes it’s talking to. These mechanisms, however, authenticate only the server, not the content. An attacker (or administrator) with access to the server can manipulate content with impunity. Ideally, authors would not only be able to pin the keys of a server, but also pin the content, ensuring that an exact representation of a resource, and only that representation, loads and executes.</p>
+</blockquote>
+<p>Crossorigin inntegrity addresses a pain point for securing web applications. How do we make sure that scripts we load from third parties have not been tampered with?</p>
+<p>By associating the file we’re downloading with a cryptographic digest we have better assurances that the file itself hasn’t been tampered with.</p>
+<p>The code to link to a file using subresource integrity checks look like this:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span>
+  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://code.jquery.com/jquery-3.6.3.js<span class="token punctuation">"</span></span>
+  <span class="token attr-name">integrity</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM=<span class="token punctuation">"</span></span>
+  <span class="token attr-name">crossorigin</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>anonymous<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Subresource Integrity uses two attributes in the script tag:</p>
+<h3 id="integrity">Integrity</h3>
+<p>The <code>integrity</code> attribute is a combination of the name of the algorithm you used to generate the key, in this case <code>sha256</code>, a dash <code>-</code> and the string representation of the hash wrapped in single or double quotation marks.</p>
+<p>This attribute gives the browser something to compare the file against. If the hash in the attribute doesn’t match the hash generated for the file then it is safe to assume the file was tampered with.</p>
+<p>We will discuss how to generate the hashes later in the post.</p>
+<h3 id="crossorigin">Crossorigin</h3>
+<p>When the requested resource is not on the same origin the <code>crossorigin</code> attribute must be present to check the integrity of the file. Without a crossorigin attribute, the browser ignore the <code>integrity</code> attribute as if it was not set,  losing all the security SRI brings in the first place.</p>
+<p>The <code>crossorigin</code> attribute ensures that the <code>integrity</code> attribute is honored.</p>
+<p>With <code>crossorigin=&quot;anonymous&quot;</code> no credentials are sent to the <code>cross-origin</code> site hosting the content but the browser will send an <code>Origin</code> HTTP header.</p>
+<p><strong>If the server denies including the resource (by not setting the <code>Access-Control-Allow-Origin</code> HTTP header), the resource will not be used by the browser.</strong></p>
+<h2 id="generating-integrity-hashes">Generating Integrity hashes</h2>
+<p>You can generate hashes for your own files with <a href="https://www.openssl.org/">Openssl</a> using the following command</p>
+<pre class="language-bash"><code class="language-bash">openssl dgst <span class="token parameter variable">-sha384</span> <span class="token parameter variable">-binary</span> FILENAME.js <span class="token operator">|</span> openssl base64 <span class="token parameter variable">-A</span>
+</code></pre>
+<p>Where you replace <code>FILENAME.js</code> with the name of the file you want to generate the hash for.</p>
+<h2 id="links-and-resources">Links and resources</h2>
+<ul>
+<li><a href="https://w3c.github.io/webappsec-subresource-integrity/">Subresource Integrity Specification</a> — Editor’s Draft</li>
+<li><a href="https://www.htmhell.dev/adventcalendar/2022/3/">Using SRI to protect from malicious JavaScript</a></li>
+<li><a href="https://www.srihash.org/">SRI Hash Generator</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity">Subresource Integrity</a> — MDN</li>
+<li><a href="https://caniuse.com/subresource-integrity">subresource integrity support</a> — <a href="https://caniuse.com/">caniuse.com</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin">HTML attribute: crossorigin</a> — MDN</li>
+</ul>
+
+</article>
+<!--
+</div> -->
+<script src="scripts/lazy-load.js"></script>
+<script src="scripts/vendor/clipboard.min.js"></script>
+<script src="scripts/vendor/prism.js"></script>
+<script src="scripts/vendor/fontfaceobserver.js"></script>
+<script src="scripts/load-fonts.js"></script>
+<script src="scripts/lazy-load-video.js"></script>
+</body>
+</html>
