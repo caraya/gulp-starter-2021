@@ -1,0 +1,714 @@
+<h1 id="why-we-still-need-custom-css-in-wordpress">Why we still need custom CSS In WordPress</h1>
+<p>Since the release of Gutenberg as the content editor, and now full site experiences, WordPress has moved to using default styles and the <code>theme.json</code> configuration to manage styles for your theme.</p>
+<p>There are times when this is not enough since there are things that you can’t do in the editor.</p>
+<p>If you’re working on bespoke sites or sites using animations and other features you will need finer control than what the editor provides.</p>
+<p>The post will cover some of these areas and why using CSS (or Javascript) is the better solution.</p>
+<h2 id="opentype-features">OpenType Features</h2>
+<p>OpenType fonts provide a series of features to enhance the looks of the font on the page.</p>
+<p>CSS has two mechanisms to use these features in your code. The first one is to use <code>font-variant-*</code> descriptors individually or via the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant">font-variant</a> shorthand for the following long-hand properties:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-alternates">font-variant-alternates</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps">font-variant-caps</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-east-asian">font-variant-east-asian</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-emoji">font-variant-emoji</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-ligatures">font-variant-ligatures</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric">font-variant-numeric</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-position">font-variant-position</a></li>
+</ul>
+<p>The table below shows the OpenType font feature and the <code>font-variant</code> descriptor and value combination use in CSS.</p>
+<table>
+<thead>
+<tr>
+<th>font feature</th>
+<th><code>font-variant-*</code> descriptor/value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kerning (kern) or Vertical Kerning (vkrn)</td>
+<td>font-kerning: normal</td>
+<td>The font-kerning property will set the kern or vkrn feature depending on the writing-mode.</td>
+</tr>
+<tr>
+<td>Standard Ligatures (liga) or Contextual Ligatures (clig)</td>
+<td>font-variant-ligatures: common-ligatures</td>
+<td> </td>
+</tr>
+<tr>
+<td>Discretionary Ligatures (dlig)</td>
+<td>font-variant-ligatures: discretionary-ligatures</td>
+<td> </td>
+</tr>
+<tr>
+<td>Historical Ligatures (hlig)</td>
+<td>font-variant-ligatures: historical-ligatures</td>
+<td> </td>
+</tr>
+<tr>
+<td>Contextual Alternates (calt)</td>
+<td>font-variant-ligatures: contextual</td>
+<td> </td>
+</tr>
+<tr>
+<td>Subscript (subs)</td>
+<td>font-variant-position: sub</td>
+<td> </td>
+</tr>
+<tr>
+<td>Superscript (sups)</td>
+<td>font-variant-position: super</td>
+<td> </td>
+</tr>
+<tr>
+<td>Small Capitals (smcp)</td>
+<td>font-variant-caps: small-caps</td>
+<td> </td>
+</tr>
+<tr>
+<td>Small Capitals From Capitals (c2sc)</td>
+<td>font-variant-caps: all-small-caps</td>
+<td> </td>
+</tr>
+<tr>
+<td>Petite Capitals (pcap)</td>
+<td>font-variant-caps: petite-caps</td>
+<td> </td>
+</tr>
+<tr>
+<td>Petite Capitals From Capitals (c2pc)</td>
+<td>font-variant-caps: all-petite-caps</td>
+<td> </td>
+</tr>
+<tr>
+<td>Unicase (unic)</td>
+<td>font-variant-caps: unicase</td>
+<td> </td>
+</tr>
+<tr>
+<td>Titling (titl)</td>
+<td>font-variant-caps: titling-caps</td>
+<td> </td>
+</tr>
+<tr>
+<td>Lining Figures (lnum)</td>
+<td>font-variant-numeric: lining-nums</td>
+<td> </td>
+</tr>
+<tr>
+<td>Oldstyle Figures (onum)</td>
+<td>font-variant-numeric: oldstyle-nums</td>
+<td> </td>
+</tr>
+<tr>
+<td>Proportional Figures (pnum)</td>
+<td>font-variant-numeric: proportional-nums</td>
+<td> </td>
+</tr>
+<tr>
+<td>Tabular Figures (tnum)</td>
+<td>font-variant-numeric: tabular-nums</td>
+<td> </td>
+</tr>
+<tr>
+<td>Fractions (frac)</td>
+<td>font-variant-numeric: diagonal-fractions</td>
+<td> </td>
+</tr>
+<tr>
+<td>Alternative Fractions (afrc)</td>
+<td>font-variant-numeric: stacked-fractions</td>
+<td> </td>
+</tr>
+<tr>
+<td>Ordinals (ordn)</td>
+<td>font-variant-numeric: ordinal</td>
+<td> </td>
+</tr>
+<tr>
+<td>Slashed Zero (zero)</td>
+<td>font-variant-numeric: slashed-zero</td>
+<td> </td>
+</tr>
+<tr>
+<td>Historical Forms (hist)</td>
+<td>font-variant-alternates: historical-forms</td>
+<td> </td>
+</tr>
+<tr>
+<td>Stylistic Alternates (salt)</td>
+<td>font-variant-alternates: stylistic()</td>
+<td>Define which alternate gets used by making an @font-feature-values rule</td>
+</tr>
+<tr>
+<td>Character Variant 1 - Character Variant 99 (cv01 - cv99)</td>
+<td>font-variant-alternates: character-variant()</td>
+<td>Define which character variant gets used by making an @font-feature-values rule</td>
+</tr>
+<tr>
+<td>Swash (swsh) or Contextual Swash (cswh)</td>
+<td>font-variant-alternates: swash()</td>
+<td>Define which swash gets used by making an @font-feature-values rule</td>
+</tr>
+<tr>
+<td>Ornaments (ornm)</td>
+<td>font-variant-alternates: ornaments()</td>
+<td>Define which ornament gets used by making an @font-feature-values rule</td>
+</tr>
+<tr>
+<td>Alternate Annotation Forms (nalt)</td>
+<td>font-variant-alternates: annotation()</td>
+<td>Define which annotation gets used by making an @font-feature-values rule</td>
+</tr>
+<tr>
+<td>JIS78 Forms (jp78)</td>
+<td>font-variant-east-asian: jis78</td>
+<td> </td>
+</tr>
+<tr>
+<td>JIS83 Forms (jp83)</td>
+<td>font-variant-east-asian: jis83</td>
+<td> </td>
+</tr>
+<tr>
+<td>JIS90 Forms (jp90)</td>
+<td>font-variant-east-asian: jis90</td>
+<td> </td>
+</tr>
+<tr>
+<td>JIS2004 Forms (jp04)</td>
+<td>font-variant-east-asian: jis04</td>
+<td> </td>
+</tr>
+<tr>
+<td>Simplified Forms (smpl)</td>
+<td>font-variant-east-asian: simplified</td>
+<td> </td>
+</tr>
+<tr>
+<td>Traditional Forms (trad)</td>
+<td>font-variant-east-asian: traditional</td>
+<td> </td>
+</tr>
+<tr>
+<td>Full Widths (fwid)</td>
+<td>font-variant-east-asian: full-width</td>
+<td> </td>
+</tr>
+<tr>
+<td>Proportional Widths (pwid)</td>
+<td>font-variant-east-asian: proportional-width</td>
+<td> </td>
+</tr>
+<tr>
+<td>Ruby Notation Forms (ruby)</td>
+<td>font-variant-east-asian: ruby</td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<p>Note that not all browsers support all font-variant descriptors. Check <a href="https://caniuse.com/?search=font-variant">caniuse.com</a> for updated information.</p>
+<p>A second, lower-level, means to use <code>font-feature-settings</code> to control all OpenType-related features for the font. This is meant as a workaround for when we need access to specific features that may or may not be available via <code>font-variant</code> descriptors.</p>
+<p>There are drawbacks to using this lower-level descriptor.</p>
+<ol>
+<li><code>font-feature-settings</code> doesn’t cascade. If you change one of the values then you need to set all the values you’re using, even if they don’t change. The higher-level properties cascade individually. You can set one without setting the whole <code>font-feature-settings</code> list</li>
+<li>Some higher-level properties can be synthesized for fonts that do not support the font feature.</li>
+</ol>
+<p>The CSS engine in WordPress supports either <code>font-variant-*</code> or <code>font-feature-settings</code> so you have to add them in your own custom CSS stylesheets.</p>
+<p>Tools like <a href="https://wakamaifondue.com/beta/">wakamaifondue</a> produce CSS stylesheets that handles both <code>font-feature-settings</code> and <code>font-variation-settings</code> (discussed in the next section).</p>
+<p>The following example is the CSS stylesheet Wakamaifondue Beta produced for the <a href="https://fonts.google.com/specimen/Pacifico?category=Handwriting">Pacifico</a> font.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+    <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Pacifico Regular"</span><span class="token punctuation">;</span>
+    <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"Pacifico-Regular.ttf"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+    <span class="token property">unicode-range</span><span class="token punctuation">:</span> U+0000<span class="token punctuation">,</span> U+000D<span class="token punctuation">,</span> U+0020-007E<span class="token punctuation">,</span> U+00A0-0131<span class="token punctuation">,</span> U+0134-017E<span class="token punctuation">,</span>
+        U+018F<span class="token punctuation">,</span> U+0192<span class="token punctuation">,</span> U+01A0-01A1<span class="token punctuation">,</span> U+01AF-01B0<span class="token punctuation">,</span> U+01C4-01CC<span class="token punctuation">,</span> U+01E6-01E7<span class="token punctuation">,</span>
+        U+01EA-01EB<span class="token punctuation">,</span> U+01FA-021B<span class="token punctuation">,</span> U+022A-022D<span class="token punctuation">,</span> U+0230-0233<span class="token punctuation">,</span> U+0237<span class="token punctuation">,</span> U+0259<span class="token punctuation">,</span>
+        U+02BC<span class="token punctuation">,</span> U+02C6-02C7<span class="token punctuation">,</span> U+02C9<span class="token punctuation">,</span> U+02D8-02DD<span class="token punctuation">,</span> U+0300-0304<span class="token punctuation">,</span> U+0306-030C<span class="token punctuation">,</span>
+        U+030F<span class="token punctuation">,</span> U+0311-0312<span class="token punctuation">,</span> U+031B<span class="token punctuation">,</span> U+0323-0324<span class="token punctuation">,</span> U+0326-0328<span class="token punctuation">,</span> U+032E<span class="token punctuation">,</span> U+0331<span class="token punctuation">,</span>
+        U+0394<span class="token punctuation">,</span> U+03A9<span class="token punctuation">,</span> U+03BC<span class="token punctuation">,</span> U+03C0<span class="token punctuation">,</span> U+0400-045F<span class="token punctuation">,</span> U+0462-0463<span class="token punctuation">,</span> U+046A-046B<span class="token punctuation">,</span>
+        U+0472-0475<span class="token punctuation">,</span> U+048A-04A5<span class="token punctuation">,</span> U+04A8-04FF<span class="token punctuation">,</span> U+0510-0513<span class="token punctuation">,</span> U+051A-051D<span class="token punctuation">,</span>
+        U+0524-0529<span class="token punctuation">,</span> U+052E-052F<span class="token punctuation">,</span> U+1E80-1E85<span class="token punctuation">,</span> U+1E9E<span class="token punctuation">,</span> U+1EA0-1EF9<span class="token punctuation">,</span>
+        U+2013-2014<span class="token punctuation">,</span> U+2018-201A<span class="token punctuation">,</span> U+201C-201E<span class="token punctuation">,</span> U+2020-2022<span class="token punctuation">,</span> U+2026<span class="token punctuation">,</span> U+2030<span class="token punctuation">,</span>
+        U+2039-203A<span class="token punctuation">,</span> U+2044<span class="token punctuation">,</span> U+2074<span class="token punctuation">,</span> U+20A1<span class="token punctuation">,</span> U+20A3-20A4<span class="token punctuation">,</span> U+20A6-20A7<span class="token punctuation">,</span> U+20A9<span class="token punctuation">,</span>
+        U+20AB-20AE<span class="token punctuation">,</span> U+20B1-20B2<span class="token punctuation">,</span> U+20B4-20B5<span class="token punctuation">,</span> U+20B8-20BA<span class="token punctuation">,</span> U+20BC-20BD<span class="token punctuation">,</span>
+        U+2116<span class="token punctuation">,</span> U+2122<span class="token punctuation">,</span> U+2202<span class="token punctuation">,</span> U+220F<span class="token punctuation">,</span> U+2211-2212<span class="token punctuation">,</span> U+2215<span class="token punctuation">,</span> U+2219-221A<span class="token punctuation">,</span>
+        U+221E<span class="token punctuation">,</span> U+222B<span class="token punctuation">,</span> U+2248<span class="token punctuation">,</span> U+2260<span class="token punctuation">,</span> U+2264-2265<span class="token punctuation">,</span> U+25CA<span class="token punctuation">,</span> U+FB01-FB02<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/* Set custom properties for each layout feature */</span>
+<span class="token selector">:root</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-aalt</span><span class="token punctuation">:</span> <span class="token string">"aalt"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-case</span><span class="token punctuation">:</span> <span class="token string">"case"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-dlig</span><span class="token punctuation">:</span> <span class="token string">"dlig"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-frac</span><span class="token punctuation">:</span> <span class="token string">"frac"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-ordn</span><span class="token punctuation">:</span> <span class="token string">"ordn"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-salt</span><span class="token punctuation">:</span> <span class="token string">"salt"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-ss01</span><span class="token punctuation">:</span> <span class="token string">"ss01"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-ss02</span><span class="token punctuation">:</span> <span class="token string">"ss02"</span> off<span class="token punctuation">;</span>
+    <span class="token property">--pacifico-regular-sups</span><span class="token punctuation">:</span> <span class="token string">"sups"</span> off<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/* If class is applied, update custom property and
+   apply modern font-variant-* when supported */</span>
+<span class="token selector">.pacifico-regular-aalt</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-aalt</span><span class="token punctuation">:</span> <span class="token string">"aalt"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-case</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-case</span><span class="token punctuation">:</span> <span class="token string">"case"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-dlig</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-dlig</span><span class="token punctuation">:</span> <span class="token string">"dlig"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> discretionary-ligatures<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token selector">.pacifico-regular-dlig</span> <span class="token punctuation">{</span>
+        <span class="token property">--pacifico-regular-dlig</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
+        <span class="token property">font-variant-ligatures</span><span class="token punctuation">:</span> discretionary-ligatures<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-frac</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-frac</span><span class="token punctuation">:</span> <span class="token string">"frac"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> diagonal-fractions<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token selector">.pacifico-regular-frac</span> <span class="token punctuation">{</span>
+        <span class="token property">--pacifico-regular-frac</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
+        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> diagonal-fractions<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-ordn</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-ordn</span><span class="token punctuation">:</span> <span class="token string">"ordn"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> ordinal<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token selector">.pacifico-regular-ordn</span> <span class="token punctuation">{</span>
+        <span class="token property">--pacifico-regular-ordn</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
+        <span class="token property">font-variant-numeric</span><span class="token punctuation">:</span> ordinal<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-salt</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-salt</span><span class="token punctuation">:</span> <span class="token string">"salt"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-ss01</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-ss01</span><span class="token punctuation">:</span> <span class="token string">"ss01"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-ss02</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-ss02</span><span class="token punctuation">:</span> <span class="token string">"ss02"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-sups</span> <span class="token punctuation">{</span>
+    <span class="token property">--pacifico-regular-sups</span><span class="token punctuation">:</span> <span class="token string">"sups"</span> on<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@supports</span> <span class="token punctuation">(</span><span class="token property">font-variant-position</span><span class="token punctuation">:</span> super<span class="token punctuation">)</span></span> <span class="token punctuation">{</span>
+    <span class="token selector">.pacifico-regular-sups</span> <span class="token punctuation">{</span>
+        <span class="token property">--pacifico-regular-sups</span><span class="token punctuation">:</span> <span class="token string">"____"</span><span class="token punctuation">;</span>
+        <span class="token property">font-variant-position</span><span class="token punctuation">:</span> super<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.pacifico-regular-aalt,
+.pacifico-regular-case,
+.pacifico-regular-dlig,
+.pacifico-regular-frac,
+.pacifico-regular-ordn,
+.pacifico-regular-salt,
+.pacifico-regular-ss01,
+.pacifico-regular-ss02,
+.pacifico-regular-sups</span> <span class="token punctuation">{</span>
+    <span class="token property">font-feature-settings</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-aalt<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-case<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-dlig<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-frac<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-ordn<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-salt<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-ss01<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-ss02<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">var</span><span class="token punctuation">(</span>--pacifico-regular-sups<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="finer-control-over-variable-fonts">Finer Control Over Variable Fonts</h2>
+<p>While we can define variable fonts when declaring them in <code>theme.json</code> there are still items that are not supported in <code>theme.json</code> and may not be available in fonts.</p>
+<p>Variable fonts define four default axes. Like <code>font-feature-settings</code>, these can be set with regular descriptors as explained in the following table.</p>
+<table>
+<thead>
+<tr>
+<th>Variation axis</th>
+<th>Equivalent Descriptor</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Weight (wght)</td>
+<td>font-weight</td>
+<td>The <code>font-weight</code> property will set the <code>wght</code> axis if one is present.</td>
+</tr>
+<tr>
+<td>Width (wdth)</td>
+<td>font-stretch</td>
+<td>The <code>font-stretch</code> property will set the <code>wdth</code> axis if one is present.</td>
+</tr>
+<tr>
+<td>Slant (slnt) or Italic (ital)</td>
+<td>font-sty`le</td>
+<td><code>The</code>font-style<code>property will set the</code>slnt<code>or</code>ital` axis, depending on its value.</td>
+</tr>
+<tr>
+<td>Optical size (opsz)</td>
+<td>font-optical-sizing</td>
+<td>The <code>font-optical-sizing</code> property will set the <code>opsz</code> axis if one is present.</td>
+</tr>
+</tbody>
+</table>
+<p>A font doesn’t need to use all axes. Optical size is one we don’t see in too many fonts.</p>
+<p>In addition to these default axes, fonts can define any number of custom axes that are exclusive to the font.</p>
+<p>For example, <a href="https://www.recursive.design/">Recursive</a> defines the following custom axes in addition to <code>wght</code> (weight) and <code>slnt</code> (Slant):</p>
+<ul>
+<li>MONO (Monospace)</li>
+<li>CASL (Casual)</li>
+<li>CRSV (Cursive)</li>
+</ul>
+<p>There are no CSS equivalent to these custom features, so we resort to the lower-level
+<code>font-variation-settings</code> descriptor.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+    <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive Sans Linear Light"</span><span class="token punctuation">;</span>
+    <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"Recursive_VF_1.084.woff2"</span><span class="token punctuation">)</span></span><span class="token punctuation">;</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> 300 1000<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-light</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-light-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-light</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-light-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-medium</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-medium-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-medium</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-medium-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-semibold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-semibold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-semibold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-semibold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-bold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-bold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-bold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-bold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-extrabold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-extrabold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-extrabold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-extrabold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-black</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-black-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-black</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-black-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-extrablack</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-linear-extrablack-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-extrablack</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-mono-casual-extrablack-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 1<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-light</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-light-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-light</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-light-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 300<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 400<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-medium</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-medium-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-medium</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-medium-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 500<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-semibold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-semibold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-semibold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-semibold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 600<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-bold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-bold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-bold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-bold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 700<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-extrabold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-extrabold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-extrabold</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-extrabold-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 800<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-black</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-black-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-black</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-black-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 900<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-extrablack</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-linear-extrablack-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 0<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-extrablack</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> 0<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 0.501<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.recursive-sans-linear-light-sans-casual-extrablack-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Fonts may optionally provide one or more named instances. These instances are combinations of the axes available to the font.</p>
+<p>The Font Level 4 specification defines the <a href="https://w3c.github.io/csswg-drafts/css-fonts/#font-named-instance">font-named-instance</a> descript to provide the initial values for the supported axes of the variable font.</p>
+<p>Unfortunately this descriptor only works in the <code>@font-face</code> at-rule.</p>
+<p>Using <code>font-variation-settings</code> we can create a similar effect that will work in other parts of the page.</p>
+<p>The example below, generated from the Recursive variable font using Wakamaifondue, will produce a sans serif, italic, extra black casual/cursive style for whatever element it is applied to.</p>
+<p>Note how we override all of the font’s axes. <code>font-variation-settings</code> suffers the same issue as <code>font-feature-settings</code>: Unless you</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.recursive-sans-casual-extrablack-italic</span> <span class="token punctuation">{</span>
+    <span class="token property">font-variation-settings</span><span class="token punctuation">:</span> <span class="token string">"MONO"</span> 0<span class="token punctuation">,</span> <span class="token string">"CASL"</span> 1<span class="token punctuation">,</span> <span class="token string">"wght"</span> 1000<span class="token punctuation">,</span> <span class="token string">"slnt"</span> -15<span class="token punctuation">,</span>
+        <span class="token string">"CRSV"</span> 1<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="color-fonts">Color fonts</h2>
+<h2 id="animations">Animations</h2>
