@@ -19,8 +19,8 @@
 <article class="container">
   <h1 id="calculating-font-overrides">calculating font overrides</h1>
 <p>As a followup to the prior post on converting JSON/JSON5 to CSS, we will look at providing font override metrics for fallback fonts and how to use them.</p>
-<p>Katie Hempenius from the Chrome team provides a <a href="https://github.com/khempenius/font-fallbacks-dataset">spreadsheet with the override values</a> for all fonts in the Google Fonts collection.</p>
-<p>If we have the font available, we could use tools like <a href="https://www.npmjs.com/package/fontkit">Fontkit</a> to query the font and get metrics for font fallbacks.</p>
+<p>Katie Hempenius  provides a <a href="https://github.com/khempenius/font-fallbacks-dataset">spreadsheet with the override values</a> for all fonts in the Google Fonts collection.</p>
+<p>If the font is not available in Google Fonts or you have the font available, you can use tools like <a href="https://www.npmjs.com/package/fontkit">Fontkit</a> to query the font and get metrics for font fallbacks.</p>
 <p>The metrics that we need are:</p>
 <ul>
 <li>ascent</li>
@@ -34,6 +34,53 @@
 <li><code>descent-override</code> = descent/unitsPerEm</li>
 <li><code>line-gap-override</code> = line-gap/unitsPerEm</li>
 </ul>
+<p>The rest of the post will look at one way of generating these metrics and how to use them.</p>
+<p>The following block of text does the following:</p>
+<ol>
+<li>Opens a font with FontKit</li>
+<li>calculates each override metric and assigns it to a variable that we can later push into an array</li>
+</ol>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">getFontMetrics</span><span class="token punctuation">(</span><span class="token parameter">font</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> myFont <span class="token operator">=</span> fontkit<span class="token punctuation">.</span><span class="token function">openSync</span><span class="token punctuation">(</span>font<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">let</span> ascentOverride <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>myFont<span class="token punctuation">.</span>ascent <span class="token operator">/</span> myFont<span class="token punctuation">.</span>unitsPerEm<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> descentOverride <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>myFont<span class="token punctuation">.</span>descent <span class="token operator">/</span> myFont<span class="token punctuation">.</span>unitsPerEm<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> lineGapOverride <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>myFont<span class="token punctuation">.</span>lineGap <span class="token operator">/</span> myFont<span class="token punctuation">.</span>unitsPerEm<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This function will produce the values that we need to define overrides in the fallback font.</p>
+<p>When running the code with Recursive we get the following values:</p>
+<ul>
+<li>Ascent override: 0.95</li>
+<li>Descent override: -0.25</li>
+<li>Line-gap override: 0</li>
+</ul>
+<p>Now we can create the fallback  <code>@font-face</code> declarations.</p>
+<p>The next example defines two fallback fonts, Arial and Roboto, with overrides based on Recursive, our primary font.</p>
+<p>Note how we define local sources for the fonts using <code>local</code> plus the font name.</p>
+<p>We then define the font stack in the <code>body</code> element.</p>
+<pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Fallback1"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token function">local</span><span class="token punctuation">(</span><span class="token string">"Arial"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">ascent-override</span><span class="token punctuation">:</span> 95%<span class="token punctuation">;</span>
+  <span class="token property">descent-override</span><span class="token punctuation">:</span> -25%<span class="token punctuation">;</span>
+  <span class="token property">line-gap-override</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Fallback2"</span><span class="token punctuation">;</span>
+  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token function">local</span><span class="token punctuation">(</span><span class="token string">"Roboto"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token property">ascent-override</span><span class="token punctuation">:</span> 95%<span class="token punctuation">;</span>
+  <span class="token property">descent-override</span><span class="token punctuation">:</span> -25%<span class="token punctuation">;</span>
+  <span class="token property">line-gap-override</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">body</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Recursive"</span><span class="token punctuation">,</span> <span class="token string">"Fallback1"</span><span class="token punctuation">,</span> <span class="token string">"Fallback2"</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>This is a first reduction of layout shift caused by font substitutions.</p>
+<p>One thing I’m curious about is whether the system fonts stack may help reduce the shift further.</p>
 
 </article>
 <!--
