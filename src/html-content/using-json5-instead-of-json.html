@@ -1,0 +1,152 @@
+<h1 id="using-json5-instead-of-json">Using JSON5 instead of JSON</h1>
+<p>The more I work with JSON in WordPress theme blocks, the more frustrated I become even though I understand why things are the way they are.</p>
+<p>JSON has become the default data interchange program for the web. It is not without its issues.</p>
+<p>Since it’s meant mostly for machine to machine communication it is unforgiving of parsing and syntax errors.</p>
+<p>However, eventhough it is meant for machine communication, JSON is still written by hand by one or more humans.</p>
+<p>As such, I find the ideas in <a href="http://bolinfest.com/essays/json.html">Suggested improvements to JSON</a> to match my thinking on the subject. They can be summarized as:</p>
+<ul>
+<li>Lack of support for comments</li>
+<li>All keys and string values must be quoted</li>
+<li>The JSON specification is ES3 compliant and, as such, optimizations like adding trailing commas at the end of object and array literals treated as errors</li>
+</ul>
+<p>There are extensions to JSON that address these pain points.</p>
+<p>This post will discuss the differences between JSON5 and JSON and how to convert JSON5 documents into CSS Variables and design tokens.</p>
+<h2 id="differences%2C-advantages-and-drawbacks-between-json5-and-json">Differences, Advantages and Drawbacks between JSON5 and JSON</h2>
+<p>JSON5 is fully compatible with JSON, all valid JSON files are also valid JSON5. The reverse is not true; depending on how you write JSON5, they may or may not be valid JSON files.</p>
+<p>For the purposes of this post, I will concentrate on what, to me, are developer experiences enhancements:</p>
+<ul>
+<li>JSON5 allows single and multiline C-style comments</li>
+<li>JSON5 allows unquoted key names</li>
+<li>JSON5 allows dangling commas in objects and arrays</li>
+</ul>
+<p>The biggest drawback is that browsers or Node don’t have built in support for JSON5 so, if we want to use it, we need to load a third party module with the corresponding overhead.</p>
+<p>This is not as much of a concern when working on a command-line tool like the converter but it is something to keep in mind.</p>
+<h2 id="converting-json-to-css">Converting JSON to CSS</h2>
+<p>Before we can convert JSON5 to CSS variables we need to figure out the structure of the JSON5 document that we’ll start from.</p>
+<p>We can then write the conversion script.</p>
+<h3 id="creating-the-json5-file">Creating the JSON5 file</h3>
+<p>I’m using some of the features</p>
+<h3 id="creating-the-conversion-script">Creating the conversion script</h3>
+<p>This file uses ESM modules so you need to change the extension to <code>mjs</code> or add <code>&quot;type&quot;: &quot;module&quot;</code> to your package.json.</p>
+<p>I’ve broken down the script into sections so it’s easier to discuss and work through some sections.</p>
+<p>We first import the modules that we want to use. The modules using the <code>node:</code> protocol are built into Node.</p>
+<p>The other three serve different purposes:</p>
+<ul>
+<li><a href="https://json5.org/">json5</a> parses the JSON5 input</li>
+<li><a href="https://colorjs.io/">color.js</a> convert hex colors to one or more formats</li>
+<li>We use the <a href="https://lodash.com/docs/4.17.15#kebabCase">kebabCase</a> function from <a href="https://lodash.com/">lodash</a> to convert camel case values into kebab-case</li>
+</ul>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token operator">*</span> <span class="token keyword">as</span> fs <span class="token keyword">from</span> <span class="token string">'node:fs'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token operator">*</span> <span class="token keyword">as</span> path <span class="token keyword">from</span> <span class="token string">'node:path'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token operator">*</span> <span class="token keyword">as</span> url <span class="token keyword">from</span> <span class="token string">'node:url'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> json5 <span class="token keyword">from</span> <span class="token string">'json5'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> Color <span class="token keyword">from</span> <span class="token string">'colorjs.io'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> _ <span class="token keyword">from</span> <span class="token string">'lodash'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Working with ES modules in Node means we don’t have direct access to the  <code>__filename</code> and <code>__dirname</code> variables like we would when working with CommonJS modules. So we create our own using other Node built-in methods.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> __filename <span class="token operator">=</span> url<span class="token punctuation">.</span><span class="token function">fileURLToPath</span><span class="token punctuation">(</span><span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> __dirname <span class="token operator">=</span> url<span class="token punctuation">.</span><span class="token function">fileURLToPath</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span><span class="token string">'.'</span><span class="token punctuation">,</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Next we open the json5
+file and parse the content using json5’s <code>parse</code> method.</p>
+<p>We use <code>readFileSync</code> to make sure that the file is fully read and parsed before we move forward.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> dirPath <span class="token operator">=</span> path<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>__dirname<span class="token punctuation">,</span> <span class="token string">'/data/styles.json5'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> fileContent <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">readFileSync</span><span class="token punctuation">(</span>dirPath<span class="token punctuation">,</span> <span class="token string">'utf-8'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> parsed <span class="token operator">=</span> json5<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>fileContent<span class="token punctuation">)</span>
+</code></pre>
+<p>The four empty arrays we create in this section will receive the data from the functions that create the CSS variables later.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> colorMap <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> variableMap <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> layoutMap <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> typographyMap <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p><code>convertColor</code> uses <a href="https://colorjs.io">color.js</a> to convert the colors to different color spaces supported in the CSS <a href="https://www.w3.org/TR/css-color-4/">Color Level 4 specification</a></p>
+<p>The function takes two parameters, a name and a color.</p>
+<p>We use the value of color to create a new color using color.js’ <code>Color</code> constructor and append an empty string to conveert the color into a string.</p>
+<p>We then build the CSS variable using a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template strings</a> with the name and the converted color parsed as a string. The full template string is then pushed to the <code>colorMap</code> array.</p>
+<p>The function converts the color to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">lch</a>. You can duplicate the string literal and convert to any of the <a href="https://colorjs.io/docs/spaces.html">color spaces supported by color.js</a>.</p>
+<p>I’ve left three examples commented as show of how to convert to different color spaces.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">convertColor</span><span class="token punctuation">(</span><span class="token parameter">name<span class="token punctuation">,</span> color</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">let</span> myColor <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Color</span><span class="token punctuation">(</span>color<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  myColor <span class="token operator">+</span> <span class="token string">""</span><span class="token punctuation">;</span>
+  <span class="token comment">// colorMap.push(`--rgb-${name}: ${myColor.to("srgb").toString()};\n`)</span>
+  <span class="token comment">// colorMap.push(`--p3-${name}: ${myColor.to("p3").toString({ precision: 3 })};\n`);</span>
+  <span class="token comment">// colorMap.push(`--oklab-${name}: ${myColor.to("oklab").toString({ precision: 3 })};\n`);</span>
+  colorMap<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">--lch-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>myColor<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span><span class="token string">"lch"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">precision</span><span class="token operator">:</span> <span class="token number">3</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">;\n</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><code>convertVariables</code>, <code>convertLayout</code> and <code>convertTypography</code> perform the same task, they take a name and a value and then use a string literal to create the CSS variable.</p>
+<p>They use Lodash’s <a href="https://lodash.com/docs/4.17.15#kebabCase">kebabCase</a> method to convert the names into kebab-case.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">convertVariables</span><span class="token punctuation">(</span><span class="token parameter">name<span class="token punctuation">,</span> value</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  variableMap<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">--</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>_<span class="token punctuation">.</span><span class="token function">kebabCase</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>value<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">;\n</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">convertLayout</span><span class="token punctuation">(</span><span class="token parameter">name<span class="token punctuation">,</span> value</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  layoutMap<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">--</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>_<span class="token punctuation">.</span><span class="token function">kebabCase</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>value<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">;\n</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">convertTypography</span><span class="token punctuation">(</span><span class="token parameter">name<span class="token punctuation">,</span> value</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  typographyMap<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">--</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>_<span class="token punctuation">.</span><span class="token function">kebabCase</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>value<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">;\n</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>We then process the data. We create a list of items in each section and then call the appropriate function passing it the two parameters that will contain the name of the item and its value.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> colorList <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>parsed<span class="token punctuation">.</span>styles<span class="token punctuation">.</span>colors<span class="token punctuation">)</span>
+colorList<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">color</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">convertColor</span><span class="token punctuation">(</span>color<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> color<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> variableList <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>parsed<span class="token punctuation">.</span>styles<span class="token punctuation">.</span>variables<span class="token punctuation">)</span>
+variableList<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">variable</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">convertVariables</span><span class="token punctuation">(</span>variable<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> variable<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> layoutList <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>parsed<span class="token punctuation">.</span>styles<span class="token punctuation">.</span>layout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+layoutList<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">layout</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">convertLayout</span><span class="token punctuation">(</span>layout<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> layout<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>For the typography section we need to make a few additions.</p>
+<p>We create two lists, one with all the elements in the typography section and one with all the entries under named instances.</p>
+<p>Once we process the first list, we pop the last item, this will be an empty <code>namedInstances</code> item.</p>
+<p>We then process the named instances and push them into the same typography array.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> typograhpyList <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>parsed<span class="token punctuation">.</span>styles<span class="token punctuation">.</span>typography<span class="token punctuation">)</span>
+<span class="token keyword">const</span> namedInstances <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>parsed<span class="token punctuation">.</span>styles<span class="token punctuation">.</span>typography<span class="token punctuation">.</span>namedInstances<span class="token punctuation">)</span>
+typograhpyList<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entry</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">convertTypography</span><span class="token punctuation">(</span>entry<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> entry<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+  <span class="token comment">// removes named instances item from array</span>
+  typograhpyList<span class="token punctuation">.</span><span class="token function">pop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+namedInstances<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">instance</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token function">convertTypography</span><span class="token punctuation">(</span>instance<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> instance<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>We will use the <code>header</code> and <code>footer</code> to build the file on the following section.</p>
+<p>The <code>header</code> constant holds a header comment and the opening for thr <code>:root</code> CSS element.</p>
+<p>The <code>footer</code> element closes any CSS element that we have open.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> header <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">/*
+Stylesheet with Token variables. Generated as part of an experiment 
+to convert JSON5 to CSS variables
+
+@author Carlos Araya
+*/
+
+:root {</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> footer <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">
+}</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+</code></pre>
+<p>The final step is to actually write the content to file.</p>
+<p>We first use <code>writeFileSync</code> to create the file and assign the content of the <code>header</code> variable.</p>
+<p>We then append the different blocks, including the content of the <code>footer</code> variable.</p>
+<p>We use <code>writeFileSync</code> and <code>appendFileSync</code> to make sure that the content of one block is completed before the script processes the next block.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> targetFile <span class="token operator">=</span> <span class="token string">'styles.css'</span>
+
+fs<span class="token punctuation">.</span><span class="token function">writeFileSync</span><span class="token punctuation">(</span>targetFile<span class="token punctuation">,</span> header<span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">encoding</span><span class="token operator">:</span> <span class="token string">"utf-8"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+fs<span class="token punctuation">.</span><span class="token function">appendFileSync</span><span class="token punctuation">(</span>targetFile<span class="token punctuation">,</span> variableMap<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">encoding</span><span class="token operator">:</span> <span class="token string">"utf-8"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+fs<span class="token punctuation">.</span><span class="token function">appendFileSync</span><span class="token punctuation">(</span>targetFile<span class="token punctuation">,</span> colorMap<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">encoding</span><span class="token operator">:</span> <span class="token string">"utf-8"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+fs<span class="token punctuation">.</span><span class="token function">appendFileSync</span><span class="token punctuation">(</span>targetFile<span class="token punctuation">,</span> layoutMap<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">encoding</span><span class="token operator">:</span> <span class="token string">"utf-8"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+fs<span class="token punctuation">.</span><span class="token function">appendFileSync</span><span class="token punctuation">(</span>targetFile<span class="token punctuation">,</span> typographyMap<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">encoding</span><span class="token operator">:</span> <span class="token string">"utf-8"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+fs<span class="token punctuation">.</span><span class="token function">appendFileSync</span><span class="token punctuation">(</span>targetFile<span class="token punctuation">,</span> footer<span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">encoding</span><span class="token operator">:</span> <span class="token string">"utf-8"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>We’ve built a set of variables and assigned it to the <code>:root</code> CSS variable.</p>
+<p>It should also be possible to build full stylesheets from the JSON5 file, that will be left as an exercise to the reader.</p>
