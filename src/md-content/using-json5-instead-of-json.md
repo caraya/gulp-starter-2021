@@ -214,4 +214,8 @@ fs.appendFileSync(targetFile, footer, { encoding: "utf-8" })
 
 We've built a set of variables and assigned it to the `:root` CSS variable.
 
-It should also be possible to build full stylesheets from the JSON5 file, that will be left as an exercise to the reader.
+The exercise in this post is a starting point. Some future enhancement ideas:
+
+* Convert to SCSS and to JS Objects to use in CSS-in-JS solutions
+* Use commander or any other Node CLI to create a full fledged application
+* Explore what it would take to create tokens for Android and other packages

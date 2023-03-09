@@ -78,7 +78,7 @@ We'll look at four flavors of MUD descedants
 
 The original DikuMud, to separate it from all the derivative games using the same code, was heavily influenced by earlier MUD games.
 
-It was written in 1990 and 1991 by Sebastian Hammer, Tom Madsen, Katja Nyboe, Michael Seifert, and Hans Henrik Stærfeldt at DIKU (Datalogisk Institut Københavns Universitet)—the department of computer science at the University of Copenhagen in Copenhagen, Denmark.
+It was written in 1990 and 1991 by Sebastian Hammer, Tom Madsen, Katja Nyboe, Michael Seifert, and Hans Henrik Stærfeldt at DIKU (Datalogisk Institut Københavns Universitet) &mdash; the department of computer science at the University of Copenhagen in Copenhagen, Denmark.
 
 The games using DikuMud's codebase are mostly "hack and slash" games, where the players assume a class and face monsters in a hard-coded virtual world.
 
