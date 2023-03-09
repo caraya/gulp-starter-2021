@@ -10,17 +10,21 @@ Over time I've picked a more nuanced approach to these areas of interest and pic
 
 Current MMOs and fantasy games trace their lineage directly or indirectly from the earliest text-based games created by Hackers and MIT students in the 1970s. That's where we will start our historical review.
 
-Most computing work outside research centers like SRI and academic settings was limited to mainframe computers and terminal access and precursors to C for programming languages.
+Most computing work outside research centers like SRI and academic settings was limited to mainframe computers and terminal access and assembly or precursors to the C programming languages.
 
 While the first communication between ARPANet hosts (UCLA and Stanford) was in October 1969, the network, as we know it today, was a long way away.
 
 There was no commercial internet, at least not as we know it today; all access to the ARPANet was through terminals at Academic institutions.
 
-Outside the ARPANet, most contact was through [Bulletin Board Systems](https://en.wikipedia.org/wiki/Bulletin_board_system) with limited dial-up speeds and number of simultaneous connections dependent on the number of modems and phone lines available.
+Outside the ARPANet, most contact was through [Bulletin Board Systems](https://en.wikipedia.org/wiki/Bulletin_board_system) with limited dial-up speeds and number of simultaneous connections dependent on the number of modems available, each requiring a dedicated phone line.
 
 ## Text-based games
 
-In the 1970s and 80s computers as we know them today did not exist.
+In the 1970s and 80s computers as we know them today did not exist. There was no concept of dialup providers and the BBSs of the time provided limited functionality.
+
+It is no surprise that the earliest games originated in academic institutions and were limited to the terminals available at the time.
+
+The vignetes in the following sections are meant as snapshots and not as exhaustive stories about the games. The intent is to create a timeline tying together the earliest text-based game to where we are today and where we may be going.
 
 ### Adventure
 
@@ -35,7 +39,7 @@ The program acts as a narrator, describing the player's location and the results
   <figcaption>Colossal Cave Adventure on VT100 terminal - <a href="https://commons.wikimedia.org/w/index.php?curid=33164592">By Autopilot</a></figcaption>
 </figure>
 
-Colossal Cave Adventure was one of the first teletype games and was massively popular in the computer community of the late 1970s, with numerous ports and modified versions being created based on Woods' source code. Through its successors, it also influenced the creation of the MUD and computer role-playing game genres. In 2019 was inducted into the World Video Game Hall of Fame by The Strong and the International Center for the History of Electronic Games.
+Colossal Cave Adventure was one of the first teletype games and was massively popular in the computer community of the late 1970s, with numerous ports and modified versions being created based on Woods' source code. Through its successors, it also influenced the creation of MUDs and  the computer role-playing game genres. In 2019 was inducted into the World Video Game Hall of Fame by the International Center for the History of Electronic Games.
   
 <figure>
   <img src='https://rivendellweb.net/blog/wp-content/uploads/2022/11/ADVENT_-_Crowther_Woods.png' width='668'>
@@ -68,65 +72,195 @@ MUD1 game was closed down in late 1987, reportedly under pressure from CompuServ
 
 1985 saw the birth of a number of projects inspired by the original MUD, both free and commercial.
 
-We'll look at two flavor of MUD descedants
+We'll look at four flavors of MUD descedants
 
 #### DikuMud
+
+The original DikuMud, to separate it from all the derivative games using the same code, was heavily influenced by earlier MUD games.
+
+It was written in 1990 and 1991 by Sebastian Hammer, Tom Madsen, Katja Nyboe, Michael Seifert, and Hans Henrik Stærfeldt at DIKU (Datalogisk Institut Københavns Universitet)—the department of computer science at the University of Copenhagen in Copenhagen, Denmark.
+
+The games using DikuMud's codebase are mostly "hack and slash" games, where the players assume a class and face monsters in a hard-coded virtual world.
 
 #### TinyMUD
 
 TinyMUD is a descedant of Essex MUD and created some of the concepts we still see indirectly in our modern computer games.
 
-##### TinyMUSH and successors
+TinyMUD was created in 1989 by James Aspnes. From the beginning it sought to distance his game from the hack and slah MUDs in the Diku tradition and claimed that the "D" in TinyMUD stood for dimension or domain rather than dungeon.
 
-##### MOO
+TinyMUD was one of the first games that allowed players to modify and expand the world, by adding new objects to the database for all players to interact with.
 
-## Everything in between, chatbots and Eliza
+This is an example of available commands  from "Three's Unabridged Dictionary of Commands" by Chrysalis (1990):
+
+```text
+@chown <object>=<player>. Changes the ownership of an object.
+@create <name> [=<cost>]. Creates a thing with the specified name.
+@describe <object> [=<description>]. 
+@dig <name>. Creates a new room 
+@fail <object> [=<message>]. 
+@find [name]. Displays the name and number ... whose name matches <name>.
+@link <object>=<number>; @link <object>=here; @link <dir>|<room>=home. 
+@lock <object>=<key>. 
+@name <object>=<new name> [<password>]. Changes the name of <object>. 
+@ofail <object> [=<message>]. 
+@open <dir>[;<other dir>]* [=<number>]. 
+@osuccess <object> [=<message>]. 
+@set <object>=<flag>; @set <object>=!<flag>. Sets (or, with '!', unsets) 
+@success <object> [=<message>]. 
+@unlink <dir>; @unlink here. 
+@unlock <object>. Removes the lock on <object>. 
+```
+
+TinyMUD is important, not just because of its own popularity and the concepts it pioneered, but also because of the importance of their successors and the impact that it had on later graphical games.
+
+#### TinyMUSH
+
+TinyMUSH is a derivative of TinyMUD, just like DikuMUD, but with a different emphasis.
+
+As far as I can trace, the original TinyMUSH was released in 1990 (see [The MUDline](http://www.linnaean.org/~lpb/muddex/mudline.html) for more information).
+
+Most (if not all) the current flavor of text-based virtual realities are based on TinyMUSH to some degree.
+
+[PennMUSH](https://www.pennmush.org/) has been around since the early 1990s. According to the PennMUSH README:
+
+> PennMUSH is a TinyMUD derivative, and one of the branches along the MUSH line. "Vanilla" TinyMUSH, which added the "v" registers and functions to the basic TinyMUD building commands, was written by Larry Foard. The code was later expanded by Jin, of MicroMUSH. In January of 1991, MicroMUSH changed its name to MicroMUSE, and the code there continued to develop under the MUSE name. At that same point in time, Moonchilde took the last public release of that code and began a series of improvements and extensions.
+>
+> That code was released as PernMUSH, named for the MUSH that Moonchilde was running. The last released version of that code was version 1.15, at the end of November 1991. PernMUSH itself had switched over to TinyMUSH 2.0, which Moonchilde had co-written with Glenn Crocker (Wizard of TinyCWRU); there was no longer a reason for Moonchilde to maintain this code.
+>
+> In January of 1992, Amberyl began working on the PernMUSH 1.15 code release, for TinyKrynn. She took over the code, which no one was supporting, and is continuing to work on extending this code, as well as improving its compatibility with TinyMUSH 2.0.
+
+All games running TinyMUSH and derivative servers are social, role-playing oriented environments.
+
+For the longest time, MUSHes and the PennMUSH flavor in particular were synonymous with mudding and playing online. It wasn't until much later that I discovered other types of games, other servers and other activities you could do online.
+
+#### MOO
+
+MOO stands for MUD Object Oriented. It's another decendant from TinyMUD.
+
+Unlike TinyMUSH and its derivatives, MOOs are used primarily for social and research-related projects.
+
+##### LambdaMOO
+
+The first MOO I want to discuss is LambdaMOO; the term refers both to the code running the game, an evolution of the original MOO code, and the community built using the LambdaMOO software.
+
+Many early researches and research topics in online communities and online issues originated in LambdaMOO.
+
+The LambdaMOO software was created by Pavel Curtis in 1990 at Xerox PARC.
+
+One of the most interesting and impactful issues that happened in LambdaMOO is [Julian Dibbell's](http://www.juliandibbell.com/) [A Rape in Cyberspace](https://www.villagevoice.com/2005/10/18/a-rape-in-cyberspace/), later expanded into the book [My Tiny Life: Crime and Passion in a Virtual World](https://www.amazon.com/My-Tiny-Life-Passion-Virtual/dp/0805036261/ref=sr_1_2?crid=32UC0AXWP15C0). In the story, the author narrates the real life consequences of virtual actions and the way that these virtual actions may impact people's lives in unexpected ways.
+
+##### MediaMOO and MOOSECrossing
+
+MediaMOO and MOOSECrossing were too MOO-based projects created by [Amy Bruckman](https://faculty.cc.gatech.edu/~asb/) while a doctoral student at MIT's Media Lab.
+
+[MediaMOO](https://faculty.cc.gatech.edu/~asb/papers/journal/convergence.html) wasn't just a social environment. It was targeted to media researchers and required an application to become a member.
+
+MOOSECrossing was designed for school children to work in collboartive environments. This project was the main focus of Amy Bruckman's [PhD Dissertation](https://faculty.cc.gatech.edu/~asb/thesis/) at MIT's Media Lab.
+
+All three of these examples show the social and educational potential of these text-based game systems.
 
 ## Graphical games and tools
 
-### Simnet
+There has also been a lot of work done in graphical virtual worlds that lead to the current crop of Virtual Reality (VR), Augmented Reality (AR), and Mixed Reality (MR) experiences that we see today and perhaps some experiences that we don't see today because they are proprietary experiences for specific companies or industry verticals.
+
+### SIMNET
+
+One of the first multiuser networked environments available was SIMNET. According to Duncan C. Miller's SIMNET and Beyond: A History of the Development of Distributed Simulation:
+
+>SIMNET stands for SIMulator NETworking. Initiated in 1983, it was the first “shared virtual reality” distributed simulation system, which continues to have significant influences.
+
+SIMNET pioneered the protocols necessary for a shared networked environment where the different network participants can interact with the same environment in real time, independent from their location.
+
+In addition of the protocols, some of the researchers moved on to the gaming industry. Some of these companies founded from SIMNET research became foundational to the gaming industry as we know it. Sony Computer Entertainment Of America acquired RTIME, inc, a company founded by SIMNET researchers, and used RTIME's assets as the basis of their online gaming network.
 
 ### Lucasfilm's Habitat
 
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1582959262/publishing-project.rivendellweb.net/habitat-logo/habitat-logo.jpg?_i=AA' width='530'>
+  <figcaption>Lucasfilm's Habitat</figcaption>
+</figure>
+
+[Lucasfilm Habitat](https://en.wikipedia.org/wiki/Habitat_(video_game)) was an earlier example of consumer-grade graphical virtual communities.
+
+<figure>
+  <img src='https://res.cloudinary.com/dfh6ihzvj/images/v1582959260/publishing-project.rivendellweb.net/habitat7/habitat7.jpg?_i=AA' width='580' height='height'>
+  <figcaption>Example of Avatar player interaction</figcaption>
+</figure>
+
+It was created by Lucas Arts, now known as [Lucasfilm Games](https://en.wikipedia.org/wiki/Lucasfilm_Games), for [Quatum Link](https://en.wikipedia.org/wiki/Quantum_Link) an online service for [Commodore 64](https://history-computer.com/commodore-64-guide/) and [Commodore 128](https://www.c64-wiki.com/wiki/Commodore_128) (which later became [America Online](https://en.wikipedia.org/wiki/AOL)) with a first, beta, release in north America
+ in 1986.
+
+A stripped down version of Habitat was released as Club Caribe both in North America in in 1989.
+
+The graphics are quaint by modern standards but we can't forget the hardware that the world ran in.
+
+LucasArt licensed the game to Fujitsu who released Club Caribe in Japan in 1990.
+
+With the limited graphical resources in the front-end and backend Habitat still demonstrated the feasibility of multiuser online games. Modern Massively Multiplayer Online (MMO) games take advantage of better hardware and the lessons that we've learned since Habitat and text-based multi user games.
+
 ### Single Player Games
+
+We will take a slight detour into some graphical computer games that are the basis for current MMOs and we'll also see how we got from single player to MMO Role Playing Games (RPGs).
+
+The [Ultima Game Series](https://en.wikipedia.org/wiki/Ultima_(series)) and [Ultima Online](https://en.wikipedia.org/wiki/Ultima_Online) show one progression towards MMOs
+
+[Warcraft](https://en.wikipedia.org/wiki/Warcraft) and [World of Warcraft](https://en.wikipedia.org/wiki/World_of_Warcraft)
 
 ### Multiuser Games and LAN Parties
 
+### MMOs
+
 ### Second Life
 
-### WoW and MMOs
+# What's Next: AR, VR, MR and XR
 
-## What's Next: AR, VR, MR and XR
+## Virtual reality is not new
 
-### It's the hardware, stupid, or is it?
+### VRML and X3D
 
-#### Oculus Rift
+<https://en.wikipedia.org/wiki/VRML>
 
-#### Google Glass: How not to do it
+<https://en.wikipedia.org/wiki/X3D>
 
-#### Microsoft Hololens
+## It's the hardware, stupid, or is it?
 
-### WebVR: the browser gets involved
+### Oculus Rift
 
-# The more things change: Research and researcher evolution
+### Microsoft Hololens
+
+### Google Glass: How not to do it
+
+## WebVR: the browser gets involved
+
+## WebXR and beyond
+
+# The more things change... Research and researcher evolution
 
 ## How has etnographical work changed?
 
-## Ethical considerations
+### Participant observation online: challenges ahead
 
-# Mixing the real and the virtual
+### Ethical considerations
 
-## Transmedia storytelling
+## Mixing the real and the virtual
 
-## Participatory Culture
+### Meeting your virtual friends `IRL`
 
-## Game studies
+### Gender presentation and gender identity
 
-## Making the virtual real
+### Transmedia storytelling
 
-## The tools are almost here
+### Participatory Culture
+
+### Game studies
 
 # Computers as cultural artifacts
+
+## Identity
+
+## Gender presentation and gender dynamics
+
+## Real impact of virtual events
 
 # Bibliography
 
@@ -146,7 +280,7 @@ Curtis, Pavel. [Mudding: Social Phenomena in Text-Based Virtual Realities](https
 
 Curtis, Pavel, and David A. Nichols. [MUDs Grow Up: Social Virtual Reality in the Real World](https://www.researchgate.net/publication/2812522_MUDs_Grow_Up_Social_Virtual_Reality_in_the_Real_World). 1993.
 
-Fanderclai, Tari Lin. “Like Magic, Only Real.” Wired Women: Gender and New Realities in Cyberspace". edited by Lynn Cherny and Elizabeth Reba Weise, Seal Press, 1996.
+Fanderclai, Tari Lin. [Like Magic, Only Real](https://web.archive.org/web/20080111011434/http://web.nwe.ufl.edu/~tari/magic.html). Wired Women: Gender and New Realities in Cyberspace". edited by Lynn Cherny and Elizabeth Reba Weise, Seal Press, 1996.
 
 Jones, J. G. “3D On-Line Distributed Learning Environments: An Old Concept with a New Twist.” Society for Information Technology and Teacher Education International Conference, Association for the Advancement of Computing in Education, 2004, pp. 507–12.
 
@@ -235,7 +369,9 @@ Consalvo, Mia. "Atari to Zelda: Japan's Videogames in Global Contexts". MIT Pres
 
 Juul, Jesper. "Half-Real: Video Games between Real Rules and Fictional Worlds". MIT Press 2005.
 
-Murray, Janet H. "Hamlet On the Holodeck: The Future of Narratives in Cyberspace (Updated Edition)". MIT Press 2017.
+Murray, Janet H. "Inventing the Medium: Principles of Interaction Design as a Cultural Practice". MIT Press 2012.
+
+---. "Hamlet On the Holodeck: The Future of Narratives in Cyberspace (Updated Edition)". MIT Press 2017.
 
 Gibson, William. "Neuromancer" Ace 1984.
 
@@ -290,16 +426,13 @@ Pearce, Celia, and Artemesia. "Communities of Play: Emerging Cultures in Multipl
 
 Kidder, Tracy. "The Soul of a New Machine". Little, Brown and Company, 1981.
 
-Hafner, Katie. "Where Wizards Stay Up Late".  Simon & Schuster, 1998.
+Hafner, Katie. "Where Wizards Stay Up Late: The Origins Of The Internet".  Simon & Schuster, 1998.
 
-Wright, Jr., DAVID C., and Allan W. Austin. "Space and Time: Essays on Vision of History in Science Fiction and Fantasy Television". McFarland & Company, 2010.
+Wright, Jr., David C., and Allan W. Austin. "Space and Time: Essays on Vision of History in Science Fiction and Fantasy Television". McFarland & Company, 2010.
 
 [Fandom and Participatory Culture](https://haenfler.sites.grinnell.edu/subcultural-theory-and-theorists/fandom-and-participatory-culture/). n.d.
 
-Jenkins, Henry, with Katie Clinton, Ravi Purushotma, Alice J. Robison, and Margaret Weigel. [Confronting the Challenges
-of Participatory Culture:
-Media Education for the
-21st Century](https://www.macfound.org/media/article_pdfs/jenkins_white_paper.pdf). The MacArthur Foundation, 2006.
+Jenkins, Henry, Katie Clinton, Ravi Purushotma, Alice J. Robison, and Margaret Weigel. [Confronting the Challenges of Participatory Culture: Media Education for the 21st Century](https://www.macfound.org/media/article_pdfs/jenkins_white_paper.pdf). The MacArthur Foundation, 2006.
 
 Edutopia. [Henry Jenkins on Participatory Culture: Big Thinkers](https://www.youtube.com/watch?v=1gPm-c1wRsQ). YouTube, uploaded by Edutopia, May 2013.
 
@@ -307,12 +440,24 @@ TEDxNYC. [Henry Jenkins](https://www.youtube.com/watch?v=AFCLKa0XRlw). YouTube, 
 
 Rheingold, Howard. [Virtual Communities: Homesteading on the Electronic Frontier](https://direct.mit.edu/books/book/2147/The-Virtual-CommunityHomesteading-on-the). Addison-Wesley, 1993.
 
-Chiapello, Laureline. [Ludo Mix as an Aesthetic Experience:
-Designing Games for Franchises](http://www.digra.org/wp-content/uploads/digital-library/DiGRA_2019_paper_43.pdf). Proceedings of DiGRA 2019, 2019.
+Chiapello, Laureline. [Ludo Mix as an Aesthetic Experience: Designing Games for Franchises](http://www.digra.org/wp-content/uploads/digital-library/DiGRA_2019_paper_43.pdf). Proceedings of DiGRA 2019, 2019.
 
 Nakamura, Akinori and Susana Tosca. [The Mobile Suit Gundam Franchise: A Case Study of Transmedia Storytelling Practices and Ludo Mix in Japan](https://doi.org/10.26503/todigra.v5i2.114). Transactions of the Digital Games Research Association Vol 5, No 2 (2021).
 
-## Games
+Kendall, Lori. [Hanging Out in the Virtual Pub:
+Masculinities and Relationships Online](https://publishing.cdlib.org/ucpressebooks/view?docId=kt367nc6m1;brand=ucpress). University of California Press, 2002.
+
+Evans, Claire L. [A Mansion Filled With Hidden Worlds: When the Internet Was Young](https://undark.org/article/wilo-evans-broad-band/). Undark Magazine, 2018.
+
+Cassel, David. [A Look Back in Time: The Forgotten Fame of LambdaMOO](https://thenewstack.io/a-look-back-in-time-the-forgotten-fame-of-lambdamoo/). The New Stack, 2018.
+
+Miller, Duncan C. [SIMNET and Beyond: A History of the Development of Distributed Simulation](https://www.iitsec.org/-/media/sites/iitsec/link-attachments/iitsec-fellows/2015_fellowpaper_miller.ashx). ITSC Fellows Paper, 2015.
+
+Sterling, Bruce. [War Is Virtual Hell](https://www.wired.com/1993/01/virthell/). Wired Magazine 1.01, 1993.
+
+Lenoir, Tim and Henry Lowood. [Theaters of War: The military-entertainment Complex](https://web.stanford.edu/dept/HPST/TimLenoir/Publications/Lenoir-Lowood_TheatersOfWar.pdf). Berlin. Walter de Gruyter Publishers, 2003.
+
+## Games and Game Engines
 
 * [Colosal Cave Adventure](https://en.wikipedia.org/wiki/Colossal_Cave_Adventure)
 * [Zork](https://en.wikipedia.org/wiki/Zork)
@@ -321,7 +466,9 @@ Nakamura, Akinori and Susana Tosca. [The Mobile Suit Gundam Franchise: A Case St
 * [DikuMud](https://en.wikipedia.org/wiki/DikuMUD)
 * [Everquest](https://www.everquest.com/home)
 * [Warcraft](https://en.wikipedia.org/wiki/Warcraft)
-* [World of Warcraft](https://worldofwarcraft.com/en-us/)
+* World of Warcraft
+  * [Website](https://worldofwarcraft.com/en-us/)
+  * [Wikipedia](https://en.wikipedia.org/wiki/World_of_Warcraft)
 * Star Citizen
   * [Website](https://robertsspaceindustries.com/star-citizen/)
   * [Wikipedia](https://en.wikipedia.org/wiki/Star_Citizen)

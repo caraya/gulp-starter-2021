@@ -8,7 +8,7 @@ I think I'm finally understanding what micro frontends are, how they work and wh
 
 The idea behind micro front ends is related to microservices. As a project grows, it becomes segmented with different teams building different parts of the project.
 
-It would make the most sense for the team building the feature to also build the frontend and UI for that feature as well.
+It would make the most sense for the team building the feature to also build the frontend and UI for that feature.
 
 ## The Good, The Bad, And The Ugly
 
